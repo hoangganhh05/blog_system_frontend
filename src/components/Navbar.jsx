@@ -546,6 +546,9 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
               <Link to="/register">
                 <button className="btn btn-primary btn-sm" style={{ padding: "5px 10px", fontSize: 12 }}>Đăng ký</button>
               </Link>
+            </div>
+          )}
+
           {/* Hamburger Menu ☰ Button for Mobile */}
           <button
             className="navbar-icon-btn mobile-menu-trigger"
