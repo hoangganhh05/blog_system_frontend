@@ -39,6 +39,7 @@ function FloatingChatWidget() {
 
   const [editingMsgId, setEditingMsgId] = useState(null);
   const [editingText, setEditingText] = useState("");
+  const [activeMsgMenuId, setActiveMsgMenuId] = useState(null);
 
   const localVideoRef = useRef(null);
   const callStreamRef = useRef(null);
@@ -654,36 +655,100 @@ function playNotificationSound() {
                             ) : (
                               msg.content
                             )}
-
-                            {/* Nút hành động Sửa / Xóa cho người gửi */}
-                            {isMe && !isEditingThis && (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  gap: 6,
-                                  marginTop: 4,
-                                  justifyContent: "flex-end",
-                                  fontSize: 10,
-                                  opacity: 0.8,
-                                }}
-                              >
-                                <span
-                                  onClick={() => { setEditingMsgId(msg.id); setEditingText(msg.content); }}
-                                  style={{ cursor: "pointer" }}
-                                  title="Sửa tin nhắn"
-                                >
-                                  ✏️
-                                </span>
-                                <span
-                                  onClick={() => handleDeleteMessage(msg.id)}
-                                  style={{ cursor: "pointer" }}
-                                  title="Xóa tin nhắn"
-                                >
-                                  🗑️
-                                </span>
-                              </div>
-                            )}
                           </div>
+
+                          {/* Nút 3 chấm ⋮ cho tùy chọn tin nhắn (Sửa / Xóa) */}
+                          {isMe && !isEditingThis && (
+                            <div style={{ position: "relative" }}>
+                              <button
+                                type="button"
+                                onClick={() => setActiveMsgMenuId(activeMsgMenuId === msg.id ? null : msg.id)}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  color: "var(--text-muted)",
+                                  fontSize: 16,
+                                  cursor: "pointer",
+                                  padding: "2px 4px",
+                                  borderRadius: "50%",
+                                  lineHeight: 1,
+                                }}
+                                title="Tùy chọn tin nhắn"
+                              >
+                                ⋮
+                              </button>
+
+                              {/* Menu thả xuống 3 chấm */}
+                              {activeMsgMenuId === msg.id && (
+                                <div
+                                  style={{
+                                    position: "absolute",
+                                    bottom: "100%",
+                                    right: 0,
+                                    background: "var(--bg-card)",
+                                    border: "1px solid var(--border-light)",
+                                    borderRadius: 12,
+                                    boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+                                    padding: 4,
+                                    zIndex: 1000,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 2,
+                                    minWidth: 120,
+                                    animation: "slideUp 0.12s ease",
+                                  }}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingMsgId(msg.id);
+                                      setEditingText(msg.content);
+                                      setActiveMsgMenuId(null);
+                                    }}
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      padding: "6px 10px",
+                                      fontSize: 12,
+                                      fontWeight: 600,
+                                      color: "var(--text-primary)",
+                                      cursor: "pointer",
+                                      textAlign: "left",
+                                      borderRadius: 8,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 6,
+                                    }}
+                                  >
+                                    ✏️ Chỉnh sửa
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleDeleteMessage(msg.id);
+                                      setActiveMsgMenuId(null);
+                                    }}
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      padding: "6px 10px",
+                                      fontSize: 12,
+                                      fontWeight: 600,
+                                      color: "#ef4444",
+                                      cursor: "pointer",
+                                      textAlign: "left",
+                                      borderRadius: 8,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 6,
+                                    }}
+                                  >
+                                    🗑️ Xóa tin nhắn
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
 
                           {/* Avatar bên phải cho user mình */}
                           {isMe && (
