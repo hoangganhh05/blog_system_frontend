@@ -633,7 +633,7 @@ function Profile() {
                 </div>
               ) : currentUser && (
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", paddingBottom: 6 }}>
-                  {friendshipStatus === "NONE" && (
+                  {(!friendshipStatus || friendshipStatus === "NONE" || friendshipStatus === "NOT_FRIENDS") && (
                     <button className="btn btn-primary" onClick={handleSendFriendRequest} disabled={friendLoading} style={{ padding: "9px 18px", borderRadius: 10, fontWeight: 700 }}>
                       ➕ Thêm bạn bè
                     </button>
