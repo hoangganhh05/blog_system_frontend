@@ -187,7 +187,28 @@ function FloatingChatWidget() {
     }
   }, [isOpen, currentUserId]);
 
-  // Lấy lịch sử chat với bạn bè được chọn hoặc AI
+function playNotificationSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.25);
+  } catch {
+    // Ignore
+  }
+}
+
+  const prevMsgLengthRef = useRef(0);
+
+  // Lấy lịch sử chat với bạn bè được chọn hoặc AI với Polling siêu tốc 1.2s & Âm thanh chuông báo
   useEffect(() => {
     let timer;
     if (isOpen && activeFriend?.isAi) {
@@ -204,14 +225,23 @@ function FloatingChatWidget() {
       return;
     }
 
-    if (isOpen && currentUserId && activeFriend?.id) {
+    if (currentUserId && activeFriend?.id) {
       const fetchChat = () => {
         chatService.getHistory(currentUserId, activeFriend.id).then((res) => {
-          setMessages(res.data || []);
+          const list = res.data || [];
+          if (list.length > prevMsgLengthRef.current) {
+            const lastMsg = list[list.length - 1];
+            if (lastMsg && Number(lastMsg.senderId || lastMsg.sender?.id) !== currentUserId) {
+              playNotificationSound();
+            }
+          }
+          prevMsgLengthRef.current = list.length;
+          setMessages(list);
         }).catch(() => {});
       };
+
       fetchChat();
-      timer = setInterval(fetchChat, 2500); // Polling chat 2.5s
+      timer = setInterval(fetchChat, 1200); // Fast Polling 1.2s cho tin nhắn hiển thị tức thì
     }
     return () => timer && clearInterval(timer);
   }, [isOpen, currentUserId, activeFriend]);
