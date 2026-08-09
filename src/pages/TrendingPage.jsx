@@ -109,7 +109,7 @@ function TrendingPage() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 28 }}>
+      <div className="trending-responsive-grid">
         {/* Main Column: Top Bài Viết Hot */}
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
