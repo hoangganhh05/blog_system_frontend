@@ -112,6 +112,28 @@ function FloatingChatWidget() {
     return () => timer && clearInterval(timer);
   }, [isOpen, currentUserId, activeFriend]);
 
+  const [showStickerPicker, setShowStickerPicker] = useState(false);
+
+  const STICKERS = [
+    { emoji: "❤️", text: "Yêu thương" },
+    { emoji: "🔥", text: "Cháy quá" },
+    { emoji: "😂", text: "Cười ngất" },
+    { emoji: "🥰", text: "Mê mẩn" },
+    { emoji: "👍", text: "Tuyệt vời" },
+    { emoji: "🎉", text: "Chúc mừng" },
+    { emoji: "🐱", text: "Meow" },
+    { emoji: "🚀", text: "Lên đỉnh" },
+    { emoji: "💖", text: "Bật tim" },
+    { emoji: "🎁", text: "Quà này" },
+    { emoji: "💡", text: "Ý hay" },
+    { emoji: "🌟", text: "10 điểm" },
+  ];
+
+  const handleSendSticker = (st) => {
+    setInputMessage(`${st.emoji} ${st.text}`);
+    setShowStickerPicker(false);
+  };
+
   // Cuộn xuống tin nhắn mới nhất
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -392,7 +414,7 @@ function FloatingChatWidget() {
               </div>
             ) : (
               /* Khung Hội thoại Chat */
-              <div style={{ flex: 1, padding: 12, display: "flex", flexDirection: "column", gap: 10, overflowY: "auto" }}>
+              <div style={{ flex: 1, padding: 12, display: "flex", flexDirection: "column", gap: 12, overflowY: "auto" }}>
                 {messages.length === 0 ? (
                   <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 13, marginTop: 40 }}>
                     Hãy gửi lời chào đầu tiên! 👋
@@ -400,38 +422,76 @@ function FloatingChatWidget() {
                 ) : (
                   messages.map((msg, idx) => {
                     const isMe = Number(msg.senderId || msg.sender?.id) === currentUserId;
+                    const friendAvatar = activeFriend?.avatarUrl;
+                    const friendName = activeFriend?.fullName || activeFriend?.username || "Friend";
+
                     return (
                       <div
                         key={msg.id || idx}
                         style={{
                           display: "flex",
+                          alignItems: "flex-end",
+                          gap: 6,
                           justifyContent: isMe ? "flex-end" : "flex-start",
                         }}
                       >
+                        {/* Avatar bên trái cho bạn bè / AI */}
+                        {!isMe && (
+                          activeFriend?.isAi ? (
+                            <div className="avatar avatar-xs" style={{ width: 26, height: 26, fontSize: 13, background: "var(--primary)", color: "#fff", flexShrink: 0, border: "1px solid var(--border-light)" }}>
+                              🤖
+                            </div>
+                          ) : friendAvatar ? (
+                            <img src={friendAvatar} alt="" className="avatar avatar-xs" style={{ width: 26, height: 26, objectFit: "cover", flexShrink: 0 }} />
+                          ) : (
+                            <div className="avatar avatar-xs" style={{ width: 26, height: 26, fontSize: 10, flexShrink: 0, background: activeFriend?.avatarColor ? `linear-gradient(135deg, ${activeFriend.avatarColor}, ${activeFriend.avatarColor}bb)` : undefined }}>
+                              {getInitials(friendName)}
+                            </div>
+                          )
+                        )}
+
                         <div
                           style={{
-                            maxWidth: "78%",
-                            padding: "8px 14px",
+                            maxWidth: "76%",
+                            padding: "9px 14px",
                             borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                            background: isMe ? "var(--primary)" : activeFriend.isAi ? "var(--primary-light)" : "var(--bg-input)",
-                            color: isMe ? "#fff" : activeFriend.isAi ? "var(--text-primary)" : "var(--text-primary)",
-                            border: !isMe && activeFriend.isAi ? "1px solid var(--primary)" : "none",
+                            background: isMe
+                              ? "linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)"
+                              : activeFriend?.isAi
+                              ? "var(--primary-light)"
+                              : "var(--bg-input)",
+                            color: isMe ? "#fff" : "var(--text-primary)",
+                            border: !isMe && activeFriend?.isAi ? "1px solid var(--primary)" : "1px solid var(--border-light)",
                             fontSize: 13.5,
                             lineHeight: 1.45,
                             whiteSpace: "pre-line",
-                            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
                           }}
                         >
                           {msg.content}
                         </div>
+
+                        {/* Avatar bên phải cho user của mình */}
+                        {isMe && (
+                          currentUser.avatarUrl ? (
+                            <img src={currentUser.avatarUrl} alt="" className="avatar avatar-xs" style={{ width: 24, height: 24, objectFit: "cover", flexShrink: 0 }} />
+                          ) : (
+                            <div className="avatar avatar-xs" style={{ width: 24, height: 24, fontSize: 9, flexShrink: 0 }}>
+                              {getInitials(currentUser.fullName || currentUser.username)}
+                            </div>
+                          )
+                        )}
                       </div>
                     );
                   })
                 )}
                 {isAiTyping && (
-                  <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-start" }}>
+                    <div className="avatar avatar-xs" style={{ width: 26, height: 26, fontSize: 13, background: "var(--primary)", color: "#fff", flexShrink: 0 }}>
+                      🤖
+                    </div>
                     <div style={{ background: "var(--primary-light)", color: "var(--primary)", border: "1px solid var(--primary)", padding: "6px 12px", borderRadius: 16, fontSize: 12, fontWeight: 600, fontStyle: "italic", animation: "pulse 1.2s infinite" }}>
-                      🤖 AI đang suy nghĩ trả lời...
+                      AI đang suy nghĩ trả lời...
                     </div>
                   </div>
                 )}
@@ -440,18 +500,77 @@ function FloatingChatWidget() {
             )}
           </div>
 
-          {/* Messenger Input Form - Luôn hiển thị sẵn sàng nhập tin nhắn */}
+          {/* Bảng chọn Sticker & Emoji nhanh */}
+          {showStickerPicker && (
+            <div
+              style={{
+                padding: "10px 12px",
+                background: "var(--bg-card)",
+                borderTop: "1px solid var(--border-light)",
+                display: "grid",
+                gridTemplateColumns: "repeat(6, 1fr)",
+                gap: 8,
+                animation: "slideUp 0.15s ease",
+              }}
+            >
+              {STICKERS.map((st) => (
+                <button
+                  key={st.emoji}
+                  type="button"
+                  onClick={() => handleSendSticker(st)}
+                  title={st.text}
+                  style={{
+                    background: "var(--bg-input)",
+                    border: "1px solid var(--border-light)",
+                    borderRadius: 12,
+                    padding: "6px 0",
+                    fontSize: 20,
+                    cursor: "pointer",
+                    transition: "transform 0.15s ease, background 0.15s",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.2)"; e.currentTarget.style.background = "var(--primary-light)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.background = "var(--bg-input)"; }}
+                >
+                  {st.emoji}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Messenger Input Form - Sẵn sàng gõ tin nhắn */}
           <form
             onSubmit={handleSendMessage}
             style={{
               padding: "10px 12px",
               borderTop: "1px solid var(--border-light)",
               display: "flex",
+              alignItems: "center",
               gap: 8,
               background: "var(--bg-card)",
               zIndex: 1000,
             }}
           >
+            {/* Nút bật Sticker Picker */}
+            <button
+              type="button"
+              onClick={() => setShowStickerPicker((v) => !v)}
+              title="Bảng Sticker & Emoji"
+              style={{
+                background: showStickerPicker ? "var(--primary-light)" : "none",
+                border: "none",
+                fontSize: 20,
+                cursor: "pointer",
+                padding: 4,
+                borderRadius: "50%",
+                lineHeight: 1,
+              }}
+            >
+              😊
+            </button>
+
             <input
               type="text"
               placeholder={activeFriend ? `Nhắn tin cho ${activeFriend.fullName || activeFriend.username}...` : "Nhập tin nhắn..."}
