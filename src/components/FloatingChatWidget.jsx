@@ -37,6 +37,62 @@ function FloatingChatWidget() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef(null);
 
+  const [editingMsgId, setEditingMsgId] = useState(null);
+  const [editingText, setEditingText] = useState("");
+
+  const localVideoRef = useRef(null);
+  const callStreamRef = useRef(null);
+
+  // Kích hoạt Camera / Micro thật khi bắt đầu cuộc gọi WebRTC
+  useEffect(() => {
+    if (activeCall) {
+      navigator.mediaDevices?.getUserMedia({ video: activeCall.type === "video", audio: true })
+        .then((stream) => {
+          callStreamRef.current = stream;
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = stream;
+          }
+        })
+        .catch(() => {
+          // Micro / Camera permission fallback
+        });
+    } else {
+      if (callStreamRef.current) {
+        callStreamRef.current.getTracks().forEach((track) => track.stop());
+        callStreamRef.current = null;
+      }
+    }
+  }, [activeCall?.type]);
+
+  const handleEditMessage = async (msgId) => {
+    if (!editingText.trim()) return;
+    try {
+      setMessages((prev) =>
+        prev.map((m) => (m.id === msgId ? { ...m, content: editingText, edited: true } : m))
+      );
+      setEditingMsgId(null);
+      await chatService.editMessage(msgId, editingText);
+    } catch {
+      // Ignore
+    }
+  };
+
+  const handleDeleteMessage = async (msgId) => {
+    try {
+      setMessages((prev) => prev.filter((m) => m.id !== msgId));
+      await chatService.deleteMessage(msgId);
+    } catch {
+      // Ignore
+    }
+  };
+
+  function formatTime(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
   // Đếm thời gian cuộc gọi
   useEffect(() => {
     let timer;
@@ -485,63 +541,150 @@ function FloatingChatWidget() {
                     const isMe = Number(msg.senderId || msg.sender?.id) === currentUserId;
                     const friendAvatar = activeFriend?.avatarUrl;
                     const friendName = activeFriend?.fullName || activeFriend?.username || "Friend";
+                    const isEditingThis = editingMsgId === msg.id;
 
                     return (
                       <div
                         key={msg.id || idx}
                         style={{
                           display: "flex",
-                          alignItems: "flex-end",
-                          gap: 6,
-                          justifyContent: isMe ? "flex-end" : "flex-start",
+                          flexDirection: "column",
+                          alignItems: isMe ? "flex-end" : "flex-start",
+                          gap: 2,
                         }}
                       >
-                        {/* Avatar bên trái cho bạn bè / AI */}
-                        {!isMe && (
-                          activeFriend?.isAi ? (
-                            <div className="avatar avatar-xs" style={{ width: 26, height: 26, fontSize: 13, background: "var(--primary)", color: "#fff", flexShrink: 0, border: "1px solid var(--border-light)" }}>
-                              🤖
-                            </div>
-                          ) : friendAvatar ? (
-                            <img src={friendAvatar} alt="" className="avatar avatar-xs" style={{ width: 26, height: 26, objectFit: "cover", flexShrink: 0 }} />
-                          ) : (
-                            <div className="avatar avatar-xs" style={{ width: 26, height: 26, fontSize: 10, flexShrink: 0, background: activeFriend?.avatarColor ? `linear-gradient(135deg, ${activeFriend.avatarColor}, ${activeFriend.avatarColor}bb)` : undefined }}>
-                              {getInitials(friendName)}
-                            </div>
-                          )
-                        )}
-
                         <div
                           style={{
-                            maxWidth: "76%",
-                            padding: "9px 14px",
-                            borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                            background: isMe
-                              ? "linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)"
-                              : activeFriend?.isAi
-                              ? "var(--primary-light)"
-                              : "var(--bg-input)",
-                            color: isMe ? "#fff" : "var(--text-primary)",
-                            border: !isMe && activeFriend?.isAi ? "1px solid var(--primary)" : "1px solid var(--border-light)",
-                            fontSize: 13.5,
-                            lineHeight: 1.45,
-                            whiteSpace: "pre-line",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                            display: "flex",
+                            alignItems: "flex-end",
+                            gap: 6,
+                            justifyContent: isMe ? "flex-end" : "flex-start",
+                            width: "100%",
                           }}
                         >
-                          {msg.content}
+                          {/* Avatar bên trái cho bạn bè / AI */}
+                          {!isMe && (
+                            activeFriend?.isAi ? (
+                              <div className="avatar avatar-xs" style={{ width: 26, height: 26, fontSize: 13, background: "var(--primary)", color: "#fff", flexShrink: 0, border: "1px solid var(--border-light)" }}>
+                                🤖
+                              </div>
+                            ) : friendAvatar ? (
+                              <img src={friendAvatar} alt="" className="avatar avatar-xs" style={{ width: 26, height: 26, objectFit: "cover", flexShrink: 0 }} />
+                            ) : (
+                              <div className="avatar avatar-xs" style={{ width: 26, height: 26, fontSize: 10, flexShrink: 0, background: activeFriend?.avatarColor ? `linear-gradient(135deg, ${activeFriend.avatarColor}, ${activeFriend.avatarColor}bb)` : undefined }}>
+                                {getInitials(friendName)}
+                              </div>
+                            )
+                          )}
+
+                          {/* Bong bóng tin nhắn */}
+                          <div
+                            style={{
+                              maxWidth: "76%",
+                              padding: "9px 14px",
+                              borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                              background: isMe
+                                ? "linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)"
+                                : activeFriend?.isAi
+                                ? "var(--primary-light)"
+                                : "var(--bg-input)",
+                              color: isMe ? "#fff" : "var(--text-primary)",
+                              border: !isMe && activeFriend?.isAi ? "1px solid var(--primary)" : "1px solid var(--border-light)",
+                              fontSize: 13.5,
+                              lineHeight: 1.45,
+                              whiteSpace: "pre-line",
+                              boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                              position: "relative",
+                            }}
+                          >
+                            {isEditingThis ? (
+                              <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                                <input
+                                  type="text"
+                                  value={editingText}
+                                  onChange={(e) => setEditingText(e.target.value)}
+                                  style={{
+                                    padding: "4px 8px",
+                                    borderRadius: 8,
+                                    border: "1px solid #fff",
+                                    fontSize: 13,
+                                    color: "#000",
+                                  }}
+                                />
+                                <button onClick={() => handleEditMessage(msg.id)} style={{ background: "#10b981", color: "#fff", border: "none", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 12 }}>✓</button>
+                                <button onClick={() => setEditingMsgId(null)} style={{ background: "#ef4444", color: "#fff", border: "none", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 12 }}>✕</button>
+                              </div>
+                            ) : msg.content?.startsWith("📷 http") ? (
+                              <img
+                                src={msg.content.replace("📷 ", "").trim()}
+                                alt="Ảnh gửi"
+                                style={{ maxWidth: 210, maxHeight: 220, borderRadius: 12, objectFit: "cover", display: "block", cursor: "pointer" }}
+                                onClick={() => window.open(msg.content.replace("📷 ", "").trim(), "_blank")}
+                              />
+                            ) : (
+                              msg.content
+                            )}
+
+                            {/* Nút hành động Sửa / Xóa cho người gửi */}
+                            {isMe && !isEditingThis && (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: 6,
+                                  marginTop: 4,
+                                  justifyContent: "flex-end",
+                                  fontSize: 10,
+                                  opacity: 0.8,
+                                }}
+                              >
+                                <span
+                                  onClick={() => { setEditingMsgId(msg.id); setEditingText(msg.content); }}
+                                  style={{ cursor: "pointer" }}
+                                  title="Sửa tin nhắn"
+                                >
+                                  ✏️
+                                </span>
+                                <span
+                                  onClick={() => handleDeleteMessage(msg.id)}
+                                  style={{ cursor: "pointer" }}
+                                  title="Xóa tin nhắn"
+                                >
+                                  🗑️
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Avatar bên phải cho user mình */}
+                          {isMe && (
+                            currentUser.avatarUrl ? (
+                              <img src={currentUser.avatarUrl} alt="" className="avatar avatar-xs" style={{ width: 24, height: 24, objectFit: "cover", flexShrink: 0 }} />
+                            ) : (
+                              <div className="avatar avatar-xs" style={{ width: 24, height: 24, fontSize: 9, flexShrink: 0 }}>
+                                {getInitials(currentUser.fullName || currentUser.username)}
+                              </div>
+                            )
+                          )}
                         </div>
 
-                        {/* Avatar bên phải cho user của mình */}
-                        {isMe && (
-                          currentUser.avatarUrl ? (
-                            <img src={currentUser.avatarUrl} alt="" className="avatar avatar-xs" style={{ width: 24, height: 24, objectFit: "cover", flexShrink: 0 }} />
-                          ) : (
-                            <div className="avatar avatar-xs" style={{ width: 24, height: 24, fontSize: 9, flexShrink: 0 }}>
-                              {getInitials(currentUser.fullName || currentUser.username)}
-                            </div>
-                          )
-                        )}
+                        {/* Thời gian gửi & Trạng thái đã xem */}
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: "var(--text-muted)",
+                            margin: "0 34px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          {formatTime(msg.createdAt)}
+                          {isMe && (
+                            <span style={{ color: msg.read ? "var(--primary)" : "var(--text-muted)", fontWeight: 600 }}>
+                              {msg.read ? " ✓✓ Đã xem" : " ✓ Đã gửi"}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     );
                   })
@@ -552,7 +695,7 @@ function FloatingChatWidget() {
                       🤖
                     </div>
                     <div style={{ background: "var(--primary-light)", color: "var(--primary)", border: "1px solid var(--primary)", padding: "6px 12px", borderRadius: 16, fontSize: 12, fontWeight: 600, fontStyle: "italic", animation: "pulse 1.2s infinite" }}>
-                      AI đang suy nghĩ trả lời...
+                      🤖 AI đang nhập tin nhắn... 💬
                     </div>
                   </div>
                 )}
@@ -731,13 +874,17 @@ function FloatingChatWidget() {
           {/* Center Video Feed / Avatar Pulse */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative" }}>
             {activeCall.type === "video" ? (
-              <div style={{ width: 220, height: 280, borderRadius: 24, overflow: "hidden", background: "#000", border: "2px solid rgba(255,255,255,0.2)", position: "relative", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #4f46e5 0%, #1e1b4b 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {activeCall.friend?.avatarUrl ? (
-                    <img src={activeCall.friend.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
-                    <div style={{ fontSize: 64 }}>🤖</div>
-                  )}
+              <div style={{ width: 260, height: 320, borderRadius: 24, overflow: "hidden", background: "#000", border: "2px solid rgba(255,255,255,0.3)", position: "relative", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+                {/* Real WebRTC Local Camera Video Stream */}
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+                <div style={{ position: "absolute", bottom: 12, left: 12, background: "rgba(0,0,0,0.6)", padding: "4px 10px", borderRadius: 12, fontSize: 11, color: "#fff" }}>
+                  📷 Camera của bạn (Trực tiếp)
                 </div>
               </div>
             ) : (

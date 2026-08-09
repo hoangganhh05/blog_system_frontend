@@ -18,6 +18,16 @@ const chatService = {
   markAsRead(senderId, receiverId) {
     return axiosClient.post(`/chat/read?senderId=${senderId}&receiverId=${receiverId}`);
   },
+
+  // Chỉnh sửa tin nhắn
+  editMessage(messageId, content) {
+    return axiosClient.put(`/chat/message/${messageId}`, { content });
+  },
+
+  // Xóa tin nhắn
+  deleteMessage(messageId) {
+    return axiosClient.delete(`/chat/message/${messageId}`);
+  },
 };
 
 export default chatService;
