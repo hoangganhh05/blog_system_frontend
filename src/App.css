@@ -1105,6 +1105,11 @@
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08) !important;
   }
 
+  /* Chống trình duyệt di động tự động phóng phình to khi chạm ô gõ văn bản */
+  input, select, textarea, .messenger-window-container input {
+    font-size: 16px !important;
+  }
+
   .notification-drawer-popup {
     position: fixed !important;
     top: 56px !important;

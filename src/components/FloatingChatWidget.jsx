@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import friendService from "../services/friendService";
 import userService from "../services/userService";
 import chatService from "../services/chatService";
-import aiService from "../services/aiService";
+import uploadService from "../services/uploadService";
 
 const AI_USER = {
   id: "ai_bot",
@@ -33,6 +33,59 @@ function FloatingChatWidget() {
   const messagesEndRef = useRef(null);
 
   const [isAiTyping, setIsAiTyping] = useState(false);
+  const [activeCall, setActiveCall] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef(null);
+
+  // Đếm thời gian cuộc gọi
+  useEffect(() => {
+    let timer;
+    if (activeCall) {
+      timer = setInterval(() => {
+        setActiveCall((prev) => prev ? { ...prev, seconds: (prev.seconds || 0) + 1 } : null);
+      }, 1000);
+    }
+    return () => timer && clearInterval(timer);
+  }, [activeCall?.type]);
+
+  const handleImageSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const res = await uploadService.uploadFile(file);
+      const imageUrl = res.data.url;
+      const text = `📷 ${imageUrl}`;
+      
+      if (activeFriend?.isAi) {
+        const userMsgObj = { id: Date.now(), senderId: currentUserId, content: text, createdAt: new Date().toISOString() };
+        setMessages((prev) => [...prev, userMsgObj]);
+        setIsAiTyping(true);
+        try {
+          const aiResponse = await aiService.chatWithAI("Tôi vừa gửi một bức ảnh nghệ thuật cho bạn xem nè!");
+          setMessages((prev) => [...prev, { id: Date.now() + 1, senderId: "ai_bot", content: aiResponse, createdAt: new Date().toISOString() }]);
+        } catch {
+        } finally {
+          setIsAiTyping(false);
+        }
+      } else if (activeFriend?.id) {
+        const resMsg = await chatService.sendMessage(currentUserId, activeFriend.id, text);
+        setMessages((prev) => [...prev, resMsg.data]);
+      }
+    } catch {
+      // Ignore
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleStartCall = (type) => {
+    setActiveCall({ type, friend: activeFriend || AI_USER, seconds: 0 });
+  };
+
+  const handleEndCall = () => {
+    setActiveCall(null);
+  };
 
   // Lắng nghe Event từ ứng dụng (VD: bấm "Nhắn tin" từ trang cá nhân)
   useEffect(() => {
@@ -327,9 +380,9 @@ function FloatingChatWidget() {
               justifyContent: "space-between",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
               {activeFriend ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
                   <button
                     onClick={() => setActiveFriend(null)}
                     style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 16 }}
@@ -338,19 +391,39 @@ function FloatingChatWidget() {
                   </button>
                   <div
                     onClick={() => activeFriend.id && navigate(`/profile/${activeFriend.id}`)}
-                    style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}
+                    style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", minWidth: 0, flex: 1 }}
                     title={`Xem trang cá nhân của ${activeFriend.fullName || activeFriend.username}`}
                   >
                     {activeFriend.avatarUrl ? (
-                      <img src={activeFriend.avatarUrl} alt="" className="avatar avatar-sm" style={{ width: 28, height: 28, objectFit: "cover", border: "1px solid #fff" }} />
+                      <img src={activeFriend.avatarUrl} alt="" className="avatar avatar-sm" style={{ width: 28, height: 28, objectFit: "cover", border: "1px solid #fff", flexShrink: 0 }} />
                     ) : (
-                      <div className="avatar avatar-sm" style={{ width: 28, height: 28, fontSize: 11, background: "rgba(255,255,255,0.2)", border: "1px solid #fff" }}>
+                      <div className="avatar avatar-sm" style={{ width: 28, height: 28, fontSize: 11, background: "rgba(255,255,255,0.2)", border: "1px solid #fff", flexShrink: 0 }}>
                         {getInitials(activeFriend.fullName || activeFriend.username)}
                       </div>
                     )}
-                    <span style={{ fontWeight: 700, fontSize: 14 }}>
+                    <span style={{ fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {activeFriend.fullName || activeFriend.username}
                     </span>
+                  </div>
+
+                  {/* Nút Gọi Thoại & Gọi Video HD */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto", marginRight: 6 }}>
+                    <button
+                      type="button"
+                      onClick={() => handleStartCall("voice")}
+                      title="Gọi thoại Messenger"
+                      style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 18, padding: 2 }}
+                    >
+                      📞
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleStartCall("video")}
+                      title="Gọi Video TikTok HD"
+                      style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 18, padding: 2 }}
+                    >
+                      📹
+                    </button>
                   </div>
                 </div>
               ) : (
@@ -571,6 +644,32 @@ function FloatingChatWidget() {
               😊
             </button>
 
+            {/* Nút chọn gửi Ảnh */}
+            <button
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={uploadingImage}
+              title="Gửi hình ảnh"
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: 20,
+                cursor: "pointer",
+                padding: 4,
+                borderRadius: "50%",
+                lineHeight: 1,
+              }}
+            >
+              {uploadingImage ? "⏳" : "🖼️"}
+            </button>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleImageSelect}
+            />
+
             <input
               type="text"
               placeholder={activeFriend ? `Nhắn tin cho ${activeFriend.fullName || activeFriend.username}...` : "Nhập tin nhắn..."}
@@ -608,6 +707,89 @@ function FloatingChatWidget() {
               ➔
             </button>
           </form>
+        </div>
+      )}
+
+      {/* Messenger / TikTok Call Modal Overlay */}
+      {activeCall && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.95)",
+            zIndex: 99999999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "40px 20px 60px",
+            color: "#fff",
+            animation: "slideUp 0.25s ease",
+          }}
+        >
+          {/* Top Info */}
+          <div style={{ textAlign: "center", marginTop: 20 }}>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", fontWeight: 700, letterSpacing: 1 }}>
+              {activeCall.type === "video" ? "📹 Cuộc gọi Video HD" : "📞 Cuộc gọi thoại HD"}
+            </div>
+            <h2 style={{ fontSize: 24, fontWeight: 800, margin: "8px 0 4px", color: "#fff" }}>
+              {activeCall.friend?.fullName || activeCall.friend?.username}
+            </h2>
+            <div style={{ fontSize: 14, color: "#10b981", fontWeight: 700 }}>
+              🟢 {String(Math.floor(activeCall.seconds / 60)).padStart(2, "0")}:{String(activeCall.seconds % 60).padStart(2, "0")} • Trực tiếp
+            </div>
+          </div>
+
+          {/* Center Video Feed / Avatar Pulse */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative" }}>
+            {activeCall.type === "video" ? (
+              <div style={{ width: 220, height: 280, borderRadius: 24, overflow: "hidden", background: "#000", border: "2px solid rgba(255,255,255,0.2)", position: "relative", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #4f46e5 0%, #1e1b4b 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {activeCall.friend?.avatarUrl ? (
+                    <img src={activeCall.friend.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <div style={{ fontSize: 64 }}>🤖</div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 130, height: 130, borderRadius: "50%", background: "rgba(79, 70, 229, 0.3)", animation: "pulse 1.5s infinite", position: "absolute" }} />
+                {activeCall.friend?.avatarUrl ? (
+                  <img src={activeCall.friend.avatarUrl} alt="" className="avatar avatar-xl" style={{ width: 100, height: 100, objectFit: "cover", border: "3px solid #fff", position: "relative", zIndex: 2 }} />
+                ) : (
+                  <div className="avatar avatar-xl" style={{ width: 100, height: 100, fontSize: 36, background: "var(--primary)", color: "#fff", border: "3px solid #fff", position: "relative", zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {getInitials(activeCall.friend?.fullName || activeCall.friend?.username)}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Bottom Call Controls */}
+          <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={handleEndCall}
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                background: "#ef4444",
+                color: "#fff",
+                border: "none",
+                fontSize: 26,
+                cursor: "pointer",
+                boxShadow: "0 8px 24px rgba(239, 68, 68, 0.5)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              title="Tắt cuộc gọi"
+            >
+              🔴
+            </button>
+          </div>
         </div>
       )}
     </>
