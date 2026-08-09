@@ -115,32 +115,6 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
     <nav className="navbar">
       {/* Left Section: Logo + Search Bar */}
       <div className="navbar-left">
-        {/* If logged in, show mobile avatar on the left to go to profile! */}
-        {currentUser && (
-          <Link to={`/profile/${currentUser.id}`} className="mobile-header-avatar" title="Trang cá nhân">
-            {currentUser.avatarUrl ? (
-              <img
-                src={currentUser.avatarUrl}
-                alt={currentUser.fullName || currentUser.username}
-                className="avatar avatar-sm"
-                style={{ width: 34, height: 34, objectFit: "cover" }}
-              />
-            ) : (
-              <div
-                className="avatar avatar-sm"
-                style={{
-                  width: 34, height: 34, fontSize: 13,
-                  background: currentUser.avatarColor
-                    ? `linear-gradient(135deg, ${currentUser.avatarColor}, ${currentUser.avatarColor}bb)`
-                    : undefined,
-                }}
-              >
-                {getInitials(currentUser.fullName || currentUser.username)}
-              </div>
-            )}
-          </Link>
-        )}
-
         {/* Brand Logo */}
         <Link to="/" className="navbar-brand">
           <div className="navbar-brand-icon">
