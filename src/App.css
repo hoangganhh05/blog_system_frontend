@@ -1051,6 +1051,16 @@
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease !important;
 }
 
+@media screen and (min-width: 769px) {
+  .navbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+  }
+}
+
 .navbar.scroll-hidden {
   transform: translateY(-100%) !important;
 }

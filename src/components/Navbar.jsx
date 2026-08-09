@@ -337,89 +337,10 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
 
       {/* Right Actions */}
       <div className="navbar-right">
-          {/* Dark mode toggle */}
-          <button
-            className="navbar-icon-btn desktop-only-icon"
-            onClick={onToggleTheme}
-            title={isDark ? "Chế độ sáng" : "Chế độ tối"}
-          >
-            {isDark ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
-            )}
-          </button>
-
-          {/* Theme Accent Color Picker Button */}
-          <div className="navbar-accent-picker" style={{ position: "relative" }} ref={colorPickerRef}>
-            <button
-              className="navbar-icon-btn"
-              onClick={() => setColorPickerOpen((v) => !v)}
-              title="Đổi màu chủ đề ứng dụng"
-              style={{ fontSize: 16 }}
-            >
-              🎨
-            </button>
-
-            {colorPickerOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "calc(100% + 10px)",
-                  right: 0,
-                  width: 220,
-                  background: "var(--bg-card)",
-                  borderRadius: 16,
-                  boxShadow: "0 12px 32px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1)",
-                  border: "1px solid var(--border-light)",
-                  zIndex: 10000,
-                  padding: 14,
-                  animation: "dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-                }}
-              >
-                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 10 }}>
-                  Màu chủ đề ứng dụng
-                </div>
-                <div style={{ display: "flex", gap: 10, justifyContent: "space-between" }}>
-                  {ACCENT_COLORS.map((c) => (
-                    <div
-                      key={c.color}
-                      onClick={() => handleSelectAccentColor(c.color)}
-                      title={c.name}
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: "50%",
-                        background: c.color,
-                        cursor: "pointer",
-                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.25)",
-                        transition: "transform 0.15s ease",
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.25)"}
-                      onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
           {currentUser ? (
             <>
               {/* Notification Bell */}
-              <div className="desktop-only-icon" style={{ position: "relative" }} ref={notifRef}>
+              <div style={{ position: "relative" }} ref={notifRef}>
                 <button
                   className="navbar-icon-btn"
                   onClick={() => setNotifOpen((v) => !v)}
@@ -460,18 +381,6 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
                   onUnreadCountChange={setUnreadCount}
                 />
               </div>
-
-              {/* Dashboard */}
-              <Link to="/dashboard" className="mobile-hide">
-                <button className="navbar-icon-btn" title="Dashboard">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="7"/>
-                    <rect x="14" y="3" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/>
-                    <rect x="3" y="14" width="7" height="7"/>
-                  </svg>
-                </button>
-              </Link>
 
               {/* User dropdown */}
               <div className="user-dropdown desktop-only-icon" ref={menuRef}>
