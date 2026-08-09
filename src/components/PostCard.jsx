@@ -128,6 +128,43 @@ function PostCard({ post, onDelete, style }) {
     setShowReactionsPicker(false);
   };
 
+  // Long Press & Touch Drag state cho Facebook Reaction Bar
+  const [hoveredReaction, setHoveredReaction] = useState(null);
+  const longPressTimerRef = useRef(null);
+  const isLongPressRef = useRef(false);
+
+  const handleTouchStartLike = (e) => {
+    isLongPressRef.current = false;
+    longPressTimerRef.current = setTimeout(() => {
+      isLongPressRef.current = true;
+      setShowReactionsPicker(true);
+    }, 250);
+  };
+
+  const handleTouchMoveLike = (e) => {
+    if (!showReactionsPicker) return;
+    const touch = e.touches[0];
+    const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (elem) {
+      const type = elem.getAttribute("data-reaction-type");
+      if (type) {
+        setHoveredReaction(type);
+      }
+    }
+  };
+
+  const handleTouchEndLike = (e) => {
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    if (isLongPressRef.current) {
+      if (hoveredReaction) {
+        handleSelectReaction(hoveredReaction);
+      }
+      setHoveredReaction(null);
+    } else {
+      handleToggleLike(e);
+    }
+  };
+
   const handleMouseEnterLike = () => {
     reactionTimerRef.current = setTimeout(() => {
       setShowReactionsPicker(true);
@@ -561,49 +598,56 @@ function PostCard({ post, onDelete, style }) {
       {/* Action buttons với Popup Emoji Cảm Xúc */}
       <div className="post-card-actions" style={{ position: "relative" }}>
 
-        {/* Floating Emoji Popup Bar */}
+        {/* Floating Emoji Popup Bar (Facebook Mobile Touch Drag & Hover Style) */}
         {showReactionsPicker && (
           <div
             onMouseEnter={handleMouseEnterLike}
             onMouseLeave={handleMouseLeaveLike}
+            onTouchMove={handleTouchMoveLike}
+            onTouchEnd={handleTouchEndLike}
             style={{
               position: "absolute",
-              bottom: "calc(100% + 6px)",
+              bottom: "calc(100% + 8px)",
               left: 12,
               background: "var(--bg-card)",
               borderRadius: 30,
-              padding: "6px 12px",
+              padding: "6px 14px",
               display: "flex",
               alignItems: "center",
-              gap: 10,
-              boxShadow: "0 8px 30px rgba(0,0,0,0.22)",
-              border: "1px solid var(--border)",
-              zIndex: 100,
+              gap: 12,
+              boxShadow: "0 10px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.12)",
+              border: "1px solid var(--border-light)",
+              zIndex: 9999,
               animation: "reactionPopIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+              touchAction: "none",
             }}
           >
-            {REACTIONS.map((r) => (
-              <button
-                key={r.type}
-                type="button"
-                title={r.label}
-                onClick={() => handleSelectReaction(r.type)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: 26,
-                  cursor: "pointer",
-                  padding: 2,
-                  lineHeight: 1,
-                  transition: "transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                  transform: userReaction === r.type ? "scale(1.35)" : "scale(1)",
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.45) translateY(-4px)"}
-                onMouseLeave={(e) => e.currentTarget.style.transform = userReaction === r.type ? "scale(1.35)" : "scale(1)"}
-              >
-                {r.emoji}
-              </button>
-            ))}
+            {REACTIONS.map((r) => {
+              const isSelected = hoveredReaction === r.type || userReaction === r.type;
+              return (
+                <button
+                  key={r.type}
+                  type="button"
+                  data-reaction-type={r.type}
+                  title={r.label}
+                  onClick={() => handleSelectReaction(r.type)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: 28,
+                    cursor: "pointer",
+                    padding: 2,
+                    lineHeight: 1,
+                    transition: "transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                    transform: isSelected ? "scale(1.5) translateY(-6px)" : "scale(1)",
+                  }}
+                  onMouseEnter={() => setHoveredReaction(r.type)}
+                  onMouseLeave={() => setHoveredReaction(null)}
+                >
+                  <span data-reaction-type={r.type} style={{ pointerEvents: "none" }}>{r.emoji}</span>
+                </button>
+              );
+            })}
           </div>
         )}
 
@@ -611,6 +655,9 @@ function PostCard({ post, onDelete, style }) {
         <div
           onMouseEnter={handleMouseEnterLike}
           onMouseLeave={handleMouseLeaveLike}
+          onTouchStart={handleTouchStartLike}
+          onTouchMove={handleTouchMoveLike}
+          onTouchEnd={handleTouchEndLike}
           style={{ flex: 1, display: "flex" }}
         >
           <button
@@ -621,6 +668,8 @@ function PostCard({ post, onDelete, style }) {
               color: activeReactionObj ? activeReactionObj.color : "inherit",
               fontWeight: liked ? "700" : "500",
               gap: 6,
+              userSelect: "none",
+              touchAction: "manipulation",
             }}
           >
             {activeReactionObj ? (
