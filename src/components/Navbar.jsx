@@ -147,47 +147,6 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
           <span>BlogViet</span>
         </Link>
 
-        {/* Mobile Profile Avatar Link (Bấm trực tiếp vào Trang cá nhân) */}
-        {currentUser && (
-          <Link
-            to={`/profile/${currentUserId}`}
-            className="mobile-header-avatar"
-            title="Trang cá nhân của bạn"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginLeft: 8,
-              textDecoration: "none",
-              flexShrink: 0,
-            }}
-          >
-            {currentUser.avatarUrl ? (
-              <img
-                src={currentUser.avatarUrl}
-                alt=""
-                className="avatar avatar-sm"
-                style={{ width: 32, height: 32, objectFit: "cover", border: "2px solid var(--primary)" }}
-              />
-            ) : (
-              <div
-                className="avatar avatar-sm"
-                style={{
-                  width: 32,
-                  height: 32,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  background: currentUser.avatarColor ? `linear-gradient(135deg, ${currentUser.avatarColor}, ${currentUser.avatarColor}bb)` : "var(--primary)",
-                  color: "#fff",
-                  border: "2px solid var(--primary)",
-                }}
-              >
-                {getInitials(currentUser.fullName || currentUser.username)}
-              </div>
-            )}
-          </Link>
-        )}
-
         {/* Live Search Bar ở bên trái */}
         <div className="navbar-search" ref={searchRef} style={{ position: "relative" }}>
           <span className="navbar-search-icon">
@@ -422,64 +381,6 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
                   onClose={() => setNotifOpen(false)}
                   onUnreadCountChange={setUnreadCount}
                 />
-              </div>
-
-              {/* User dropdown */}
-              <div className="user-dropdown desktop-only-icon" ref={menuRef}>
-                {currentUser.avatarUrl ? (
-                  <img
-                    src={currentUser.avatarUrl}
-                    alt={currentUser.fullName || currentUser.username}
-                    className="avatar avatar-sm navbar-avatar"
-                    onClick={() => setMenuOpen((v) => !v)}
-                    style={{ objectFit: "cover", cursor: "pointer" }}
-                  />
-                ) : (
-                  <div
-                    className="avatar avatar-sm navbar-avatar"
-                    onClick={() => setMenuOpen((v) => !v)}
-                    style={{
-                      background: currentUser.avatarColor
-                        ? `linear-gradient(135deg, ${currentUser.avatarColor}, ${currentUser.avatarColor}bb)`
-                        : undefined,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {getInitials(currentUser.fullName || currentUser.username)}
-                  </div>
-                )}
-
-                {menuOpen && (
-                  <div className="user-menu">
-                    <div className="user-menu-header">
-                      <div className="user-menu-name">
-                        {currentUser.fullName || currentUser.username}
-                      </div>
-                      <div className="user-menu-username">@{currentUser.username}</div>
-                    </div>
-                    <div className="user-menu-divider" />
-                    <Link
-                      to={`/profile/${currentUser.id || currentUser.userId}`}
-                      className="user-menu-item"
-                    >
-                      <span>👤 Trang cá nhân</span>
-                    </Link>
-                    <Link to="/saved" className="user-menu-item">
-                      <span>🔖 Bài viết đã lưu</span>
-                    </Link>
-                    <Link to="/dashboard" className="user-menu-item">
-                      <span>⚙️ Quản lý bài viết</span>
-                    </Link>
-                    <div className="user-menu-divider" />
-                    <button
-                      className="user-menu-item danger"
-                      onClick={handleLogout}
-                      style={{ width: "100%", textAlign: "left", background: "none", border: "none" }}
-                    >
-                      <span>🚪 Đăng xuất</span>
-                    </button>
-                  </div>
-                )}
               </div>
             </>
           ) : (
