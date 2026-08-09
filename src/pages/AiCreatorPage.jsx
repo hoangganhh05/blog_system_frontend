@@ -184,7 +184,7 @@ function AiCreatorPage() {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10 }}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button
               className="btn btn-primary btn-sm"
               onClick={handleGenerateQuote}

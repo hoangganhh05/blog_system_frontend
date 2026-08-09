@@ -341,7 +341,7 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
           </button>
 
           {/* Theme Accent Color Picker Button */}
-          <div style={{ position: "relative" }} ref={colorPickerRef}>
+          <div className="navbar-accent-picker" style={{ position: "relative" }} ref={colorPickerRef}>
             <button
               className="navbar-icon-btn"
               onClick={() => setColorPickerOpen((v) => !v)}

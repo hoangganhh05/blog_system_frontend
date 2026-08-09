@@ -1046,6 +1046,10 @@ html, body {
     box-sizing: border-box !important;
   }
 
+  .navbar-accent-picker {
+    display: none !important;
+  }
+
   .navbar-brand span {
     display: none !important;
   }
