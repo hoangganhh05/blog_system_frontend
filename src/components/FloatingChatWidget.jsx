@@ -396,6 +396,46 @@ function playNotificationSound() {
     };
   }, [isDragging]);
 
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+
+  // Background Polling đếm số tin nhắn chưa đọc từ tất cả bạn bè
+  useEffect(() => {
+    let interval;
+    if (currentUserId && friends && friends.length > 0) {
+      const checkUnread = () => {
+        const userFriends = friends.filter((f) => !f.isAi && f.id);
+        if (userFriends.length === 0) return;
+
+        Promise.all(
+          userFriends.map((f) =>
+            chatService.getHistory(currentUserId, f.id).then((r) => r.data || []).catch(() => [])
+          )
+        ).then((results) => {
+          let count = 0;
+          results.forEach((msgList) => {
+            const unreadInChat = msgList.filter(
+              (m) => !m.read && Number(m.senderId || m.sender?.id) !== currentUserId
+            ).length;
+            count += unreadInChat;
+          });
+          setUnreadChatCount(count);
+          window.dispatchEvent(new CustomEvent("unread_chat_count_changed", { detail: { count } }));
+        });
+      };
+
+      checkUnread();
+      interval = setInterval(checkUnread, 3000);
+    }
+    return () => interval && clearInterval(interval);
+  }, [currentUserId, friends?.length]);
+
+  // Đánh dấu đã đọc khi chọn activeFriend
+  useEffect(() => {
+    if (isOpen && currentUserId && activeFriend?.id && !activeFriend?.isAi) {
+      chatService.markAsRead(activeFriend.id, currentUserId).catch(() => {});
+    }
+  }, [isOpen, currentUserId, activeFriend]);
+
   if (!currentUser) return null;
 
   return (
@@ -435,6 +475,31 @@ function playNotificationSound() {
           }}
         >
           💬
+          {unreadChatCount > 0 && (
+            <span
+              style={{
+                position: "absolute",
+                top: -3,
+                right: -3,
+                background: "#ef4444",
+                color: "#fff",
+                fontSize: 11,
+                fontWeight: 800,
+                borderRadius: "50%",
+                minWidth: 20,
+                height: 20,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0 4px",
+                boxShadow: "0 2px 8px rgba(239, 68, 68, 0.5)",
+                border: "2px solid #fff",
+                animation: "pulse 1.5s infinite",
+              }}
+            >
+              {unreadChatCount > 9 ? "9+" : unreadChatCount}
+            </span>
+          )}
         </div>
       )}
 
