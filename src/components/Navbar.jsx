@@ -5,6 +5,7 @@ import notificationService from "../services/notificationService";
 import userService from "../services/userService";
 import postService from "../services/postService";
 import NotificationDrawer from "./NotificationDrawer";
+import MobileMenuDrawer from "./MobileMenuDrawer";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -24,6 +25,7 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   // States cho Live Search Autocomplete
   const [searchFocused, setSearchFocused] = useState(false);
@@ -544,9 +546,27 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
               <Link to="/register">
                 <button className="btn btn-primary btn-sm" style={{ padding: "5px 10px", fontSize: 12 }}>Đăng ký</button>
               </Link>
-            </div>
-          )}
+          {/* Hamburger Menu ☰ Button for Mobile */}
+          <button
+            className="navbar-icon-btn mobile-menu-trigger"
+            onClick={() => setMobileDrawerOpen(true)}
+            title="Menu chức năng"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
         </div>
+
+      {/* Mobile Drawer Menu ☰ Component */}
+      <MobileMenuDrawer
+        isOpen={mobileDrawerOpen}
+        onClose={() => setMobileDrawerOpen(false)}
+        isDark={isDark}
+        onToggleTheme={onToggleTheme}
+      />
     </nav>
   );
 }

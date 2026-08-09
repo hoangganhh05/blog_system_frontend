@@ -956,6 +956,94 @@
 /* ============================================
    EXACT FACEBOOK MOBILE EXPERIENCE
    ============================================ */
+/* ============================================
+   FACEBOOK MOBILE 3-LINE MENU DRAWER
+   ============================================ */
+.mobile-menu-trigger {
+  display: none;
+}
+
+.mobile-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999999;
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s ease;
+}
+
+.mobile-drawer-content {
+  width: 86vw;
+  max-width: 360px;
+  height: 100%;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+  animation: slideLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+}
+
+@keyframes slideLeft {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.mobile-drawer-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.mobile-drawer-body {
+  padding: 16px;
+  flex: 1;
+}
+
+.mobile-menu-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-input);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  text-decoration: none;
+}
+
+.mobile-menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.mobile-menu-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--bg-input);
+  border-radius: 16px;
+  text-decoration: none;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 13px;
+  transition: transform 0.15s ease;
+}
+
+.mobile-menu-tile-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
 .mobile-bottom-nav {
   display: none;
 }
