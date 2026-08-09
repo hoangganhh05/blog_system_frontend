@@ -158,46 +158,116 @@ function FloatingChatWidget() {
     }
   };
 
+  // Draggable Floating Bubble Coordinates
+  const [bubblePos, setBubblePos] = useState({
+    x: typeof window !== "undefined" ? window.innerWidth - 75 : 300,
+    y: typeof window !== "undefined" ? window.innerHeight - 150 : 500,
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef({ startX: 0, startY: 0, initialX: 0, initialY: 0, moved: false });
+
+  const handleDragStart = (e) => {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    dragRef.current = {
+      startX: clientX,
+      startY: clientY,
+      initialX: bubblePos.x,
+      initialY: bubblePos.y,
+      moved: false,
+    };
+    setIsDragging(true);
+  };
+
+  const handleDragMove = (e) => {
+    if (!isDragging) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const deltaX = clientX - dragRef.current.startX;
+    const deltaY = clientY - dragRef.current.startY;
+
+    if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
+      dragRef.current.moved = true;
+    }
+
+    const newX = Math.max(10, Math.min(window.innerWidth - 65, dragRef.current.initialX + deltaX));
+    const newY = Math.max(10, Math.min(window.innerHeight - 65, dragRef.current.initialY + deltaY));
+    setBubblePos({ x: newX, y: newY });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("mousemove", handleDragMove);
+      window.addEventListener("mouseup", handleDragEnd);
+      window.addEventListener("touchmove", handleDragMove);
+      window.addEventListener("touchend", handleDragEnd);
+    }
+    return () => {
+      window.removeEventListener("mousemove", handleDragMove);
+      window.removeEventListener("mouseup", handleDragEnd);
+      window.removeEventListener("touchmove", handleDragMove);
+      window.removeEventListener("touchend", handleDragEnd);
+    };
+  }, [isDragging]);
+
   if (!currentUser) return null;
 
   return (
-    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 99999, fontFamily: "inherit" }}>
-      {/* Floating Messenger Icon Button */}
+    <>
+      {/* Floating Messenger Icon Button (Draggable by Touch & Mouse) */}
       {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          title="Nhắn tin với bạn bè"
+        <div
+          onMouseDown={handleDragStart}
+          onTouchStart={handleDragStart}
+          onClick={() => {
+            if (!dragRef.current.moved) {
+              setIsOpen(true);
+            }
+          }}
+          title="Nhắn tin với bạn bè (Kéo thả di chuyển)"
           style={{
+            position: "fixed",
+            left: bubblePos.x,
+            top: bubblePos.y,
+            zIndex: 999999,
             width: 56,
             height: 56,
             borderRadius: "50%",
             background: "linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)",
             color: "#fff",
-            border: "none",
-            boxShadow: "0 8px 24px rgba(79, 70, 229, 0.4)",
-            cursor: "pointer",
+            boxShadow: "0 8px 28px rgba(79, 70, 229, 0.45)",
+            cursor: isDragging ? "grabbing" : "grab",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: 24,
-            transition: "transform 0.2s, boxShadow 0.2s",
+            userSelect: "none",
+            touchAction: "none",
+            transition: isDragging ? "none" : "box-shadow 0.2s, transform 0.2s",
           }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.1)"}
-          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
         >
           💬
-        </button>
+        </div>
       )}
 
-      {/* Mini Messenger Popup Window */}
+      {/* Mini Messenger / Mobile Fullscreen Window */}
       {isOpen && (
         <div
+          className="messenger-window-container"
           style={{
-            width: 350,
-            height: 460,
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            zIndex: 999999,
+            width: 360,
+            height: 520,
             background: "var(--bg-card)",
-            borderRadius: 18,
-            boxShadow: "0 12px 36px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.1)",
+            borderRadius: 20,
+            boxShadow: "0 16px 48px rgba(0, 0, 0, 0.25), 0 2px 10px rgba(0, 0, 0, 0.1)",
             border: "1px solid var(--border-light)",
             display: "flex",
             flexDirection: "column",
@@ -401,7 +471,7 @@ function FloatingChatWidget() {
           )}
         </div>
       )}
-    </div>
+    </>
   );
 }
 
