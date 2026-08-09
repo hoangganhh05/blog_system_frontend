@@ -43,8 +43,15 @@ function FloatingChatWidget() {
         setActiveFriend(friend);
       }
     };
+    const handleToggleChat = () => {
+      setIsOpen((prev) => !prev);
+    };
     window.addEventListener("open_chat_user", handleOpenChat);
-    return () => window.removeEventListener("open_chat_user", handleOpenChat);
+    window.addEventListener("toggle_chat_widget", handleToggleChat);
+    return () => {
+      window.removeEventListener("open_chat_user", handleOpenChat);
+      window.removeEventListener("toggle_chat_widget", handleToggleChat);
+    };
   }, []);
 
   // Lấy danh sách bạn bè (hoặc người dùng) khi mở widget - luôn chèn AI Assistant ở đầu

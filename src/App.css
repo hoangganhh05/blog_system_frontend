@@ -1055,8 +1055,17 @@
 }
 
 @media screen and (max-width: 1024px) {
-  .mobile-menu-trigger {
+  .mobile-menu-trigger, .mobile-chat-btn {
     display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 1000 !important;
+    cursor: pointer !important;
+    background: var(--bg-input) !important;
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    flex-shrink: 0 !important;
   }
   /* 1. Global Reset & Overflows for Mobile */
   html, body {
