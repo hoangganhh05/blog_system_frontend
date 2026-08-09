@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -35,7 +36,7 @@ export default function MobileMenuDrawer({ isOpen, onClose, isDark, onToggleThem
     localStorage.setItem("blog_accent_color", color);
   };
 
-  return (
+  return createPortal(
     <div className="mobile-drawer-overlay" onClick={onClose}>
       <div className="mobile-drawer-content" onClick={(e) => e.stopPropagation()}>
         {/* Drawer Header */}
@@ -196,6 +197,7 @@ export default function MobileMenuDrawer({ isOpen, onClose, isDark, onToggleThem
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

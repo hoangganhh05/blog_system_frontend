@@ -320,7 +320,7 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
       <div className="navbar-right">
           {/* Dark mode toggle */}
           <button
-            className="navbar-icon-btn"
+            className="navbar-icon-btn desktop-only-icon"
             onClick={onToggleTheme}
             title={isDark ? "Chế độ sáng" : "Chế độ tối"}
           >
@@ -400,7 +400,7 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
           {currentUser ? (
             <>
               {/* Notification Bell */}
-              <div style={{ position: "relative" }} ref={notifRef}>
+              <div className="desktop-only-icon" style={{ position: "relative" }} ref={notifRef}>
                 <button
                   className="navbar-icon-btn"
                   onClick={() => setNotifOpen((v) => !v)}
@@ -455,7 +455,7 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
               </Link>
 
               {/* User dropdown */}
-              <div className="user-dropdown" ref={menuRef}>
+              <div className="user-dropdown desktop-only-icon" ref={menuRef}>
                 {currentUser.avatarUrl ? (
                   <img
                     src={currentUser.avatarUrl}

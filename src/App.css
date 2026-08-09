@@ -1055,6 +1055,10 @@
 }
 
 @media screen and (max-width: 1024px) {
+  .desktop-only-icon {
+    display: none !important;
+  }
+
   .mobile-menu-trigger, .mobile-chat-btn {
     display: flex !important;
     align-items: center !important;
