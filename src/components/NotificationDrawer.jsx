@@ -123,6 +123,7 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
   return (
     <div
       ref={drawerRef}
+      className="notification-drawer-popup"
       style={{
         position: "absolute",
         top: "calc(100% + 10px)",

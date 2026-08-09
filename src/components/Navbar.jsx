@@ -146,6 +146,47 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
           <span>BlogViet</span>
         </Link>
 
+        {/* Mobile Profile Avatar Link (Bấm trực tiếp vào Trang cá nhân) */}
+        {currentUser && (
+          <Link
+            to={`/profile/${currentUserId}`}
+            className="mobile-header-avatar"
+            title="Trang cá nhân của bạn"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginLeft: 8,
+              textDecoration: "none",
+              flexShrink: 0,
+            }}
+          >
+            {currentUser.avatarUrl ? (
+              <img
+                src={currentUser.avatarUrl}
+                alt=""
+                className="avatar avatar-sm"
+                style={{ width: 32, height: 32, objectFit: "cover", border: "2px solid var(--primary)" }}
+              />
+            ) : (
+              <div
+                className="avatar avatar-sm"
+                style={{
+                  width: 32,
+                  height: 32,
+                  fontSize: 11,
+                  fontWeight: 800,
+                  background: currentUser.avatarColor ? `linear-gradient(135deg, ${currentUser.avatarColor}, ${currentUser.avatarColor}bb)` : "var(--primary)",
+                  color: "#fff",
+                  border: "2px solid var(--primary)",
+                }}
+              >
+                {getInitials(currentUser.fullName || currentUser.username)}
+              </div>
+            )}
+          </Link>
+        )}
+
         {/* Live Search Bar ở bên trái */}
         <div className="navbar-search" ref={searchRef} style={{ position: "relative" }}>
           <span className="navbar-search-icon">
