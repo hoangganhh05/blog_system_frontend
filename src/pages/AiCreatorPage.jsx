@@ -70,24 +70,24 @@ function AiCreatorPage() {
         }}
       >
         <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.9, marginBottom: 4 }}>
-          💡 BlogViet AI Creator Hub
+          🎨 Studio Sáng Tạo Nghệ Thuật
         </div>
         <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 8px 0" }}>
-          Góc Sáng Tạo AI Assistant
+          Không Gian Sáng Tạo Nghệ Thuật & Thơ Ca
         </h1>
         <p style={{ margin: 0, opacity: 0.95, fontSize: 14, maxWidth: 520, margin: "0 auto" }}>
-          Tạo trích dẫn hay, viết câu thơ lãng mạn và tạo ý tưởng viết bài độc đáo ngay tức thì!
+          Tạo trích dẫn hay, viết câu thơ lãng mạn và khơi nguồn ý tưởng bài viết độc đáo tức thì!
         </p>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: 24 }}>
-        {/* Module 1: AI Viết Thơ */}
+        {/* Module 1: Sáng Tác Thơ */}
         <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 20, padding: 24 }}>
           <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-            <span>✍️ AI Viết Thơ Cảm Xúc</span>
+            <span>✍️ Sáng Tác Thơ Cảm Xúc</span>
           </h3>
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
-            Chọn chủ đề gợi ý để AI sáng tác ngay 4 câu thơ lãng mạn cho bạn:
+            Chọn chủ đề gợi ý để sáng tác ngay 4 câu thơ lãng mạn cho bài viết của bạn:
           </p>
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>

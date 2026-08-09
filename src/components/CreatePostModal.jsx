@@ -381,7 +381,7 @@ function CreatePostModal({ onClose, onCreated, editPost }) {
                 {showBgPicker ? "Tắt nền màu" : "Thêm nền màu"}
               </button>
 
-              {/* Nút AI Sáng tạo */}
+              {/* Nút Trợ lý Sáng tạo */}
               <button
                 type="button"
                 onClick={handleGenerateAI}
@@ -401,8 +401,8 @@ function CreatePostModal({ onClose, onCreated, editPost }) {
                   transition: "all 0.2s",
                 }}
               >
-                <span>🤖</span>
-                {aiLoading ? "AI đang viết..." : "AI Viết Bài"}
+                <span>✨</span>
+                {aiLoading ? "Trợ lý đang gợi ý..." : "Gợi ý viết bài"}
               </button>
 
               {/* Nút Voice Typing */}

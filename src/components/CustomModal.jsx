@@ -61,14 +61,14 @@ export function AiPromptModal({ isOpen, onClose, onSubmit, loading }) {
                 fontSize: 22, color: "#fff", boxShadow: "0 4px 12px rgba(124,58,237,0.3)"
               }}
             >
-              🤖
+              ✨
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>
-                AI Sáng Tạo Nội Dung
+                Trợ Lý Gợi Ý Viết Bài
               </h3>
               <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                Nhập ý tưởng để AI viết bài tự động cho bạn
+                Nhập chủ đề để Trợ lý khơi nguồn ý tưởng viết bài cho bạn
               </span>
             </div>
           </div>

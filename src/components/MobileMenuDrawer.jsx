@@ -117,8 +117,8 @@ export default function MobileMenuDrawer({ isOpen, onClose, isDark, onToggleThem
             </Link>
 
             <Link to="/ai-creator" onClick={onClose} className="mobile-menu-tile">
-              <div className="mobile-menu-tile-icon" style={{ background: "rgba(139,92,246,0.12)", color: "#8b5cf6" }}>💡</div>
-              <span>AI Creator</span>
+              <div className="mobile-menu-tile-icon" style={{ background: "rgba(139,92,246,0.12)", color: "#8b5cf6" }}>🎨</div>
+              <span>Sáng tạo</span>
             </Link>
 
             {currentUser && (

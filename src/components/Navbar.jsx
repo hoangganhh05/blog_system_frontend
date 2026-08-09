@@ -327,12 +327,12 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
         <NavLink
           to="/ai-creator"
           className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
-          title="AI Creator Hub"
+          title="Studio Sáng Tạo Nghệ Thuật & Nội Dung"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2v8m0 4v8M4.93 4.93l5.66 5.66m2.83 2.83l5.66 5.66M2 12h8m4 0h8M4.93 19.07l5.66-5.66m2.83-2.83l5.66-5.66"/>
           </svg>
-          <span className="nav-tab-label">AI Creator</span>
+          <span className="nav-tab-label">Sáng tạo</span>
         </NavLink>
       </div>
 

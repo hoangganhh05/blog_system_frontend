@@ -8,8 +8,8 @@ import uploadService from "../services/uploadService";
 
 const AI_USER = {
   id: "ai_bot",
-  fullName: "🤖 Trợ lý AI Assistant",
-  username: "ai_assistant",
+  fullName: "✨ Trợ lý BlogViet",
+  username: "tro_ly_blogviet",
   avatarColor: "#6366f1",
   isAi: true
 };
@@ -218,7 +218,7 @@ function playNotificationSound() {
           {
             id: "ai_welcome",
             senderId: "ai_bot",
-            content: "Xin chào! Mình là Trợ lý AI của BlogViet 🤖✨. Bạn cần tư vấn ý tưởng bài viết, giải đáp thắc mắc hay trò chuyện gì cứ nhắn cho mình nhé!",
+            content: "Xin chào! Mình là Trợ lý BlogViet ✨. Bạn cần tư vấn ý tưởng bài viết, giải đáp thắc mắc hay trò chuyện gì cứ nhắn cho mình nhé!",
             createdAt: new Date().toISOString()
           }
         ]);
@@ -787,10 +787,10 @@ function playNotificationSound() {
                 {isAiTyping && (
                   <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-start" }}>
                     <div className="avatar avatar-xs" style={{ width: 26, height: 26, fontSize: 13, background: "var(--primary)", color: "#fff", flexShrink: 0 }}>
-                      🤖
+                      ✨
                     </div>
                     <div style={{ background: "var(--primary-light)", color: "var(--primary)", border: "1px solid var(--primary)", padding: "6px 12px", borderRadius: 16, fontSize: 12, fontWeight: 600, fontStyle: "italic", animation: "pulse 1.2s infinite" }}>
-                      🤖 AI đang nhập tin nhắn... 💬
+                      ✨ Trợ lý đang soạn phản hồi... 💬
                     </div>
                   </div>
                 )}
