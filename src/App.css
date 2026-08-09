@@ -1025,7 +1025,28 @@
   }
 
   .navbar-right {
-    gap: 8px !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-header-avatar {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+
+  .navbar-auth-btns {
+    display: flex !important;
+    gap: 4px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .navbar-auth-btns .btn {
+    padding: 4px 8px !important;
+    font-size: 11.5px !important;
+    white-space: nowrap !important;
   }
 
   .navbar-right .navbar-icon-btn {

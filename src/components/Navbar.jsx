@@ -113,6 +113,33 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
     <nav className="navbar">
       {/* Left Section: Logo + Search Bar */}
       <div className="navbar-left">
+        {/* If logged in, show mobile avatar on the left to go to profile! */}
+        {currentUser && (
+          <Link to={`/profile/${currentUser.id}`} className="mobile-header-avatar" title="Trang cá nhân">
+            {currentUser.avatarUrl ? (
+              <img
+                src={currentUser.avatarUrl}
+                alt={currentUser.fullName || currentUser.username}
+                className="avatar avatar-sm"
+                style={{ width: 34, height: 34, objectFit: "cover" }}
+              />
+            ) : (
+              <div
+                className="avatar avatar-sm"
+                style={{
+                  width: 34, height: 34, fontSize: 13,
+                  background: currentUser.avatarColor
+                    ? `linear-gradient(135deg, ${currentUser.avatarColor}, ${currentUser.avatarColor}bb)`
+                    : undefined,
+                }}
+              >
+                {getInitials(currentUser.fullName || currentUser.username)}
+              </div>
+            )}
+          </Link>
+        )}
+
+        {/* Brand Logo */}
         <Link to="/" className="navbar-brand">
           <div className="navbar-brand-icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -510,12 +537,12 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
               </div>
             </>
           ) : (
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="navbar-auth-btns" style={{ display: "flex", gap: 6, alignItems: "center" }}>
               <Link to="/login">
-                <button className="btn btn-secondary btn-sm">Đăng nhập</button>
+                <button className="btn btn-secondary btn-sm" style={{ padding: "5px 10px", fontSize: 12 }}>Đăng nhập</button>
               </Link>
               <Link to="/register">
-                <button className="btn btn-primary btn-sm">Đăng ký</button>
+                <button className="btn btn-primary btn-sm" style={{ padding: "5px 10px", fontSize: 12 }}>Đăng ký</button>
               </Link>
             </div>
           )}
