@@ -117,13 +117,22 @@ function FloatingChatWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isAiTyping]);
 
+  // Tự động chọn Trợ lý AI Assistant làm đối tượng trò chuyện mặc định khi mở Messenger
+  useEffect(() => {
+    if (isOpen && currentUserId && !activeFriend) {
+      setActiveFriend(AI_USER);
+    }
+  }, [isOpen, currentUserId, activeFriend]);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!inputMessage.trim() || !currentUserId || !activeFriend?.id) return;
+    if (!inputMessage.trim() || !currentUserId) return;
     const text = inputMessage.trim();
     setInputMessage("");
 
-    if (activeFriend.isAi) {
+    const targetFriend = activeFriend || AI_USER;
+
+    if (targetFriend.isAi) {
       const userMsgObj = {
         id: Date.now(),
         senderId: currentUserId,
@@ -142,19 +151,21 @@ function FloatingChatWidget() {
           createdAt: new Date().toISOString()
         };
         setMessages((prev) => [...prev, aiMsgObj]);
-      } catch {
-        // Fail silently
+      } catch (err) {
+        console.error("Lỗi AI response:", err);
       } finally {
         setIsAiTyping(false);
       }
       return;
     }
 
-    try {
-      const res = await chatService.sendMessage(currentUserId, activeFriend.id, text);
-      setMessages((prev) => [...prev, res.data]);
-    } catch {
-      // Fail silently
+    if (targetFriend.id) {
+      try {
+        const res = await chatService.sendMessage(currentUserId, targetFriend.id, text);
+        setMessages((prev) => [...prev, res.data]);
+      } catch (err) {
+        console.error("Lỗi gửi tin nhắn:", err);
+      }
     }
   };
 
@@ -429,54 +440,55 @@ function FloatingChatWidget() {
             )}
           </div>
 
-          {/* Messenger Input Form */}
-          {activeFriend && (
-            <form
-              onSubmit={handleSendMessage}
+          {/* Messenger Input Form - Luôn hiển thị sẵn sàng nhập tin nhắn */}
+          <form
+            onSubmit={handleSendMessage}
+            style={{
+              padding: "10px 12px",
+              borderTop: "1px solid var(--border-light)",
+              display: "flex",
+              gap: 8,
+              background: "var(--bg-card)",
+              zIndex: 1000,
+            }}
+          >
+            <input
+              type="text"
+              placeholder={activeFriend ? `Nhắn tin cho ${activeFriend.fullName || activeFriend.username}...` : "Nhập tin nhắn..."}
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
               style={{
-                padding: 10,
-                borderTop: "1px solid var(--border-light)",
+                flex: 1,
+                padding: "10px 14px",
+                borderRadius: 20,
+                border: "1px solid var(--border-light)",
+                background: "var(--bg-input)",
+                color: "var(--text-primary)",
+                fontSize: 14,
+                outline: "none",
+              }}
+            />
+            <button
+              type="submit"
+              disabled={!inputMessage.trim()}
+              style={{
+                background: inputMessage.trim() ? "var(--primary)" : "var(--border)",
+                color: "#fff",
+                border: "none",
+                borderRadius: "50%",
+                width: 38,
+                height: 38,
+                cursor: inputMessage.trim() ? "pointer" : "default",
                 display: "flex",
-                gap: 8,
-                background: "var(--bg-card)",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 16,
+                flexShrink: 0,
               }}
             >
-              <input
-                type="text"
-                placeholder="Nhập tin nhắn..."
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                style={{
-                  flex: 1,
-                  padding: "8px 14px",
-                  borderRadius: 20,
-                  border: "1px solid var(--border)",
-                  background: "var(--bg-input)",
-                  color: "var(--text-primary)",
-                  fontSize: 13.5,
-                  outline: "none",
-                }}
-              />
-              <button
-                type="submit"
-                style={{
-                  background: "var(--primary)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: 36,
-                  height: 36,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 14,
-                }}
-              >
-                ➔
-              </button>
-            </form>
-          )}
+              ➔
+            </button>
+          </form>
         </div>
       )}
     </>
