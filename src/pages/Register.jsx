@@ -49,7 +49,10 @@ function Register() {
       login(res.data);
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Đăng ký thất bại. Tên đăng nhập có thể đã tồn tại!");
+      const serverMsg = typeof err.response?.data === "string" 
+        ? err.response.data 
+        : err.response?.data?.message;
+      setError(serverMsg || "Đăng ký thất bại. Tên đăng nhập hoặc Email có thể đã được sử dụng!");
     } finally {
       setLoading(false);
     }

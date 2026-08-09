@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080",
   headers: {
     "Content-Type": "application/json",
   },
@@ -39,10 +39,8 @@ axiosClient.interceptors.response.use(
 
     if (status === 401) {
       // Token hết hạn hoặc không hợp lệ
-      // Xóa token cũ, redirect về login
       localStorage.removeItem("blog_token");
       localStorage.removeItem("blog_user");
-      window.location.href = "/login";
     }
 
     console.error("API Error:", error.response?.data || error.message);
