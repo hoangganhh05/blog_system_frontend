@@ -1007,3 +1007,38 @@
   }
 }
 
+/* ============================================
+   MOBILE RESPONSIVE & HORIZONTAL SCROLL LOCK
+   ============================================ */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw;
+  width: 100%;
+  touch-action: pan-y;
+}
+
+#root {
+  overflow-x: hidden !important;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 0 10px !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .navbar-search {
+    width: 130px !important;
+  }
+
+  .navbar-search:focus-within {
+    width: 160px !important;
+  }
+
+  .navbar-right {
+    gap: 4px !important;
+  }
+}
+
