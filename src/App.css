@@ -1237,9 +1237,14 @@
     box-sizing: border-box !important;
   }
 
-  p, span, h1, h2, h3, h4, h5, h6 {
+  p, .post-card-content, .post-detail-content {
     word-break: break-word !important;
     overflow-wrap: break-word !important;
+  }
+
+  .create-post-action span, .btn, .nav-tab-label, .mobile-nav-item span {
+    white-space: nowrap !important;
+    word-break: normal !important;
   }
 }
 
