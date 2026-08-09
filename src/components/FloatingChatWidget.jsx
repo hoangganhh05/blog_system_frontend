@@ -179,6 +179,8 @@ function FloatingChatWidget() {
     setIsDragging(true);
   };
 
+  const [hasMoved, setHasMoved] = useState(false);
+
   const handleDragMove = (e) => {
     if (!isDragging) return;
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -188,6 +190,7 @@ function FloatingChatWidget() {
 
     if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
       dragRef.current.moved = true;
+      setHasMoved(true);
     }
 
     const newX = Math.max(10, Math.min(window.innerWidth - 65, dragRef.current.initialX + deltaX));
@@ -228,11 +231,13 @@ function FloatingChatWidget() {
               setIsOpen(true);
             }
           }}
-          title="Nhắn tin với bạn bè (Kéo thả di chuyển)"
+          title="Nhắn tin với bạn bè"
           style={{
             position: "fixed",
-            left: bubblePos.x,
-            top: bubblePos.y,
+            left: hasMoved ? bubblePos.x : "auto",
+            top: hasMoved ? bubblePos.y : "auto",
+            right: hasMoved ? "auto" : 24,
+            bottom: hasMoved ? "auto" : 24,
             zIndex: 999999,
             width: 56,
             height: 56,
