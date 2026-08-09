@@ -1,7 +1,13 @@
 import axios from "axios";
 
+let apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+// Tự động nâng cấp sang HTTPS bảo mật nếu gọi server sản xuất xa
+if (apiBaseUrl.startsWith("http://") && !apiBaseUrl.includes("localhost")) {
+  apiBaseUrl = apiBaseUrl.replace("http://", "https://");
+}
+
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080",
+  baseURL: apiBaseUrl,
   headers: {
     "Content-Type": "application/json",
   },
@@ -18,7 +24,7 @@ axiosClient.interceptors.request.use(
 
     if (token) {
       // Gắn vào header Authorization
-      // Backend JwtFilter sẽ đọc header này
+      // Backend JwtFilter sẽ đọc header me
       config.headers.Authorization = `Bearer ${token}`;
     }
 
