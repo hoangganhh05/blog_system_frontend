@@ -167,6 +167,9 @@ function FloatingChatWidget() {
   const dragRef = useRef({ startX: 0, startY: 0, initialX: 0, initialY: 0, moved: false });
 
   const handleDragStart = (e) => {
+    // Tắt hoàn toàn kéo thả di chuyển trên PC (chỉ cho phép trên di động <= 768px)
+    if (typeof window !== "undefined" && window.innerWidth > 768) return;
+
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     dragRef.current = {
@@ -221,7 +224,7 @@ function FloatingChatWidget() {
 
   return (
     <>
-      {/* Floating Messenger Icon Button (Draggable by Touch & Mouse) */}
+      {/* Floating Messenger Icon Button */}
       {!isOpen && (
         <div
           onMouseDown={handleDragStart}
@@ -234,10 +237,10 @@ function FloatingChatWidget() {
           title="Nhắn tin với bạn bè"
           style={{
             position: "fixed",
-            left: hasMoved ? bubblePos.x : "auto",
-            top: hasMoved ? bubblePos.y : "auto",
-            right: hasMoved ? "auto" : 24,
-            bottom: hasMoved ? "auto" : 24,
+            left: (hasMoved && window.innerWidth <= 768) ? bubblePos.x : "auto",
+            top: (hasMoved && window.innerWidth <= 768) ? bubblePos.y : "auto",
+            right: (hasMoved && window.innerWidth <= 768) ? "auto" : 24,
+            bottom: (hasMoved && window.innerWidth <= 768) ? "auto" : 24,
             zIndex: 999999,
             width: 56,
             height: 56,
@@ -245,7 +248,7 @@ function FloatingChatWidget() {
             background: "linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)",
             color: "#fff",
             boxShadow: "0 8px 28px rgba(79, 70, 229, 0.45)",
-            cursor: isDragging ? "grabbing" : "grab",
+            cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
