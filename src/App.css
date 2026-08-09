@@ -1097,12 +1097,34 @@
   gap: 28px;
 }
 
+/* Nút Menu 3 Gạch ☰ Hiển thị trên cả PC lẫn Mobile */
+.mobile-menu-trigger {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1000 !important;
+  cursor: pointer !important;
+  background: var(--bg-input) !important;
+  border-radius: 50% !important;
+  width: 38px !important;
+  height: 38px !important;
+  flex-shrink: 0 !important;
+  border: none !important;
+  color: var(--text-primary) !important;
+  transition: transform 0.2s ease, background 0.2s ease !important;
+}
+
+.mobile-menu-trigger:hover {
+  background: var(--bg-hover) !important;
+  transform: scale(1.08) !important;
+}
+
 @media screen and (max-width: 1024px) {
   .desktop-only-icon {
     display: none !important;
   }
 
-  .mobile-menu-trigger, .mobile-chat-btn {
+  .mobile-chat-btn {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
