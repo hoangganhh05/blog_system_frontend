@@ -279,8 +279,71 @@ function PostDetail() {
   const topReactions = REACTIONS.filter((r) => reactionsSummary[r.type] > 0);
 
   return (
-    <div className="app-layout">
-      <div className="post-detail-container">
+    <>
+      <div className="post-detail-page-wrapper">
+      <div className="post-detail-modal-card">
+        {/* PC Modal Header (Hiện trên PC > 768px) */}
+        <div className="post-detail-pc-header">
+          <h3 className="post-detail-pc-title">
+            Bài viết của {authorName}
+          </h3>
+          <button
+            type="button"
+            className="post-detail-pc-close"
+            onClick={() => navigate(-1)}
+            title="Đóng bài viết"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Mobile Header (Hiện trên Điện thoại <= 768px) */}
+        <div className="post-detail-mobile-header">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: 24,
+                fontWeight: 700,
+                color: "var(--text-primary)",
+                cursor: "pointer",
+                padding: "2px 6px",
+                lineHeight: 1,
+              }}
+              title="Quay lại"
+            >
+              ‹
+            </button>
+            {post.user?.avatarUrl ? (
+              <img src={post.user.avatarUrl} alt="" className="avatar avatar-sm" style={{ width: 32, height: 32, objectFit: "cover", flexShrink: 0 }} />
+            ) : (
+              <div className="avatar avatar-sm" style={{ width: 32, height: 32, fontSize: 11, flexShrink: 0, background: post.user?.avatarColor ? `linear-gradient(135deg, ${post.user.avatarColor}, ${post.user.avatarColor}bb)` : undefined }}>
+                {getInitials(authorName)}
+              </div>
+            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {authorName}
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--primary)", cursor: "pointer", flexShrink: 0 }}>
+                • Theo dõi
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            style={{ background: "none", border: "none", fontSize: 18, color: "var(--text-muted)", cursor: "pointer", padding: 4 }}
+          >
+            ⋯
+          </button>
+        </div>
+
+        {/* Nội dung cuộn chính */}
+        <div className="post-detail-scroll-body">
         {/* Breadcrumb */}
         <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8, color: "var(--text-muted)", fontSize: 13.5 }}>
           <Link to="/" style={{ color: "var(--text-muted)" }}>🏠 Trang chủ</Link>
@@ -871,19 +934,21 @@ function PostDetail() {
             onCommentsChange={setComments}
           />
         </div>
+        </div>
       </div>
-
-      {/* Modern Confirm Modal */}
-      <ConfirmModal
-        isOpen={showDeleteConfirm}
-        title="Xóa bài viết?"
-        message="Bạn có chắc chắn muốn xóa bài viết này? Bài viết sau khi xóa sẽ không thể phục hồi."
-        confirmText="Xóa bài viết"
-        confirmVariant="danger"
-        onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={handleConfirmDeletePost}
-      />
     </div>
+
+    {/* Modern Confirm Modal */}
+    <ConfirmModal
+      isOpen={showDeleteConfirm}
+      title="Xóa bài viết?"
+      message="Bạn có chắc chắn muốn xóa bài viết này? Bài viết sau khi xóa sẽ không thể phục hồi."
+      confirmText="Xóa bài viết"
+      confirmVariant="danger"
+      onClose={() => setShowDeleteConfirm(false)}
+      onConfirm={handleConfirmDeletePost}
+    />
+    </>
   );
 }
 
