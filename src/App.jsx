@@ -16,6 +16,7 @@ import GamesPage from "./pages/GamesPage";
 import AiCreatorPage from "./pages/AiCreatorPage";
 import ChatBox from "./components/ChatBox";
 import FloatingChatWidget from "./components/FloatingChatWidget";
+import MobileBottomNav from "./components/MobileBottomNav";
 import "./index.css";
 import "./App.css";
 
@@ -104,6 +105,7 @@ function AppContent() {
 
       {/* Floating Messenger Chat Window ở góc phải màn hình */}
       {!isAuthPage && <FloatingChatWidget />}
+      {!isAuthPage && <MobileBottomNav />}
     </>
   );
 }
