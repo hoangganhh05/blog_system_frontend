@@ -1074,6 +1074,16 @@ html, body {
     font-size: 11.5px !important;
   }
 
+  .mobile-hide {
+    display: none !important;
+  }
+
+  .navbar-icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 2px !important;
+  }
+
   .card, .post-card, input, button, textarea, select {
     max-width: 100% !important;
     box-sizing: border-box !important;

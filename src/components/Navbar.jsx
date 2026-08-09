@@ -440,7 +440,7 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
               </div>
 
               {/* Dashboard */}
-              <Link to="/dashboard">
+              <Link to="/dashboard" className="mobile-hide">
                 <button className="navbar-icon-btn" title="Dashboard">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="3" width="7" height="7"/>
