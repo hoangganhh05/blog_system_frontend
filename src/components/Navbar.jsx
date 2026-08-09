@@ -19,6 +19,7 @@ function getInitials(name) {
 
 function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
   const { currentUser, logout } = useAuth();
+  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
   const navigate = useNavigate();
   const location = useLocation();
 
