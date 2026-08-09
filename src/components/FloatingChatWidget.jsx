@@ -107,32 +107,27 @@ function FloatingChatWidget() {
     };
   }, []);
 
-  // Lấy danh sách bạn bè (hoặc người dùng) khi mở widget - luôn chèn AI Assistant ở đầu
+  // Lấy danh sách bạn bè và thành viên khi mở widget - luôn chèn AI Assistant ở đầu
   useEffect(() => {
     if (isOpen && currentUserId) {
-      friendService
-        .getFriendsList(currentUserId)
-        .then((res) => {
-          const list = res.data || [];
-          if (list.length > 0) {
-            setFriends([AI_USER, ...list]);
-          } else {
-            userService.getAll().then((uRes) => {
-              const all = (uRes.data || []).filter((u) => u.id !== currentUserId);
-              setFriends([AI_USER, ...all]);
-            }).catch(() => {
-              setFriends([AI_USER]);
-            });
-          }
-        })
-        .catch(() => {
-          userService.getAll().then((uRes) => {
-            const all = (uRes.data || []).filter((u) => u.id !== currentUserId);
-            setFriends([AI_USER, ...all]);
-          }).catch(() => {
-            setFriends([AI_USER]);
-          });
-        });
+      // Tải song song danh sách bạn bè và danh sách tất cả thành viên
+      Promise.all([
+        friendService.getFriendsList(currentUserId).catch(() => ({ data: [] })),
+        userService.getAll().catch(() => ({ data: [] })),
+      ]).then(([friendsRes, usersRes]) => {
+        const rawFriends = friendsRes.data || [];
+        const friendsList = rawFriends.map((f) => f.friend || f.user || f).filter((f) => f && f.id !== currentUserId);
+
+        const rawUsers = usersRes.data || [];
+        const allOtherUsers = rawUsers.filter((u) => u.id !== currentUserId);
+
+        // Hợp nhất danh sách: Bạn bè lên đầu -> Thành viên khác -> Trợ lý AI ở trên cùng
+        const friendIds = new Set(friendsList.map((f) => f.id));
+        const nonFriends = allOtherUsers.filter((u) => !friendIds.has(u.id));
+
+        const combined = [AI_USER, ...friendsList, ...nonFriends];
+        setFriends(combined);
+      });
     }
   }, [isOpen, currentUserId]);
 
@@ -191,13 +186,6 @@ function FloatingChatWidget() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isAiTyping]);
-
-  // Tự động chọn Trợ lý AI Assistant làm đối tượng trò chuyện mặc định khi mở Messenger
-  useEffect(() => {
-    if (isOpen && currentUserId && !activeFriend) {
-      setActiveFriend(AI_USER);
-    }
-  }, [isOpen, currentUserId, activeFriend]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
