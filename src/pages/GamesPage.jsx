@@ -171,7 +171,7 @@ function OnlineCaroGame() {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
       {/* Mode Switcher Buttons */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", justifyContent: "center" }}>
         <button
           onClick={() => { setMode("online"); setRoom(null); }}
           style={{
@@ -179,14 +179,15 @@ function OnlineCaroGame() {
             color: mode === "online" ? "#fff" : "var(--text-primary)",
             border: "none",
             borderRadius: 20,
-            padding: "8px 20px",
-            fontSize: 13.5,
+            padding: "8px 18px",
+            fontSize: 13,
             fontWeight: 700,
             cursor: "pointer",
+            whiteSpace: "nowrap",
             boxShadow: mode === "online" ? "0 4px 14px rgba(79, 70, 229, 0.35)" : "none"
           }}
         >
-          🌐 Chơi Online Đấu Bạn Bè Real-time
+          🌐 Chơi Online Real-time
         </button>
         <button
           onClick={() => { setMode("ai"); resetAiGame(); }}
@@ -195,10 +196,11 @@ function OnlineCaroGame() {
             color: mode === "ai" ? "#fff" : "var(--text-primary)",
             border: "none",
             borderRadius: 20,
-            padding: "8px 20px",
-            fontSize: 13.5,
+            padding: "8px 18px",
+            fontSize: 13,
             fontWeight: 700,
             cursor: "pointer",
+            whiteSpace: "nowrap",
             boxShadow: mode === "ai" ? "0 4px 14px rgba(16, 185, 129, 0.35)" : "none"
           }}
         >
@@ -242,7 +244,7 @@ function OnlineCaroGame() {
                 <div style={{ flex: 1, height: 1, background: "var(--border-light)" }} />
               </div>
 
-              <div style={{ display: "flex", gap: 10 }}>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 <input
                   type="text"
                   placeholder="Nhập mã phòng (Ví dụ: 8492)..."
@@ -250,6 +252,7 @@ function OnlineCaroGame() {
                   onChange={(e) => setRoomCodeInput(e.target.value)}
                   style={{
                     flex: 1,
+                    minWidth: 160,
                     background: "var(--bg-input)",
                     border: "1.5px solid var(--border-light)",
                     borderRadius: 14,
@@ -263,7 +266,7 @@ function OnlineCaroGame() {
                   onClick={() => handleJoinRoom()}
                   disabled={loading}
                   className="btn btn-secondary"
-                  style={{ borderRadius: 14, padding: "0 20px", fontWeight: 700 }}
+                  style={{ borderRadius: 14, padding: "10px 20px", fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}
                 >
                   Tham Gia
                 </button>
