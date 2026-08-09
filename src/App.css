@@ -1044,8 +1044,37 @@
   font-size: 20px;
 }
 
+/* ============================================
+   SMART SCROLL AUTO-HIDE TASKBAR & HEADER (FACEBOOK STYLE)
+   ============================================ */
+.navbar {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease !important;
+}
+
+.navbar.scroll-hidden {
+  transform: translateY(-100%) !important;
+}
+
 .mobile-bottom-nav {
   display: none;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.mobile-bottom-nav.scroll-hidden {
+  transform: translateY(100%) !important;
+}
+
+/* ============================================
+   HUMAN-DESIGNED ELEGANT ROUNDED CORNERS & POLISH
+   ============================================ */
+.card, .post-card, .create-post-box {
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.btn, .form-input, .create-post-btn {
+  border-radius: 20px;
 }
 
 .trending-responsive-grid {

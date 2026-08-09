@@ -111,8 +111,27 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
 
   const hasResults = matchingUsers.length > 0 || matchingPosts.length > 0;
 
+  // Auto-hide Navbar on scroll down (Facebook style)
+  const [navHidden, setNavHidden] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY.current && currentScrollY > 60) {
+        setNavHidden(true);
+      } else {
+        setNavHidden(false);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${navHidden ? "scroll-hidden" : ""}`}>
       {/* Left Section: Logo + Search Bar */}
       <div className="navbar-left">
         {/* Brand Logo */}
