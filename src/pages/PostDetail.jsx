@@ -140,8 +140,9 @@ function PostDetail() {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+    let interval;
+    const fetchData = async (isInitial = false) => {
+      if (isInitial) setLoading(true);
       try {
         const postRes = await postService.getById(id);
         setPost(postRes.data);
@@ -166,12 +167,15 @@ function PostDetail() {
         const filtered = cmtRes.data.filter((c) => c.post?.id === parseInt(id));
         setComments(filtered.reverse());
       } catch {
-        setError("Không tìm thấy bài viết!");
+        if (isInitial) setError("Không tìm thấy bài viết!");
       } finally {
-        setLoading(false);
+        if (isInitial) setLoading(false);
       }
     };
-    fetchData();
+
+    fetchData(true);
+    interval = setInterval(() => fetchData(false), 1500);
+    return () => interval && clearInterval(interval);
   }, [id, currentUser?.id]);
 
   const handleToggleLike = async (e) => {

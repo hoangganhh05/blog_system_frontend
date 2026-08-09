@@ -73,31 +73,33 @@ function PostCard({ post, onDelete, style }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Polling siêu tốc 1.5s cập nhật Lượt thích & Cảm xúc bài viết tức thì giữa mọi máy
   useEffect(() => {
-    let isMounted = true;
+    let interval;
     if (post?.id) {
-      likeService.getLikeCount(post.id).then((res) => {
-        if (isMounted) {
+      const fetchLiveReactions = () => {
+        likeService.getLikeCount(post.id).then((res) => {
           setLikeCount(res.data.count || 0);
           if (res.data.reactionsSummary) setReactionsSummary(res.data.reactionsSummary);
-        }
-      }).catch(() => {});
+        }).catch(() => {});
 
-      if (currentUser?.id) {
-        likeService.checkLiked(post.id, currentUser.id).then((res) => {
-          if (isMounted) {
+        if (currentUser?.id) {
+          likeService.checkLiked(post.id, currentUser.id).then((res) => {
             setLiked(res.data.liked);
             setUserReaction(res.data.userReaction || (res.data.liked ? "LIKE" : null));
             if (res.data.reactionsSummary) setReactionsSummary(res.data.reactionsSummary);
-          }
-        }).catch(() => {});
+          }).catch(() => {});
 
-        bookmarkService.checkBookmarked(post.id, currentUser.id).then((res) => {
-          if (isMounted) setBookmarked(res.data.bookmarked);
-        }).catch(() => {});
-      }
+          bookmarkService.checkBookmarked(post.id, currentUser.id).then((res) => {
+            setBookmarked(res.data.bookmarked);
+          }).catch(() => {});
+        }
+      };
+
+      fetchLiveReactions();
+      interval = setInterval(fetchLiveReactions, 1500);
     }
-    return () => { isMounted = false; };
+    return () => interval && clearInterval(interval);
   }, [post?.id, currentUser?.id]);
 
   const handleToggleLike = async (e) => {

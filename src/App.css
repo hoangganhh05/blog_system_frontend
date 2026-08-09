@@ -1152,10 +1152,18 @@
   .mobile-header-avatar {
     display: flex !important;
   }
+
+  .mobile-search-btn {
+    display: flex !important;
+  }
 }
 
 @media screen and (min-width: 769px) {
   .mobile-header-avatar {
+    display: none !important;
+  }
+
+  .mobile-search-btn {
     display: none !important;
   }
 }

@@ -28,6 +28,7 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   useEffect(() => {
     const handleUnreadChatCount = (e) => {
@@ -437,6 +438,18 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
             )}
           </button>
 
+          {/* Mobile Search Magnifying Glass 🔍 Button */}
+          <button
+            className="navbar-icon-btn mobile-search-btn"
+            onClick={() => setMobileSearchOpen((v) => !v)}
+            title="Tìm kiếm bài viết, người dùng"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </button>
+
           {/* Hamburger Menu ☰ Button for Mobile */}
           <button
             className="navbar-icon-btn mobile-menu-trigger"
@@ -453,6 +466,116 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
             </svg>
           </button>
         </div>
+
+      {/* Mobile Live Search Bar Overlay */}
+      {mobileSearchOpen && (
+        <div
+          className="mobile-search-overlay"
+          style={{
+            position: "fixed",
+            top: 56,
+            left: 0,
+            right: 0,
+            background: "var(--bg-card)",
+            padding: "10px 16px",
+            borderBottom: "1px solid var(--border-light)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+            zIndex: 99999,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            animation: "slideDown 0.15s ease",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--bg-input)", borderRadius: 20, padding: "6px 14px" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--text-muted)" }}>
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              type="text"
+              autoFocus
+              placeholder="Nhập tên người dùng hoặc bài viết..."
+              value={searchValue || ""}
+              onChange={(e) => {
+                onSearchChange && onSearchChange(e.target.value);
+                setSearchFocused(true);
+              }}
+              style={{
+                flex: 1,
+                background: "none",
+                border: "none",
+                outline: "none",
+                fontSize: 15,
+                color: "var(--text-primary)",
+              }}
+            />
+            <button
+              onClick={() => {
+                setMobileSearchOpen(false);
+                setSearchFocused(false);
+              }}
+              style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 16, cursor: "pointer" }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Autocomplete Results cho Mobile */}
+          {searchTerm.length > 0 && (
+            <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
+              {!hasResults ? (
+                <div style={{ padding: "16px", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                  Không tìm thấy kết quả phù hợp cho "{searchValue}"
+                </div>
+              ) : (
+                <>
+                  {matchingUsers.map((u) => {
+                    const name = u.fullName || u.username;
+                    return (
+                      <div
+                        key={u.id}
+                        onClick={() => {
+                          navigate(`/profile/${u.id}`);
+                          setMobileSearchOpen(false);
+                          setSearchFocused(false);
+                        }}
+                        style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", cursor: "pointer", borderBottom: "1px solid var(--border-light)" }}
+                      >
+                        {u.avatarUrl ? (
+                          <img src={u.avatarUrl} alt={name} className="avatar avatar-sm" style={{ objectFit: "cover" }} />
+                        ) : (
+                          <div className="avatar avatar-sm" style={{ background: u.avatarColor ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)` : undefined }}>
+                            {getInitials(name)}
+                          </div>
+                        )}
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{name}</span>
+                          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>@{u.username}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {matchingPosts.map((p) => (
+                    <div
+                      key={p.id}
+                      onClick={() => {
+                        navigate(`/posts/${p.id}`);
+                        setMobileSearchOpen(false);
+                        setSearchFocused(false);
+                      }}
+                      style={{ display: "flex", flexDirection: "column", gap: 2, padding: "10px 12px", cursor: "pointer", borderBottom: "1px solid var(--border-light)" }}
+                    >
+                      <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>📝 {p.title || "Bài viết"}</span>
+                      <span style={{ fontSize: 11.5, color: "var(--text-muted)" }}>Bởi @{p.user?.username || "Ẩn danh"}</span>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Mobile Drawer Menu ☰ Component */}
       <MobileMenuDrawer
