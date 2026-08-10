@@ -277,7 +277,7 @@ function FloatingChatWidget() {
   const [conversationsMap, setConversationsMap] = useState({});
   const [unreadChatCount, setUnreadChatCount] = useState(0);
 
-  // 1. Lấy danh sách tất cả bạn bè & người dùng để theo dõi tin nhắn chưa đọc liên tục
+  // 1. Chỉ lấy danh sách BẠN BÈ THỰC SỰ (đã chấp nhận kết bạn) + Trợ lý AI
   useEffect(() => {
     if (!currentUserId) return;
     const fetchFriends = async () => {
@@ -288,20 +288,34 @@ function FloatingChatWidget() {
         ]);
 
         const rawFriends = friendsRes.data || [];
-        const friendsList = rawFriends.map((f) => f.friend || f.user || f).filter((f) => f && f.id !== currentUserId);
+        const apiFriendsList = rawFriends
+          .map((f) => f.friend || f.user || f)
+          .filter((f) => f && String(f.id) !== String(currentUserId));
 
-        const allUserList = usersRes.data || [];
-        const otherUsers = allUserList.filter((u) => u.id !== currentUserId);
+        // Đọc bạn bè từ localStorage
+        let localPairs = [];
+        try {
+          localPairs = JSON.parse(localStorage.getItem("blog_mutual_friends_pairs") || "[]");
+        } catch {}
 
-        // Hợp nhất danh sách bạn bè & người dùng
-        const map = new Map();
-        [AI_USER, ...friendsList, ...otherUsers].forEach((u) => {
-          if (u && u.id && !map.has(u.id)) {
-            map.set(u.id, u);
+        const myLocalFriendIds = localPairs
+          .filter((p) => String(p.u1) === String(currentUserId) || String(p.u2) === String(currentUserId))
+          .map((p) => (String(p.u1) === String(currentUserId) ? String(p.u2) : String(p.u1)));
+
+        const allUsers = usersRes.data || [];
+        const localFriendObjs = allUsers.filter((u) => myLocalFriendIds.includes(String(u.id)));
+
+        // Hợp nhất danh sách BẠN BÈ THỰC SỰ (Tuyệt đối không đưa người chưa kết bạn vào)
+        const friendMap = new Map();
+        friendMap.set("ai_bot", AI_USER);
+
+        [...apiFriendsList, ...localFriendObjs].forEach((u) => {
+          if (u && u.id && String(u.id) !== String(currentUserId)) {
+            friendMap.set(String(u.id), u);
           }
         });
 
-        setFriends(Array.from(map.values()));
+        setFriends(Array.from(friendMap.values()));
       } catch {
         setFriends([AI_USER]);
       }
@@ -310,7 +324,7 @@ function FloatingChatWidget() {
     fetchFriends();
   }, [currentUserId]);
 
-  // 2. Polling liên tục chạy ngầm (kể cả khi đóng Widget) để phát hiện tin nhắn đến & tính tổng số tin chưa đọc
+  // 2. Polling liên tục chạy ngầm đếm chính xác tin nhắn chưa đọc từ bạn bè
   useEffect(() => {
     if (!currentUserId || friends.length <= 1) return;
 
@@ -326,12 +340,12 @@ function FloatingChatWidget() {
           if (history.length > 0) {
             const lastMsg = history[history.length - 1];
 
-            // Đếm chính xác tin nhắn do đối phương gửi mà chưa bấm vào xem (read !== true)
+            // Chỉ đếm tin nhắn do BẠN BÈ GỬI TỚI mà MÌNH CHƯA XEM (read !== true)
             const unreadCount = history.filter(
-              (m) => Number(m.senderId || m.sender?.id) !== currentUserId && !m.read
+              (m) => String(m.senderId || m.sender?.id) === String(friend.id) && !m.read
             ).length;
 
-            const isCurrentActive = isOpen && activeFriend?.id === friend.id;
+            const isCurrentActive = isOpen && String(activeFriend?.id) === String(friend.id);
             const effectiveUnread = isCurrentActive ? 0 : unreadCount;
 
             newMap[friend.id] = {
@@ -357,7 +371,7 @@ function FloatingChatWidget() {
     return () => clearInterval(interval);
   }, [currentUserId, friends, isOpen, activeFriend?.id]);
 
-  // 3. Chỉ đánh dấu Đã Đọc khi người dùng THỰC SỰ ẤN VÀO ĐOẠN CHAT với người đó
+  // 3. Đánh dấu ĐÃ ĐỌC khi người dùng CHÍNH THỨC ẤN MỞ ĐOẠN CHAT
   const markConversationAsRead = (friendId) => {
     setConversationsMap((prev) => ({
       ...prev,
