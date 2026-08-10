@@ -263,14 +263,16 @@ function PostCard({ post, onDelete, style }) {
 
           <div className="post-card-author-info">
             <span className="post-card-author-name">{authorName}</span>
-            <div className="post-card-meta">
+            <div className="post-card-meta" style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "nowrap", whiteSpace: "nowrap" }}>
               <span>{timeAgo(post.createdAt)}</span>
               <span>•</span>
               <span>📖 {getReadingTime(post.content)}</span>
               <span>•</span>
-              <span>{post.status === "private" ? "Riêng tư" : "Công khai"}</span>
+              <span title={post.status === "private" ? "Riêng tư" : "Công khai"} style={{ fontSize: 13 }}>
+                {post.status === "private" ? "🔒" : "🌐"}
+              </span>
               {categoryName && (
-                <span className="badge" style={{ marginLeft: 4 }}>{categoryName}</span>
+                <span className="badge" style={{ marginLeft: 4, whiteSpace: "nowrap" }}>{categoryName}</span>
               )}
             </div>
           </div>

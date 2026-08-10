@@ -192,14 +192,14 @@ function Login() {
 
             <div className="form-group">
               <input
-                id="username"
+                id="email"
                 className="form-input"
-                type="text"
-                name="username"
-                placeholder="Tên đăng nhập"
-                value={form.username}
+                type="email"
+                name="email"
+                placeholder="Địa chỉ Email đăng ký..."
+                value={form.email}
                 onChange={handleChange}
-                autoComplete="username"
+                autoComplete="email"
                 autoFocus
               />
             </div>
