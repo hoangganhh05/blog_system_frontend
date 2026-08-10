@@ -20,13 +20,16 @@ function timeAgo(dateStr) {
   return d < 30 ? `${d} ngày trước` : new Date(dateStr).toLocaleDateString("vi-VN");
 }
 
-function CommentItem({ comment, onDelete }) {
+function CommentItem({ comment, onDelete, onReplySubmit }) {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(comment.content);
   const [loading, setLoading] = useState(false);
+  const [showReplyForm, setShowReplyForm] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [replying, setReplying] = useState(false);
 
   const authorName = comment.user?.fullName || comment.user?.username || "Ẩn danh";
   const isOwner = currentUser && comment.user?.id === currentUser.id;
@@ -55,8 +58,23 @@ function CommentItem({ comment, onDelete }) {
     }
   };
 
+  const handleSendReply = async () => {
+    if (!replyText.trim()) return;
+    setReplying(true);
+    try {
+      const fullReplyContent = `@${authorName}: ${replyText.trim()}`;
+      await onReplySubmit(fullReplyContent);
+      setReplyText("");
+      setShowReplyForm(false);
+    } catch {
+      // Ignore
+    } finally {
+      setReplying(false);
+    }
+  };
+
   return (
-    <div className="comment-item">
+    <div className="comment-item" style={{ marginBottom: 12 }}>
       {comment.user?.avatarUrl ? (
         <img
           src={comment.user.avatarUrl}
@@ -109,16 +127,26 @@ function CommentItem({ comment, onDelete }) {
             <div className="comment-text">{comment.content}</div>
           )}
         </div>
-        <div className="comment-footer">
+        <div className="comment-footer" style={{ display: "flex", gap: 12, fontSize: 12, color: "var(--text-muted)", marginTop: 4, paddingLeft: 4 }}>
           <span>{timeAgo(comment.createdAt)}</span>
+          <span
+            className="comment-action"
+            style={{ cursor: "pointer", fontWeight: 700, color: "var(--primary)" }}
+            onClick={() => {
+              setShowReplyForm((v) => !v);
+              if (!replyText) setReplyText(`@${authorName} `);
+            }}
+          >
+            Trả lời
+          </span>
           {isOwner && !editing && (
             <>
-              <span className="comment-action" onClick={() => setEditing(true)}>
+              <span className="comment-action" style={{ cursor: "pointer" }} onClick={() => setEditing(true)}>
                 Chỉnh sửa
               </span>
               <span
                 className="comment-action"
-                style={{ color: "var(--danger)" }}
+                style={{ color: "var(--danger)", cursor: "pointer" }}
                 onClick={() => {
                   if (window.confirm("Xóa bình luận này?")) onDelete(comment.id);
                 }}
@@ -128,6 +156,36 @@ function CommentItem({ comment, onDelete }) {
             </>
           )}
         </div>
+
+        {/* Form nhập phản hồi (Rep comment) */}
+        {showReplyForm && (
+          <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", paddingLeft: 8 }}>
+            <input
+              type="text"
+              className="form-input"
+              placeholder={`Trả lời @${authorName}...`}
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              style={{ flex: 1, padding: "6px 12px", fontSize: 13, borderRadius: 16 }}
+              onKeyDown={(e) => e.key === "Enter" && handleSendReply()}
+            />
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={handleSendReply}
+              disabled={replying || !replyText.trim()}
+              style={{ borderRadius: 16, fontSize: 12, padding: "4px 10px" }}
+            >
+              {replying ? "..." : "Gửi"}
+            </button>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setShowReplyForm(false)}
+              style={{ borderRadius: 16, fontSize: 12, padding: "4px 8px" }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -167,6 +225,25 @@ function CommentSection({ postId, comments, onCommentsChange }) {
       setSubmitting(false);
     }
 
+  };
+
+  const handleReplySubmit = async (replyContent) => {
+    if (!currentUser) {
+      alert("Vui lòng đăng nhập để phản hồi bình luận!");
+      return;
+    }
+    try {
+      const res = await commentService.create({
+        content: replyContent,
+        createdAt: new Date().toISOString(),
+        post: { id: parseInt(postId) },
+        user: { id: parseInt(currentUser.id || currentUser.userId) },
+      });
+      const newCmt = { ...res.data, user: currentUser };
+      onCommentsChange([newCmt, ...comments]);
+    } catch {
+      alert("Không thể gửi phản hồi. Vui lòng thử lại!");
+    }
   };
 
   const handleDelete = async (commentId) => {
@@ -257,7 +334,7 @@ function CommentSection({ postId, comments, onCommentsChange }) {
         </div>
       )}
 
-      {/* Danh sách comment */}
+      {/* Danh sách comment với nút Trả lời / Rep chuẩn Facebook */}
       {comments.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">💬</div>
@@ -265,9 +342,21 @@ function CommentSection({ postId, comments, onCommentsChange }) {
           <p>Hãy là người đầu tiên bình luận!</p>
         </div>
       ) : (
-        comments.map((comment) => (
-          <CommentItem key={comment.id} comment={comment} onDelete={handleDelete} />
-        ))
+        comments.map((comment) => {
+          const isReply = comment.content?.startsWith("@");
+          return (
+            <div
+              key={comment.id}
+              style={isReply ? { paddingLeft: 28, borderLeft: "2px solid var(--border-light)", marginLeft: 12, marginTop: 4 } : {}}
+            >
+              <CommentItem
+                comment={comment}
+                onDelete={handleDelete}
+                onReplySubmit={handleReplySubmit}
+              />
+            </div>
+          );
+        })
       )}
     </div>
   );

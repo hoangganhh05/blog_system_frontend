@@ -179,27 +179,21 @@ function FloatingChatWidget() {
     };
   }, []);
 
-  // Lấy danh sách bạn bè và thành viên khi mở widget - luôn chèn AI Assistant ở đầu
+  // Lấy danh sách bạn bè khi mở widget - luôn chèn AI Assistant ở đầu
   useEffect(() => {
     if (isOpen && currentUserId) {
-      // Tải song song danh sách bạn bè và danh sách tất cả thành viên
-      Promise.all([
-        friendService.getFriendsList(currentUserId).catch(() => ({ data: [] })),
-        userService.getAll().catch(() => ({ data: [] })),
-      ]).then(([friendsRes, usersRes]) => {
-        const rawFriends = friendsRes.data || [];
-        const friendsList = rawFriends.map((f) => f.friend || f.user || f).filter((f) => f && f.id !== currentUserId);
+      friendService.getFriendsList(currentUserId)
+        .then((friendsRes) => {
+          const rawFriends = friendsRes.data || [];
+          const friendsList = rawFriends.map((f) => f.friend || f.user || f).filter((f) => f && f.id !== currentUserId);
 
-        const rawUsers = usersRes.data || [];
-        const allOtherUsers = rawUsers.filter((u) => u.id !== currentUserId);
-
-        // Hợp nhất danh sách: Bạn bè lên đầu -> Thành viên khác -> Trợ lý AI ở trên cùng
-        const friendIds = new Set(friendsList.map((f) => f.id));
-        const nonFriends = allOtherUsers.filter((u) => !friendIds.has(u.id));
-
-        const combined = [AI_USER, ...friendsList, ...nonFriends];
-        setFriends(combined);
-      });
+          // Chỉ bao gồm Trợ lý AI và Danh Sách Bạn Bè Đã Kết Bạn (ACCEPTED)
+          const combined = [AI_USER, ...friendsList];
+          setFriends(combined);
+        })
+        .catch(() => {
+          setFriends([AI_USER]);
+        });
     }
   }, [isOpen, currentUserId]);
 
