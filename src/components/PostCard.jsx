@@ -127,17 +127,32 @@ function PostCard({ post, onDelete, style }) {
       showToast("Vui lòng đăng nhập để tương tác bài viết!", "error");
       return;
     }
-    try {
-      const res = await likeService.toggleLike(post.id, currentUser.id, type);
-      setLiked(res.data.liked);
-      setUserReaction(res.data.userReaction);
-      setLikeCount(res.data.count);
-      if (res.data.reactionsSummary) setReactionsSummary(res.data.reactionsSummary);
-    } catch (err) {
-      const msg = err.response?.data?.message || err.response?.data || err.message || "Lỗi thả cảm xúc!";
-      showToast(`Lỗi: ${msg}`, "error");
-    }
+
+    const currentUid = currentUser.id || currentUser.userId;
+
+    // Optimistic UI Update tức thì không độ trễ
+    const isSameType = userReaction === type;
+    const newLiked = !isSameType;
+    const newReaction = isSameType ? null : type;
+    const newCount = isSameType ? Math.max(0, likeCount - 1) : liked ? likeCount : likeCount + 1;
+
+    setLiked(newLiked);
+    setUserReaction(newReaction);
+    setLikeCount(newCount);
     setShowReactionsPicker(false);
+
+    try {
+      const res = await likeService.toggleLike(post.id, currentUid, type);
+      if (res?.data) {
+        setLiked(res.data.liked);
+        setUserReaction(res.data.userReaction);
+        if (typeof res.data.count === "number") setLikeCount(res.data.count);
+        if (res.data.reactionsSummary) setReactionsSummary(res.data.reactionsSummary);
+      }
+    } catch (err) {
+      // Đồng bộ ngầm không gây quấy rầy người dùng bằng popup lỗi [object Object]
+      console.warn("Like sync error:", err);
+    }
   };
 
   // Long Press & Touch Drag state cho Facebook Reaction Bar
