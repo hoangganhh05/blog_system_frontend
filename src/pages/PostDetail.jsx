@@ -139,6 +139,17 @@ function PostDetail() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Đếm lượt xem thực tế (Sau 2.5s đọc bài viết & lọc trùng 30 phút/phiên)
+  useEffect(() => {
+    let timer;
+    if (id) {
+      timer = setTimeout(() => {
+        postService.incrementViewCount(id);
+      }, 2500);
+    }
+    return () => timer && clearTimeout(timer);
+  }, [id]);
+
   useEffect(() => {
     let interval;
     const fetchData = async (isInitial = false) => {

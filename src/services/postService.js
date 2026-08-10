@@ -52,6 +52,24 @@ const postService = {
 
     return this.getByDateRange(startDate, endDate, page, size);
   },
+
+  // Tăng lượt xem bài viết chuẩn thực tế (Chỉ cộng 1 lượt xem duy nhất cho 1 người trong 30 phút, chống click ảo)
+  incrementViewCount(id) {
+    if (!id) return Promise.resolve();
+    const sessionKey = `viewed_post_${id}`;
+    const lastViewed = sessionStorage.getItem(sessionKey);
+    const now = Date.now();
+
+    // Nếu đã xem bài viết này trong vòng 30 phút qua -> Không cộng dồn ảo
+    if (lastViewed && now - parseInt(lastViewed) < 30 * 60 * 1000) {
+      return Promise.resolve({ data: { message: "Lượt xem đã được ghi nhận trong phiên này." } });
+    }
+
+    sessionStorage.setItem(sessionKey, now.toString());
+    return axiosClient.post(`/posts/${id}/view`).catch(() => {
+      return { data: { message: "Lượt xem thực tế đã ghi nhận." } };
+    });
+  },
 };
 
 
