@@ -43,6 +43,33 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
   const [searchFocused, setSearchFocused] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
+  const [recentSearches, setRecentSearches] = useState([]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("blog_recent_searches");
+      if (saved) setRecentSearches(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  const saveRecentSearch = (item) => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("blog_recent_searches") || "[]");
+      const filtered = saved.filter((i) => i.id !== item.id && i.text !== item.text);
+      const updated = [item, ...filtered].slice(0, 8);
+      localStorage.setItem("blog_recent_searches", JSON.stringify(updated));
+      setRecentSearches(updated);
+    } catch {}
+  };
+
+  const removeRecentSearch = (id, e) => {
+    e && e.stopPropagation();
+    try {
+      const updated = recentSearches.filter((i) => i.id !== id);
+      localStorage.setItem("blog_recent_searches", JSON.stringify(updated));
+      setRecentSearches(updated);
+    } catch {}
+  };
 
   // States cho Color Picker
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
@@ -230,130 +257,340 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
             }}
           />
 
-          {/* Autocomplete Dropdown Menu */}
-          {searchFocused && searchTerm.length > 0 && (
+          {/* Facebook Desktop Search Popup Panel */}
+          {searchFocused && (
             <div
               style={{
                 position: "absolute",
-                top: "calc(100% + 8px)",
-                left: 0,
-                width: 320,
+                top: -6,
+                left: -8,
+                width: 360,
                 background: "var(--bg-card)",
                 borderRadius: 16,
-                boxShadow: "0 12px 32px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1)",
+                boxShadow: "0 12px 36px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.12)",
                 border: "1px solid var(--border-light)",
-                zIndex: 9999,
+                zIndex: 99999,
                 overflow: "hidden",
-                maxHeight: 420,
+                maxHeight: 520,
                 overflowY: "auto",
-                animation: "dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+                animation: "dropdownFadeIn 0.18s ease-out",
+                boxSizing: "border-box",
               }}
             >
-              {!hasResults ? (
-                <div style={{ padding: "20px 16px", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
-                  Không tìm thấy kết quả phù hợp cho <strong>"{searchValue}"</strong>
-                </div>
-              ) : (
-                <>
-                  {/* Người dùng */}
-                  {matchingUsers.length > 0 && (
-                    <div style={{ borderBottom: "1px solid var(--border-light)", padding: "8px 0" }}>
-                      <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--text-muted)", padding: "6px 16px", textTransform: "uppercase", letterSpacing: 0.5 }}>
-                        👥 Người dùng ({matchingUsers.length})
-                      </div>
-                      {matchingUsers.map((u) => {
-                        const name = u.fullName || u.username;
-                        return (
-                          <div
-                            key={u.id}
-                            onClick={() => {
-                              navigate(`/profile/${u.id}`);
-                              setSearchFocused(false);
-                            }}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 12,
-                              padding: "8px 16px",
-                              cursor: "pointer",
-                              transition: "background 0.15s",
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
-                            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                          >
-                            {u.avatarUrl ? (
-                              <img src={u.avatarUrl} alt={name} className="avatar avatar-sm" style={{ objectFit: "cover" }} />
-                            ) : (
-                              <div className="avatar avatar-sm" style={{ background: u.avatarColor ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)` : undefined }}>
-                                {getInitials(name)}
-                              </div>
-                            )}
-                            <div style={{ display: "flex", flexDirection: "column" }}>
-                              <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>{name}</span>
-                              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>@{u.username}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+              {/* Header: Nút back arrow + Thanh gõ tìm kiếm */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 12px",
+                  borderBottom: "1px solid var(--border-light)",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setSearchFocused(false)}
+                  title="Đóng tìm kiếm"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--text-muted)",
+                    fontSize: 18,
+                    cursor: "pointer",
+                    padding: "4px 8px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "none"}
+                >
+                  ←
+                </button>
 
-                  {/* Bài viết */}
-                  {matchingPosts.length > 0 && (
-                    <div style={{ padding: "8px 0" }}>
-                      <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--text-muted)", padding: "6px 16px", textTransform: "uppercase", letterSpacing: 0.5 }}>
-                        📝 Bài viết ({matchingPosts.length})
-                      </div>
-                      {matchingPosts.map((p) => (
-                        <div
-                          key={p.id}
-                          onClick={() => {
-                            navigate(`/posts/${p.id}`);
-                            setSearchFocused(false);
-                          }}
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 2,
-                            padding: "8px 16px",
-                            cursor: "pointer",
-                            transition: "background 0.15s",
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
-                          onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                        >
-                          <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                            {p.title || p.content?.slice(0, 45)}
-                          </span>
-                          <span style={{ fontSize: 11, color: "var(--primary)" }}>
-                            Đăng bởi {p.user?.fullName || p.user?.username || "Ẩn danh"}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Nút Xem tất cả kết quả cho từ khóa */}
-                  <div
-                    onClick={() => handleExecuteSearch(searchValue)}
+                <div
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    background: "var(--bg-input)",
+                    borderRadius: 20,
+                    padding: "6px 12px",
+                  }}
+                >
+                  <span style={{ fontSize: 14, opacity: 0.6, marginRight: 8 }}>🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm trên BlogViet"
+                    value={searchValue || ""}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        if (searchValue.trim()) {
+                          saveRecentSearch({
+                            id: `query_${Date.now()}`,
+                            text: searchValue.trim(),
+                            type: "query",
+                          });
+                          handleExecuteSearch(searchValue);
+                        }
+                      }
+                    }}
+                    onChange={(e) => {
+                      onSearchChange && onSearchChange(e.target.value);
+                    }}
                     style={{
-                      padding: "12px 16px",
-                      background: "var(--bg-hover)",
-                      borderTop: "1px solid var(--border-light)",
-                      color: "var(--primary)",
-                      fontWeight: 700,
-                      fontSize: 13.5,
-                      cursor: "pointer",
-                      textAlign: "center",
+                      width: "100%",
+                      background: "none",
+                      border: "none",
+                      outline: "none",
+                      color: "var(--text-primary)",
+                      fontSize: 14,
+                      fontWeight: 500,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* SECTION: MỚI ĐÂY (Recent Searches - Hiển thị khi chưa gõ hoặc gõ từ khóa) */}
+              {!searchTerm && recentSearches.length > 0 && (
+                <div style={{ padding: "8px 0" }}>
+                  <div
+                    style={{
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
+                      justifyContent: "space-between",
+                      padding: "6px 16px",
                     }}
                   >
-                    <span>🔍 Xem tất cả kết quả cho "{searchValue}"</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>Mới đây</span>
+                    <span
+                      onClick={() => {
+                        localStorage.removeItem("blog_recent_searches");
+                        setRecentSearches([]);
+                      }}
+                      style={{ fontSize: 13, color: "var(--primary)", cursor: "pointer", fontWeight: 600 }}
+                    >
+                      Chỉnh sửa
+                    </span>
                   </div>
+
+                  {recentSearches.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => {
+                        if (item.userId) {
+                          navigate(`/profile/${item.userId}`);
+                          setSearchFocused(false);
+                        } else if (item.postId) {
+                          navigate(`/posts/${item.postId}`);
+                          setSearchFocused(false);
+                        } else {
+                          onSearchChange && onSearchChange(item.text);
+                          handleExecuteSearch(item.text);
+                        }
+                      }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "8px 16px",
+                        cursor: "pointer",
+                        transition: "background 0.15s",
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
+                        {item.avatarUrl ? (
+                          <img src={item.avatarUrl} alt="" className="avatar avatar-sm" style={{ width: 36, height: 36, objectFit: "cover" }} />
+                        ) : (
+                          <div
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: "50%",
+                              background: "var(--bg-input)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 16,
+                              color: "var(--text-muted)",
+                            }}
+                          >
+                            🕒
+                          </div>
+                        )}
+                        <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+                          <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {item.text}
+                          </span>
+                          {item.subtext && (
+                            <span style={{ fontSize: 11.5, color: "var(--text-muted)" }}>{item.subtext}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => removeRecentSearch(item.id, e)}
+                        title="Gỡ khỏi nhật ký tìm kiếm"
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--text-muted)",
+                          fontSize: 16,
+                          cursor: "pointer",
+                          padding: "4px 8px",
+                          borderRadius: "50%",
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* SEARCH RESULTS MATCHING */}
+              {searchTerm.length > 0 && (
+                <>
+                  {!hasResults ? (
+                    <div style={{ padding: "24px 16px", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                      Không tìm thấy kết quả phù hợp cho <strong>"{searchValue}"</strong>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Người dùng */}
+                      {matchingUsers.length > 0 && (
+                        <div style={{ padding: "6px 0" }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", padding: "6px 16px", textTransform: "uppercase" }}>
+                            👥 Người dùng
+                          </div>
+                          {matchingUsers.map((u) => {
+                            const name = u.fullName || u.username;
+                            return (
+                              <div
+                                key={u.id}
+                                onClick={() => {
+                                  saveRecentSearch({
+                                    id: `user_${u.id}`,
+                                    text: name,
+                                    userId: u.id,
+                                    avatarUrl: u.avatarUrl,
+                                    subtext: `@${u.username}`,
+                                    type: "user",
+                                  });
+                                  navigate(`/profile/${u.id}`);
+                                  setSearchFocused(false);
+                                }}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 12,
+                                  padding: "8px 16px",
+                                  cursor: "pointer",
+                                  transition: "background 0.15s",
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
+                                onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                              >
+                                {u.avatarUrl ? (
+                                  <img src={u.avatarUrl} alt={name} className="avatar avatar-sm" style={{ width: 36, height: 36, objectFit: "cover" }} />
+                                ) : (
+                                  <div className="avatar avatar-sm" style={{ width: 36, height: 36, background: u.avatarColor ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)` : undefined }}>
+                                    {getInitials(name)}
+                                  </div>
+                                )}
+                                <div style={{ display: "flex", flexDirection: "column" }}>
+                                  <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{name}</span>
+                                  <span style={{ fontSize: 11.5, color: "var(--text-muted)" }}>@{u.username}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Bài viết */}
+                      {matchingPosts.length > 0 && (
+                        <div style={{ padding: "6px 0", borderTop: "1px solid var(--border-light)" }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", padding: "6px 16px", textTransform: "uppercase" }}>
+                            📝 Bài viết
+                          </div>
+                          {matchingPosts.map((p) => (
+                            <div
+                              key={p.id}
+                              onClick={() => {
+                                saveRecentSearch({
+                                  id: `post_${p.id}`,
+                                  text: p.title || p.content?.slice(0, 30),
+                                  postId: p.id,
+                                  type: "post",
+                                });
+                                navigate(`/posts/${p.id}`);
+                                setSearchFocused(false);
+                              }}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 12,
+                                padding: "8px 16px",
+                                cursor: "pointer",
+                                transition: "background 0.15s",
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
+                              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                            >
+                              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--primary-light)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--primary)", fontSize: 16 }}>
+                                📝
+                              </div>
+                              <div style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
+                                <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                  {p.title || p.content?.slice(0, 45)}
+                                </span>
+                                <span style={{ fontSize: 11.5, color: "var(--text-muted)" }}>
+                                  Đăng bởi {p.user?.fullName || p.user?.username || "Ẩn danh"}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </>
+              )}
+
+              {/* Nút Xem tất cả kết quả ở dưới cùng */}
+              {searchValue && (
+                <div
+                  onClick={() => {
+                    saveRecentSearch({
+                      id: `query_${Date.now()}`,
+                      text: searchValue.trim(),
+                      type: "query",
+                    });
+                    handleExecuteSearch(searchValue);
+                  }}
+                  style={{
+                    padding: "12px 16px",
+                    background: "var(--bg-hover)",
+                    borderTop: "1px solid var(--border-light)",
+                    color: "var(--primary)",
+                    fontWeight: 700,
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>🔍</span>
+                  <span>Tìm kiếm "{searchValue}"</span>
+                </div>
               )}
             </div>
           )}

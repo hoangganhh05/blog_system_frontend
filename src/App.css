@@ -1625,9 +1625,81 @@
     word-break: normal !important;
   }
 
-  /* ============================================
-     RESPONSIVE PAGE WITH SIDEBAR (Friends & Dashboard)
-     ============================================ */
+/* ============================================
+   RESPONSIVE PAGE WITH SIDEBAR (Search, Friends & Dashboard)
+   ============================================ */
+
+/* PC Layout (>= 769px) */
+@media (min-width: 769px) {
+  .page-with-sidebar {
+    display: flex !important;
+    flex-direction: row !important;
+    min-height: calc(100vh - 60px) !important;
+    background: var(--bg-secondary) !important;
+  }
+
+  .page-sidebar-menu {
+    width: 320px !important;
+    background: var(--bg-card) !important;
+    border-right: 1px solid var(--border-light) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 20px 16px !important;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.03) !important;
+    flex-shrink: 0 !important;
+  }
+
+  .page-sidebar-title {
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    margin: 0 0 16px 8px !important;
+    color: var(--text-primary) !important;
+  }
+
+  .page-sidebar-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    flex: 1 !important;
+  }
+
+  .page-sidebar-nav-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 12px 16px !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    transition: all 0.15s !important;
+  }
+
+  .page-sidebar-nav-item:hover {
+    background: var(--bg-hover) !important;
+  }
+
+  .page-sidebar-nav-item.active {
+    background: var(--primary-light) !important;
+    font-weight: 700 !important;
+    color: var(--primary) !important;
+  }
+
+  .page-sidebar-nav-item.active span {
+    color: var(--primary) !important;
+  }
+
+  .page-main-content {
+    flex: 1 !important;
+    padding: 24px 32px !important;
+    overflow-y: auto !important;
+    min-width: 0 !important;
+  }
+}
+
+/* Mobile Layout (<= 768px) */
+@media (max-width: 768px) {
   .page-with-sidebar {
     display: flex !important;
     flex-direction: column !important;
@@ -1702,6 +1774,7 @@
     box-sizing: border-box !important;
     overflow-y: visible !important;
   }
+}
 
   /* Friends Page Card Grid on Mobile */
   div[style*="gridTemplateColumns: repeat(auto-fill, minmax(200px, 1fr))"],
