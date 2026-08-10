@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import commentService from "../services/commentService";
+import uploadService from "../services/uploadService";
 import { ConfirmModal } from "./CustomModal";
 
 function getInitials(name) {
@@ -67,7 +68,6 @@ function CommentItem({ comment, onDelete, onReplySubmit, onToast }) {
     try {
       let cleanText = replyText.trim();
       const prefix = `@${authorName}`;
-      // Loại bỏ trùng lặp @authorName ở đầu nếu người dùng gõ đè
       if (cleanText.toLowerCase().startsWith(prefix.toLowerCase())) {
         cleanText = cleanText.substring(prefix.length).trim();
       }
@@ -87,27 +87,49 @@ function CommentItem({ comment, onDelete, onReplySubmit, onToast }) {
     }
   };
 
-  // Định dạng nội dung bình luận: Biến @Username thành thẻ Mention xanh chuẩn Facebook
+  // Định dạng nội dung bình luận: Hỗ trợ thẻ Mention xanh và hiển thị Ảnh/GIF đính kèm
   const renderCommentContent = (content) => {
     if (!content) return null;
+
+    let taggedUser = null;
+    let actualText = content;
+
     const match = content.match(/^@([^:]+):\s*(.*)$/);
     if (match) {
-      const taggedUser = match[1].trim();
-      let actualText = match[2].trim();
-      // Nếu văn bản thực vẫn còn sót @taggedUser ở đầu thì xóa trùng lặp
+      taggedUser = match[1].trim();
+      actualText = match[2].trim();
       if (actualText.toLowerCase().startsWith(`@${taggedUser.toLowerCase()}`)) {
         actualText = actualText.substring(taggedUser.length + 1).trim();
       }
-      return (
-        <span>
+    }
+
+    // Kiểm tra xem có đính kèm Ảnh hoặc GIF hay không
+    let imageUrl = null;
+    const imgMatch = actualText.match(/(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp)|📷\s*(https?:\/\/[^\s]+))/i);
+    if (imgMatch) {
+      imageUrl = imgMatch[2] || imgMatch[1];
+      actualText = actualText.replace(imgMatch[0], "").trim();
+    }
+
+    return (
+      <div>
+        {taggedUser && (
           <span style={{ color: "var(--primary)", fontWeight: 700, marginRight: 6 }}>
             @{taggedUser}
           </span>
-          {actualText}
-        </span>
-      );
-    }
-    return content;
+        )}
+        <span>{actualText}</span>
+        {imageUrl && (
+          <div style={{ marginTop: 8 }}>
+            <img
+              src={imageUrl}
+              alt="Bình luận đính kèm"
+              style={{ maxWidth: "100%", maxHeight: 220, borderRadius: 12, objectFit: "cover", display: "block" }}
+            />
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -328,23 +350,52 @@ function CommentSection({ postId, comments, onCommentsChange }) {
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [showStickerPicker, setShowStickerPicker] = useState(false);
+  const [commentImage, setCommentImage] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const fileInputRef = useRef(null);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
+  const handleImageFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    showToast("Đang tải ảnh lên...", "info");
+    try {
+      const res = await uploadService.uploadFile(file);
+      setCommentImage(res.data.url);
+      showToast("Đã đính kèm ảnh thành công!", "success");
+    } catch {
+      showToast("Tải ảnh thất bại. Vui lòng thử lại!", "error");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() && !commentImage) return;
     if (!currentUser) {
       showToast("Vui lòng đăng nhập để bình luận!", "error");
       return;
     }
     setSubmitting(true);
+
+    let finalContent = newComment.trim();
+    if (commentImage) {
+      finalContent = `${finalContent} 📷 ${commentImage}`.trim();
+    }
+
     try {
       const res = await commentService.create({
-        content: newComment.trim(),
+        content: finalContent,
         createdAt: new Date().toISOString(),
         post: { id: parseInt(postId) },
         user: { id: parseInt(currentUser.id || currentUser.userId) },
@@ -352,6 +403,10 @@ function CommentSection({ postId, comments, onCommentsChange }) {
       const newCmt = { ...res.data, user: currentUser };
       onCommentsChange([newCmt, ...comments]);
       setNewComment("");
+      setCommentImage("");
+      setShowEmojiPicker(false);
+      setShowGifPicker(false);
+      setShowStickerPicker(false);
       showToast("Đã đăng bình luận!", "success");
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data || err.message || "Không thể gửi bình luận!";
@@ -450,12 +505,22 @@ function CommentSection({ postId, comments, onCommentsChange }) {
       {/* Khung thêm bình luận Facebook Style "Trả lời dưới tên..." NẮM XUỐNG DƯỚI CÙNG */}
       {currentUser ? (
         <form className="facebook-comment-form" onSubmit={handleSubmit} style={{ marginTop: 8, marginBottom: 8, position: "sticky", bottom: 0, zIndex: 10, background: "var(--bg-card)", paddingTop: 4 }}>
+          {/* Hidden File Input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleImageFileSelect}
+          />
+
           <div
             style={{
               background: "var(--bg-input)",
               borderRadius: 18,
               padding: "10px 14px",
               boxShadow: "0 2px 8px rgba(0,0,0,0.08), 0 0 0 1px var(--border-light)",
+              position: "relative",
             }}
           >
             {/* Hàng trên: Avatar có icon mũi tên + Input text */}
@@ -502,33 +567,69 @@ function CommentSection({ postId, comments, onCommentsChange }) {
                 </span>
               </div>
 
-              <textarea
-                className="comment-input"
-                placeholder={`Trả lời dưới tên ${userName}...`}
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                rows={2}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e);
-                  }
-                }}
-                style={{
-                  flex: 1,
-                  background: "none",
-                  border: "none",
-                  outline: "none",
-                  resize: "none",
-                  fontSize: 14.5,
-                  color: "var(--text-primary)",
-                  fontFamily: "inherit",
-                  minHeight: 42,
-                }}
-              />
+              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                <textarea
+                  className="comment-input"
+                  placeholder={`Trả lời dưới tên ${userName}...`}
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  rows={2}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }
+                  }}
+                  style={{
+                    width: "100%",
+                    background: "none",
+                    border: "none",
+                    outline: "none",
+                    resize: "none",
+                    fontSize: 14.5,
+                    color: "var(--text-primary)",
+                    fontFamily: "inherit",
+                    minHeight: 42,
+                  }}
+                />
+
+                {/* Preview Ảnh/GIF đính kèm nếu có */}
+                {commentImage && (
+                  <div style={{ position: "relative", marginTop: 6, display: "inline-block", alignSelf: "flex-start" }}>
+                    <img
+                      src={commentImage}
+                      alt="Ảnh đính kèm"
+                      style={{ height: 64, borderRadius: 8, objectFit: "cover", border: "1px solid var(--border-light)" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCommentImage("")}
+                      style={{
+                        position: "absolute",
+                        top: -6,
+                        right: -6,
+                        background: "var(--danger)",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "50%",
+                        width: 18,
+                        height: 18,
+                        fontSize: 10,
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Hàng dưới: Bộ Icon nghệ thuật (Emoji, Camera, GIF, Sticker) & Nút Gửi */}
+            {/* Hàng dưới: Bộ Icon tương tác thực tế (Emoji, Camera, GIF, Sticker) & Nút Gửi */}
             <div
               style={{
                 display: "flex",
@@ -537,26 +638,28 @@ function CommentSection({ postId, comments, onCommentsChange }) {
                 marginTop: 6,
                 paddingTop: 6,
                 borderTop: "1px solid var(--border-light)",
+                position: "relative",
               }}
             >
-              <div style={{ display: "flex", gap: 12, color: "var(--text-muted)", fontSize: 16 }}>
-                <span title="Tùy chọn Avatar" style={{ cursor: "pointer" }} onClick={() => setNewComment((v) => v + " 🥸")}>🥸</span>
-                <span title="Thêm Biểu tượng cảm xúc" style={{ cursor: "pointer" }} onClick={() => setNewComment((v) => v + " 😊")}>😊</span>
-                <span title="Tải ảnh đính kèm" style={{ cursor: "pointer" }} onClick={() => setNewComment((v) => v + " 📷")}>📷</span>
-                <span title="Thêm Ảnh GIF" style={{ cursor: "pointer" }} onClick={() => setNewComment((v) => v + " GIF")}>GIF</span>
-                <span title="Thêm Nhãn dán" style={{ cursor: "pointer" }} onClick={() => setNewComment((v) => v + " 🏷️")}>🏷️</span>
+              <div style={{ display: "flex", gap: 14, color: "var(--text-muted)", fontSize: 16, alignItems: "center" }}>
+                <span title="Thêm Nhãn dán" style={{ cursor: "pointer" }} onClick={() => setShowStickerPicker((v) => !v)}>🥸</span>
+                <span title="Thêm Biểu tượng cảm xúc" style={{ cursor: "pointer" }} onClick={() => setShowEmojiPicker((v) => !v)}>😊</span>
+                <span title="Tải ảnh đính kèm từ máy" style={{ cursor: "pointer" }} onClick={() => fileInputRef.current?.click()}>
+                  {uploadingImage ? "⏳" : "📷"}
+                </span>
+                <span title="Thêm Ảnh GIF" style={{ cursor: "pointer", fontWeight: 700, fontSize: 13 }} onClick={() => setShowGifPicker((v) => !v)}>GIF</span>
               </div>
 
               <button
                 type="submit"
-                disabled={submitting || !newComment.trim()}
+                disabled={submitting || (!newComment.trim() && !commentImage)}
                 style={{
                   background: "none",
                   border: "none",
                   cursor: "pointer",
-                  color: newComment.trim() ? "var(--primary)" : "var(--text-muted)",
+                  color: (newComment.trim() || commentImage) ? "var(--primary)" : "var(--text-muted)",
                   fontSize: 16,
-                  opacity: newComment.trim() ? 1 : 0.4,
+                  opacity: (newComment.trim() || commentImage) ? 1 : 0.4,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -568,6 +671,118 @@ function CommentSection({ postId, comments, onCommentsChange }) {
                   <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                 </svg>
               </button>
+
+              {/* Popover Bảng Chọn Emoji */}
+              {showEmojiPicker && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 38,
+                    left: 0,
+                    background: "var(--bg-card)",
+                    border: "1px solid var(--border-light)",
+                    borderRadius: 14,
+                    padding: 10,
+                    width: 260,
+                    display: "grid",
+                    gridTemplateColumns: "repeat(7, 1fr)",
+                    gap: 6,
+                    boxShadow: "0 12px 32px rgba(0,0,0,0.25)",
+                    zIndex: 99999,
+                    animation: "scaleUp 0.15s ease",
+                  }}
+                >
+                  {["😀","😃","😄","😁","😆","😅","😂","🤣","😊","😇","🙂","🙃","😉","😍","🥰","😘","😋","😜","🥳","😎","🤩","😏","😒","😞","😔","😢","😭","😤","😡","🤬","🤯","😳","📁","❤️","🔥","🎉","👍","🙌","✨"].map((em) => (
+                    <span
+                      key={em}
+                      style={{ fontSize: 18, cursor: "pointer", textAlign: "center", padding: "2px" }}
+                      onClick={() => {
+                        setNewComment((v) => v + em);
+                        setShowEmojiPicker(false);
+                      }}
+                    >
+                      {em}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Popover Bảng Chọn Ảnh GIF */}
+              {showGifPicker && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 38,
+                    left: 40,
+                    background: "var(--bg-card)",
+                    border: "1px solid var(--border-light)",
+                    borderRadius: 14,
+                    padding: 10,
+                    width: 250,
+                    maxHeight: 190,
+                    overflowY: "auto",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                    gap: 8,
+                    boxShadow: "0 12px 32px rgba(0,0,0,0.25)",
+                    zIndex: 99999,
+                    animation: "scaleUp 0.15s ease",
+                  }}
+                >
+                  {[
+                    "https://media.giphy.com/media/l0HlHFRbmaZtBRhXG/giphy.gif",
+                    "https://media.giphy.com/media/26n61r3OWvYFRb57O/giphy.gif",
+                    "https://media.giphy.com/media/3o7TKsjN42gScZzs9a/giphy.gif",
+                    "https://media.giphy.com/media/13hxe6f343OOWe/giphy.gif"
+                  ].map((gif, idx) => (
+                    <img
+                      key={idx}
+                      src={gif}
+                      alt="GIF"
+                      style={{ width: "100%", height: 60, objectFit: "cover", borderRadius: 8, cursor: "pointer", border: "1px solid var(--border-light)" }}
+                      onClick={() => {
+                        setCommentImage(gif);
+                        setShowGifPicker(false);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Popover Bảng Chọn Nhãn Dán Sticker */}
+              {showStickerPicker && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 38,
+                    left: 0,
+                    background: "var(--bg-card)",
+                    border: "1px solid var(--border-light)",
+                    borderRadius: 14,
+                    padding: 10,
+                    width: 220,
+                    display: "grid",
+                    gridTemplateColumns: "repeat(5, 1fr)",
+                    gap: 8,
+                    boxShadow: "0 12px 32px rgba(0,0,0,0.25)",
+                    zIndex: 99999,
+                    animation: "scaleUp 0.15s ease",
+                  }}
+                >
+                  {["🥸","🐶","🐱","🐼","🦊","🦁","🐯","🐰","🐸","🦄"].map((st) => (
+                    <span
+                      key={st}
+                      style={{ fontSize: 24, cursor: "pointer", textAlign: "center" }}
+                      onClick={() => {
+                        setNewComment((v) => v + " " + st);
+                        setShowStickerPicker(false);
+                      }}
+                    >
+                      {st}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </form>
