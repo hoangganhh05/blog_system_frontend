@@ -285,30 +285,28 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
         </div>
       </div>
 
-      {/* Center Section: Các Tab Chức Năng Chính (Giao diện chuẩn Facebook) */}
+      {/* Center Section: Các Tab Chức Năng Chính (Giao diện icon thuần khiết chuẩn Facebook) */}
       <div className="navbar-center-tabs">
         <NavLink
           to="/"
           className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
           title="Trang chủ"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
-          <span className="nav-tab-label">Trang chủ</span>
         </NavLink>
 
         <NavLink
           to="/videos"
           className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
-          title="Video & Clips giải trí sắc nét"
+          title="Video & Clips giải trí"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="23 7 16 12 23 17 23 7"/>
             <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
           </svg>
-          <span className="nav-tab-label">Video</span>
         </NavLink>
 
         <NavLink
@@ -316,11 +314,10 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
           className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
           title="Góc Giải Trí Mini Games"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="2" y="6" width="20" height="12" rx="2"/>
             <path d="M6 12h4m-2-2v4m10-2h.01m-3-1h.01"/>
           </svg>
-          <span className="nav-tab-label">Giải trí</span>
         </NavLink>
       </div>
 
