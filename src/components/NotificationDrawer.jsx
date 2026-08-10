@@ -18,6 +18,33 @@ function timeAgo(dateStr) {
   return `${Math.floor(h / 24)} ngày trước`;
 }
 
+function isMessageNotification(n) {
+  if (!n) return false;
+  const typeStr = String(n.type || "").toUpperCase();
+  const contentStr = String(n.content || n.message || n.title || "").toLowerCase();
+
+  if (
+    typeStr.includes("CHAT") ||
+    typeStr.includes("MESSAGE") ||
+    typeStr.includes("MSG") ||
+    typeStr.includes("INBOX") ||
+    typeStr.includes("TIN_NHAN")
+  ) {
+    return true;
+  }
+
+  if (
+    contentStr.includes("đã gửi tin nhắn") ||
+    contentStr.includes("tin nhắn:") ||
+    contentStr.includes("gửi một tin nhắn") ||
+    contentStr.includes("gửi tin nhắn")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange }) {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
@@ -26,13 +53,15 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
 
   const currentUserId = currentUser?.id || currentUser?.userId;
 
-  // Lấy tổng số thông báo chưa đọc định kỳ
+  // Lấy tổng số thông báo chưa đọc định kỳ (Lọc bỏ tuyệt đối tin nhắn chat)
   const fetchUnreadCount = async () => {
     if (!currentUserId) return;
     try {
-      const res = await notificationService.getUnreadCount(currentUserId);
-      const count = res.data?.unreadCount || 0;
-      onUnreadCountChange && onUnreadCountChange(count);
+      const res = await notificationService.getUserNotifications(currentUserId);
+      const rawList = res.data || [];
+      const list = rawList.filter((n) => !isMessageNotification(n));
+      const unreadCount = list.filter((n) => !n.read).length;
+      onUnreadCountChange && onUnreadCountChange(unreadCount);
     } catch {
       // Ignore background errors
     }
@@ -46,9 +75,7 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
       const res = await notificationService.getUserNotifications(currentUserId);
       const rawList = res.data || [];
       // Lọc bỏ tuyệt đối thông báo tin nhắn khỏi quả chuông (chỉ giữ thông báo bài viết, bình luận, tương tác)
-      const list = rawList.filter(
-        (n) => n.type !== "CHAT" && n.type !== "MESSAGE" && n.type !== "TIN_NHAN"
-      );
+      const list = rawList.filter((n) => !isMessageNotification(n));
       setNotifications(list);
 
       const unreadCount = list.filter((n) => !n.read).length;
