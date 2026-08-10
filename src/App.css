@@ -1706,6 +1706,11 @@
     justify-content: space-around !important;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08) !important;
   }
+
+  /* Adjust Floating Chat Bubble height on mobile so it doesn't block bottom navigation bar */
+  div[style*="position: fixed"][style*="border-radius: 50%"] {
+    bottom: 75px !important;
+  }
 }
 
 

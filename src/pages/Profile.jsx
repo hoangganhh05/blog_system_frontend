@@ -697,38 +697,49 @@ function Profile() {
             <div
               style={{
                 display: "flex",
-                gap: 4,
+                gap: 6,
                 borderTop: "1px solid var(--border-light)",
-                paddingTop: 4,
+                paddingTop: 6,
                 marginTop: 12,
                 overflowX: "auto",
+                whiteSpace: "nowrap",
+                scrollbarWidth: "none",
               }}
             >
               {[
-                { key: "posts", label: `Bài viết (${posts.length})` },
-                { key: "friends", label: `Bạn bè (${friendsList.length})` },
+                { key: "posts", label: "Bài viết", count: posts.length, icon: "📝" },
+                { key: "friends", label: "Bạn bè", count: friendsList.length, icon: "👥" },
                 ...(isMe ? [
-                  { key: "bookmarks", label: `Đã lưu (${bookmarkedPosts.length})` },
-                  { key: "edit", label: "Chỉnh sửa hồ sơ" },
+                  { key: "bookmarks", label: "Đã lưu", count: bookmarkedPosts.length, icon: "🔖" },
+                  { key: "edit", label: "Chỉnh sửa hồ sơ", icon: "⚙️" },
                 ] : []),
               ].map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
                   style={{
-                    background: "none",
+                    background: activeTab === tab.key ? "var(--primary-light)" : "none",
                     border: "none",
                     borderBottom: activeTab === tab.key ? "3px solid var(--primary)" : "3px solid transparent",
                     color: activeTab === tab.key ? "var(--primary)" : "var(--text-secondary)",
                     fontWeight: activeTab === tab.key ? 700 : 600,
-                    fontSize: 14.5,
-                    padding: "12px 18px",
+                    fontSize: 14,
+                    padding: "10px 16px",
                     cursor: "pointer",
                     transition: "all 0.15s ease",
-                    borderRadius: "4px 4px 0 0",
+                    borderRadius: "8px 8px 0 0",
+                    whiteSpace: "nowrap",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    flexShrink: 0,
                   }}
                 >
-                  {tab.label}
+                  <span>{tab.icon}</span>
+                  <span>{tab.label}</span>
+                  {tab.count !== undefined && (
+                    <span style={{ fontSize: 12, opacity: 0.85 }}>({tab.count})</span>
+                  )}
                 </button>
               ))}
             </div>

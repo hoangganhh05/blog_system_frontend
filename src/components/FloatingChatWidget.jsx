@@ -1360,100 +1360,102 @@ function playNotificationSound() {
             </div>
           )}
 
-          {/* Messenger Input Form - Sẵn sàng gõ tin nhắn */}
-          <form
-            onSubmit={handleSendMessage}
-            style={{
-              padding: "10px 12px",
-              borderTop: "1px solid var(--border-light)",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              background: "var(--bg-card)",
-              zIndex: 1000,
-            }}
-          >
-            {/* Nút bật Sticker Picker */}
-            <button
-              type="button"
-              onClick={() => setShowStickerPicker((v) => !v)}
-              title="Bảng Sticker & Emoji"
+          {/* Messenger Input Form - Chỉ hiển thị khi đã chọn một người bạn cụ thể */}
+          {activeFriend && (
+            <form
+              onSubmit={handleSendMessage}
               style={{
-                background: showStickerPicker ? "var(--primary-light)" : "none",
-                border: "none",
-                fontSize: 20,
-                cursor: "pointer",
-                padding: 4,
-                borderRadius: "50%",
-                lineHeight: 1,
-              }}
-            >
-              😊
-            </button>
-
-            {/* Nút chọn gửi Ảnh */}
-            <button
-              type="button"
-              onClick={() => imageInputRef.current?.click()}
-              disabled={uploadingImage}
-              title="Gửi hình ảnh"
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: 20,
-                cursor: "pointer",
-                padding: 4,
-                borderRadius: "50%",
-                lineHeight: 1,
-              }}
-            >
-              {uploadingImage ? "⏳" : "🖼️"}
-            </button>
-            <input
-              ref={imageInputRef}
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={handleImageSelect}
-            />
-
-            <input
-              type="text"
-              placeholder={activeFriend ? `Nhắn tin cho ${activeFriend.fullName || activeFriend.username}...` : "Nhập tin nhắn..."}
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              style={{
-                flex: 1,
-                padding: "10px 14px",
-                borderRadius: 20,
-                border: "1px solid var(--border-light)",
-                background: "var(--bg-input)",
-                color: "var(--text-primary)",
-                fontSize: 14,
-                outline: "none",
-              }}
-            />
-            <button
-              type="submit"
-              disabled={!inputMessage.trim()}
-              style={{
-                background: inputMessage.trim() ? "var(--primary)" : "var(--border)",
-                color: "#fff",
-                border: "none",
-                borderRadius: "50%",
-                width: 38,
-                height: 38,
-                cursor: inputMessage.trim() ? "pointer" : "default",
+                padding: "10px 12px",
+                borderTop: "1px solid var(--border-light)",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                fontSize: 16,
-                flexShrink: 0,
+                gap: 8,
+                background: "var(--bg-card)",
+                zIndex: 1000,
               }}
             >
-              ➔
-            </button>
-          </form>
+              {/* Nút bật Sticker Picker */}
+              <button
+                type="button"
+                onClick={() => setShowStickerPicker((v) => !v)}
+                title="Bảng Sticker & Emoji"
+                style={{
+                  background: showStickerPicker ? "var(--primary-light)" : "none",
+                  border: "none",
+                  fontSize: 20,
+                  cursor: "pointer",
+                  padding: 4,
+                  borderRadius: "50%",
+                  lineHeight: 1,
+                }}
+              >
+                😊
+              </button>
+
+              {/* Nút chọn gửi Ảnh */}
+              <button
+                type="button"
+                onClick={() => imageInputRef.current?.click()}
+                disabled={uploadingImage}
+                title="Gửi hình ảnh"
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 20,
+                  cursor: "pointer",
+                  padding: 4,
+                  borderRadius: "50%",
+                  lineHeight: 1,
+                }}
+              >
+                {uploadingImage ? "⏳" : "🖼️"}
+              </button>
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={handleImageSelect}
+              />
+
+              <input
+                type="text"
+                placeholder={`Nhắn tin cho ${activeFriend.fullName || activeFriend.username}...`}
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                style={{
+                  flex: 1,
+                  padding: "10px 14px",
+                  borderRadius: 20,
+                  border: "1px solid var(--border-light)",
+                  background: "var(--bg-input)",
+                  color: "var(--text-primary)",
+                  fontSize: 14,
+                  outline: "none",
+                }}
+              />
+              <button
+                type="submit"
+                disabled={!inputMessage.trim()}
+                style={{
+                  background: inputMessage.trim() ? "var(--primary)" : "var(--border)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: 38,
+                  height: 38,
+                  cursor: inputMessage.trim() ? "pointer" : "default",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 16,
+                  flexShrink: 0,
+                }}
+              >
+                ➔
+              </button>
+            </form>
+          )}
         </div>
       )}
 
