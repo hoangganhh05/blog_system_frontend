@@ -46,7 +46,7 @@ const userService = {
       return res;
     } catch {
       // 2. Tự động gửi Email THẬT tới Gmail khách qua EmailJS API
-      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_blogviet";
+      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_y7xddpu";
       const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_otp";
       const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "user_public_key";
 
