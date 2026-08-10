@@ -73,17 +73,24 @@ function FriendsPage() {
   // State theo dõi các thay đổi thực tế
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const myId = String(currentUser?.id || currentUser?.userId || "");
+  const myUsername = (currentUser?.username || "").toLowerCase();
+
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [currentUser]);
 
   const loadUsers = async () => {
     setLoading(true);
     try {
       const res = await userService.getAll();
       const users = res.data || [];
-      // Lọc bỏ chính mình
-      const otherUsers = users.filter((u) => u.id !== currentUser?.id);
+      // Lọc bỏ chính mình tuyệt đối 100% (cả id và username)
+      const otherUsers = users.filter((u) => {
+        const uId = String(u.id);
+        const uName = (u.username || "").toLowerCase();
+        return uId !== myId && uName !== myUsername && uId !== "undefined";
+      });
       setAllUsers(otherUsers);
     } catch {
       setAllUsers([]);
@@ -92,56 +99,54 @@ function FriendsPage() {
     }
   };
 
-  const currentId = currentUser?.id;
-
-  // Lời mời kết bạn THỰC TẾ gửi ĐẾN currentId (những người đã ấn Thêm bạn bè với mình)
+  // Lời mời kết bạn THỰC TẾ gửi ĐẾN myId (những người đã ấn Thêm bạn bè với mình)
   const pendingRequestsList = getPendingRequests();
   const incomingRequestUserIds = pendingRequestsList
-    .filter((r) => r.toId === currentId)
-    .map((r) => r.fromId);
+    .filter((r) => String(r.toId) === myId)
+    .map((r) => String(r.fromId));
 
-  const incomingRequests = allUsers.filter((u) => incomingRequestUserIds.includes(u.id));
+  const incomingRequests = allUsers.filter((u) => incomingRequestUserIds.includes(String(u.id)));
 
-  // Lời mời do CHÍNH currentId ĐÃ GỬI Đi
+  // Lời mời do CHÍNH myId ĐÃ GỬI Đi
   const outgoingSentUserIds = pendingRequestsList
-    .filter((r) => r.fromId === currentId)
-    .map((r) => r.toId);
+    .filter((r) => String(r.fromId) === myId)
+    .map((r) => String(r.toId));
 
   // Danh sách Bạn bè 2 CHIỀU THỰC TẾ (UserA <-> UserB)
   const pairs = getMutualFriendsMap();
   const myFriendIds = pairs
-    .filter((p) => p.u1 === currentId || p.u2 === currentId)
-    .map((p) => (p.u1 === currentId ? p.u2 : p.u1));
+    .filter((p) => String(p.u1) === myId || String(p.u2) === myId)
+    .map((p) => (String(p.u1) === myId ? String(p.u2) : String(p.u1)));
 
-  const friendsList = allUsers.filter((u) => myFriendIds.includes(u.id));
+  const friendsList = allUsers.filter((u) => myFriendIds.includes(String(u.id)));
 
   // Danh sách Gợi ý kết bạn (chưa là bạn bè 2 chiều, chưa gửi lời mời, chưa bị gỡ)
   const suggestions = allUsers.filter(
     (u) =>
-      !myFriendIds.includes(u.id) &&
-      !incomingRequestUserIds.includes(u.id) &&
-      !outgoingSentUserIds.includes(u.id) &&
-      !removedSuggestions.includes(u.id)
+      !myFriendIds.includes(String(u.id)) &&
+      !incomingRequestUserIds.includes(String(u.id)) &&
+      !outgoingSentUserIds.includes(String(u.id)) &&
+      !removedSuggestions.includes(String(u.id))
   );
 
   // 1. Gửi lời mời kết bạn
   const handleSendRequest = (targetUserId) => {
-    sendFriendRequestStore(currentId, targetUserId);
+    sendFriendRequestStore(myId, String(targetUserId));
     setRefreshKey((v) => v + 1);
   };
 
   // 2. Chấp nhận lời mời kết bạn (TẠO BẠN BÈ 2 CHIỀU THỰC TẾ)
   const handleAcceptRequest = (fromUserId) => {
     // Thêm quan hệ bạn bè 2 chiều
-    addMutualFriendPair(currentId, fromUserId);
+    addMutualFriendPair(myId, String(fromUserId));
     // Xóa khỏi danh sách lời mời chờ
-    removePendingRequest(fromUserId, currentId);
+    removePendingRequest(String(fromUserId), myId);
     setRefreshKey((v) => v + 1);
   };
 
   // 3. Xóa/Từ chối lời mời kết bạn
   const handleDeclineRequest = (fromUserId) => {
-    removePendingRequest(fromUserId, currentId);
+    removePendingRequest(String(fromUserId), myId);
     setRefreshKey((v) => v + 1);
   };
 
