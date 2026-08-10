@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import likeService from "../services/likeService";
 import bookmarkService from "../services/bookmarkService";
 import ShareModal from "./ShareModal";
+import ReactionsModal from "./ReactionsModal";
 import aiService from "../services/aiService";
 import { isVideoUrl } from "../utils/mediaUtils";
 
@@ -54,6 +55,7 @@ function PostCard({ post, onDelete, style }) {
 
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isReactionsModalOpen, setIsReactionsModalOpen] = useState(false);
 
   const menuRef = useRef(null);
   const reactionTimerRef = useRef(null);
@@ -573,7 +575,12 @@ function PostCard({ post, onDelete, style }) {
 
       {/* Stats — Hiển thị các icon cảm xúc top đầu */}
       <div className="post-card-stats">
-        <div className="post-card-likes" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div
+          className="post-card-likes"
+          onClick={() => setIsReactionsModalOpen(true)}
+          style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}
+          title="Nhấp để xem danh sách người thả cảm xúc"
+        >
           {likeCount > 0 && (
             <>
               <div style={{ display: "flex", alignItems: "center", marginLeft: 2 }}>
@@ -733,6 +740,15 @@ function PostCard({ post, onDelete, style }) {
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         onToast={showToast}
+      />
+
+      {/* Reactions Modal - Danh sách người thả cảm xúc */}
+      <ReactionsModal
+        postId={post.id}
+        isOpen={isReactionsModalOpen}
+        onClose={() => setIsReactionsModalOpen(false)}
+        totalLikeCount={likeCount}
+        reactionsSummary={reactionsSummary}
       />
 
       {/* Toast Notification */}

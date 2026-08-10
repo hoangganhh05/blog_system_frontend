@@ -30,6 +30,14 @@ const likeService = {
     if (!uid) return Promise.resolve({ data: { liked: false, count: 0 } });
     return axiosClient.get(`/posts/${postId}/likes/check?userId=${uid}`);
   },
+
+  // Lấy chi tiết danh sách người dùng đã thả từng cảm xúc cho bài viết
+  getReactionsList(postId) {
+    return axiosClient.get(`/posts/${postId}/likes/list`).catch(() => {
+      // Fallback nếu backend chưa mở endpoint /likes/list
+      return { data: [] };
+    });
+  },
 };
 
 export default likeService;
