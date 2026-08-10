@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
@@ -22,6 +22,19 @@ function Login() {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotMsg, setForgotMsg] = useState({ text: "", type: "" });
   const [demoOtpCode, setDemoOtpCode] = useState("");
+
+  useEffect(() => {
+    if (!showForgotModal) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setShowForgotModal(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showForgotModal]);
 
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -217,6 +230,8 @@ function Login() {
       {/* Modal Quên mật khẩu & Gửi mã OTP Gmail */}
       {showForgotModal && (
         <div
+          role="dialog"
+          aria-modal="true"
           style={{
             position: "fixed",
             inset: 0,
@@ -228,7 +243,6 @@ function Login() {
             padding: 16,
             backdropFilter: "blur(4px)",
           }}
-          onClick={() => setShowForgotModal(false)}
         >
           <div
             className="card"
