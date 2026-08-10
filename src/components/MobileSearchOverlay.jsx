@@ -77,17 +77,50 @@ function MobileSearchOverlay({ isOpen, onClose }) {
     }
   };
 
+  const removeVietnameseTones = (str) => {
+    if (!str) return "";
+    return str
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d")
+      .replace(/Đ/g, "D")
+      .toLowerCase();
+  };
+
+  const matchesQuery = (text, query) => {
+    if (!text || !query) return false;
+    return removeVietnameseTones(text).includes(removeVietnameseTones(query.trim()));
+  };
+
   if (!isOpen) return null;
 
-  const query = searchTerm.trim().toLowerCase();
+  const query = searchTerm.trim();
 
   const matchingUsers = query
-    ? allUsers.filter((u) => (u.fullName || u.username || "").toLowerCase().includes(query))
+    ? allUsers.filter((u) => matchesQuery(u.fullName, query) || matchesQuery(u.username, query))
     : [];
 
   const matchingPosts = query
-    ? allPosts.filter((p) => (p.title || p.content || "").toLowerCase().includes(query))
+    ? allPosts.filter(
+        (p) =>
+          matchesQuery(p.title, query) ||
+          matchesQuery(p.content, query) ||
+          matchesQuery(p.category?.name, query)
+      )
     : [];
+
+  const handleExecuteSearch = (qStr) => {
+    const q = qStr || searchTerm;
+    if (q && q.trim()) {
+      saveRecentItem({
+        id: `query_${Date.now()}`,
+        text: q.trim(),
+        type: "query",
+      });
+      onClose();
+      navigate(`/search?q=${encodeURIComponent(q.trim())}`);
+    }
+  };
 
   const handleSelectUser = (user) => {
     saveRecentItem({
@@ -120,7 +153,7 @@ function MobileSearchOverlay({ isOpen, onClose }) {
       onClose();
       navigate(`/posts/${item.postId}`);
     } else {
-      setSearchTerm(item.text);
+      handleExecuteSearch(item.text);
     }
   };
 
@@ -183,12 +216,9 @@ function MobileSearchOverlay({ isOpen, onClose }) {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && searchTerm.trim()) {
-                saveRecentItem({
-                  id: `query_${Date.now()}`,
-                  text: searchTerm.trim(),
-                  type: "query",
-                });
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleExecuteSearch(searchTerm);
               }
             }}
             style={{

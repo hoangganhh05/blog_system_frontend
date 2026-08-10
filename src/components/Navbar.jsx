@@ -118,21 +118,48 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
     navigate("/login");
   };
 
-  // Filter kết quả tìm kiếm live
-  const searchTerm = (searchValue || "").trim().toLowerCase();
+  // Helper tìm kiếm tiếng Việt không dấu
+  const removeVietnameseTones = (str) => {
+    if (!str) return "";
+    return str
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d")
+      .replace(/Đ/g, "D")
+      .toLowerCase();
+  };
+
+  const matchesQuery = (text, query) => {
+    if (!text || !query) return false;
+    return removeVietnameseTones(text).includes(removeVietnameseTones(query.trim()));
+  };
+
+  // Filter kết quả tìm kiếm live thông minh
+  const searchTerm = (searchValue || "").trim();
   const matchingUsers = searchTerm
     ? allUsers.filter(
-        (u) => (u.fullName || u.username || "").toLowerCase().includes(searchTerm)
+        (u) => matchesQuery(u.fullName, searchTerm) || matchesQuery(u.username, searchTerm)
       ).slice(0, 5)
     : [];
 
   const matchingPosts = searchTerm
     ? allPosts.filter(
-        (p) => (p.title || "").toLowerCase().includes(searchTerm) || (p.content || "").toLowerCase().includes(searchTerm)
+        (p) =>
+          matchesQuery(p.title, searchTerm) ||
+          matchesQuery(p.content, searchTerm) ||
+          matchesQuery(p.category?.name, searchTerm)
       ).slice(0, 5)
     : [];
 
   const hasResults = matchingUsers.length > 0 || matchingPosts.length > 0;
+
+  const handleExecuteSearch = (queryStr) => {
+    const q = queryStr || searchValue;
+    if (q && q.trim()) {
+      setSearchFocused(false);
+      navigate(`/search?q=${encodeURIComponent(q.trim())}`);
+    }
+  };
 
   // Auto-hide Navbar on scroll down (Facebook style)
   const [navHidden, setNavHidden] = useState(false);
@@ -184,12 +211,18 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
           </span>
           <input
             type="text"
-            placeholder="Tìm kiếm..."
+            placeholder="Tìm kiếm từ khóa, tên, video..."
             value={searchValue || ""}
             onClick={() => setMobileSearchOpen(true)}
             onFocus={() => {
               setSearchFocused(true);
               setMobileSearchOpen(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleExecuteSearch(searchValue);
+              }
             }}
             onChange={(e) => {
               onSearchChange && onSearchChange(e.target.value);
@@ -299,6 +332,27 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
                       ))}
                     </div>
                   )}
+
+                  {/* Nút Xem tất cả kết quả cho từ khóa */}
+                  <div
+                    onClick={() => handleExecuteSearch(searchValue)}
+                    style={{
+                      padding: "12px 16px",
+                      background: "var(--bg-hover)",
+                      borderTop: "1px solid var(--border-light)",
+                      color: "var(--primary)",
+                      fontWeight: 700,
+                      fontSize: 13.5,
+                      cursor: "pointer",
+                      textAlign: "center",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <span>🔍 Xem tất cả kết quả cho "{searchValue}"</span>
+                  </div>
                 </>
               )}
             </div>
