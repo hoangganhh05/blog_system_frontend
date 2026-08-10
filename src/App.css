@@ -1617,10 +1617,31 @@
     gap: 8px !important;
   }
 
-  /* Universal Media Scaler on Mobile */
-  img, video, iframe {
+  /* Universal Mobile Media Scaler according to screen dimensions (<= 768px) */
+  img, video, iframe, audio, canvas, svg {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .post-card-thumbnail,
+  .post-card video,
+  .post-card img,
+  .post-detail-media img,
+  .post-detail-media video,
+  .card img,
+  .card video {
+    width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
+    max-height: 75vh !important;
+    object-fit: contain !important;
+    display: block !important;
+  }
+
+  .avatar, img.avatar {
+    aspect-ratio: 1 / 1 !important;
+    object-fit: cover !important;
+    flex-shrink: 0 !important;
   }
 
 
