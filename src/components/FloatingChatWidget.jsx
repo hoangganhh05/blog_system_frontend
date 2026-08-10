@@ -76,26 +76,33 @@ function FloatingChatWidget() {
     document.body.removeChild(textArea);
   };
 
-  const handlePinMessage = (msg) => {
+  const handlePinMessage = async (msg) => {
     setPinnedMessage(msg);
     showToast("Đã ghim tin nhắn!");
     if (currentUserId && activeFriend?.id) {
       try {
         const key = `pinned_msg_${currentUserId}_${activeFriend.id}`;
         localStorage.setItem(key, JSON.stringify(msg));
+        if (!activeFriend?.isAi) {
+          await chatService.pinMessage(msg.id, true);
+        }
       } catch {
         // Ignore
       }
     }
   };
 
-  const handleUnpinMessage = () => {
+  const handleUnpinMessage = async () => {
+    const prevPinnedId = pinnedMessage?.id;
     setPinnedMessage(null);
     showToast("Đã bỏ ghim tin nhắn!");
     if (currentUserId && activeFriend?.id) {
       try {
         const key = `pinned_msg_${currentUserId}_${activeFriend.id}`;
         localStorage.removeItem(key);
+        if (!activeFriend?.isAi && prevPinnedId) {
+          await chatService.pinMessage(prevPinnedId, false);
+        }
       } catch {
         // Ignore
       }

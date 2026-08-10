@@ -28,6 +28,11 @@ const chatService = {
   deleteMessage(messageId) {
     return axiosClient.delete(`/chat/message/${messageId}`);
   },
+
+  // Ghim / Bỏ ghim tin nhắn trực tiếp vào Database MySQL
+  pinMessage(messageId, isPinned = true) {
+    return axiosClient.put(`/chat/message/${messageId}/pin?isPinned=${isPinned}`);
+  },
 };
 
 export default chatService;
