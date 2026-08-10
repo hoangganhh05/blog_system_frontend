@@ -718,7 +718,6 @@ function Profile() {
                 ...(isMe ? [
                   { key: "bookmarks", label: `Đã lưu (${bookmarkedPosts.length})` },
                   { key: "edit", label: "⚙️ Chỉnh sửa hồ sơ" },
-                  { key: "security", label: "🔒 Cài đặt bảo mật" },
                 ] : []),
               ].map((tab) => (
                 <button
