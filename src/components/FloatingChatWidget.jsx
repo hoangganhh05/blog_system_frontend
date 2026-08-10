@@ -671,8 +671,8 @@ function playNotificationSound() {
                           {/* Avatar bên trái cho bạn bè / AI */}
                           {!isMe && (
                             activeFriend?.isAi ? (
-                              <div className="avatar avatar-xs" style={{ width: 26, height: 26, fontSize: 13, background: "var(--primary)", color: "#fff", flexShrink: 0, border: "1px solid var(--border-light)" }}>
-                                🤖
+                              <div className="avatar avatar-xs" style={{ width: 26, height: 26, fontSize: 13, background: "var(--primary)", color: "#fff", flexShrink: 0, border: "1px solid var(--border-light)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                ✨
                               </div>
                             ) : friendAvatar ? (
                               <img src={friendAvatar} alt="" className="avatar avatar-xs" style={{ width: 26, height: 26, objectFit: "cover", flexShrink: 0 }} />
@@ -706,13 +706,13 @@ function playNotificationSound() {
                                 ⋯
                               </button>
 
-                              {/* Bảng tùy chọn mở BÊN TRÁI tin nhắn */}
+                              {/* Bảng tùy chọn mở SANG BÊN TRÁI NÚT 3 CHẤM, KHÔNG BỊ TỤT XUỐNG DƯỚI */}
                               {activeMsgMenuId === msg.id && (
                                 <div
                                   style={{
                                     position: "absolute",
-                                    top: "calc(100% + 4px)",
-                                    right: 0,
+                                    top: -6,
+                                    right: "calc(100% + 6px)",
                                     background: "var(--bg-card)",
                                     border: "1px solid var(--border-light)",
                                     borderRadius: 14,
@@ -722,7 +722,7 @@ function playNotificationSound() {
                                     display: "flex",
                                     flexDirection: "column",
                                     minWidth: 170,
-                                    animation: "slideDown 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
+                                    animation: "scaleUp 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
                                   }}
                                 >
                                   <button
