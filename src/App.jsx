@@ -16,6 +16,7 @@ import GamesPage from "./pages/GamesPage";
 import AiCreatorPage from "./pages/AiCreatorPage";
 import VideosPage from "./pages/VideosPage";
 import SecuritySettingsPage from "./pages/SecuritySettingsPage";
+import FriendsPage from "./pages/FriendsPage";
 import FloatingChatWidget from "./components/FloatingChatWidget";
 import MobileBottomNav from "./components/MobileBottomNav";
 import "./index.css";
@@ -66,6 +67,7 @@ function AppContent() {
         <Route path="/register" element={<Register />} />
         <Route path="/posts/:id" element={<PostDetail />} />
         <Route path="/profile/:userId" element={<Profile />} />
+        <Route path="/friends" element={<FriendsPage />} />
         <Route path="/videos" element={<VideosPage />} />
         <Route path="/radio" element={<RadioPage />} />
         <Route path="/trending" element={<TrendingPage />} />
