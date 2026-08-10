@@ -119,7 +119,7 @@ function Dashboard() {
   if (!currentUser) return null;
 
   return (
-    <div style={{ background: "var(--bg-secondary)", minHeight: "calc(100vh - 60px)", display: "flex", flexWrap: "nowrap" }}>
+    <div className="app-layout" style={{ background: "var(--bg-secondary)", minHeight: "100vh", display: "flex", flexWrap: "nowrap" }}>
       
       {/* 1. LEFT SIDEBAR MENU (Công cụ chuyên nghiệp - Không bị đè chữ) */}
       <div
