@@ -736,9 +736,9 @@ function playNotificationSound() {
                             )}
                           </div>
 
-                          {/* Nút 3 chấm ngang ⋯ nằm bên phải */}
-                          {isMe && !isEditingThis && (
-                            <div style={{ position: "relative" }}>
+                          {/* Nút 3 chấm ⋯ luôn hiện SANG BÊN PHẢI tin nhắn khi di chuột vào (Hover) */}
+                          {!isEditingThis && (
+                            <div style={{ position: "relative", flexShrink: 0 }}>
                               <button
                                 type="button"
                                 className="msg-more-btn"
@@ -750,22 +750,23 @@ function playNotificationSound() {
                                   fontSize: 18,
                                   fontWeight: 800,
                                   cursor: "pointer",
-                                  padding: "2px 4px",
+                                  padding: "2px 6px",
                                   borderRadius: "50%",
                                   lineHeight: 1,
                                 }}
-                                title="Ấn giữ hoặc nhấp để tùy chọn"
+                                title="Tùy chọn tin nhắn"
                               >
                                 ⋯
                               </button>
 
-                              {/* Bảng tùy chọn dọc đơn giản chuẩn 100% theo ảnh Zalo / Facebook */}
+                              {/* Bảng tùy chọn dọc mở SANG BÊN PHẢI / DƯỚI NÚT 3 CHẤM */}
                               {activeMsgMenuId === msg.id && (
                                 <div
                                   style={{
                                     position: "absolute",
                                     top: "calc(100% + 4px)",
-                                    right: 0,
+                                    right: isMe ? 0 : "auto",
+                                    left: isMe ? "auto" : 0,
                                     background: "var(--bg-card)",
                                     border: "1px solid var(--border-light)",
                                     borderRadius: 14,
