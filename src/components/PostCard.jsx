@@ -56,6 +56,7 @@ function PostCard({ post, onDelete, style }) {
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isReactionsModalOpen, setIsReactionsModalOpen] = useState(false);
+  const [showLightbox, setShowLightbox] = useState(false);
 
   const menuRef = useRef(null);
   const reactionTimerRef = useRef(null);
@@ -411,12 +412,14 @@ function PostCard({ post, onDelete, style }) {
         </div>
       </div>
 
-      {/* Media / Thumbnail — ẩn nếu có nền màu hoặc là bài viết chia sẻ */}
+      {/* Media / Thumbnail — hỗ trợ Video playsInline di động & Xem ảnh toàn màn hình Facebook Lightbox */}
       {post.thumbNail && !post.bgColor && !post.sharedPost && (
         isVideoUrl(post.thumbNail) ? (
           <video
             src={post.thumbNail}
             controls
+            playsInline
+            webkit-playsinline="true"
             preload="metadata"
             style={{
               width: "100%",
@@ -432,7 +435,11 @@ function PostCard({ post, onDelete, style }) {
             src={post.thumbNail}
             alt={post.title}
             className="post-card-thumbnail"
-            onClick={goToDetail}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowLightbox(true);
+            }}
+            style={{ cursor: "pointer" }}
             onError={(e) => { e.target.style.display = "none"; }}
           />
         )
@@ -756,6 +763,59 @@ function PostCard({ post, onDelete, style }) {
         <div className={`custom-toast ${toast.type}`}>
           <span>{toast.type === "success" ? "✓" : toast.type === "error" ? "❌" : "ℹ️"}</span>
           <span>{toast.message}</span>
+        </div>
+      )}
+
+      {/* Facebook Lightbox Fullscreen Image Viewer Modal */}
+      {showLightbox && (
+        <div
+          onClick={() => setShowLightbox(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.94)",
+            zIndex: 99999999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+            animation: "fadeIn 0.2s ease",
+          }}
+        >
+          <button
+            onClick={() => setShowLightbox(false)}
+            style={{
+              position: "absolute",
+              top: 20,
+              right: 20,
+              background: "rgba(255, 255, 255, 0.25)",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "50%",
+              width: 44,
+              height: 44,
+              fontSize: 22,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 10,
+            }}
+          >
+            ✕
+          </button>
+          <img
+            src={post.thumbNail}
+            alt=""
+            style={{
+              maxWidth: "100%",
+              maxHeight: "90vh",
+              objectFit: "contain",
+              borderRadius: 12,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </article>
