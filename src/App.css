@@ -1158,6 +1158,18 @@
   }
 }
 
+/* Ẩn nút 3 chấm và chỉ hiện khi rê chuột vào tin nhắn (Hover) */
+.msg-bubble-group .msg-more-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.msg-bubble-group:hover .msg-more-btn {
+  opacity: 1 !important;
+}
+.msg-menu-item-hover:hover {
+  background: var(--bg-input) !important;
+}
+
 @media screen and (min-width: 769px) {
   .mobile-header-avatar {
     display: none !important;

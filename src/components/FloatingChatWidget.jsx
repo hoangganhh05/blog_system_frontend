@@ -759,27 +759,50 @@ function playNotificationSound() {
                                 ⋯
                               </button>
 
-                              {/* Bảng chức năng thả xuống HÀNG NGANG (Horizontal Layout) - HIỆN XUỐNG DƯỚI TIN NHẮN */}
+                              {/* Bảng tùy chọn dọc đơn giản chuẩn 100% theo ảnh Zalo / Facebook */}
                               {activeMsgMenuId === msg.id && (
                                 <div
                                   style={{
                                     position: "absolute",
-                                    top: "calc(100% + 6px)",
+                                    top: "calc(100% + 4px)",
                                     right: 0,
                                     background: "var(--bg-card)",
                                     border: "1px solid var(--border-light)",
-                                    borderRadius: 24,
-                                    boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-                                    padding: "6px 10px",
+                                    borderRadius: 14,
+                                    boxShadow: "0 12px 36px rgba(0,0,0,0.2)",
+                                    padding: "6px 0",
                                     zIndex: 10000,
                                     display: "flex",
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    gap: 6,
-                                    whiteSpace: "nowrap",
+                                    flexDirection: "column",
+                                    minWidth: 170,
                                     animation: "slideDown 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
                                   }}
                                 >
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(msg.content);
+                                      setActiveMsgMenuId(null);
+                                    }}
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      padding: "8px 14px",
+                                      fontSize: 13,
+                                      fontWeight: 600,
+                                      color: "var(--text-primary)",
+                                      cursor: "pointer",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 10,
+                                      textAlign: "left",
+                                      width: "100%",
+                                    }}
+                                    className="msg-menu-item-hover"
+                                  >
+                                    <span style={{ fontSize: 14 }}>📋</span> Copy tin nhắn
+                                  </button>
+
                                   {isMe && (
                                     <button
                                       type="button"
@@ -789,45 +812,50 @@ function playNotificationSound() {
                                         setActiveMsgMenuId(null);
                                       }}
                                       style={{
-                                        background: "var(--bg-input)",
+                                        background: "none",
                                         border: "none",
-                                        padding: "6px 12px",
-                                        fontSize: 12,
-                                        fontWeight: 700,
+                                        padding: "8px 14px",
+                                        fontSize: 13,
+                                        fontWeight: 600,
                                         color: "var(--text-primary)",
                                         cursor: "pointer",
-                                        borderRadius: 16,
                                         display: "flex",
                                         alignItems: "center",
-                                        gap: 4,
+                                        gap: 10,
+                                        textAlign: "left",
+                                        width: "100%",
                                       }}
+                                      className="msg-menu-item-hover"
                                     >
-                                      ✏️ Sửa
+                                      <span style={{ fontSize: 14 }}>✏️</span> Chỉnh sửa tin nhắn
                                     </button>
                                   )}
 
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      navigator.clipboard.writeText(msg.content);
                                       setActiveMsgMenuId(null);
                                     }}
                                     style={{
-                                      background: "var(--bg-input)",
+                                      background: "none",
                                       border: "none",
-                                      padding: "6px 12px",
-                                      fontSize: 12,
-                                      fontWeight: 700,
+                                      padding: "8px 14px",
+                                      fontSize: 13,
+                                      fontWeight: 600,
                                       color: "var(--text-primary)",
                                       cursor: "pointer",
-                                      borderRadius: 16,
                                       display: "flex",
                                       alignItems: "center",
-                                      gap: 4,
+                                      gap: 10,
+                                      textAlign: "left",
+                                      width: "100%",
                                     }}
+                                    className="msg-menu-item-hover"
                                   >
-                                    📋 Chép
+                                    <span style={{ fontSize: 14 }}>📌</span> Ghim tin nhắn
                                   </button>
+
+                                  <div style={{ height: 1, background: "var(--border-light)", margin: "4px 0" }} />
 
                                   {isMe && (
                                     <button
@@ -837,37 +865,24 @@ function playNotificationSound() {
                                         setActiveMsgMenuId(null);
                                       }}
                                       style={{
-                                        background: "rgba(239, 68, 68, 0.15)",
+                                        background: "none",
                                         border: "none",
-                                        padding: "6px 12px",
-                                        fontSize: 12,
-                                        fontWeight: 700,
+                                        padding: "8px 14px",
+                                        fontSize: 13,
+                                        fontWeight: 600,
                                         color: "#ef4444",
                                         cursor: "pointer",
-                                        borderRadius: 16,
                                         display: "flex",
                                         alignItems: "center",
-                                        gap: 4,
+                                        gap: 10,
+                                        textAlign: "left",
+                                        width: "100%",
                                       }}
+                                      className="msg-menu-item-hover"
                                     >
-                                      🗑️ Xóa
+                                      <span style={{ fontSize: 14 }}>🗑️</span> Xóa tin nhắn
                                     </button>
                                   )}
-
-                                  <button
-                                    type="button"
-                                    onClick={() => setActiveMsgMenuId(null)}
-                                    style={{
-                                      background: "none",
-                                      border: "none",
-                                      color: "var(--text-muted)",
-                                      fontSize: 14,
-                                      cursor: "pointer",
-                                      padding: "4px 6px",
-                                    }}
-                                  >
-                                    ✕
-                                  </button>
                                 </div>
                               )}
                             </div>
