@@ -60,8 +60,8 @@ function VideosPage() {
   };
 
   return (
-    <div className="app-layout" style={{ height: 'calc(100vh - 60px)', overflow: 'hidden' }}>
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "20px 16px 80px 16px", height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+    <div className="app-layout videos-page">
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "20px 16px 80px 16px" }}>
         
         {/* Header Banner Video */}
         <div

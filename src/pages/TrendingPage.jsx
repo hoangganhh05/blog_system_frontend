@@ -51,8 +51,8 @@ function TrendingPage() {
   }, []);
 
   return (
-    <div className="app-layout" style={{ height: 'calc(100vh - 60px)', overflow: 'hidden' }}>
-      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "24px 16px", height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+    <div className="app-layout trending-page">
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "24px 16px" }}>
       {/* Hero Header */}
       <div
         style={{

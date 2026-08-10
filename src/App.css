@@ -281,23 +281,17 @@
 }
 
 @media (min-width: 992px) {
-  html, body {
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .app-layout {
-    height: 100vh;
-    overflow: hidden;
-    padding-top: 60px;
-    box-sizing: border-box;
-  }
-
+  /* Chỉ áp dụng overflow hidden cho trang Home có 3 cột */
   .page-container {
     height: calc(100vh - 60px);
     box-sizing: border-box;
     overflow: hidden;
     padding-bottom: 0;
+  }
+
+  /* Home page: html body overflow hidden */
+  body.home-page {
+    overflow: hidden;
   }
 
   .sidebar-left {
@@ -1739,33 +1733,6 @@
   .page-main-content::-webkit-scrollbar-track {
     background: transparent !important;
   }
-
-  /* Trending Page PC Scrollable Layout */
-  .app-layout:not(.page-with-sidebar) {
-    height: calc(100vh - 60px) !important;
-    overflow: hidden !important;
-  }
-
-  .app-layout:not(.page-with-sidebar) > div {
-    height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    scrollbar-width: thin !important;
-    scrollbar-color: var(--border-light) transparent !important;
-  }
-
-  .app-layout:not(.page-with-sidebar) > div::-webkit-scrollbar {
-    width: 8px !important;
-  }
-
-  .app-layout:not(.page-with-sidebar) > div::-webkit-scrollbar-thumb {
-    background: var(--border-light) !important;
-    border-radius: 4px !important;
-  }
-
-  .app-layout:not(.page-with-sidebar) > div::-webkit-scrollbar-track {
-    background: transparent !important;
-  }
 }
 
 /* Mobile Layout (<= 768px) */
@@ -1887,6 +1854,44 @@
 /* ============================================
    MOBILE SCROLL FIX FOR ALL PAGES
    ============================================ */
+
+/* PC: Các trang đơn (không có sidebar) có thể scroll */
+@media (min-width: 769px) {
+  /* Các trang đơn: Trending, Games, Videos, Radio */
+  .trending-page,
+  .games-page,
+  .videos-page,
+  .radio-page {
+    height: calc(100vh - 60px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-light) transparent;
+  }
+
+  .trending-page::-webkit-scrollbar,
+  .games-page::-webkit-scrollbar,
+  .videos-page::-webkit-scrollbar,
+  .radio-page::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .trending-page::-webkit-scrollbar-thumb,
+  .games-page::-webkit-scrollbar-thumb,
+  .videos-page::-webkit-scrollbar-thumb,
+  .radio-page::-webkit-scrollbar-thumb {
+    background: var(--border-light);
+    border-radius: 4px;
+  }
+
+  .trending-page::-webkit-scrollbar-track,
+  .games-page::-webkit-scrollbar-track,
+  .videos-page::-webkit-scrollbar-track,
+  .radio-page::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
 @media (max-width: 768px) {
   /* Reset height constraints on mobile for natural scrolling */
   .app-layout {
