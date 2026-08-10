@@ -15,6 +15,7 @@ import TrendingPage from "./pages/TrendingPage";
 import GamesPage from "./pages/GamesPage";
 import AiCreatorPage from "./pages/AiCreatorPage";
 import VideosPage from "./pages/VideosPage";
+import SecuritySettingsPage from "./pages/SecuritySettingsPage";
 import FloatingChatWidget from "./components/FloatingChatWidget";
 import MobileBottomNav from "./components/MobileBottomNav";
 import "./index.css";
@@ -70,6 +71,14 @@ function AppContent() {
         <Route path="/trending" element={<TrendingPage />} />
         <Route path="/games" element={<GamesPage />} />
         <Route path="/ai-creator" element={<AiCreatorPage />} />
+        <Route
+          path="/security"
+          element={
+            <ProtectedRoute>
+              <SecuritySettingsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/saved"
           element={

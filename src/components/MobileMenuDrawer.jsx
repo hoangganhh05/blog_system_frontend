@@ -142,7 +142,7 @@ export default function MobileMenuDrawer({ isOpen, onClose, isDark, onToggleThem
               <div
                 onClick={() => {
                   onClose();
-                  navigate(`/profile/${currentUser.id}?tab=security`);
+                  navigate("/security");
                 }}
                 style={{
                   display: "flex",

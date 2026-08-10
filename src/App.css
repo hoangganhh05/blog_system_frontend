@@ -7,7 +7,7 @@
 
 /* Main layout with fixed navbar */
 .app-layout {
-  padding-top: var(--navbar-height);
+  padding-top: calc(var(--navbar-height, 60px) + 20px);
   min-height: 100vh;
 }
 

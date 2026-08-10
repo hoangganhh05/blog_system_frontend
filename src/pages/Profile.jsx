@@ -594,18 +594,16 @@ function Profile() {
                         <span>⚙️ Chỉnh sửa hồ sơ</span>
                       </div>
 
-                      <div
-                        onClick={() => {
-                          setActiveTab("security");
-                          setMoreMenuOpen(false);
-                        }}
+                      <Link
+                        to="/security"
+                        onClick={() => setMoreMenuOpen(false)}
                         style={{
                           display: "flex",
                           alignItems: "center",
                           gap: 10,
                           padding: "10px 16px",
                           color: "var(--text-primary)",
-                          cursor: "pointer",
+                          textDecoration: "none",
                           fontSize: 14,
                           fontWeight: 600,
                           transition: "background 0.15s",
@@ -614,7 +612,7 @@ function Profile() {
                         onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                       >
                         <span>🔒 Cài đặt bảo mật</span>
-                      </div>
+                      </Link>
 
                       <div
                         onClick={() => {
@@ -980,88 +978,7 @@ function Profile() {
           </div>
         )}
 
-        {/* Tab: Cài đặt bảo mật */}
-        {activeTab === "security" && isMe && (
-          <div className="card" style={{ padding: 24 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
-              🛡️ Cài đặt bảo mật tài khoản
-            </h2>
-            <p style={{ fontSize: 13.5, color: "var(--text-muted)", marginBottom: 20 }}>
-              Quản lý mật khẩu cá nhân, trạng thái xác thực Gmail và thông tin bảo mật phiên làm việc.
-            </p>
 
-            {/* Khung 1: Thay đổi mật khẩu */}
-            <div style={{ background: "var(--bg-input)", padding: 18, borderRadius: 16, marginBottom: 20 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>
-                🔑 Thay đổi mật khẩu
-              </h3>
-              <form onSubmit={handleChangePassword}>
-                <div className="form-group">
-                  <label className="form-label">Mật khẩu hiện tại</label>
-                  <input
-                    className="form-input"
-                    type="password"
-                    value={pwForm.oldPassword}
-                    onChange={(e) => setPwForm({ ...pwForm, oldPassword: e.target.value })}
-                    placeholder="Nhập mật khẩu hiện tại"
-                    style={{ background: "var(--bg-card)" }}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Mật khẩu mới</label>
-                  <input
-                    className="form-input"
-                    type="password"
-                    value={pwForm.newPassword}
-                    onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
-                    placeholder="Ít nhất 6 ký tự"
-                    style={{ background: "var(--bg-card)" }}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Xác nhận mật khẩu mới</label>
-                  <input
-                    className="form-input"
-                    type="password"
-                    value={pwForm.confirmPassword}
-                    onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
-                    placeholder="Nhập lại mật khẩu mới"
-                    style={{ background: "var(--bg-card)" }}
-                  />
-                </div>
-
-                {pwMsg.text && (
-                  <div className={`alert ${pwMsg.type === "success" ? "alert-success" : "alert-error"}`} style={{ marginBottom: 12 }}>
-                    {pwMsg.text}
-                  </div>
-                )}
-
-                <button className="btn btn-primary" type="submit" disabled={pwLoading}>
-                  {pwLoading ? "Đang lưu..." : "Cập nhật mật khẩu"}
-                </button>
-              </form>
-            </div>
-
-            {/* Khung 2: Trạng thái Gmail & Bảo mật */}
-            <div style={{ background: "var(--bg-input)", padding: 18, borderRadius: 16 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 10 }}>
-                📧 Bảo mật Gmail & Thiết bị
-              </h3>
-              <div style={{ fontSize: 13.5, color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span>Khôi phục mật khẩu qua Gmail OTP:</span>
-                  <span className="badge badge-success">🟢 Đã bật</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span>Phiên làm việc hiện tại:</span>
-                  <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>Trình duyệt Web</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Toast Notification */}
