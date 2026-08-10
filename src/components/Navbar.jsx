@@ -102,6 +102,17 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
     setSearchFocused(false);
   }, [location]);
 
+  // Lắng nghe sự kiện cập nhật tổng số tin nhắn chưa đọc
+  useEffect(() => {
+    const handleUnreadUpdate = (e) => {
+      if (typeof e.detail?.count === "number") {
+        setUnreadChatCount(e.detail.count);
+      }
+    };
+    window.addEventListener("unread_chat_count_updated", handleUnreadUpdate);
+    return () => window.removeEventListener("unread_chat_count_updated", handleUnreadUpdate);
+  }, []);
+
   const handleLogout = () => {
     logout();
     navigate("/login");

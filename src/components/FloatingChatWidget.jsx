@@ -275,26 +275,42 @@ function FloatingChatWidget() {
   }, []);
 
   const [conversationsMap, setConversationsMap] = useState({});
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
-  // Lấy danh sách bạn bè khi mở widget - luôn chèn AI Assistant ở đầu
+  // 1. Lấy danh sách tất cả bạn bè & người dùng để theo dõi tin nhắn chưa đọc liên tục
   useEffect(() => {
-    if (isOpen && currentUserId) {
-      friendService.getFriendsList(currentUserId)
-        .then((friendsRes) => {
-          const rawFriends = friendsRes.data || [];
-          const friendsList = rawFriends.map((f) => f.friend || f.user || f).filter((f) => f && f.id !== currentUserId);
+    if (!currentUserId) return;
+    const fetchFriends = async () => {
+      try {
+        const [friendsRes, usersRes] = await Promise.all([
+          friendService.getFriendsList(currentUserId).catch(() => ({ data: [] })),
+          userService.getAll().catch(() => ({ data: [] })),
+        ]);
 
-          // Chỉ bao gồm Trợ lý AI và Danh Sách Bạn Bè Đã Kết Bạn (ACCEPTED)
-          const combined = [AI_USER, ...friendsList];
-          setFriends(combined);
-        })
-        .catch(() => {
-          setFriends([AI_USER]);
+        const rawFriends = friendsRes.data || [];
+        const friendsList = rawFriends.map((f) => f.friend || f.user || f).filter((f) => f && f.id !== currentUserId);
+
+        const allUserList = usersRes.data || [];
+        const otherUsers = allUserList.filter((u) => u.id !== currentUserId);
+
+        // Hợp nhất danh sách bạn bè & người dùng
+        const map = new Map();
+        [AI_USER, ...friendsList, ...otherUsers].forEach((u) => {
+          if (u && u.id && !map.has(u.id)) {
+            map.set(u.id, u);
+          }
         });
-    }
-  }, [isOpen, currentUserId]);
 
-  // Polling tự động quét lịch sử chat của tất cả bạn bè để lấy tin nhắn chưa đọc & tin nhắn mới nhất
+        setFriends(Array.from(map.values()));
+      } catch {
+        setFriends([AI_USER]);
+      }
+    };
+
+    fetchFriends();
+  }, [currentUserId]);
+
+  // 2. Polling liên tục chạy ngầm (kể cả khi đóng Widget) để phát hiện tin nhắn đến & tính tổng số tin chưa đọc
   useEffect(() => {
     if (!currentUserId || friends.length <= 1) return;
 
@@ -309,37 +325,39 @@ function FloatingChatWidget() {
           const history = res.data || [];
           if (history.length > 0) {
             const lastMsg = history[history.length - 1];
-            const isFromFriend = Number(lastMsg.senderId || lastMsg.sender?.id) !== currentUserId;
+
+            // Đếm chính xác tin nhắn do đối phương gửi mà chưa bấm vào xem (read !== true)
             const unreadCount = history.filter(
               (m) => Number(m.senderId || m.sender?.id) !== currentUserId && !m.read
             ).length;
 
-            const isCurrentActive = activeFriend?.id === friend.id;
+            const isCurrentActive = isOpen && activeFriend?.id === friend.id;
+            const effectiveUnread = isCurrentActive ? 0 : unreadCount;
 
             newMap[friend.id] = {
               lastMessage: lastMsg.content || "Đã gửi 1 tệp đính kèm",
-              unreadCount: isCurrentActive ? 0 : unreadCount,
+              unreadCount: effectiveUnread,
               timestamp: lastMsg.createdAt,
             };
 
-            if (!isCurrentActive) {
-              totalUnread += unreadCount;
-            }
+            totalUnread += effectiveUnread;
           }
         } catch {}
       }
 
       setConversationsMap(newMap);
+      setUnreadChatCount(totalUnread);
       window.dispatchEvent(
         new CustomEvent("unread_chat_count_updated", { detail: { count: totalUnread } })
       );
     };
 
     fetchAllSummaries();
-    const interval = setInterval(fetchAllSummaries, 3000);
+    const interval = setInterval(fetchAllSummaries, 2500);
     return () => clearInterval(interval);
-  }, [currentUserId, friends, activeFriend?.id]);
+  }, [currentUserId, friends, isOpen, activeFriend?.id]);
 
+  // 3. Chỉ đánh dấu Đã Đọc khi người dùng THỰC SỰ ẤN VÀO ĐOẠN CHAT với người đó
   const markConversationAsRead = (friendId) => {
     setConversationsMap((prev) => ({
       ...prev,
@@ -565,46 +583,7 @@ function playNotificationSound() {
     };
   }, [isDragging]);
 
-  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
-  // Background Polling đếm số tin nhắn chưa đọc từ tất cả bạn bè
-  useEffect(() => {
-    let interval;
-    if (currentUserId) {
-      const checkUnread = async () => {
-        try {
-          const friendsRes = await friendService.getFriendsList(currentUserId);
-          const rawFriends = friendsRes.data || [];
-          const userFriends = rawFriends.map((f) => f.friend || f.user || f).filter((f) => f && f.id !== currentUserId);
-
-          if (userFriends.length === 0) return;
-
-          const results = await Promise.all(
-            userFriends.map((f) =>
-              chatService.getHistory(currentUserId, f.id).then((r) => r.data || []).catch(() => [])
-            )
-          );
-
-          let count = 0;
-          results.forEach((msgList) => {
-            const unreadInChat = msgList.filter(
-              (m) => !m.read && Number(m.senderId || m.sender?.id) !== currentUserId
-            ).length;
-            count += unreadInChat;
-          });
-
-          setUnreadChatCount(count);
-          window.dispatchEvent(new CustomEvent("unread_chat_count_changed", { detail: { count } }));
-        } catch {
-          // Ignore
-        }
-      };
-
-      checkUnread();
-      interval = setInterval(checkUnread, 2500);
-    }
-    return () => interval && clearInterval(interval);
-  }, [currentUserId]);
 
   // Đánh dấu đã đọc khi chọn activeFriend
   useEffect(() => {
