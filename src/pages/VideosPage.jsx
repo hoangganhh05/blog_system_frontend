@@ -81,7 +81,6 @@ function VideosPage() {
         >
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <span style={{ fontSize: 28 }}>🎥</span>
               <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, color: "#fff" }}>
                 BlogViet Video Feeds
               </h1>
@@ -107,7 +106,7 @@ function VideosPage() {
               border: "none",
             }}
           >
-            📹 Đăng Video Mới
+            Đăng Video Mới
           </button>
         </div>
 
@@ -123,8 +122,8 @@ function VideosPage() {
           }}
         >
           {[
-            { id: "ALL", label: `🔥 Tất cả Video (${allVideoPosts.length})` },
-            { id: "POPULAR", label: "⚡ Video phổ biến nhất" },
+            { id: "ALL", label: `Tất cả Video (${allVideoPosts.length})` },
+            { id: "POPULAR", label: "Video phổ biến nhất" },
           ].map((cat) => (
             <button
               key={cat.id}

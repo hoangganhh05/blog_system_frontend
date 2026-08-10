@@ -141,12 +141,12 @@ function Dashboard() {
         {/* Sidebar Nav Items List */}
         <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
           {[
-            { id: "home", label: "Trang chủ", icon: "🏠" },
-            { id: "insights", label: "Thông tin chi tiết", icon: "📈", hasSub: true },
-            { id: "content", label: "Nội dung & Bài viết", icon: "📰", hasSub: true },
-            { id: "monetization", label: "Kiếm tiền", icon: "👁️", hasSub: true },
-            { id: "engagement", label: "Lượt tương tác", icon: "💬", hasSub: true },
-            { id: "tools", label: "Tất cả công cụ", icon: "🧰" },
+            { id: "home", label: "Trang chủ" },
+            { id: "insights", label: "Thông tin chi tiết", hasSub: true },
+            { id: "content", label: "Nội dung & Bài viết", hasSub: true },
+            { id: "monetization", label: "Kiếm tiền", hasSub: true },
+            { id: "engagement", label: "Lượt tương tác", hasSub: true },
+            { id: "tools", label: "Tất cả công cụ" },
           ].map((item) => {
             const isActive = activeSideTab === item.id;
             return (
@@ -166,24 +166,7 @@ function Dashboard() {
                   transition: "all 0.15s",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 14.5 }}>
-                  <div
-                    style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: "50%",
-                      background: isActive ? "var(--primary)" : "var(--bg-secondary)",
-                      color: isActive ? "#fff" : "var(--text-primary)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 16,
-                    }}
-                  >
-                    {item.icon}
-                  </div>
-                  <span>{item.label}</span>
-                </div>
+                <span style={{ fontSize: 14.5 }}>{item.label}</span>
                 {item.hasSub && (
                   <span style={{ color: "var(--text-muted)", fontSize: 14 }}>❯</span>
                 )}
@@ -516,7 +499,7 @@ function Dashboard() {
               <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
                 <input
                   className="form-input"
-                  placeholder="🔍 Tìm bài viết..."
+                  placeholder="Tìm kiếm bài viết..."
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                   style={{ flex: 1, minWidth: 200, padding: "8px 14px", borderRadius: 10 }}
@@ -529,7 +512,7 @@ function Dashboard() {
                       className={`btn btn-sm ${filterStatus === s ? "btn-primary" : "btn-secondary"}`}
                       style={{ borderRadius: 10, fontSize: 12.5 }}
                     >
-                      {s === "all" ? "Tất cả" : s === "public" ? "🌐 Công khai" : s === "draft" ? "📝 Nháp" : "🔒 Riêng tư"} ({statusCount[s]})
+                      {s === "all" ? "Tất cả" : s === "public" ? "Công khai" : s === "draft" ? "Nháp" : "Riêng tư"} ({statusCount[s]})
                     </button>
                   ))}
                 </div>
@@ -574,11 +557,11 @@ function Dashboard() {
                               color: post.status === "public" ? "#10b981" : "var(--text-muted)",
                             }}
                           >
-                            {post.status === "public" ? "🌐 Công khai" : "📝 Nháp/Riêng tư"}
+                            {post.status === "public" ? "Công khai" : "Nháp/Riêng tư"}
                           </span>
                         </td>
-                        <td style={{ fontWeight: 600 }}>👁️ {post.viewCount || 0}</td>
-                        <td style={{ fontWeight: 600 }}>❤️ {post.likeCount || 0}</td>
+                        <td style={{ fontWeight: 600 }}>{post.viewCount || 0}</td>
+                        <td style={{ fontWeight: 600 }}>{post.likeCount || 0}</td>
                         <td style={{ color: "var(--text-muted)", fontSize: 13 }}>{timeAgo(post.createdAt)}</td>
                         <td>
                           <div style={{ display: "flex", gap: 6 }}>
@@ -587,7 +570,7 @@ function Dashboard() {
                               className="btn btn-secondary btn-sm"
                               title="Xem chi tiết"
                             >
-                              👁️
+                              Xem
                             </button>
                             <button
                               onClick={() => {
@@ -597,14 +580,14 @@ function Dashboard() {
                               className="btn btn-secondary btn-sm"
                               title="Chỉnh sửa"
                             >
-                              ✏️
+                              Sửa
                             </button>
                             <button
                               onClick={() => setPostToDelete(post.id)}
                               className="btn btn-danger btn-sm"
                               title="Xóa bài"
                             >
-                              🗑️
+                              Xóa
                             </button>
                           </div>
                         </td>
