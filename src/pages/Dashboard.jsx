@@ -119,27 +119,16 @@ function Dashboard() {
   if (!currentUser) return null;
 
   return (
-    <div className="app-layout" style={{ background: "var(--bg-secondary)", minHeight: "100vh", display: "flex", flexWrap: "nowrap" }}>
+    <div className="app-layout page-with-sidebar">
       
       {/* 1. LEFT SIDEBAR MENU (Công cụ chuyên nghiệp - Không bị đè chữ) */}
-      <div
-        style={{
-          width: 300,
-          background: "var(--bg-card)",
-          borderRight: "1px solid var(--border-light)",
-          display: "flex",
-          flexDirection: "column",
-          padding: "24px 16px",
-          boxShadow: "2px 0 8px rgba(0,0,0,0.02)",
-          flexShrink: 0,
-        }}
-      >
-        <h2 style={{ fontSize: 20, fontWeight: 800, margin: "0 0 20px 8px", color: "var(--text-primary)", whiteSpace: "nowrap" }}>
+      <div className="page-sidebar-menu">
+        <h2 className="page-sidebar-title">
           Công cụ chuyên nghiệp
         </h2>
 
         {/* Sidebar Nav Items List */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+        <div className="page-sidebar-nav">
           {[
             { id: "home", label: "Trang chủ" },
             { id: "insights", label: "Thông tin chi tiết", hasSub: true },
@@ -153,22 +142,11 @@ function Dashboard() {
               <div
                 key={item.id}
                 onClick={() => setActiveSideTab(item.id)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  cursor: "pointer",
-                  background: isActive ? "var(--bg-hover)" : "transparent",
-                  fontWeight: isActive ? 700 : 600,
-                  color: isActive ? "var(--primary)" : "var(--text-primary)",
-                  transition: "all 0.15s",
-                }}
+                className={`page-sidebar-nav-item ${isActive ? "active" : ""}`}
               >
-                <span style={{ fontSize: 14.5 }}>{item.label}</span>
+                <span>{item.label}</span>
                 {item.hasSub && (
-                  <span style={{ color: "var(--text-muted)", fontSize: 14 }}>❯</span>
+                  <span className="mobile-hide" style={{ color: "var(--text-muted)", fontSize: 14, marginLeft: 4 }}>❯</span>
                 )}
               </div>
             );
@@ -178,7 +156,7 @@ function Dashboard() {
         {/* Bottom Primary Action Button: + Tạo bài viết */}
         <button
           onClick={() => { setEditPost(null); setShowCreateModal(true); }}
-          className="btn btn-primary btn-full"
+          className="btn btn-primary btn-full mobile-hide"
           style={{
             padding: "13px 0",
             borderRadius: 12,
@@ -193,7 +171,7 @@ function Dashboard() {
       </div>
 
       {/* 2. CENTER MAIN DASHBOARD CONTENT */}
-      <div style={{ flex: 1, padding: "24px 28px", overflowY: "auto", minWidth: 0 }}>
+      <div className="page-main-content">
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           
           {/* TAB 1: TRANG CHỦ & THÔNG TIN CHI TIẾT */}

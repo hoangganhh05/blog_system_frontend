@@ -231,39 +231,14 @@ function FriendsPage() {
   };
 
   return (
-    <div
-      className="app-layout"
-      style={{
-        background: "var(--bg-secondary)",
-        minHeight: "100vh",
-        display: "flex",
-      }}
-    >
+    <div className="app-layout page-with-sidebar">
       {/* 1. LEFT SIDEBAR MENU BẠN BÈ */}
-      <div
-        style={{
-          width: 300,
-          background: "var(--bg-card)",
-          borderRight: "1px solid var(--border-light)",
-          display: "flex",
-          flexDirection: "column",
-          padding: "24px 16px",
-          boxShadow: "2px 0 8px rgba(0,0,0,0.02)",
-          flexShrink: 0,
-        }}
-      >
-        <h2
-          style={{
-            fontSize: 22,
-            fontWeight: 800,
-            margin: "0 0 20px 8px",
-            color: "var(--text-primary)",
-          }}
-        >
+      <div className="page-sidebar-menu">
+        <h2 className="page-sidebar-title">
           Bạn bè
         </h2>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+        <div className="page-sidebar-nav">
           {[
             { id: "all", label: "Trang chủ bạn bè" },
             { id: "requests", label: `Lời mời kết bạn (${incomingRequests.length})` },
@@ -276,18 +251,9 @@ function FriendsPage() {
               <div
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  cursor: "pointer",
-                  background: isActive ? "var(--bg-hover)" : "transparent",
-                  fontWeight: isActive ? 700 : 600,
-                  color: isActive ? "var(--primary)" : "var(--text-primary)",
-                  fontSize: 14.5,
-                  transition: "all 0.15s",
-                }}
+                className={`page-sidebar-nav-item ${isActive ? "active" : ""}`}
               >
-                {item.label}
+                <span>{item.label}</span>
               </div>
             );
           })}
@@ -295,7 +261,7 @@ function FriendsPage() {
       </div>
 
       {/* 2. MAIN FRIENDS FEED AREA */}
-      <div style={{ flex: 1, padding: "24px 28px", overflowY: "auto" }}>
+      <div className="page-main-content">
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
           {loading ? (
             <div style={{ padding: 60, textAlign: "center", color: "var(--text-muted)" }}>

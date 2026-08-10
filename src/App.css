@@ -1626,36 +1626,81 @@
   }
 
   /* ============================================
-     MOBILE RESPONSIVE MEDIA SCALING (Friends, Videos, Dashboard)
+     RESPONSIVE PAGE WITH SIDEBAR (Friends & Dashboard)
      ============================================ */
-  /* Friends Page Sidebar Tabs on Mobile */
-  div[style*="width: 300"][style*="background: var(--bg-card)"] {
+  .page-with-sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 100vh !important;
+    background: var(--bg-secondary) !important;
+  }
+
+  .page-sidebar-menu {
     width: 100% !important;
+    background: var(--bg-card) !important;
     border-right: none !important;
     border-bottom: 1px solid var(--border-light) !important;
-    padding: 12px 14px !important;
+    padding: 10px 12px !important;
     box-shadow: none !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
-  div[style*="width: 300"] h2 {
-    font-size: 18px !important;
-    margin: 0 0 10px 0 !important;
+  .page-sidebar-title {
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    margin: 0 0 8px 4px !important;
+    color: var(--text-primary) !important;
   }
 
-  div[style*="width: 300"] div[style*="display: flex"][style*="flexDirection: column"] {
+  .page-sidebar-nav {
+    display: flex !important;
     flex-direction: row !important;
+    flex-wrap: nowrap !important;
     overflow-x: auto !important;
-    padding-bottom: 6px !important;
     scrollbar-width: none !important;
     gap: 6px !important;
+    padding-bottom: 4px !important;
+    width: 100% !important;
   }
 
-  div[style*="width: 300"] div[style*="padding: 12px 14px"] {
+  .page-sidebar-nav::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .page-sidebar-nav-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
-    padding: 8px 12px !important;
-    font-size: 13px !important;
+    padding: 7px 14px !important;
     border-radius: 20px !important;
+    background: var(--bg-input) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+    cursor: pointer !important;
+  }
+
+  .page-sidebar-nav-item.active {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+  }
+
+  .page-sidebar-nav-item.active span {
+    color: #ffffff !important;
+  }
+
+  .page-main-content {
+    flex: 1 !important;
+    padding: 12px 10px 80px 10px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-y: visible !important;
   }
 
   /* Friends Page Card Grid on Mobile */
@@ -1671,22 +1716,6 @@
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
-  }
-
-  /* Videos Page Header Banner on Mobile */
-  div[style*="linear-gradient(135deg, #1877f2 0%, #0052d4 100%)"] {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    padding: 16px !important;
-    border-radius: 16px !important;
-    margin-bottom: 16px !important;
-  }
-
-  div[style*="linear-gradient(135deg, #1877f2 0%, #0052d4 100%)"] button {
-    width: 100% !important;
-    margin-top: 8px !important;
-    text-align: center !important;
-    justify-content: center !important;
   }
 
   /* Dashboard Metrics Grid on Mobile */
