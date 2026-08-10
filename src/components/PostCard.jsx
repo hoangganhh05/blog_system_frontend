@@ -34,6 +34,13 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString("vi-VN");
 }
 
+function getReadingTime(text) {
+  if (!text) return "1 phút đọc";
+  const words = text.trim().split(/\s+/).length;
+  const minutes = Math.max(1, Math.ceil(words / 150));
+  return `${minutes} phút đọc`;
+}
+
 function PostCard({ post, onDelete, style }) {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -240,6 +247,8 @@ function PostCard({ post, onDelete, style }) {
             <span className="post-card-author-name">{authorName}</span>
             <div className="post-card-meta">
               <span>{timeAgo(post.createdAt)}</span>
+              <span>•</span>
+              <span>📖 {getReadingTime(post.content)}</span>
               <span>•</span>
               <span>{post.status === "private" ? "Riêng tư" : "Công khai"}</span>
               {categoryName && (

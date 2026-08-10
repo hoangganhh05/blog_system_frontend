@@ -14,6 +14,7 @@ function ShareModal({ post, isOpen, onClose, onToast }) {
   const [friends, setFriends] = useState([]);
   const [sentFriendIds, setSentFriendIds] = useState([]);
   const [shareComment, setShareComment] = useState("");
+  const [showQrCode, setShowQrCode] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const messengerRowRef = useRef(null);
@@ -579,7 +580,20 @@ function ShareModal({ post, isOpen, onClose, onToast }) {
                 </span>
               </div>
 
-              {/* Target 5: Nhóm */}
+              {/* Target 5: Mã QR Code */}
+              <div
+                onClick={() => setShowQrCode((v) => !v)}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 75, flexShrink: 0, cursor: "pointer" }}
+              >
+                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--primary-light)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--primary)" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 600, textAlign: "center", color: "var(--primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
+                  Mã QR Bài viết
+                </span>
+              </div>
+
+              {/* Target 6: Nhóm */}
               <div
                 onClick={() => onToast("Đang chuyển tiếp chia sẻ vào Nhóm...", "info")}
                 style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 70, flexShrink: 0, cursor: "pointer" }}
@@ -596,26 +610,36 @@ function ShareModal({ post, isOpen, onClose, onToast }) {
                   Nhóm
                 </span>
               </div>
-
-              {/* Target 6: Trang cá nhân bạn bè */}
-              <div
-                onClick={() => onToast("Đang mở danh mục tường nhà bạn bè...", "info")}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 80, flexShrink: 0, cursor: "pointer" }}
-              >
-                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--bg-input)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-primary)" }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <line x1="19" y1="8" x2="19" y2="14"/>
-                    <line x1="22" y1="11" x2="16" y2="11"/>
-                  </svg>
-                </div>
-                <span style={{ fontSize: 10.5, fontWeight: 500, textAlign: "center", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
-                  Tường bạn bè
-                </span>
-              </div>
             </div>
           </div>
+
+          {/* Ô hiển thị Mã QR Code Bài Viết khi được nhấp chọn */}
+          {showQrCode && (
+            <div style={{ marginTop: 16, background: "var(--bg-input)", padding: 16, borderRadius: 16, textAlign: "center", animation: "slideDown 0.2s ease" }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", marginBottom: 4 }}>
+                📱 Mã QR Bài Viết Trực Tiếp
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>
+                Quét mã bằng Điện thoại để mở xem bài viết ngay lập tức
+              </div>
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(window.location.origin + `/posts/${post.id}`)}`}
+                alt="Mã QR"
+                style={{ width: 160, height: 160, borderRadius: 12, border: "3px solid #fff", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", margin: "0 auto 10px", display: "block" }}
+              />
+              <div>
+                <a
+                  href={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(window.location.origin + `/posts/${post.id}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  download="qr-code-post.png"
+                  style={{ fontSize: 12, fontWeight: 700, color: "var(--primary)", textDecoration: "underline" }}
+                >
+                  📥 Tải mã QR về máy
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
