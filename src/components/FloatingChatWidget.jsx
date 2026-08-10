@@ -274,6 +274,8 @@ function FloatingChatWidget() {
     };
   }, []);
 
+  const [conversationsMap, setConversationsMap] = useState({});
+
   // Lấy danh sách bạn bè khi mở widget - luôn chèn AI Assistant ở đầu
   useEffect(() => {
     if (isOpen && currentUserId) {
@@ -291,6 +293,65 @@ function FloatingChatWidget() {
         });
     }
   }, [isOpen, currentUserId]);
+
+  // Polling tự động quét lịch sử chat của tất cả bạn bè để lấy tin nhắn chưa đọc & tin nhắn mới nhất
+  useEffect(() => {
+    if (!currentUserId || friends.length <= 1) return;
+
+    const fetchAllSummaries = async () => {
+      const newMap = { ...conversationsMap };
+      let totalUnread = 0;
+
+      for (const friend of friends) {
+        if (!friend || friend.isAi) continue;
+        try {
+          const res = await chatService.getHistory(currentUserId, friend.id);
+          const history = res.data || [];
+          if (history.length > 0) {
+            const lastMsg = history[history.length - 1];
+            const isFromFriend = Number(lastMsg.senderId || lastMsg.sender?.id) !== currentUserId;
+            const unreadCount = history.filter(
+              (m) => Number(m.senderId || m.sender?.id) !== currentUserId && !m.read
+            ).length;
+
+            const isCurrentActive = activeFriend?.id === friend.id;
+
+            newMap[friend.id] = {
+              lastMessage: lastMsg.content || "Đã gửi 1 tệp đính kèm",
+              unreadCount: isCurrentActive ? 0 : unreadCount,
+              timestamp: lastMsg.createdAt,
+            };
+
+            if (!isCurrentActive) {
+              totalUnread += unreadCount;
+            }
+          }
+        } catch {}
+      }
+
+      setConversationsMap(newMap);
+      window.dispatchEvent(
+        new CustomEvent("unread_chat_count_updated", { detail: { count: totalUnread } })
+      );
+    };
+
+    fetchAllSummaries();
+    const interval = setInterval(fetchAllSummaries, 3000);
+    return () => clearInterval(interval);
+  }, [currentUserId, friends, activeFriend?.id]);
+
+  const markConversationAsRead = (friendId) => {
+    setConversationsMap((prev) => ({
+      ...prev,
+      [friendId]: {
+        ...(prev[friendId] || {}),
+        unreadCount: 0,
+      },
+    }));
+    if (currentUserId && friendId) {
+      chatService.markAsRead(friendId, currentUserId).catch(() => {});
+    }
+  };
 
 function playNotificationSound() {
   try {
@@ -750,33 +811,71 @@ function playNotificationSound() {
                 ) : (
                   friends.map((friend) => {
                     const fName = friend.fullName || friend.username;
+                    const conv = conversationsMap[friend.id] || {};
+                    const lastText = conv.lastMessage || "Bấm để nhắn tin";
+                    const unread = conv.unreadCount || 0;
+
                     return (
                       <div
                         key={friend.id}
-                        onClick={() => setActiveFriend(friend)}
+                        onClick={() => {
+                          setActiveFriend(friend);
+                          if (unread > 0) {
+                            markConversationAsRead(friend.id);
+                          }
+                        }}
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 12,
+                          justifyContent: "space-between",
                           padding: "10px 12px",
                           borderRadius: 12,
                           cursor: "pointer",
+                          background: unread > 0 ? "rgba(24, 119, 242, 0.08)" : "transparent",
                           transition: "background 0.15s",
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
-                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = unread > 0 ? "rgba(24, 119, 242, 0.08)" : "transparent"}
                       >
-                        {friend.avatarUrl ? (
-                          <img src={friend.avatarUrl} alt={fName} className="avatar avatar-md" style={{ width: 40, height: 40, objectFit: "cover" }} />
-                        ) : (
-                          <div className="avatar avatar-md" style={{ width: 40, height: 40, background: friend.avatarColor ? `linear-gradient(135deg, ${friend.avatarColor}, ${friend.avatarColor}bb)` : undefined }}>
-                            {getInitials(fName)}
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
+                          {friend.avatarUrl ? (
+                            <img src={friend.avatarUrl} alt={fName} className="avatar avatar-md" style={{ width: 40, height: 40, objectFit: "cover", flexShrink: 0 }} />
+                          ) : (
+                            <div className="avatar avatar-md" style={{ width: 40, height: 40, flexShrink: 0, background: friend.avatarColor ? `linear-gradient(135deg, ${friend.avatarColor}, ${friend.avatarColor}bb)` : undefined }}>
+                              {getInitials(fName)}
+                            </div>
+                          )}
+                          <div style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
+                            <span style={{ fontSize: 14, fontWeight: unread > 0 ? 800 : 600, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {fName}
+                            </span>
+                            <span style={{ fontSize: 12, fontWeight: unread > 0 ? 700 : 400, color: unread > 0 ? "var(--text-primary)" : "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {lastText}
+                            </span>
                           </div>
-                        )}
-                        <div style={{ display: "flex", flexDirection: "column" }}>
-                          <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{fName}</span>
-                          <span style={{ fontSize: 11.5, color: "var(--text-muted)" }}>Bấm để nhắn tin</span>
                         </div>
+
+                        {unread > 0 && (
+                          <span
+                            style={{
+                              background: "var(--danger)",
+                              color: "#fff",
+                              fontSize: 11,
+                              fontWeight: 800,
+                              borderRadius: "50%",
+                              minWidth: 20,
+                              height: 20,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              padding: "0 5px",
+                              flexShrink: 0,
+                              marginLeft: 8,
+                            }}
+                          >
+                            {unread > 9 ? "9+" : unread}
+                          </span>
+                        )}
                       </div>
                     );
                   })
