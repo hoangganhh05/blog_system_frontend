@@ -22,16 +22,13 @@ function timeAgo(dateStr) {
   return d < 30 ? `${d} ngày trước` : new Date(dateStr).toLocaleDateString("vi-VN");
 }
 
-function CommentItem({ comment, onDelete, onReplySubmit, onToast }) {
+function CommentItem({ comment, onDelete, onReplyClick, onToast }) {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(comment.content);
   const [loading, setLoading] = useState(false);
-  const [showReplyForm, setShowReplyForm] = useState(false);
-  const [replyText, setReplyText] = useState("");
-  const [replying, setReplying] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const authorName = comment.user?.fullName || comment.user?.username || "Ẩn danh";
@@ -59,31 +56,6 @@ function CommentItem({ comment, onDelete, onReplySubmit, onToast }) {
       onToast && onToast("Lỗi khi cập nhật bình luận!", "error");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSendReply = async () => {
-    if (!replyText.trim()) return;
-    setReplying(true);
-    try {
-      let cleanText = replyText.trim();
-      const prefix = `@${authorName}`;
-      if (cleanText.toLowerCase().startsWith(prefix.toLowerCase())) {
-        cleanText = cleanText.substring(prefix.length).trim();
-      }
-      if (cleanText.startsWith(":")) {
-        cleanText = cleanText.substring(1).trim();
-      }
-
-      const fullReplyContent = `@${authorName}: ${cleanText}`;
-      await onReplySubmit(fullReplyContent);
-      setReplyText("");
-      setShowReplyForm(false);
-      onToast && onToast("Đã gửi phản hồi!", "success");
-    } catch {
-      onToast && onToast("Không thể gửi phản hồi!", "error");
-    } finally {
-      setReplying(false);
     }
   };
 
@@ -123,8 +95,8 @@ function CommentItem({ comment, onDelete, onReplySubmit, onToast }) {
           <div style={{ marginTop: 8 }}>
             <img
               src={imageUrl}
-              alt="Bình luận đính kèm"
-              style={{ maxWidth: "100%", maxHeight: 220, borderRadius: 12, objectFit: "cover", display: "block" }}
+              alt="Mô tả"
+              style={{ maxWidth: "100%", maxHeight: 220, borderRadius: 12, objectFit: "cover" }}
             />
           </div>
         )}
@@ -134,54 +106,58 @@ function CommentItem({ comment, onDelete, onReplySubmit, onToast }) {
 
   return (
     <>
-      <div className="comment-item" style={{ marginBottom: 12 }}>
+      <div className="comment-item" style={{ display: "flex", gap: 10, marginBottom: 12 }}>
         {comment.user?.avatarUrl ? (
           <img
             src={comment.user.avatarUrl}
             alt={authorName}
             className="avatar avatar-sm"
-            style={{ objectFit: "cover", cursor: "pointer" }}
+            style={{ cursor: "pointer", objectFit: "cover", width: 32, height: 32 }}
             onClick={handleGoToProfile}
-            title={`Xem trang cá nhân của ${authorName}`}
           />
         ) : (
           <div
             className="avatar avatar-sm"
             style={{
+              cursor: "pointer",
+              width: 32,
+              height: 32,
+              fontSize: 13,
               background: comment.user?.avatarColor ? `linear-gradient(135deg, ${comment.user.avatarColor}, ${comment.user.avatarColor}bb)` : undefined,
-              cursor: "pointer"
             }}
             onClick={handleGoToProfile}
-            title={`Xem trang cá nhân của ${authorName}`}
           >
             {getInitials(authorName)}
           </div>
         )}
-        <div style={{ flex: 1 }}>
-          <div className="comment-bubble">
+
+        <div className="comment-content-wrap" style={{ flex: 1 }}>
+          <div className="comment-bubble" style={{ background: "var(--bg-input)", padding: "8px 12px", borderRadius: 16 }}>
             <div
               className="comment-author"
-              style={{ cursor: "pointer" }}
+              style={{ fontWeight: 700, fontSize: 13, cursor: "pointer", color: "var(--text-primary)" }}
               onClick={handleGoToProfile}
-              title={`Xem trang cá nhân của ${authorName}`}
             >
               {authorName}
             </div>
+
             {editing ? (
-              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 4 }}>
-                <input
+              <div className="comment-edit-form" style={{ marginTop: 6 }}>
+                <textarea
                   className="form-input"
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  style={{ flex: 1, padding: "6px 10px", fontSize: 14 }}
-                  onKeyDown={(e) => e.key === "Enter" && handleEdit()}
+                  rows={2}
+                  style={{ width: "100%", fontSize: 13, padding: 8 }}
                 />
-                <button className="btn btn-primary btn-sm" onClick={handleEdit} disabled={loading}>
-                  {loading ? "..." : "Lưu"}
-                </button>
-                <button className="btn btn-secondary btn-sm" onClick={() => setEditing(false)}>
-                  Hủy
-                </button>
+                <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                  <button className="btn btn-primary btn-sm" onClick={handleEdit} disabled={loading}>
+                    {loading ? "..." : "Lưu"}
+                  </button>
+                  <button className="btn btn-secondary btn-sm" onClick={() => setEditing(false)}>
+                    Hủy
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="comment-text">{renderCommentContent(comment.content)}</div>
@@ -192,10 +168,7 @@ function CommentItem({ comment, onDelete, onReplySubmit, onToast }) {
             <span
               className="comment-action"
               style={{ cursor: "pointer", fontWeight: 700, color: "var(--primary)" }}
-              onClick={() => {
-                setShowReplyForm((v) => !v);
-                if (!replyText) setReplyText(`@${authorName} `);
-              }}
+              onClick={() => onReplyClick && onReplyClick(authorName)}
             >
               Trả lời
             </span>
@@ -214,36 +187,6 @@ function CommentItem({ comment, onDelete, onReplySubmit, onToast }) {
               </>
             )}
           </div>
-
-          {/* Form nhập phản hồi (Rep comment) */}
-          {showReplyForm && (
-            <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", paddingLeft: 8 }}>
-              <input
-                type="text"
-                className="form-input"
-                placeholder={`Trả lời @${authorName}...`}
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                style={{ flex: 1, padding: "6px 12px", fontSize: 13, borderRadius: 16 }}
-                onKeyDown={(e) => e.key === "Enter" && handleSendReply()}
-              />
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={handleSendReply}
-                disabled={replying || !replyText.trim()}
-                style={{ borderRadius: 16, fontSize: 12, padding: "4px 10px" }}
-              >
-                {replying ? "..." : "Gửi"}
-              </button>
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => setShowReplyForm(false)}
-                style={{ borderRadius: 16, fontSize: 12, padding: "4px 8px" }}
-              >
-                ✕
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -262,7 +205,7 @@ function CommentItem({ comment, onDelete, onReplySubmit, onToast }) {
 }
 
 // Component bọc nhóm bình luận gốc + các phản hồi thu gọn/mở rộng chuẩn Facebook
-function ParentCommentGroup({ parentCmt, childReplies, handleDelete, handleReplySubmit, onToast }) {
+function ParentCommentGroup({ parentCmt, childReplies, handleDelete, onReplyClick, onToast }) {
   const [showChildReplies, setShowChildReplies] = useState(false);
 
   return (
@@ -271,7 +214,7 @@ function ParentCommentGroup({ parentCmt, childReplies, handleDelete, handleReply
       <CommentItem
         comment={parentCmt}
         onDelete={handleDelete}
-        onReplySubmit={handleReplySubmit}
+        onReplyClick={onReplyClick}
         onToast={onToast}
       />
 
@@ -331,7 +274,7 @@ function ParentCommentGroup({ parentCmt, childReplies, handleDelete, handleReply
                     key={replyCmt.id}
                     comment={replyCmt}
                     onDelete={handleDelete}
-                    onReplySubmit={handleReplySubmit}
+                    onReplyClick={onReplyClick}
                     onToast={onToast}
                   />
                 ))}
@@ -348,6 +291,7 @@ function ParentCommentGroup({ parentCmt, childReplies, handleDelete, handleReply
 function CommentSection({ postId, comments, onCommentsChange }) {
   const { currentUser } = useAuth();
   const [newComment, setNewComment] = useState("");
+  const [replyTarget, setReplyTarget] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -357,6 +301,16 @@ function CommentSection({ postId, comments, onCommentsChange }) {
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const fileInputRef = useRef(null);
+  const commentInputRef = useRef(null);
+
+  const handleReplyClick = (authorName) => {
+    setReplyTarget(authorName);
+    setNewComment(`@${authorName}: `);
+    if (commentInputRef.current) {
+      commentInputRef.current.focus();
+      commentInputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -404,6 +358,7 @@ function CommentSection({ postId, comments, onCommentsChange }) {
       onCommentsChange([newCmt, ...comments]);
       setNewComment("");
       setCommentImage("");
+      setReplyTarget(null);
       setShowEmojiPicker(false);
       setShowGifPicker(false);
       setShowStickerPicker(false);
@@ -413,26 +368,6 @@ function CommentSection({ postId, comments, onCommentsChange }) {
       showToast(`Lỗi: ${msg}`, "error");
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleReplySubmit = async (replyContent) => {
-    if (!currentUser) {
-      showToast("Vui lòng đăng nhập để phản hồi bình luận!", "error");
-      return;
-    }
-    try {
-      const res = await commentService.create({
-        content: replyContent,
-        createdAt: new Date().toISOString(),
-        post: { id: parseInt(postId) },
-        user: { id: parseInt(currentUser.id || currentUser.userId) },
-      });
-      const newCmt = { ...res.data, user: currentUser };
-      onCommentsChange([newCmt, ...comments]);
-      showToast("Đã phản hồi bình luận!", "success");
-    } catch {
-      showToast("Không thể gửi phản hồi. Vui lòng thử lại!", "error");
     }
   };
 
@@ -494,7 +429,7 @@ function CommentSection({ postId, comments, onCommentsChange }) {
                 parentCmt={parentCmt}
                 childReplies={childReplies}
                 handleDelete={handleDelete}
-                handleReplySubmit={handleReplySubmit}
+                onReplyClick={handleReplyClick}
                 onToast={showToast}
               />
             );
@@ -502,7 +437,7 @@ function CommentSection({ postId, comments, onCommentsChange }) {
         </div>
       )}
 
-      {/* Khung thêm bình luận Facebook Style "Trả lời dưới tên..." NẮM XUỐNG DƯỚI CÙNG */}
+      {/* Khung thêm bình luận Facebook Style DUY NHẤT ở dưới cùng */}
       {currentUser ? (
         <form className="facebook-comment-form" onSubmit={handleSubmit} style={{ marginTop: 8, marginBottom: 8, position: "sticky", bottom: 0, zIndex: 10, background: "var(--bg-card)", paddingTop: 4 }}>
           {/* Hidden File Input */}
@@ -513,6 +448,23 @@ function CommentSection({ postId, comments, onCommentsChange }) {
             style={{ display: "none" }}
             onChange={handleImageFileSelect}
           />
+
+          {/* Thẻ chỉ báo đang trả lời ai */}
+          {replyTarget && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--primary-light)", color: "var(--primary)", padding: "6px 12px", borderRadius: 12, fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+              <span>Đang trả lời <strong style={{ color: "var(--primary)" }}>@{replyTarget}</strong></span>
+              <button
+                type="button"
+                onClick={() => {
+                  setReplyTarget(null);
+                  setNewComment("");
+                }}
+                style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12, fontWeight: 700 }}
+              >
+                ✕ Hủy
+              </button>
+            </div>
+          )}
 
           <div
             style={{
@@ -569,8 +521,9 @@ function CommentSection({ postId, comments, onCommentsChange }) {
 
               <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                 <textarea
+                  ref={commentInputRef}
                   className="comment-input"
-                  placeholder={`Trả lời dưới tên ${userName}...`}
+                  placeholder={replyTarget ? `Trả lời @${replyTarget}...` : `Trả lời dưới tên ${userName}...`}
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   rows={2}
