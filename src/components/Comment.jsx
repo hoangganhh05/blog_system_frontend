@@ -415,20 +415,47 @@ function CommentSection({ postId, comments, onCommentsChange }) {
   const userName = currentUser?.fullName || currentUser?.username || "bạn";
 
   return (
-    <div className="comment-section">
-      <h3 className="comment-section-title" style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
+    <div className="comment-section" style={{ display: "flex", flexDirection: "column" }}>
+      <h3 className="comment-section-title" style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>
         💬 Bình luận ({comments.length})
       </h3>
 
-      {/* Khung thêm bình luận Facebook Style "Trả lời dưới tên..." */}
+      {/* Danh sách comment phân cấp Cây & Xem X Phản hồi chuẩn Facebook */}
+      {comments.length === 0 ? (
+        <div className="empty-state" style={{ marginBottom: 20 }}>
+          <div className="empty-state-icon">💬</div>
+          <h3>Chưa có bình luận nào</h3>
+          <p>Hãy là người đầu tiên bình luận!</p>
+        </div>
+      ) : (
+        <div style={{ marginBottom: 20 }}>
+          {parentComments.map((parentCmt) => {
+            const parentAuthor = parentCmt.user?.fullName || parentCmt.user?.username || "";
+            const childReplies = replyMap[parentAuthor] || [];
+
+            return (
+              <ParentCommentGroup
+                key={parentCmt.id}
+                parentCmt={parentCmt}
+                childReplies={childReplies}
+                handleDelete={handleDelete}
+                handleReplySubmit={handleReplySubmit}
+                onToast={showToast}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Khung thêm bình luận Facebook Style "Trả lời dưới tên..." NẮM XUỐNG DƯỚI CÙNG */}
       {currentUser ? (
-        <form className="facebook-comment-form" onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
+        <form className="facebook-comment-form" onSubmit={handleSubmit} style={{ marginTop: 8, marginBottom: 8, position: "sticky", bottom: 0, zIndex: 10, background: "var(--bg-card)", paddingTop: 4 }}>
           <div
             style={{
               background: "var(--bg-input)",
               borderRadius: 18,
               padding: "10px 14px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px var(--border-light)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08), 0 0 0 1px var(--border-light)",
             }}
           >
             {/* Hàng trên: Avatar có icon mũi tên + Input text */}
@@ -552,31 +579,6 @@ function CommentSection({ postId, comments, onCommentsChange }) {
           </a>{" "}
           để bình luận.
         </div>
-      )}
-
-      {/* Danh sách comment phân cấp Cây & Xem X Phản hồi chuẩn Facebook */}
-      {comments.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-state-icon">💬</div>
-          <h3>Chưa có bình luận nào</h3>
-          <p>Hãy là người đầu tiên bình luận!</p>
-        </div>
-      ) : (
-        parentComments.map((parentCmt) => {
-          const parentAuthor = parentCmt.user?.fullName || parentCmt.user?.username || "";
-          const childReplies = replyMap[parentAuthor] || [];
-
-          return (
-            <ParentCommentGroup
-              key={parentCmt.id}
-              parentCmt={parentCmt}
-              childReplies={childReplies}
-              handleDelete={handleDelete}
-              handleReplySubmit={handleReplySubmit}
-              onToast={showToast}
-            />
-          );
-        })
       )}
 
       {/* Thông báo Toast hiện đại thay cho alert */}
