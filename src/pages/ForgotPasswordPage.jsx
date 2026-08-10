@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import userService from "../services/userService";
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
@@ -52,13 +53,13 @@ export default function ForgotPasswordPage() {
     }
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await userService.requestResetOtp(email.trim());
       showToast(`Mã OTP khôi phục mật khẩu đã được gửi tới ${email}!`, "success");
       setStep(2);
       setResendTimer(60);
       setCanResend(false);
     } catch {
-      showToast("Không tìm thấy tài khoản với Email này!", "error");
+      showToast("Không thể gửi mã OTP tới Email này!", "error");
     } finally {
       setLoading(false);
     }
@@ -74,8 +75,7 @@ export default function ForgotPasswordPage() {
     }
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      showToast("Mã OTP chính xác! Hãy nhập mật khẩu mới của bạn.", "success");
+      showToast("Mã OTP hợp lệ! Hãy nhập mật khẩu mới của bạn.", "success");
       setStep(3);
     } catch {
       showToast("Mã OTP không chính xác!", "error");
@@ -97,11 +97,12 @@ export default function ForgotPasswordPage() {
     }
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const otpCode = otp.join("");
+      await userService.resetPasswordWithOtp(email.trim(), otpCode, newPassword);
       showToast("Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay.", "success");
       navigate("/login");
-    } catch {
-      showToast("Không thể đặt lại mật khẩu!", "error");
+    } catch (err) {
+      showToast(err.message || "Không thể đặt lại mật khẩu!", "error");
     } finally {
       setLoading(false);
     }

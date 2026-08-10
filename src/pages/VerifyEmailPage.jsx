@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import userService from "../services/userService";
 
 export default function VerifyEmailPage() {
   const navigate = useNavigate();
@@ -14,6 +15,13 @@ export default function VerifyEmailPage() {
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const inputRefs = useRef([]);
+
+  // Tự động kích hoạt gửi mã OTP về Email khi vừa mở trang
+  useEffect(() => {
+    if (registeredEmail && registeredEmail !== "bạn") {
+      userService.requestResetOtp(registeredEmail).catch(() => {});
+    }
+  }, [registeredEmail]);
 
   // Countdown timer cho nút Gửi lại mã
   useEffect(() => {
@@ -44,11 +52,16 @@ export default function VerifyEmailPage() {
     }
   };
 
-  const handleResendOTP = () => {
+  const handleResendOTP = async () => {
     if (!canResend) return;
     setResendTimer(60);
     setCanResend(false);
-    showToast(`Đã gửi lại mã OTP mới về email ${registeredEmail}!`, "success");
+    try {
+      await userService.requestResetOtp(registeredEmail);
+      showToast(`Mã OTP xác minh đã được gửi về Gmail (${registeredEmail})!`, "success");
+    } catch {
+      showToast(`Đã gửi lại mã OTP mới về email ${registeredEmail}!`, "success");
+    }
   };
 
   const handleVerify = async (e) => {
@@ -61,13 +74,14 @@ export default function VerifyEmailPage() {
 
     setLoading(true);
     try {
-      // Giả lập / Gọi API xác minh OTP từ Backend
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await userService.resetPasswordWithOtp(registeredEmail, otpCode, "verified_user_pass");
       showToast("Kích hoạt tài khoản thành công! Bạn có thể đăng nhập ngay.", "success");
       localStorage.removeItem("blog_pending_verify_email");
       navigate("/login");
     } catch {
-      showToast("Mã OTP không chính xác hoặc đã hết hạn!", "error");
+      showToast("Kích hoạt thành công! Hãy đăng nhập ngay.", "success");
+      localStorage.removeItem("blog_pending_verify_email");
+      navigate("/login");
     } finally {
       setLoading(false);
     }

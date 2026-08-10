@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Service 1: Frontend ReactJS + Nginx Web Server
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blog_frontend_app
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+
+  # Service 2: Backend Java Spring Boot API
+  backend:
+    build:
+      context: E:/CodeGym/Blog System
+      dockerfile: Dockerfile
+    container_name: blog_backend_app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql_db:3306/blogdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_REDIS_HOST=redis_cache
+      - SPRING_REDIS_PORT=6379
+    depends_on:
+      - mysql_db
+      - redis_cache
+    restart: always
+
+  # Service 3: MySQL Database 8.0
+  mysql_db:
+    image: mysql:8.0
+    container_name: blog_mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: blogdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: always
+
+  # Service 4: Redis In-Memory Cache Server
+  redis_cache:
+    image: redis:7-alpine
+    container_name: blog_redis_cache
+    ports:
+      - "6379:6379"
+    restart: always
+
+volumes:
+  mysql_data:
