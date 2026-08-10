@@ -239,6 +239,89 @@ function CommentItem({ comment, onDelete, onReplySubmit, onToast }) {
   );
 }
 
+// Component bọc nhóm bình luận gốc + các phản hồi thu gọn/mở rộng chuẩn Facebook
+function ParentCommentGroup({ parentCmt, childReplies, handleDelete, handleReplySubmit, onToast }) {
+  const [showChildReplies, setShowChildReplies] = useState(false);
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {/* Bình luận gốc */}
+      <CommentItem
+        comment={parentCmt}
+        onDelete={handleDelete}
+        onReplySubmit={handleReplySubmit}
+        onToast={onToast}
+      />
+
+      {/* Nút Xem / Ẩn X phản hồi chuẩn Facebook */}
+      {childReplies.length > 0 && (
+        <div style={{ paddingLeft: 44, marginTop: 2 }}>
+          {!showChildReplies ? (
+            <button
+              onClick={() => setShowChildReplies(true)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--text-muted)",
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "2px 0",
+              }}
+            >
+              <span style={{ fontSize: 11 }}>⌄</span> Xem {childReplies.length} phản hồi
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => setShowChildReplies(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--text-muted)",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  marginBottom: 8,
+                }}
+              >
+                <span style={{ fontSize: 11 }}>⌃</span> Ẩn phản hồi
+              </button>
+
+              <div
+                style={{
+                  paddingLeft: 20,
+                  borderLeft: "2.5px solid var(--border-light)",
+                  marginLeft: 10,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                }}
+              >
+                {childReplies.map((replyCmt) => (
+                  <CommentItem
+                    key={replyCmt.id}
+                    comment={replyCmt}
+                    onDelete={handleDelete}
+                    onReplySubmit={handleReplySubmit}
+                    onToast={onToast}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Component form + list comment cho một post
 function CommentSection({ postId, comments, onCommentsChange }) {
   const { currentUser } = useAuth();
@@ -309,7 +392,6 @@ function CommentSection({ postId, comments, onCommentsChange }) {
   };
 
   // Phân loại bình luận gốc (Parent) và bình luận con (Replies)
-  // Đặt các bình luận phản hồi nằm NGAY BÊN DƯỚI bình luận cha tương ứng
   const parentComments = [];
   const replyMap = {};
 
@@ -330,73 +412,136 @@ function CommentSection({ postId, comments, onCommentsChange }) {
     }
   });
 
+  const userName = currentUser?.fullName || currentUser?.username || "bạn";
+
   return (
     <div className="comment-section">
-      <h3 className="comment-section-title">
+      <h3 className="comment-section-title" style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
         💬 Bình luận ({comments.length})
       </h3>
 
-      {/* Form thêm comment */}
+      {/* Khung thêm bình luận Facebook Style "Trả lời dưới tên..." */}
       {currentUser ? (
-        <form className="comment-form" onSubmit={handleSubmit}>
-          {currentUser.avatarUrl ? (
-            <img
-              src={currentUser.avatarUrl}
-              alt={currentUser.fullName || currentUser.username}
-              className="avatar avatar-md"
-              style={{ objectFit: "cover", cursor: "pointer" }}
-              onClick={() => (currentUser.id || currentUser.userId) && window.location.assign(`/profile/${currentUser.id || currentUser.userId}`)}
-              title="Xem trang cá nhân của tôi"
-            />
-          ) : (
-            <div
-              className="avatar avatar-md"
-              style={{
-                background: currentUser.avatarColor ? `linear-gradient(135deg, ${currentUser.avatarColor}, ${currentUser.avatarColor}bb)` : undefined,
-                cursor: "pointer"
-              }}
-              onClick={() => (currentUser.id || currentUser.userId) && window.location.assign(`/profile/${currentUser.id || currentUser.userId}`)}
-              title="Xem trang cá nhân của tôi"
-            >
-              {getInitials(currentUser.fullName || currentUser.username)}
+        <form className="facebook-comment-form" onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
+          <div
+            style={{
+              background: "var(--bg-input)",
+              borderRadius: 18,
+              padding: "10px 14px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px var(--border-light)",
+            }}
+          >
+            {/* Hàng trên: Avatar có icon mũi tên + Input text */}
+            <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <div style={{ position: "relative", display: "inline-block", flexShrink: 0, marginTop: 2 }}>
+                {currentUser.avatarUrl ? (
+                  <img
+                    src={currentUser.avatarUrl}
+                    alt={userName}
+                    className="avatar avatar-sm"
+                    style={{ objectFit: "cover", width: 32, height: 32 }}
+                  />
+                ) : (
+                  <div
+                    className="avatar avatar-sm"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      fontSize: 13,
+                      background: currentUser.avatarColor ? `linear-gradient(135deg, ${currentUser.avatarColor}, ${currentUser.avatarColor}bb)` : undefined,
+                    }}
+                  >
+                    {getInitials(userName)}
+                  </div>
+                )}
+                <span
+                  style={{
+                    position: "absolute",
+                    bottom: -2,
+                    right: -2,
+                    background: "var(--bg-card)",
+                    border: "1px solid var(--border-light)",
+                    borderRadius: "50%",
+                    fontSize: 8,
+                    width: 12,
+                    height: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  ⌄
+                </span>
+              </div>
+
+              <textarea
+                className="comment-input"
+                placeholder={`Trả lời dưới tên ${userName}...`}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                rows={2}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  background: "none",
+                  border: "none",
+                  outline: "none",
+                  resize: "none",
+                  fontSize: 14.5,
+                  color: "var(--text-primary)",
+                  fontFamily: "inherit",
+                  minHeight: 42,
+                }}
+              />
             </div>
-          )}
-          <div className="comment-input-wrap" style={{ flex: 1 }}>
-            <textarea
-              className="comment-input"
-              placeholder="Viết bình luận của bạn..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              rows={1}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e);
-                }
-              }}
+
+            {/* Hàng dưới: Bộ Icon nghệ thuật (Emoji, Camera, GIF, Sticker) & Nút Gửi */}
+            <div
               style={{
-                width: "100%",
-                background: "none",
-                border: "none",
-                resize: "none",
-                fontSize: 15,
-                color: "var(--text-primary)",
-                fontFamily: "inherit",
-              }}
-            />
-            <button
-              type="submit"
-              disabled={submitting || !newComment.trim()}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: 18,
-                opacity: newComment.trim() ? 1 : 0.4,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: 6,
+                paddingTop: 6,
+                borderTop: "1px solid var(--border-light)",
               }}
             >
-              {submitting ? "⏳" : "📨"}
-            </button>
+              <div style={{ display: "flex", gap: 12, color: "var(--text-muted)", fontSize: 16 }}>
+                <span title="Tùy chọn Avatar" style={{ cursor: "pointer" }} onClick={() => setNewComment((v) => v + " 🥸")}>🥸</span>
+                <span title="Thêm Biểu tượng cảm xúc" style={{ cursor: "pointer" }} onClick={() => setNewComment((v) => v + " 😊")}>😊</span>
+                <span title="Tải ảnh đính kèm" style={{ cursor: "pointer" }} onClick={() => setNewComment((v) => v + " 📷")}>📷</span>
+                <span title="Thêm Ảnh GIF" style={{ cursor: "pointer" }} onClick={() => setNewComment((v) => v + " GIF")}>GIF</span>
+                <span title="Thêm Nhãn dán" style={{ cursor: "pointer" }} onClick={() => setNewComment((v) => v + " 🏷️")}>🏷️</span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting || !newComment.trim()}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: newComment.trim() ? "var(--primary)" : "var(--text-muted)",
+                  fontSize: 16,
+                  opacity: newComment.trim() ? 1 : 0.4,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 4,
+                }}
+                title="Gửi bình luận"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </form>
       ) : (
@@ -409,7 +554,7 @@ function CommentSection({ postId, comments, onCommentsChange }) {
         </div>
       )}
 
-      {/* Danh sách comment phân cấp Cây chuẩn Facebook */}
+      {/* Danh sách comment phân cấp Cây & Xem X Phản hồi chuẩn Facebook */}
       {comments.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">💬</div>
@@ -422,40 +567,14 @@ function CommentSection({ postId, comments, onCommentsChange }) {
           const childReplies = replyMap[parentAuthor] || [];
 
           return (
-            <div key={parentCmt.id} style={{ marginBottom: 16 }}>
-              {/* Bình luận gốc */}
-              <CommentItem
-                comment={parentCmt}
-                onDelete={handleDelete}
-                onReplySubmit={handleReplySubmit}
-                onToast={showToast}
-              />
-
-              {/* Tất cả phản hồi rep nằm NGAY BÊN DƯỚI bình luận gốc, thụt lùi lề 32px */}
-              {childReplies.length > 0 && (
-                <div
-                  style={{
-                    paddingLeft: 32,
-                    borderLeft: "2.5px solid var(--border-light)",
-                    marginLeft: 18,
-                    marginTop: 6,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 8,
-                  }}
-                >
-                  {childReplies.map((replyCmt) => (
-                    <CommentItem
-                      key={replyCmt.id}
-                      comment={replyCmt}
-                      onDelete={handleDelete}
-                      onReplySubmit={handleReplySubmit}
-                      onToast={showToast}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            <ParentCommentGroup
+              key={parentCmt.id}
+              parentCmt={parentCmt}
+              childReplies={childReplies}
+              handleDelete={handleDelete}
+              handleReplySubmit={handleReplySubmit}
+              onToast={showToast}
+            />
           );
         })
       )}
