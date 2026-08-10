@@ -3,13 +3,10 @@ import { useNavigate } from "react-router-dom";
 import userService from "../services/userService";
 import postService from "../services/postService";
 
-const SAMPLE_RECENTS = [
-  { id: 1, name: "eFootball", sub: "• 2 thông tin mới", avatar: "https://api.dicebear.com/7.x/identicon/svg?seed=eFootball", isPage: true },
-  { id: 2, name: "Phòng Trọ Thái Nguyên", sub: "• 9+ thông tin mới", avatar: "https://api.dicebear.com/7.x/identicon/svg?seed=PhongTro", isPage: true },
-  { id: 3, name: "Võ Ngọc Hiếu", sub: "• 1 thông tin mới", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Hieu" },
-  { id: 4, name: "Hoàng Anh", sub: "", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=HoangAnh" },
-  { id: 5, name: "Trần Quang Linh", sub: "• 3 thông tin mới", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Linh" },
-];
+function getInitials(name) {
+  if (!name) return "?";
+  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+}
 
 function MobileSearchOverlay({ isOpen, onClose }) {
   const navigate = useNavigate();
@@ -17,14 +14,55 @@ function MobileSearchOverlay({ isOpen, onClose }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [allUsers, setAllUsers] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
-  const [recentItems, setRecentItems] = useState(SAMPLE_RECENTS);
+  const [recentItems, setRecentItems] = useState([]);
 
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
       loadSearchData();
+      loadRecentHistory();
     }
   }, [isOpen]);
+
+  const loadRecentHistory = () => {
+    try {
+      const saved = localStorage.getItem("blog_recent_searches");
+      if (saved) {
+        setRecentItems(JSON.parse(saved));
+      } else {
+        setRecentItems([]);
+      }
+    } catch {
+      setRecentItems([]);
+    }
+  };
+
+  const saveRecentItem = (newItem) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem("blog_recent_searches") || "[]");
+      const filtered = existing.filter((item) => item.text !== newItem.text && item.id !== newItem.id);
+      const updated = [newItem, ...filtered].slice(0, 10);
+      localStorage.setItem("blog_recent_searches", JSON.stringify(updated));
+      setRecentItems(updated);
+    } catch {
+      // Ignore
+    }
+  };
+
+  const removeRecentItem = (itemId) => {
+    try {
+      const updated = recentItems.filter((item) => item.id !== itemId);
+      localStorage.setItem("blog_recent_searches", JSON.stringify(updated));
+      setRecentItems(updated);
+    } catch {
+      // Ignore
+    }
+  };
+
+  const clearAllRecent = () => {
+    localStorage.removeItem("blog_recent_searches");
+    setRecentItems([]);
+  };
 
   const loadSearchData = async () => {
     try {
@@ -51,8 +89,39 @@ function MobileSearchOverlay({ isOpen, onClose }) {
     ? allPosts.filter((p) => (p.title || p.content || "").toLowerCase().includes(query))
     : [];
 
-  const removeRecent = (id) => {
-    setRecentItems((prev) => prev.filter((item) => item.id !== id));
+  const handleSelectUser = (user) => {
+    saveRecentItem({
+      id: `user_${user.id}`,
+      text: user.fullName || user.username,
+      userId: user.id,
+      avatarUrl: user.avatarUrl,
+      type: "user",
+    });
+    onClose();
+    navigate(`/profile/${user.id}`);
+  };
+
+  const handleSelectPost = (post) => {
+    saveRecentItem({
+      id: `post_${post.id}`,
+      text: post.title || post.content?.slice(0, 30) || "Bài viết",
+      postId: post.id,
+      type: "post",
+    });
+    onClose();
+    navigate(`/posts/${post.id}`);
+  };
+
+  const handleRecentClick = (item) => {
+    if (item.userId) {
+      onClose();
+      navigate(`/profile/${item.userId}`);
+    } else if (item.postId) {
+      onClose();
+      navigate(`/posts/${item.postId}`);
+    } else {
+      setSearchTerm(item.text);
+    }
   };
 
   return (
@@ -84,9 +153,10 @@ function MobileSearchOverlay({ isOpen, onClose }) {
             background: "none",
             border: "none",
             color: "var(--text-primary)",
-            fontSize: 22,
+            fontSize: 20,
+            fontWeight: 700,
             cursor: "pointer",
-            padding: 4,
+            padding: "4px 8px",
             display: "flex",
             alignItems: "center",
           }}
@@ -112,6 +182,15 @@ function MobileSearchOverlay({ isOpen, onClose }) {
             placeholder="Tìm kiếm trên BlogViet"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && searchTerm.trim()) {
+                saveRecentItem({
+                  id: `query_${Date.now()}`,
+                  text: searchTerm.trim(),
+                  type: "query",
+                });
+              }
+            }}
             style={{
               flex: 1,
               background: "none",
@@ -129,7 +208,8 @@ function MobileSearchOverlay({ isOpen, onClose }) {
                 background: "none",
                 border: "none",
                 color: "var(--text-muted)",
-                fontSize: 16,
+                fontSize: 14,
+                fontWeight: 700,
                 cursor: "pointer",
               }}
             >
@@ -142,7 +222,7 @@ function MobileSearchOverlay({ isOpen, onClose }) {
       {/* Main Search Content Area */}
       <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
         
-        {/* 1. Khi chưa gõ từ khóa: Hiển thị Mới đây & Những người bạn có thể biết */}
+        {/* 1. Khi chưa gõ từ khóa: Hiển thị Mới đây (Lịch sử thực tế) & Những người bạn có thể biết */}
         {!query ? (
           <>
             {/* Mới đây Section */}
@@ -158,67 +238,84 @@ function MobileSearchOverlay({ isOpen, onClose }) {
                 <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>
                   Mới đây
                 </h3>
-                <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--primary)", cursor: "pointer" }}>
-                  Xem tất cả
-                </span>
+                {recentItems.length > 0 && (
+                  <span
+                    onClick={clearAllRecent}
+                    style={{ fontSize: 13.5, fontWeight: 600, color: "var(--primary)", cursor: "pointer" }}
+                  >
+                    Xóa tất cả
+                  </span>
+                )}
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {recentItems.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => {
-                      setSearchTerm(item.name);
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                      <img
-                        src={item.avatar}
-                        alt=""
-                        style={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: item.isPage ? 14 : "50%",
-                          objectFit: "cover",
-                        }}
-                      />
-                      <div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
-                          {item.name}
-                        </div>
-                        {item.sub && (
-                          <div style={{ fontSize: 12.5, color: "var(--primary)", fontWeight: 600, marginTop: 1 }}>
-                            {item.sub}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeRecent(item.id);
-                      }}
+              {recentItems.length === 0 ? (
+                <div style={{ fontSize: 13.5, color: "var(--text-muted)", padding: "8px 0" }}>
+                  Chưa có lịch sử tìm kiếm gần đây.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {recentItems.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleRecentClick(item)}
                       style={{
-                        background: "none",
-                        border: "none",
-                        color: "var(--text-muted)",
-                        fontSize: 18,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "8px 0",
                         cursor: "pointer",
-                        padding: 6,
                       }}
                     >
-                      •••
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        {item.avatarUrl ? (
+                          <img
+                            src={item.avatarUrl}
+                            alt=""
+                            style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
+                          />
+                        ) : (
+                          <div
+                            className="avatar avatar-sm"
+                            style={{
+                              width: 40,
+                              height: 40,
+                              background: "var(--bg-input)",
+                              color: "var(--text-primary)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontWeight: 700,
+                            }}
+                          >
+                            {getInitials(item.text)}
+                          </div>
+                        )}
+                        <span style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>
+                          {item.text}
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeRecentItem(item.id);
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--text-muted)",
+                          fontSize: 16,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          padding: 6,
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Những người bạn có thể biết Section */}
@@ -234,19 +331,13 @@ function MobileSearchOverlay({ isOpen, onClose }) {
                 <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>
                   Những người bạn có thể biết
                 </h3>
-                <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--primary)", cursor: "pointer" }}>
-                  Xem tất cả
-                </span>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {allUsers.slice(0, 4).map((u) => (
+                {allUsers.slice(0, 5).map((u) => (
                   <div
                     key={u.id}
-                    onClick={() => {
-                      onClose();
-                      navigate(`/profile/${u.id}`);
-                    }}
+                    onClick={() => handleSelectUser(u)}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -254,25 +345,41 @@ function MobileSearchOverlay({ isOpen, onClose }) {
                       cursor: "pointer",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                      <img
-                        src={u.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.username}`}
-                        alt=""
-                        style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }}
-                      />
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      {u.avatarUrl ? (
+                        <img
+                          src={u.avatarUrl}
+                          alt=""
+                          style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }}
+                        />
+                      ) : (
+                        <div
+                          className="avatar"
+                          style={{
+                            width: 44,
+                            height: 44,
+                            fontSize: 16,
+                            background: u.avatarColor
+                              ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)`
+                              : undefined,
+                          }}
+                        >
+                          {getInitials(u.fullName || u.username)}
+                        </div>
+                      )}
                       <div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
                           {u.fullName || u.username}
                         </div>
                         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                          @{u.username} • Bạn chung
+                          @{u.username}
                         </div>
                       </div>
                     </div>
 
                     <button
                       className="btn btn-secondary btn-sm"
-                      style={{ borderRadius: 10, fontWeight: 700, padding: "6px 14px" }}
+                      style={{ borderRadius: 10, fontWeight: 700, padding: "6px 14px", fontSize: 13 }}
                     >
                       Trang cá nhân
                     </button>
@@ -288,31 +395,41 @@ function MobileSearchOverlay({ isOpen, onClose }) {
             {matchingUsers.length > 0 && (
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 10, textTransform: "uppercase" }}>
-                  👤 Người dùng ({matchingUsers.length})
+                  Người dùng ({matchingUsers.length})
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {matchingUsers.map((u) => (
                     <div
                       key={u.id}
-                      onClick={() => {
-                        onClose();
-                        navigate(`/profile/${u.id}`);
-                      }}
+                      onClick={() => handleSelectUser(u)}
                       style={{
                         display: "flex",
                         alignItems: "center",
                         gap: 12,
-                        padding: "8px",
+                        padding: "10px",
                         borderRadius: 12,
                         cursor: "pointer",
                         background: "var(--bg-secondary)",
                       }}
                     >
-                      <img
-                        src={u.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.username}`}
-                        alt=""
-                        style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
-                      />
+                      {u.avatarUrl ? (
+                        <img
+                          src={u.avatarUrl}
+                          alt=""
+                          style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
+                        />
+                      ) : (
+                        <div
+                          className="avatar avatar-sm"
+                          style={{
+                            background: u.avatarColor
+                              ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)`
+                              : undefined,
+                          }}
+                        >
+                          {getInitials(u.fullName || u.username)}
+                        </div>
+                      )}
                       <div>
                         <div style={{ fontSize: 14.5, fontWeight: 700, color: "var(--text-primary)" }}>
                           {u.fullName || u.username}
@@ -331,16 +448,13 @@ function MobileSearchOverlay({ isOpen, onClose }) {
             {matchingPosts.length > 0 && (
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 10, textTransform: "uppercase" }}>
-                  📝 Bài viết ({matchingPosts.length})
+                  Bài viết ({matchingPosts.length})
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {matchingPosts.map((p) => (
                     <div
                       key={p.id}
-                      onClick={() => {
-                        onClose();
-                        navigate(`/posts/${p.id}`);
-                      }}
+                      onClick={() => handleSelectPost(p)}
                       style={{
                         padding: "12px",
                         borderRadius: 12,
