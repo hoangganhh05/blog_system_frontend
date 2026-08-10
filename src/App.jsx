@@ -26,7 +26,7 @@ import "./App.css";
 // Wrapper để ẩn Navbar trên trang auth
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = ["/login", "/register"].includes(location.pathname);
+  const isAuthPage = ["/login", "/register", "/verify-email", "/forgot-password"].includes(location.pathname);
 
   const [isDark, setIsDark] = useState(() => {
     return localStorage.getItem("blog_theme") === "dark";
@@ -63,42 +63,23 @@ function AppContent() {
       )}
 
       <Routes>
-        <Route path="/" element={<Home searchValue={search} />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/posts/:id" element={<PostDetail />} />
-        <Route path="/profile/:userId" element={<Profile />} />
-        <Route path="/friends" element={<FriendsPage />} />
-        <Route path="/search" element={<SearchPage />} />
-        <Route path="/videos" element={<VideosPage />} />
-        <Route path="/radio" element={<RadioPage />} />
-        <Route path="/trending" element={<TrendingPage />} />
-        <Route path="/games" element={<GamesPage />} />
-        <Route path="/ai-creator" element={<AiCreatorPage />} />
-        <Route
-          path="/security"
-          element={
-            <ProtectedRoute>
-              <SecuritySettingsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/saved"
-          element={
-            <ProtectedRoute>
-              <SavedPosts />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+
+        {/* BẮT BUỘC ĐĂNG NHẬP (PROTECTED ROUTES) DÀNH CHO KHÁCH VẮNG LAI */}
+        <Route path="/" element={<ProtectedRoute><Home searchValue={search} /></ProtectedRoute>} />
+        <Route path="/posts/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
+        <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
+        <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+        <Route path="/videos" element={<ProtectedRoute><VideosPage /></ProtectedRoute>} />
+        <Route path="/radio" element={<ProtectedRoute><RadioPage /></ProtectedRoute>} />
+        <Route path="/trending" element={<ProtectedRoute><TrendingPage /></ProtectedRoute>} />
+        <Route path="/games" element={<ProtectedRoute><GamesPage /></ProtectedRoute>} />
+        <Route path="/ai-creator" element={<ProtectedRoute><AiCreatorPage /></ProtectedRoute>} />
+        <Route path="/security" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
+        <Route path="/saved" element={<ProtectedRoute><SavedPosts /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         {/* 404 */}
         <Route
           path="*"
