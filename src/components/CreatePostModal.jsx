@@ -340,7 +340,7 @@ function CreatePostModal({ onClose, onCreated, editPost }) {
                     border: form.bgColor ? "none" : undefined,
                     boxShadow: form.bgColor ? "none" : undefined,
                     color: bgTextColor,
-                    fontSize: form.bgColor ? (form.content.length < 80 ? 22 : 16) : 15,
+                    fontSize: form.bgColor ? ((form.content?.length || 0) < 80 ? 22 : 16) : 15,
                     fontWeight: form.bgColor ? 700 : 400,
                     textAlign: form.bgColor ? "center" : "left",
                     resize: "none",

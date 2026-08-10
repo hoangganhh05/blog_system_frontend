@@ -110,7 +110,7 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
   const searchTerm = (searchValue || "").trim().toLowerCase();
   const matchingUsers = searchTerm
     ? allUsers.filter(
-        (u) => (u.fullName || u.username).toLowerCase().includes(searchTerm)
+        (u) => (u.fullName || u.username || "").toLowerCase().includes(searchTerm)
       ).slice(0, 5)
     : [];
 

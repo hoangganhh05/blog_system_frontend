@@ -53,7 +53,7 @@ function PostCard({ post, onDelete, style }) {
 
   const authorName = post.user?.fullName || post.user?.username || "Ẩn danh";
   const categoryName = post.category?.name || "";
-  const isOwner = currentUser && post.user?.id === currentUser.id;
+  const isOwner = currentUser && Number(post.user?.id) === Number(currentUser.id || currentUser.userId);
 
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
@@ -307,7 +307,17 @@ function PostCard({ post, onDelete, style }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigator.clipboard.writeText(window.location.origin + `/posts/${post.id}`);
+                  const shareUrl = window.location.origin + `/posts/${post.id}`;
+                  if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(shareUrl).catch(() => {});
+                  } else {
+                    const ta = document.createElement("textarea");
+                    ta.value = shareUrl;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try { document.execCommand("copy"); } catch {}
+                    document.body.removeChild(ta);
+                  }
                   showToast("Đã sao chép liên kết vào khay nhớ tạm!", "success");
                   setMenuOpen(false);
                 }}

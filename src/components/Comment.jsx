@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import commentService from "../services/commentService";
 import uploadService from "../services/uploadService";
@@ -752,9 +752,9 @@ function CommentSection({ postId, comments, onCommentsChange }) {
       ) : (
         <div className="alert alert-error" style={{ marginBottom: 20 }}>
           Vui lòng{" "}
-          <a href="/login" style={{ fontWeight: 700 }}>
+          <Link to="/login" style={{ fontWeight: 700, color: "var(--primary)" }}>
             đăng nhập
-          </a>{" "}
+          </Link>{" "}
           để bình luận.
         </div>
       )}

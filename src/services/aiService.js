@@ -43,7 +43,7 @@ const aiService = {
     const generatedContent = `${template.content}\n\n${template.hashtags}`;
 
     return {
-      title: `${prompt.trim() ? prompt.trim() : randomTitle}`,
+      title: `${(prompt || "").trim() ? prompt.trim() : randomTitle}`,
       content: generatedContent,
       hashtags: template.hashtags,
     };

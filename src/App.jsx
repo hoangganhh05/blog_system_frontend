@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Link } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
@@ -14,7 +14,6 @@ import RadioPage from "./pages/RadioPage";
 import TrendingPage from "./pages/TrendingPage";
 import GamesPage from "./pages/GamesPage";
 import AiCreatorPage from "./pages/AiCreatorPage";
-import ChatBox from "./components/ChatBox";
 import FloatingChatWidget from "./components/FloatingChatWidget";
 import MobileBottomNav from "./components/MobileBottomNav";
 import "./index.css";
@@ -94,9 +93,9 @@ function AppContent() {
                 <div className="empty-state-icon">🤔</div>
                 <h3>404 - Trang không tồn tại</h3>
                 <p>Trang bạn đang tìm không có ở đây.</p>
-                <a href="/" style={{ marginTop: 16, display: "block" }}>
+                <Link to="/" style={{ marginTop: 16, display: "block" }}>
                   <button className="btn btn-primary btn-full">← Về trang chủ</button>
-                </a>
+                </Link>
               </div>
             </div>
           }
