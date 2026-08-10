@@ -47,8 +47,8 @@ const userService = {
     } catch {
       // 2. Tự động gửi Email THẬT tới Gmail khách qua EmailJS API
       const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_y7xddpu";
-      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_otp";
-      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "user_public_key";
+      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_94uhmse";
+      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "X_9TctouXs8hHYclG";
 
       try {
         await fetch("https://api.emailjs.com/api/v1.0/email/send", {
@@ -61,7 +61,11 @@ const userService = {
             template_params: {
               to_email: email,
               email: email,
+              user_email: email,
+              to_name: email.split("@")[0],
               otp_code: otpCode,
+              otp: otpCode,
+              passcode: otpCode,
               message: `Mã OTP khôi phục mật khẩu BlogViet của bạn là: ${otpCode}. Mã có hiệu lực trong 10 phút.`,
             },
           }),
