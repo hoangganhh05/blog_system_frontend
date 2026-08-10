@@ -35,6 +35,23 @@ const postService = {
   search(query, page = 0, size = 10) {
     return axiosClient.get(`/posts/search?query=${encodeURIComponent(query)}&page=${page}&size=${size}&sort=createdAt,desc`);
   },
+
+  // Lấy bài viết theo khoảng thời gian chuẩn SARGable (Tối ưu B-Tree Index Range Scan)
+  getByDateRange(startDate, endDate, page = 0, size = 10) {
+    return axiosClient.get(`/posts/date-range?start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}&page=${page}&size=${size}&sort=createdAt,desc`);
+  },
+
+  // Lấy bài viết theo tháng (Ví dụ: 2026-08) dùng dải thời gian SARGable >= và < thay vì bọc hàm DATE_FORMAT trên cột Index
+  getByMonth(yearMonth, page = 0, size = 10) {
+    const parts = yearMonth.split("-");
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]);
+
+    const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0)).toISOString();
+    const endDate = new Date(Date.UTC(year, month, 1, 0, 0, 0)).toISOString();
+
+    return this.getByDateRange(startDate, endDate, page, size);
+  },
 };
 
 
