@@ -255,6 +255,28 @@ function CommentSection({ postId, comments, onCommentsChange }) {
     }
   };
 
+  // Phân loại bình luận gốc (Parent) và bình luận con (Replies)
+  // Đặt các bình luận phản hồi nằm NGAY BÊN DƯỚI bình luận cha tương ứng
+  const parentComments = [];
+  const replyMap = {};
+
+  const sortedChrono = [...comments].sort((a, b) => new Date(a.createdAt || a.id) - new Date(b.createdAt || b.id));
+
+  sortedChrono.forEach((c) => {
+    if (c.content?.startsWith("@")) {
+      const match = c.content.match(/^@([^:]+):/);
+      const targetName = match ? match[1].trim() : null;
+      if (targetName) {
+        if (!replyMap[targetName]) replyMap[targetName] = [];
+        replyMap[targetName].push(c);
+      } else {
+        parentComments.push(c);
+      }
+    } else {
+      parentComments.push(c);
+    }
+  });
+
   return (
     <div className="comment-section">
       <h3 className="comment-section-title">
@@ -334,7 +356,7 @@ function CommentSection({ postId, comments, onCommentsChange }) {
         </div>
       )}
 
-      {/* Danh sách comment với nút Trả lời / Rep chuẩn Facebook */}
+      {/* Danh sách comment phân cấp Cây chuẩn Facebook */}
       {comments.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">💬</div>
@@ -342,18 +364,42 @@ function CommentSection({ postId, comments, onCommentsChange }) {
           <p>Hãy là người đầu tiên bình luận!</p>
         </div>
       ) : (
-        comments.map((comment) => {
-          const isReply = comment.content?.startsWith("@");
+        parentComments.map((parentCmt) => {
+          const parentAuthor = parentCmt.user?.fullName || parentCmt.user?.username || "";
+          const childReplies = replyMap[parentAuthor] || [];
+
           return (
-            <div
-              key={comment.id}
-              style={isReply ? { paddingLeft: 28, borderLeft: "2px solid var(--border-light)", marginLeft: 12, marginTop: 4 } : {}}
-            >
+            <div key={parentCmt.id} style={{ marginBottom: 16 }}>
+              {/* Bình luận gốc */}
               <CommentItem
-                comment={comment}
+                comment={parentCmt}
                 onDelete={handleDelete}
                 onReplySubmit={handleReplySubmit}
               />
+
+              {/* Tất cả phản hồi rep nằm NGAY BÊN DƯỚI bình luận gốc, thụt lùi lề 32px */}
+              {childReplies.length > 0 && (
+                <div
+                  style={{
+                    paddingLeft: 32,
+                    borderLeft: "2.5px solid var(--border-light)",
+                    marginLeft: 18,
+                    marginTop: 6,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 8,
+                  }}
+                >
+                  {childReplies.map((replyCmt) => (
+                    <CommentItem
+                      key={replyCmt.id}
+                      comment={replyCmt}
+                      onDelete={handleDelete}
+                      onReplySubmit={handleReplySubmit}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           );
         })
