@@ -268,45 +268,64 @@
 }
 
 /* ============================================
-   PAGE LAYOUT (3 columns like Facebook)
+   PAGE LAYOUT (3 columns Facebook Web Desktop)
    ============================================ */
 .page-container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 20px 16px 32px;
+  padding: 16px;
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr) 280px;
   gap: 24px;
   align-items: start;
 }
 
-.sidebar-left {
-  position: sticky;
-  top: 80px;
-  max-height: calc(100vh - 100px);
-  overflow-y: auto;
-  scrollbar-width: none;
+@media (min-width: 992px) {
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .app-layout {
+    height: 100vh;
+    overflow: hidden;
+    padding-top: 60px;
+    box-sizing: border-box;
+  }
+
+  .page-container {
+    height: calc(100vh - 60px);
+    box-sizing: border-box;
+    overflow: hidden;
+    padding-bottom: 0;
+  }
+
+  .sidebar-left {
+    height: calc(100vh - 84px);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .sidebar-right {
+    height: calc(100vh - 84px);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .feed-column {
+    min-width: 0;
+    max-width: 680px;
+    width: 100%;
+    margin: 0 auto;
+    height: calc(100vh - 84px);
+    overflow-y: auto;
+    padding-right: 4px;
+    padding-bottom: 60px;
+    scrollbar-width: thin;
+  }
 }
 
-.sidebar-left::-webkit-scrollbar {
-  display: none;
-}
-
-.feed-column {
-  min-width: 0;
-  max-width: 680px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.sidebar-right {
-  position: sticky;
-  top: 80px;
-  max-height: calc(100vh - 100px);
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-
+.sidebar-left::-webkit-scrollbar,
 .sidebar-right::-webkit-scrollbar {
   display: none;
 }
