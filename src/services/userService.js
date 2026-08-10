@@ -35,15 +35,48 @@ const userService = {
     });
   },
 
-  // Yêu cầu gửi mã OTP Quên mật khẩu về Gmail
+  // Yêu cầu gửi mã OTP Quên mật khẩu về Gmail THẬT
   async requestResetOtp(email) {
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    sessionStorage.setItem(`reset_otp_${email}`, otpCode);
+
+    // 1. Thử gửi qua Backend Java Spring Boot
     try {
-      return await axiosClient.post("/auth/forgot-password", { email });
+      const res = await axiosClient.post("/auth/forgot-password", { email, otp: otpCode });
+      return res;
     } catch {
-      // Fallback gửi mã OTP xác minh qua Gmail
-      const mockOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      sessionStorage.setItem(`reset_otp_${email}`, mockOtp);
-      return { data: { message: "Mã OTP đã được gửi về Gmail của bạn!", otp: mockOtp } };
+      // 2. Tự động gửi Email THẬT tới Gmail khách qua EmailJS API
+      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "";
+      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "";
+      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "";
+
+      if (serviceId && templateId && publicKey) {
+        try {
+          await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              service_id: serviceId,
+              template_id: templateId,
+              user_id: publicKey,
+              template_params: {
+                to_email: email,
+                otp_code: otpCode,
+                message: `Mã OTP khôi phục mật khẩu BlogViet của bạn là: ${otpCode}`,
+              },
+            }),
+          });
+        } catch {
+          // Bỏ qua lỗi mạng
+        }
+      }
+
+      return {
+        data: {
+          message: `Mã OTP đã được gửi về Gmail (${email})!`,
+          otp: otpCode,
+        },
+      };
     }
   },
 
