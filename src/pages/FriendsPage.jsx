@@ -120,42 +120,59 @@ function FriendsPage() {
     }
   };
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   // 1. Lời mời nhận được THỰC TẾ (Người khác gửi đến mình)
   const pendingRequestsList = getPendingRequests();
   const incomingRequestUserIds = pendingRequestsList
     .filter((r) => String(r.toId) === myId)
     .map((r) => String(r.fromId));
 
-  const incomingRequests = allUsers.filter((u) =>
-    incomingRequestUserIds.includes(String(u.id))
-  );
-
   // 2. Lời mời do CHÍNH MÌNH ĐÃ GỬI ĐI
   const outgoingSentUserIds = pendingRequestsList
     .filter((r) => String(r.fromId) === myId)
     .map((r) => String(r.toId));
 
-  const outgoingSentUsers = allUsers.filter((u) =>
-    outgoingSentUserIds.includes(String(u.id))
-  );
-
-  // 3. Danh sách Bạn bè THỰC TẾ (Đã chấp nhận)
+  // 3. Danh sách Bạn bè THỰC TẾ (Đã chấp nhận kết bạn)
   const pairs = getMutualFriendsMap();
   const myFriendIds = pairs
     .filter((p) => String(p.u1) === myId || String(p.u2) === myId)
     .map((p) => (String(p.u1) === myId ? String(p.u2) : String(p.u1)));
 
-  const friendsList = allUsers.filter((u) =>
-    myFriendIds.includes(String(u.id))
+  // LỌC SẠCH TỰ ĐỘNG: Nếu đã là bạn bè -> Biến mất hoàn toàn khỏi Lời mời đã gửi & Lời mời nhận được
+  const cleanIncomingRequestIds = incomingRequestUserIds.filter((id) => !myFriendIds.includes(id));
+  const cleanOutgoingSentIds = outgoingSentUserIds.filter((id) => !myFriendIds.includes(id));
+
+  // Bộ lọc tìm kiếm bạn bè theo tên / username
+  const filterByName = (list) => {
+    if (!searchQuery.trim()) return list;
+    const q = searchQuery.trim().toLowerCase();
+    return list.filter((u) =>
+      (u.fullName || u.username || "").toLowerCase().includes(q)
+    );
+  };
+
+  const incomingRequests = filterByName(
+    allUsers.filter((u) => cleanIncomingRequestIds.includes(String(u.id)))
   );
 
-  // 4. Danh sách Gợi ý kết bạn
-  const suggestions = allUsers.filter(
-    (u) =>
-      !myFriendIds.includes(String(u.id)) &&
-      !incomingRequestUserIds.includes(String(u.id)) &&
-      !outgoingSentUserIds.includes(String(u.id)) &&
-      !removedSuggestions.includes(String(u.id))
+  const outgoingSentUsers = filterByName(
+    allUsers.filter((u) => cleanOutgoingSentIds.includes(String(u.id)))
+  );
+
+  const friendsList = filterByName(
+    allUsers.filter((u) => myFriendIds.includes(String(u.id)))
+  );
+
+  // Gợi ý kết bạn: Hiện toàn bộ người dùng khác trên BlogViet (chưa phải bạn bè, chưa gửi lời mời)
+  const suggestions = filterByName(
+    allUsers.filter(
+      (u) =>
+        !myFriendIds.includes(String(u.id)) &&
+        !cleanIncomingRequestIds.includes(String(u.id)) &&
+        !cleanOutgoingSentIds.includes(String(u.id)) &&
+        !removedSuggestions.includes(String(u.id))
+    )
   );
 
   // Thao tác 1: Gửi lời mời kết bạn đến ai đó
@@ -255,6 +272,27 @@ function FriendsPage() {
       {/* 2. MAIN FRIENDS FEED AREA */}
       <div style={{ flex: 1, padding: "24px 28px", overflowY: "auto" }}>
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
+          
+          {/* Thanh tìm kiếm bạn bè theo tên */}
+          <div style={{ marginBottom: 24 }}>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Tìm kiếm mọi người trên BlogViet theo tên..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "12px 18px",
+                borderRadius: 14,
+                fontSize: 14.5,
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-light)",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+              }}
+            />
+          </div>
+
           {loading ? (
             <div style={{ padding: 60, textAlign: "center", color: "var(--text-muted)" }}>
               Đang tải danh sách người dùng...
