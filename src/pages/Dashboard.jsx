@@ -335,56 +335,76 @@ function Dashboard() {
                   </div>
                 </div>
 
-                {/* Interactive Dynamic Area Chart */}
-                <div style={{ position: "relative", height: 200, width: "100%", marginTop: 10 }}>
-                  <svg width="100%" height="100%" viewBox="0 0 700 180" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="facebookGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#1877f2" stopOpacity="0.35" />
-                        <stop offset="100%" stopColor="#1877f2" stopOpacity="0.0" />
-                      </linearGradient>
-                    </defs>
+                {/* Interactive Dynamic Area Chart - NẰM PHẲNG 100% KHI CHƯA CÓ SỐ LIỆU */}
+                {(() => {
+                  const currentMetricVal =
+                    activeMetric === "views"
+                      ? realTotalViews
+                      : activeMetric === "engagements"
+                      ? realTotalReactions
+                      : realFollowersCount;
 
-                    {/* Horizontal Grid lines */}
-                    <line x1="0" y1="20" x2="700" y2="20" stroke="var(--border-light)" strokeDasharray="3 3" />
-                    <line x1="0" y1="80" x2="700" y2="80" stroke="var(--border-light)" strokeDasharray="3 3" />
-                    <line x1="0" y1="140" x2="700" y2="140" stroke="var(--border-light)" strokeDasharray="3 3" />
+                  const hasData = currentMetricVal > 0;
+                  const maxVal = Math.max(10, currentMetricVal);
+                  const peakY = hasData ? 140 - Math.min(100, Math.max(30, (currentMetricVal / maxVal) * 90)) : 140;
 
-                    {/* Y-axis values */}
-                    <text x="5" y="25" fill="var(--text-muted)" fontSize="11">{Math.max(10, realTotalViews)}</text>
-                    <text x="5" y="85" fill="var(--text-muted)" fontSize="11">{Math.max(5, Math.floor(realTotalViews / 2))}</text>
-                    <text x="5" y="145" fill="var(--text-muted)" fontSize="11">0</text>
+                  const linePathD = hasData
+                    ? `M 30 140 L 150 135 L 300 130 L 450 125 L 600 ${peakY} L 670 140`
+                    : "M 30 140 L 670 140";
 
-                    {/* Wave Area Fill */}
-                    <path
-                      d="M 30 140 L 90 120 L 150 140 L 210 125 L 270 135 L 330 140 L 390 128 L 450 140 L 510 125 L 570 140 L 630 30 L 670 138 L 670 140 L 30 140 Z"
-                      fill="url(#facebookGradient)"
-                    />
+                  const areaPathD = hasData
+                    ? `M 30 140 L 150 135 L 300 130 L 450 125 L 600 ${peakY} L 670 140 L 670 140 L 30 140 Z`
+                    : "M 30 140 L 670 140 L 670 140 L 30 140 Z";
 
-                    {/* Blue Line Curve */}
-                    <path
-                      d="M 30 140 L 90 120 L 150 140 L 210 125 L 270 135 L 330 140 L 390 128 L 450 140 L 510 125 L 570 140 L 630 30 L 670 138"
-                      fill="none"
-                      stroke="#1877f2"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                  return (
+                    <div style={{ position: "relative", height: 200, width: "100%", marginTop: 10 }}>
+                      <svg width="100%" height="100%" viewBox="0 0 700 180" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="facebookGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#1877f2" stopOpacity="0.35" />
+                            <stop offset="100%" stopColor="#1877f2" stopOpacity="0.0" />
+                          </linearGradient>
+                        </defs>
 
-                    {/* Dynamic Peak Data Point Circle */}
-                    <circle cx="630" cy="30" r="5" fill="#1877f2" stroke="#fff" strokeWidth="2" />
-                  </svg>
+                        {/* Horizontal Grid lines */}
+                        <line x1="0" y1="20" x2="700" y2="20" stroke="var(--border-light)" strokeDasharray="3 3" />
+                        <line x1="0" y1="80" x2="700" y2="80" stroke="var(--border-light)" strokeDasharray="3 3" />
+                        <line x1="0" y1="140" x2="700" y2="140" stroke="var(--border-light)" strokeDasharray="3 3" />
 
-                  {/* X-axis Date Labels */}
-                  <div style={{ display: "flex", justifyContent: "space-between", padding: "0 10px", marginTop: 4, fontSize: 11.5, color: "var(--text-muted)" }}>
-                    <span>13 Tháng 7</span>
-                    <span>18 Tháng 7</span>
-                    <span>23 Tháng 7</span>
-                    <span>28 Tháng 7</span>
-                    <span>2 Tháng 8</span>
-                    <span>Hôm nay</span>
-                  </div>
-                </div>
+                        {/* Y-axis values */}
+                        <text x="5" y="25" fill="var(--text-muted)" fontSize="11">{hasData ? maxVal : 10}</text>
+                        <text x="5" y="85" fill="var(--text-muted)" fontSize="11">{hasData ? Math.floor(maxVal / 2) : 5}</text>
+                        <text x="5" y="145" fill="var(--text-muted)" fontSize="11">0</text>
+
+                        {/* Wave Area Fill */}
+                        {hasData && <path d={areaPathD} fill="url(#facebookGradient)" />}
+
+                        {/* Blue Line Curve */}
+                        <path
+                          d={linePathD}
+                          fill="none"
+                          stroke="#1877f2"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+
+                        {/* Dynamic Peak Data Point Circle */}
+                        {hasData && <circle cx="600" cy={peakY} r="5" fill="#1877f2" stroke="#fff" strokeWidth="2" />}
+                      </svg>
+
+                      {/* X-axis Date Labels */}
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "0 10px", marginTop: 4, fontSize: 11.5, color: "var(--text-muted)" }}>
+                        <span>13 Tháng 7</span>
+                        <span>18 Tháng 7</span>
+                        <span>23 Tháng 7</span>
+                        <span>28 Tháng 7</span>
+                        <span>2 Tháng 8</span>
+                        <span>Hôm nay</span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Section: Nội dung xem trước bài mới nhất */}
