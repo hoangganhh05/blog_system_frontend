@@ -599,14 +599,7 @@ function playNotificationSound() {
 
 
 
-  // Đánh dấu đã đọc khi chọn activeFriend
-  useEffect(() => {
-    if (isOpen && currentUserId && activeFriend?.id && !activeFriend?.isAi) {
-      chatService.markAsRead(activeFriend.id, currentUserId).then(() => {
-        setUnreadChatCount((prev) => Math.max(0, prev - 1));
-      }).catch(() => {});
-    }
-  }, [isOpen, currentUserId, activeFriend]);
+
 
   if (!currentUser) return null;
 

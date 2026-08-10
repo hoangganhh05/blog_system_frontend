@@ -44,7 +44,11 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
     setLoading(true);
     try {
       const res = await notificationService.getUserNotifications(currentUserId);
-      const list = res.data || [];
+      const rawList = res.data || [];
+      // Lọc bỏ tuyệt đối thông báo tin nhắn khỏi quả chuông (chỉ giữ thông báo bài viết, bình luận, tương tác)
+      const list = rawList.filter(
+        (n) => n.type !== "CHAT" && n.type !== "MESSAGE" && n.type !== "TIN_NHAN"
+      );
       setNotifications(list);
 
       const unreadCount = list.filter((n) => !n.read).length;
