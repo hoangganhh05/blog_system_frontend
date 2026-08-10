@@ -641,13 +641,23 @@ function CommentSection({ postId, comments, onCommentsChange }) {
                 position: "relative",
               }}
             >
-              <div style={{ display: "flex", gap: 14, color: "var(--text-muted)", fontSize: 16, alignItems: "center" }}>
-                <span title="Thêm Nhãn dán" style={{ cursor: "pointer" }} onClick={() => setShowStickerPicker((v) => !v)}>🥸</span>
-                <span title="Thêm Biểu tượng cảm xúc" style={{ cursor: "pointer" }} onClick={() => setShowEmojiPicker((v) => !v)}>😊</span>
-                <span title="Tải ảnh đính kèm từ máy" style={{ cursor: "pointer" }} onClick={() => fileInputRef.current?.click()}>
-                  {uploadingImage ? "⏳" : "📷"}
-                </span>
-                <span title="Thêm Ảnh GIF" style={{ cursor: "pointer", fontWeight: 700, fontSize: 13 }} onClick={() => setShowGifPicker((v) => !v)}>GIF</span>
+              <div style={{ display: "flex", gap: 14, color: "var(--text-muted)", alignItems: "center" }}>
+                <button type="button" title="Thêm Biểu tượng cảm xúc" style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", display: "flex", padding: 2 }} onClick={() => setShowEmojiPicker((v) => !v)}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                </button>
+                <button type="button" title="Tải ảnh đính kèm từ máy" style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", display: "flex", padding: 2 }} onClick={() => fileInputRef.current?.click()}>
+                  {uploadingImage ? (
+                    <span style={{ fontSize: 12 }}>...</span>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  )}
+                </button>
+                <button type="button" title="Thêm Ảnh GIF" style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", display: "flex", padding: 2 }} onClick={() => setShowGifPicker((v) => !v)}>
+                  <span style={{ fontSize: 10, fontWeight: 800, border: "1.5px solid currentColor", borderRadius: 4, padding: "0 3px", lineHeight: "14px" }}>GIF</span>
+                </button>
+                <button type="button" title="Thêm Nhãn dán" style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", display: "flex", padding: 2 }} onClick={() => setShowStickerPicker((v) => !v)}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </button>
               </div>
 
               <button
