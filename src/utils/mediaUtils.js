@@ -7,7 +7,9 @@ export function isVideoUrl(url) {
   if (!url || typeof url !== "string") return false;
   const lower = url.toLowerCase();
   return (
-    lower.includes("/video/upload/") ||
+    lower.startsWith("blob:") ||
+    lower.includes("/video/") ||
+    lower.includes("video") ||
     lower.endsWith(".mp4") ||
     lower.endsWith(".webm") ||
     lower.endsWith(".ogg") ||
