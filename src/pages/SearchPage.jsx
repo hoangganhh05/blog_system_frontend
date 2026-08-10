@@ -126,56 +126,133 @@ export default function SearchPage() {
 
   return (
     <div className="app-layout page-with-sidebar">
-      {/* LEFT SIDEBAR FILTERS - FACEBOOK DESKTOP STYLE */}
-      <div className="page-sidebar-menu">
-        <h2 className="page-sidebar-title">
+      {/* LEFT SIDEBAR FILTERS - FACEBOOK DESKTOP EXACT REPLICA */}
+      <div className="page-sidebar-menu" style={{ padding: "16px 12px" }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 16px 8px" }}>
           Kết quả tìm kiếm
-        </h2>
+        </h1>
 
-        {/* Dynamic Search Input inside Sidebar */}
-        <form onSubmit={handleSearchSubmit} style={{ marginBottom: 16 }}>
-          <div style={{ position: "relative" }}>
-            <input
-              type="text"
-              placeholder="Tìm kiếm..."
-              value={searchInputVal}
-              onChange={(e) => setSearchInputVal(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 14px 10px 38px",
-                borderRadius: 20,
-                border: "1px solid var(--border-light)",
-                background: "var(--bg-input)",
-                color: "var(--text-primary)",
-                fontSize: 14,
-                boxSizing: "border-box",
-                fontWeight: 500,
-              }}
-            />
-            <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", opacity: 0.6, fontSize: 14 }}>
-              🔍
-            </span>
+        <div style={{ borderBottom: "1px solid var(--border-light)", marginBottom: 12, paddingBottom: 12 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 10px 8px" }}>
+            Bộ lọc
           </div>
-        </form>
 
-        <div className="page-sidebar-nav">
-          {[
-            { id: "all", label: "Tất cả", icon: "🌐" },
-            { id: "users", label: `Mọi người (${matchedUsers.length})`, icon: "👥" },
-            { id: "posts", label: `Bài viết (${matchedPosts.length})`, icon: "📝" },
-            { id: "videos", label: `Video (${matchedVideos.length})`, icon: "🎬" },
-          ].map((tab) => (
+          {/* TAB 1: TẤT CẢ (Blue Circular Icon + Soft Pill Background) */}
+          <div
+            onClick={() => setActiveTab("all")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "10px 12px",
+              borderRadius: 12,
+              background: activeTab === "all" ? "var(--bg-hover)" : "transparent",
+              cursor: "pointer",
+              marginBottom: 4,
+            }}
+          >
             <div
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`page-sidebar-nav-item ${activeTab === tab.id ? "active" : ""}`}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                background: "#1877f2",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#ffffff",
+                fontSize: 18,
+                flexShrink: 0,
+              }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 16 }}>{tab.icon}</span>
-                <span>{tab.label}</span>
+              🌐
+            </div>
+            <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>Tất cả</span>
+          </div>
+
+          {/* Sub-filters under "Tất cả" (Toggle switches & dropdowns) */}
+          {activeTab === "all" && (
+            <div style={{ paddingLeft: 12, paddingRight: 4, marginTop: 8, display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>
+                <span>Bài viết mới đây</span>
+                <input type="checkbox" style={{ accentColor: "#1877f2", width: 16, height: 16, cursor: "pointer" }} />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>
+                <span>Bài viết bạn đã xem</span>
+                <input type="checkbox" style={{ accentColor: "#1877f2", width: 16, height: 16, cursor: "pointer" }} />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13.5, fontWeight: 600, color: "var(--text-muted)", cursor: "pointer", paddingTop: 4 }}>
+                <span>Ngày đăng</span>
+                <span>▾</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13.5, fontWeight: 600, color: "var(--text-muted)", cursor: "pointer" }}>
+                <span>Bài viết của</span>
+                <span>▾</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13.5, fontWeight: 600, color: "var(--text-muted)", cursor: "pointer" }}>
+                <span>Vị trí được gắn thẻ</span>
+                <span>▾</span>
               </div>
             </div>
-          ))}
+          )}
+        </div>
+
+        {/* Other Filter Categories */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {[
+            { id: "users", label: "Mọi người", icon: "👥", count: matchedUsers.length },
+            { id: "posts", label: "Bài viết", icon: "📝", count: matchedPosts.length },
+            { id: "videos", label: "Thước phim", icon: "🎬", count: matchedVideos.length },
+            { id: "friends", label: "Bạn bè", icon: "🤝" },
+            { id: "pages", label: "Trang", icon: "🚩" },
+            { id: "groups", label: "Nhóm", icon: "👨‍👩‍👧‍👦" },
+          ].map((item) => {
+            const isActive = activeTab === item.id;
+            return (
+              <div
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  background: isActive ? "var(--bg-hover)" : "transparent",
+                  cursor: "pointer",
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={(e) => !isActive && (e.currentTarget.style.background = "var(--bg-hover)")}
+                onMouseLeave={(e) => !isActive && (e.currentTarget.style.background = "transparent")}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      background: "var(--bg-input)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 18,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {item.icon}
+                  </div>
+                  <span style={{ fontSize: 14.5, fontWeight: isActive ? 700 : 600, color: isActive ? "var(--primary)" : "var(--text-primary)" }}>
+                    {item.label}
+                  </span>
+                </div>
+                {item.count !== undefined && item.count > 0 && (
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>
+                    {item.count}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
