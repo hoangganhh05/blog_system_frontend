@@ -46,29 +46,28 @@ const userService = {
       return res;
     } catch {
       // 2. Tự động gửi Email THẬT tới Gmail khách qua EmailJS API
-      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "";
-      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "";
-      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "";
+      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_blogviet";
+      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_otp";
+      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "user_public_key";
 
-      if (serviceId && templateId && publicKey) {
-        try {
-          await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              service_id: serviceId,
-              template_id: templateId,
-              user_id: publicKey,
-              template_params: {
-                to_email: email,
-                otp_code: otpCode,
-                message: `Mã OTP khôi phục mật khẩu BlogViet của bạn là: ${otpCode}`,
-              },
-            }),
-          });
-        } catch {
-          // Bỏ qua lỗi mạng
-        }
+      try {
+        await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            service_id: serviceId,
+            template_id: templateId,
+            user_id: publicKey,
+            template_params: {
+              to_email: email,
+              email: email,
+              otp_code: otpCode,
+              message: `Mã OTP khôi phục mật khẩu BlogViet của bạn là: ${otpCode}. Mã có hiệu lực trong 10 phút.`,
+            },
+          }),
+        });
+      } catch {
+        // Bỏ qua lỗi mạng
       }
 
       return {
