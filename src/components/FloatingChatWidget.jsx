@@ -40,6 +40,34 @@ function FloatingChatWidget() {
   const [editingMsgId, setEditingMsgId] = useState(null);
   const [editingText, setEditingText] = useState("");
   const [activeMsgMenuId, setActiveMsgMenuId] = useState(null);
+  const [pinnedMessage, setPinnedMessage] = useState(null);
+
+  const handleEditMessage = async (msgId) => {
+    if (!editingText.trim()) return;
+    const newContent = editingText.trim();
+    setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, content: newContent } : m)));
+    setEditingMsgId(null);
+    setEditingText("");
+    try {
+      if (!activeFriend?.isAi) {
+        await chatService.editMessage(msgId, newContent);
+      }
+    } catch {
+      // Optimistic update
+    }
+  };
+
+  const handleDeleteMessage = async (msgId) => {
+    setMessages((prev) => prev.filter((m) => m.id !== msgId));
+    if (pinnedMessage?.id === msgId) setPinnedMessage(null);
+    try {
+      if (!activeFriend?.isAi) {
+        await chatService.deleteMessage(msgId);
+      }
+    } catch {
+      // Optimistic removal
+    }
+  };
 
   const pressHoldTimerRef = useRef(null);
 
@@ -79,28 +107,6 @@ function FloatingChatWidget() {
       }
     }
   }, [activeCall?.type]);
-
-  const handleEditMessage = async (msgId) => {
-    if (!editingText.trim()) return;
-    try {
-      setMessages((prev) =>
-        prev.map((m) => (m.id === msgId ? { ...m, content: editingText, edited: true } : m))
-      );
-      setEditingMsgId(null);
-      await chatService.editMessage(msgId, editingText);
-    } catch {
-      // Ignore
-    }
-  };
-
-  const handleDeleteMessage = async (msgId) => {
-    try {
-      setMessages((prev) => prev.filter((m) => m.id !== msgId));
-      await chatService.deleteMessage(msgId);
-    } catch {
-      // Ignore
-    }
-  };
 
   function formatTime(dateStr) {
     if (!dateStr) return "";
@@ -636,7 +642,17 @@ function playNotificationSound() {
               </div>
             ) : (
               /* Khung Hội thoại Chat */
-              <div style={{ flex: 1, padding: 12, display: "flex", flexDirection: "column", gap: 12, overflowY: "auto" }}>
+              <div style={{ flex: 1, padding: "12px 14px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
+                {pinnedMessage && (
+                  <div style={{ background: "var(--primary-light)", border: "1px solid var(--border-light)", borderRadius: 10, padding: "6px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12, color: "var(--primary)", flexShrink: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span style={{ fontWeight: 600 }}>Ghim:</span>
+                      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>{pinnedMessage.content}</span>
+                    </div>
+                    <button onClick={() => setPinnedMessage(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12, padding: "0 4px" }}>✕</button>
+                  </div>
+                )}
                 {messages.length === 0 ? (
                   <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 13, marginTop: 40 }}>
                     Hãy gửi lời chào đầu tiên! 👋
@@ -725,6 +741,7 @@ function playNotificationSound() {
                                     animation: "scaleUp 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
                                   }}
                                 >
+                                  {/* 1. Copy tin nhắn */}
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -751,36 +768,41 @@ function playNotificationSound() {
                                     Copy tin nhắn
                                   </button>
 
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setEditingMsgId(msg.id);
-                                      setEditingText(msg.content);
-                                      setActiveMsgMenuId(null);
-                                    }}
-                                    style={{
-                                      background: "none",
-                                      border: "none",
-                                      padding: "8px 14px",
-                                      fontSize: 13,
-                                      fontWeight: 600,
-                                      color: "var(--text-primary)",
-                                      cursor: "pointer",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 10,
-                                      textAlign: "left",
-                                      width: "100%",
-                                    }}
-                                    className="msg-menu-item-hover"
-                                  >
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                                    Chỉnh sửa tin nhắn
-                                  </button>
+                                  {/* 2. Chỉnh sửa tin nhắn (dành cho tin nhắn của mình) */}
+                                  {isMe && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setEditingMsgId(msg.id);
+                                        setEditingText(msg.content);
+                                        setActiveMsgMenuId(null);
+                                      }}
+                                      style={{
+                                        background: "none",
+                                        border: "none",
+                                        padding: "8px 14px",
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        color: "var(--text-primary)",
+                                        cursor: "pointer",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 10,
+                                        textAlign: "left",
+                                        width: "100%",
+                                      }}
+                                      className="msg-menu-item-hover"
+                                    >
+                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                      Chỉnh sửa tin nhắn
+                                    </button>
+                                  )}
 
+                                  {/* 3. Ghim tin nhắn */}
                                   <button
                                     type="button"
                                     onClick={() => {
+                                      setPinnedMessage(msg);
                                       setActiveMsgMenuId(null);
                                     }}
                                     style={{
@@ -805,31 +827,34 @@ function playNotificationSound() {
 
                                   <div style={{ height: 1, background: "var(--border-light)", margin: "4px 0" }} />
 
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      handleDeleteMessage(msg.id);
-                                      setActiveMsgMenuId(null);
-                                    }}
-                                    style={{
-                                      background: "none",
-                                      border: "none",
-                                      padding: "8px 14px",
-                                      fontSize: 13,
-                                      fontWeight: 600,
-                                      color: "#ef4444",
-                                      cursor: "pointer",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 10,
-                                      textAlign: "left",
-                                      width: "100%",
-                                    }}
-                                    className="msg-menu-item-hover"
-                                  >
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                    Xóa tin nhắn
-                                  </button>
+                                  {/* 4. Xóa tin nhắn */}
+                                  {isMe && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        handleDeleteMessage(msg.id);
+                                        setActiveMsgMenuId(null);
+                                      }}
+                                      style={{
+                                        background: "none",
+                                        border: "none",
+                                        padding: "8px 14px",
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        color: "#ef4444",
+                                        cursor: "pointer",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 10,
+                                        textAlign: "left",
+                                        width: "100%",
+                                      }}
+                                      className="msg-menu-item-hover"
+                                    >
+                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                      Xóa tin nhắn
+                                    </button>
+                                  )}
                                 </div>
                               )}
                             </div>
