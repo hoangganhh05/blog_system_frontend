@@ -297,27 +297,6 @@ function FriendsPage() {
       {/* 2. MAIN FRIENDS FEED AREA */}
       <div style={{ flex: 1, padding: "24px 28px", overflowY: "auto" }}>
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
-          
-          {/* Thanh tìm kiếm bạn bè theo tên */}
-          <div style={{ marginBottom: 24 }}>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Tìm kiếm mọi người trên BlogViet theo tên..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "12px 18px",
-                borderRadius: 14,
-                fontSize: 14.5,
-                background: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-              }}
-            />
-          </div>
-
           {loading ? (
             <div style={{ padding: 60, textAlign: "center", color: "var(--text-muted)" }}>
               Đang tải danh sách người dùng...
