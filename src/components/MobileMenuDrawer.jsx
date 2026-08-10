@@ -128,6 +128,11 @@ export default function MobileMenuDrawer({ isOpen, onClose, isDark, onToggleThem
                   <span>Bài đã lưu</span>
                 </Link>
 
+                <Link to={`/profile/${currentUser.id}?tab=security`} onClick={onClose} className="mobile-menu-tile">
+                  <div className="mobile-menu-tile-icon" style={{ background: "rgba(239,68,68,0.12)", color: "#ef4444" }}>🔒</div>
+                  <span>Bảo mật</span>
+                </Link>
+
                 <Link to="/dashboard" onClick={onClose} className="mobile-menu-tile">
                   <div className="mobile-menu-tile-icon" style={{ background: "rgba(107,114,128,0.12)", color: "#6b7280" }}>⚙️</div>
                   <span>Dashboard</span>
@@ -141,6 +146,32 @@ export default function MobileMenuDrawer({ isOpen, onClose, isDark, onToggleThem
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", marginBottom: 12, textTransform: "uppercase" }}>
               Cài đặt & Giao diện
             </div>
+
+            {/* Cài đặt bảo mật */}
+            {currentUser && (
+              <div
+                onClick={() => {
+                  onClose();
+                  navigate(`/profile/${currentUser.id}?tab=security`);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px 14px",
+                  background: "var(--bg-input)",
+                  borderRadius: 14,
+                  cursor: "pointer",
+                  marginBottom: 12
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 600, fontSize: 14 }}>
+                  <span>🔒</span>
+                  <span>Cài đặt bảo mật</span>
+                </div>
+                <span style={{ fontSize: 12, color: "var(--primary)", fontWeight: 700 }}>Mở</span>
+              </div>
+            )}
 
             {/* Toggle Theme */}
             <div

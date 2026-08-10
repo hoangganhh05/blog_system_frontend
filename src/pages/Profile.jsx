@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
 import postService from "../services/postService";
@@ -31,6 +31,7 @@ function getInitials(name) {
 function Profile() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser, updateUser } = useAuth();
 
   const avatarInputRef = useRef(null);
@@ -42,6 +43,14 @@ function Profile() {
   const [friendsList, setFriendsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("posts");
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get("tab") || location.state?.tab;
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [location]);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
 
