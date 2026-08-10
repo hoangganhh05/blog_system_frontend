@@ -39,15 +39,15 @@ function Register() {
 
     setLoading(true);
     try {
-      const res = await userService.register({
+      await userService.register({
         fullName: form.fullName.trim(),
         username: form.username.trim(),
         email: form.email.trim(),
         password: form.password,
         role: "USER",
       });
-      login(res.data);
-      navigate("/");
+      localStorage.setItem("blog_pending_verify_email", form.email.trim());
+      navigate("/verify-email", { state: { email: form.email.trim() } });
     } catch (err) {
       const serverMsg = typeof err.response?.data === "string" 
         ? err.response.data 

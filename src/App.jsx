@@ -18,6 +18,8 @@ import VideosPage from "./pages/VideosPage";
 import SecuritySettingsPage from "./pages/SecuritySettingsPage";
 import FriendsPage from "./pages/FriendsPage";
 import SearchPage from "./pages/SearchPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import FloatingChatWidget from "./components/FloatingChatWidget";
 import MobileBottomNav from "./components/MobileBottomNav";
 import "./index.css";
@@ -65,6 +67,8 @@ function AppContent() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         {/* BẮT BUỘC ĐĂNG NHẬP (PROTECTED ROUTES) DÀNH CHO KHÁCH VẮNG LAI */}
         <Route path="/" element={<ProtectedRoute><Home searchValue={search} /></ProtectedRoute>} />

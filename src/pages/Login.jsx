@@ -219,25 +219,17 @@ function Login() {
 
             {/* Nút Quên mật khẩu */}
             <div style={{ textAlign: "right", marginBottom: 16 }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForgotModal(true);
-                  setForgotStep(1);
-                  setForgotMsg({ text: "", type: "" });
-                }}
+              <Link
+                to="/forgot-password"
                 style={{
-                  background: "none",
-                  border: "none",
                   color: "var(--primary)",
                   fontSize: 13.5,
                   fontWeight: 600,
-                  cursor: "pointer",
-                  padding: 0,
+                  textDecoration: "none",
                 }}
               >
                 🔑 Quên mật khẩu?
-              </button>
+              </Link>
             </div>
 
             <button

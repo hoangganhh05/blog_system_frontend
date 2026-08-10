@@ -5,6 +5,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sessionKicked, setSessionKicked] = useState(false);
 
   // Khôi phục user từ localStorage khi load trang và lắng nghe sự thay đổi thiết bị đăng nhập
   useEffect(() => {
@@ -29,23 +30,15 @@ export function AuthProvider({ children }) {
     const handleStorageChange = (e) => {
       if (e.key === "blog_session_id" || e.key === "blog_user") {
         const currentSaved = localStorage.getItem("blog_user");
-        if (!currentSaved) {
-          setCurrentUser(null);
-          return;
-        }
-        try {
-          const currentParsed = JSON.parse(currentSaved);
-          const currentSession = localStorage.getItem("blog_session_id");
-          if (currentParsed && currentSession && currentParsed.sessionToken && currentSession !== currentParsed.sessionToken) {
-            setCurrentUser(null);
-            localStorage.removeItem("blog_user");
-            localStorage.removeItem("blog_token");
-            localStorage.removeItem("blog_session_id");
-            alert("Tài khoản của bạn vừa được đăng nhập trên một thiết bị khác. Phiên này đã tự động đăng xuất!");
-            window.location.href = "/login";
-          }
-        } catch {
-          // Fail silently
+        const currentSession = localStorage.getItem("blog_session_id");
+        if (currentSaved && currentSession) {
+          try {
+            const currentParsed = JSON.parse(currentSaved);
+            if (currentParsed && currentParsed.sessionToken && currentSession !== currentParsed.sessionToken) {
+              setSessionKicked(true);
+              logout();
+            }
+          } catch {}
         }
       }
     };
@@ -65,6 +58,7 @@ export function AuthProvider({ children }) {
     };
 
     setCurrentUser(normalizedUser);
+    setSessionKicked(false);
     localStorage.setItem("blog_user", JSON.stringify(normalizedUser));
     localStorage.setItem("blog_token", token);
     localStorage.setItem("blog_session_id", sessionToken);
@@ -93,6 +87,70 @@ export function AuthProvider({ children }) {
       value={{ currentUser, login, logout, updateUser, loading }}
     >
       {children}
+
+      {/* Security Modal Alert khi bị đăng nhập ở thiết bị khác */}
+      {sessionKicked && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.85)",
+            backdropFilter: "blur(8px)",
+            zIndex: 9999999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-light)",
+              borderRadius: 20,
+              maxWidth: 420,
+              width: "100%",
+              padding: "32px 24px",
+              textAlign: "center",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.4)",
+              animation: "slideUp 0.25s ease",
+            }}
+          >
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                background: "rgba(239, 68, 68, 0.15)",
+                color: "#ef4444",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 32,
+                margin: "0 auto 16px",
+              }}
+            >
+              ⚠️
+            </div>
+            <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8 }}>
+              Phát hiện Đăng nhập trên Thiết bị mới
+            </h3>
+            <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 24 }}>
+              Tài khoản của bạn vừa được đăng nhập thành công từ một trình duyệt/thiết bị khác. Thiết bị này đã tự động đăng xuất để bảo vệ an toàn cho tài khoản.
+            </p>
+            <button
+              onClick={() => {
+                setSessionKicked(false);
+                window.location.href = "/login";
+              }}
+              className="btn btn-primary btn-full"
+              style={{ padding: "12px 0", borderRadius: 12, fontWeight: 700, fontSize: 15 }}
+            >
+              Đã hiểu & Đăng nhập lại
+            </button>
+          </div>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 }
