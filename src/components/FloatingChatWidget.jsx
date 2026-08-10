@@ -41,6 +41,45 @@ function FloatingChatWidget() {
   const [editingText, setEditingText] = useState("");
   const [activeMsgMenuId, setActiveMsgMenuId] = useState(null);
   const [pinnedMessage, setPinnedMessage] = useState(null);
+  const [deletedMsgIds, setDeletedMsgIds] = useState(new Set());
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
+  const handleCopyMessage = (content) => {
+    if (!content) return;
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(content).then(() => {
+        showToast("Đã sao chép tin nhắn!");
+      }).catch(() => {
+        fallbackCopyText(content);
+      });
+    } else {
+      fallbackCopyText(content);
+    }
+  };
+
+  const fallbackCopyText = (text) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand("copy");
+      showToast("Đã sao chép tin nhắn!");
+    } catch {
+      showToast("Không thể sao chép tin nhắn!");
+    }
+    document.body.removeChild(textArea);
+  };
+
+  const handlePinMessage = (msg) => {
+    setPinnedMessage(msg);
+    showToast("Đã ghim tin nhắn!");
+  };
 
   const handleEditMessage = async (msgId) => {
     if (!editingText.trim()) return;
@@ -48,24 +87,27 @@ function FloatingChatWidget() {
     setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, content: newContent } : m)));
     setEditingMsgId(null);
     setEditingText("");
+    showToast("Đã chỉnh sửa tin nhắn!");
     try {
       if (!activeFriend?.isAi) {
         await chatService.editMessage(msgId, newContent);
       }
     } catch {
-      // Optimistic update
+      // Keep optimistic update
     }
   };
 
   const handleDeleteMessage = async (msgId) => {
+    setDeletedMsgIds((prev) => new Set([...prev, msgId]));
     setMessages((prev) => prev.filter((m) => m.id !== msgId));
     if (pinnedMessage?.id === msgId) setPinnedMessage(null);
+    showToast("Đã xóa tin nhắn!");
     try {
       if (!activeFriend?.isAi) {
         await chatService.deleteMessage(msgId);
       }
     } catch {
-      // Optimistic removal
+      // Keep optimistic removal
     }
   };
 
@@ -593,6 +635,30 @@ function playNotificationSound() {
             </button>
           </div>
 
+          {/* Toast thông báo nhanh (Sao chép, Ghim, Xóa, Sửa) */}
+          {toastMessage && (
+            <div
+              style={{
+                position: "absolute",
+                top: 54,
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "rgba(15, 23, 42, 0.92)",
+                color: "#ffffff",
+                padding: "6px 14px",
+                borderRadius: 20,
+                fontSize: 12,
+                fontWeight: 600,
+                zIndex: 99999,
+                boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+                animation: "scaleUp 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {toastMessage}
+            </div>
+          )}
+
           {/* Messenger Body */}
           <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
             {!activeFriend ? (
@@ -745,7 +811,7 @@ function playNotificationSound() {
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      navigator.clipboard.writeText(msg.content);
+                                      handleCopyMessage(msg.content);
                                       setActiveMsgMenuId(null);
                                     }}
                                     style={{
@@ -802,7 +868,7 @@ function playNotificationSound() {
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      setPinnedMessage(msg);
+                                      handlePinMessage(msg);
                                       setActiveMsgMenuId(null);
                                     }}
                                     style={{
