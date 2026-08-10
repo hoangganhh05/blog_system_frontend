@@ -326,10 +326,29 @@ function playNotificationSound() {
     setShowStickerPicker(false);
   };
 
-  // Cuộn xuống tin nhắn mới nhất
+  const chatScrollContainerRef = useRef(null);
+  const userScrolledUpRef = useRef(false);
+
+  const handleScrollChat = (e) => {
+    const el = e.target;
+    const isBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    userScrolledUpRef.current = !isBottom;
+  };
+
+  // Cuộn xuống tin nhắn mới nhất - CHỈ CUỘN KHI NGƯỜI DÙNG ĐANG Ở ĐÁY HOẶC VỪA GỬI TIN NHẮN
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!userScrolledUpRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, isAiTyping]);
+
+  // Reset cuộn khi đổi bạn chat
+  useEffect(() => {
+    userScrolledUpRef.current = false;
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+    }, 50);
+  }, [activeFriend]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -708,22 +727,55 @@ function playNotificationSound() {
               </div>
             ) : (
               /* Khung Hội thoại Chat */
-              <div style={{ flex: 1, padding: "12px 14px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, position: "relative" }}>
+                {/* Thanh Ghim Cố Định Nằm Ở Đỉnh Chat (Fixed Sticky Pinned Banner) */}
                 {pinnedMessage && (
-                  <div style={{ background: "var(--primary-light)", border: "1px solid var(--border-light)", borderRadius: 10, padding: "6px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12, color: "var(--primary)", flexShrink: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                      <span style={{ fontWeight: 600 }}>Ghim:</span>
-                      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>{pinnedMessage.content}</span>
+                  <div
+                    style={{
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 20,
+                      background: "var(--bg-card)",
+                      borderBottom: "1px solid var(--border-light)",
+                      padding: "8px 14px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      fontSize: 12,
+                      color: "var(--primary)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, overflow: "hidden", minWidth: 0 }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span style={{ fontWeight: 700, color: "var(--text-primary)" }}>Tin nhắn đã ghim:</span>
+                      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "var(--text-secondary)" }}>
+                        {pinnedMessage.content}
+                      </span>
                     </div>
-                    <button onClick={() => setPinnedMessage(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12, padding: "0 4px" }}>✕</button>
+                    <button
+                      type="button"
+                      onClick={() => setPinnedMessage(null)}
+                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, padding: "0 4px", flexShrink: 0 }}
+                      title="Bỏ ghim"
+                    >
+                      ✕
+                    </button>
                   </div>
                 )}
-                {messages.length === 0 ? (
-                  <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 13, marginTop: 40 }}>
-                    Hãy gửi lời chào đầu tiên! 👋
-                  </div>
-                ) : (
+
+                {/* Danh sách tin nhắn hỗ trợ Lướt đọc tin cũ không bị kéo xuống */}
+                <div
+                  ref={chatScrollContainerRef}
+                  onScroll={handleScrollChat}
+                  style={{ flex: 1, padding: "12px 14px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}
+                >
+                  {messages.length === 0 ? (
+                    <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 13, marginTop: 40 }}>
+                      Hãy gửi lời chào đầu tiên! 👋
+                    </div>
+                  ) : (
                   messages.map((msg, idx) => {
                     const isMe = Number(msg.senderId || msg.sender?.id) === currentUserId;
                     const friendAvatar = activeFriend?.avatarUrl;
@@ -1119,7 +1171,8 @@ function playNotificationSound() {
                 )}
                 <div ref={messagesEndRef} />
               </div>
-            )}
+            </div>
+          )}
           </div>
 
           {/* Bảng chọn Sticker & Emoji nhanh */}
