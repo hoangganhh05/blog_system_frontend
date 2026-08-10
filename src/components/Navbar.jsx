@@ -6,6 +6,7 @@ import userService from "../services/userService";
 import postService from "../services/postService";
 import NotificationDrawer from "./NotificationDrawer";
 import MobileMenuDrawer from "./MobileMenuDrawer";
+import MobileSearchOverlay from "./MobileSearchOverlay";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -169,7 +170,11 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
             type="text"
             placeholder="Tìm kiếm..."
             value={searchValue || ""}
-            onFocus={() => setSearchFocused(true)}
+            onClick={() => setMobileSearchOpen(true)}
+            onFocus={() => {
+              setSearchFocused(true);
+              setMobileSearchOpen(true);
+            }}
             onChange={(e) => {
               onSearchChange && onSearchChange(e.target.value);
               setSearchFocused(true);
@@ -559,6 +564,12 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
         onClose={() => setMobileDrawerOpen(false)}
         isDark={isDark}
         onToggleTheme={onToggleTheme}
+      />
+
+      {/* Mobile Fullscreen Search Overlay Component */}
+      <MobileSearchOverlay
+        isOpen={mobileSearchOpen}
+        onClose={() => setMobileSearchOpen(false)}
       />
     </nav>
   );
