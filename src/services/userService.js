@@ -145,6 +145,7 @@ const userService = {
         email: cleanEmail,
         otp,
         newPassword,
+        password: newPassword,
       });
       return res;
     } catch (err) {
