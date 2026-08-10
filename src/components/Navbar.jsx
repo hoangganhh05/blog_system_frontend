@@ -129,6 +129,11 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
 
   useEffect(() => {
     const handleScroll = () => {
+      // Chỉ tự động ẩn Navbar trên di động (<= 768px). Trên PC giữ cố định Navbar luôn hiển thị 100%.
+      if (window.innerWidth > 768) {
+        setNavHidden(false);
+        return;
+      }
       const currentScrollY = window.scrollY;
       if (currentScrollY > lastScrollY.current && currentScrollY > 60) {
         setNavHidden(true);
