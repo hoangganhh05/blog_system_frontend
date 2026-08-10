@@ -1624,5 +1624,83 @@
     white-space: nowrap !important;
     word-break: normal !important;
   }
+
+  /* ============================================
+     MOBILE RESPONSIVE MEDIA SCALING (Friends, Videos, Dashboard)
+     ============================================ */
+  /* Friends Page Sidebar Tabs on Mobile */
+  div[style*="width: 300"][style*="background: var(--bg-card)"] {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-light) !important;
+    padding: 12px 14px !important;
+    box-shadow: none !important;
+  }
+
+  div[style*="width: 300"] h2 {
+    font-size: 18px !important;
+    margin: 0 0 10px 0 !important;
+  }
+
+  div[style*="width: 300"] div[style*="display: flex"][style*="flexDirection: column"] {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    padding-bottom: 6px !important;
+    scrollbar-width: none !important;
+    gap: 6px !important;
+  }
+
+  div[style*="width: 300"] div[style*="padding: 12px 14px"] {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    border-radius: 20px !important;
+  }
+
+  /* Friends Page Card Grid on Mobile */
+  div[style*="gridTemplateColumns: repeat(auto-fill, minmax(200px, 1fr))"],
+  div[style*="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  div[style*="gridTemplateColumns: repeat(auto-fill, minmax(280px, 1fr))"],
+  div[style*="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  /* Videos Page Header Banner on Mobile */
+  div[style*="linear-gradient(135deg, #1877f2 0%, #0052d4 100%)"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 16px !important;
+    border-radius: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  div[style*="linear-gradient(135deg, #1877f2 0%, #0052d4 100%)"] button {
+    width: 100% !important;
+    margin-top: 8px !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  /* Dashboard Metrics Grid on Mobile */
+  div[style*="gridTemplateColumns: repeat(4, 1fr)"],
+  div[style*="grid-template-columns: repeat(4, 1fr)"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Universal Media Scaler on Mobile */
+  img, video, iframe {
+    max-width: 100% !important;
+    height: auto !important;
+  }
 }
 
