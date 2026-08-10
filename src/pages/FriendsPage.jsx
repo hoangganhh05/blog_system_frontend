@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
+import friendService from "../services/friendService";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -86,6 +87,7 @@ function FriendsPage() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
+  const [apiFriends, setApiFriends] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all"); // 'all', 'requests', 'sent', 'suggestions', 'friends'
@@ -104,8 +106,17 @@ function FriendsPage() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const res = await userService.getAll();
-      const users = res.data || [];
+      const [resUsers, resFriends] = await Promise.all([
+        userService.getAll().catch(() => ({ data: [] })),
+        myId ? friendService.getFriendsList(myId).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+      ]);
+
+      const users = resUsers.data || [];
+      const friendsData = resFriends.data || [];
+      const backendFriends = friendsData.map((f) => f.friend || f.user || f).filter(Boolean);
+
+      setApiFriends(backendFriends);
+
       // Lọc bỏ chính mình tuyệt đối 100% (cả ID lẫn Username)
       const otherUsers = users.filter((u) => {
         const uId = String(u.id);
@@ -133,15 +144,28 @@ function FriendsPage() {
     .filter((r) => String(r.fromId) === myId)
     .map((r) => String(r.toId));
 
-  // 3. Danh sách Bạn bè THỰC TẾ (Đã chấp nhận kết bạn)
+  // 3. Danh sách Bạn bè THỰC TẾ (Hợp nhất Backend API + LocalStorage Pairs)
   const pairs = getMutualFriendsMap();
-  const myFriendIds = pairs
+  const localFriendIds = pairs
     .filter((p) => String(p.u1) === myId || String(p.u2) === myId)
     .map((p) => (String(p.u1) === myId ? String(p.u2) : String(p.u1)));
 
+  const apiFriendIds = apiFriends.map((f) => String(f.id || f.userId));
+  const allFriendIdSet = new Set([...localFriendIds, ...apiFriendIds]);
+  const allFriendUsernameSet = new Set(
+    apiFriends.map((f) => (f.username || "").toLowerCase()).filter(Boolean)
+  );
+
+  // Hàm kiểm tra 1 user đã là bạn bè chưa (so sánh cả ID và Username)
+  const isUserFriend = (u) => {
+    const uId = String(u.id);
+    const uName = (u.username || "").toLowerCase();
+    return allFriendIdSet.has(uId) || (uName && allFriendUsernameSet.has(uName));
+  };
+
   // LỌC SẠCH TỰ ĐỘNG: Nếu đã là bạn bè -> Biến mất hoàn toàn khỏi Lời mời đã gửi & Lời mời nhận được
-  const cleanIncomingRequestIds = incomingRequestUserIds.filter((id) => !myFriendIds.includes(id));
-  const cleanOutgoingSentIds = outgoingSentUserIds.filter((id) => !myFriendIds.includes(id));
+  const cleanIncomingRequestIds = incomingRequestUserIds.filter((id) => !allFriendIdSet.has(id));
+  const cleanOutgoingSentIds = outgoingSentUserIds.filter((id) => !allFriendIdSet.has(id));
 
   // Bộ lọc tìm kiếm bạn bè theo tên / username
   const filterByName = (list) => {
@@ -153,22 +177,23 @@ function FriendsPage() {
   };
 
   const incomingRequests = filterByName(
-    allUsers.filter((u) => cleanIncomingRequestIds.includes(String(u.id)))
+    allUsers.filter((u) => cleanIncomingRequestIds.includes(String(u.id)) && !isUserFriend(u))
   );
 
   const outgoingSentUsers = filterByName(
-    allUsers.filter((u) => cleanOutgoingSentIds.includes(String(u.id)))
+    allUsers.filter((u) => cleanOutgoingSentIds.includes(String(u.id)) && !isUserFriend(u))
   );
 
+  // Danh sách Bạn Bè: Hiển thị đầy đủ tất cả những ai đã là bạn bè
   const friendsList = filterByName(
-    allUsers.filter((u) => myFriendIds.includes(String(u.id)))
+    allUsers.filter((u) => isUserFriend(u))
   );
 
-  // Gợi ý kết bạn: Hiện toàn bộ người dùng khác trên BlogViet (chưa phải bạn bè, chưa gửi lời mời)
+  // Gợi ý kết bạn: KHÔNG CHỨA BẠN BÈ, KHÔNG CHỨA LỜI MỜI ĐÃ GỬI / NHẬN
   const suggestions = filterByName(
     allUsers.filter(
       (u) =>
-        !myFriendIds.includes(String(u.id)) &&
+        !isUserFriend(u) &&
         !cleanIncomingRequestIds.includes(String(u.id)) &&
         !cleanOutgoingSentIds.includes(String(u.id)) &&
         !removedSuggestions.includes(String(u.id))
