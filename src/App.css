@@ -1422,6 +1422,7 @@
     background: var(--bg-secondary) !important;
     position: relative !important;
     width: 100% !important;
+    margin-top: 60px !important;
     box-sizing: border-box !important;
   }
 
