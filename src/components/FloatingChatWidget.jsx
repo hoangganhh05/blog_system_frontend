@@ -759,12 +759,12 @@ function playNotificationSound() {
                                 ⋯
                               </button>
 
-                              {/* Bảng chức năng thả xuống HÀNG NGANG (Horizontal Layout) */}
+                              {/* Bảng chức năng thả xuống HÀNG NGANG (Horizontal Layout) - HIỆN XUỐNG DƯỚI TIN NHẮN */}
                               {activeMsgMenuId === msg.id && (
                                 <div
                                   style={{
                                     position: "absolute",
-                                    bottom: "calc(100% + 6px)",
+                                    top: "calc(100% + 6px)",
                                     right: 0,
                                     background: "var(--bg-card)",
                                     border: "1px solid var(--border-light)",
@@ -777,7 +777,7 @@ function playNotificationSound() {
                                     alignItems: "center",
                                     gap: 6,
                                     whiteSpace: "nowrap",
-                                    animation: "slideUp 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
+                                    animation: "slideDown 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
                                   }}
                                 >
                                   {isMe && (
