@@ -685,19 +685,13 @@ function Profile() {
             {/* Bio section */}
             {user.bio && (
               <div style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
                 fontSize: 14.5,
-                color: "var(--text-primary)",
-                marginBottom: 14,
-                padding: "8px 16px",
-                borderRadius: 20,
-                background: "var(--bg-input)",
-                border: "1px solid var(--border-light)",
+                color: "var(--text-secondary)",
+                marginBottom: 12,
+                fontWeight: 500,
+                lineHeight: 1.4,
               }}>
-                <span style={{ fontSize: 16 }}>💬</span>
-                <span style={{ fontStyle: "italic", fontWeight: 500 }}>"{user.bio}"</span>
+                {user.bio}
               </div>
             )}
 
@@ -717,7 +711,7 @@ function Profile() {
                 { key: "friends", label: `Bạn bè (${friendsList.length})` },
                 ...(isMe ? [
                   { key: "bookmarks", label: `Đã lưu (${bookmarkedPosts.length})` },
-                  { key: "edit", label: "⚙️ Chỉnh sửa hồ sơ" },
+                  { key: "edit", label: "Chỉnh sửa hồ sơ" },
                 ] : []),
               ].map((tab) => (
                 <button
