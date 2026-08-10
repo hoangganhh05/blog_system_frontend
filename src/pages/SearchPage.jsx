@@ -126,32 +126,33 @@ export default function SearchPage() {
 
   return (
     <div className="app-layout page-with-sidebar">
-      {/* LEFT SIDEBAR FILTERS */}
+      {/* LEFT SIDEBAR FILTERS - FACEBOOK DESKTOP STYLE */}
       <div className="page-sidebar-menu">
         <h2 className="page-sidebar-title">
           Kết quả tìm kiếm
         </h2>
 
-        {/* Dynamic Search Input inside Sidebar for Mobile/Desktop */}
-        <form onSubmit={handleSearchSubmit} style={{ marginBottom: 12 }}>
+        {/* Dynamic Search Input inside Sidebar */}
+        <form onSubmit={handleSearchSubmit} style={{ marginBottom: 16 }}>
           <div style={{ position: "relative" }}>
             <input
               type="text"
-              placeholder="Nhập từ khóa tìm kiếm..."
+              placeholder="Tìm kiếm..."
               value={searchInputVal}
               onChange={(e) => setSearchInputVal(e.target.value)}
               style={{
                 width: "100%",
-                padding: "9px 12px 9px 36px",
+                padding: "10px 14px 10px 38px",
                 borderRadius: 20,
                 border: "1px solid var(--border-light)",
                 background: "var(--bg-input)",
                 color: "var(--text-primary)",
-                fontSize: 13.5,
+                fontSize: 14,
                 boxSizing: "border-box",
+                fontWeight: 500,
               }}
             />
-            <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", opacity: 0.6 }}>
+            <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", opacity: 0.6, fontSize: 14 }}>
               🔍
             </span>
           </div>
@@ -159,17 +160,20 @@ export default function SearchPage() {
 
         <div className="page-sidebar-nav">
           {[
-            { id: "all", label: "Tất cả", count: matchedUsers.length + matchedPosts.length },
-            { id: "users", label: `Mọi người (${matchedUsers.length})` },
-            { id: "posts", label: `Bài viết (${matchedPosts.length})` },
-            { id: "videos", label: `Video (${matchedVideos.length})` },
+            { id: "all", label: "Tất cả", icon: "🌐" },
+            { id: "users", label: `Mọi người (${matchedUsers.length})`, icon: "👥" },
+            { id: "posts", label: `Bài viết (${matchedPosts.length})`, icon: "📝" },
+            { id: "videos", label: `Video (${matchedVideos.length})`, icon: "🎬" },
           ].map((tab) => (
             <div
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`page-sidebar-nav-item ${activeTab === tab.id ? "active" : ""}`}
             >
-              <span>{tab.label}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 16 }}>{tab.icon}</span>
+                <span>{tab.label}</span>
+              </div>
             </div>
           ))}
         </div>
@@ -177,35 +181,53 @@ export default function SearchPage() {
 
       {/* MAIN SEARCH RESULTS AREA */}
       <div className="page-main-content">
-        <div style={{ maxWidth: 800, margin: "0 auto" }}>
+        <div style={{ maxWidth: 680, margin: "0 auto" }}>
           
-          {/* Header query description */}
-          <div style={{ marginBottom: 20 }}>
+          {/* Header Banner */}
+          <div
+            style={{
+              background: "var(--bg-card)",
+              borderRadius: 18,
+              padding: "20px 24px",
+              marginBottom: 20,
+              boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+              border: "1px solid var(--border-light)",
+            }}
+          >
             <h1 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>
               Kết quả tìm kiếm cho: <span style={{ color: "var(--primary)" }}>"{query}"</span>
             </h1>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>
-              Tìm thấy {matchedUsers.length} tài khoản, {matchedPosts.length} bài viết và {matchedVideos.length} video.
+            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 6, margin: 0 }}>
+              Hiển thị {matchedUsers.length} tài khoản, {matchedPosts.length} bài viết và {matchedVideos.length} video liên quan.
             </p>
           </div>
 
           {loading ? (
-            <div style={{ padding: 60, textAlign: "center", color: "var(--text-muted)" }}>
+            <div className="card" style={{ padding: 60, textAlign: "center", color: "var(--text-muted)", borderRadius: 18 }}>
               ⏳ Đang tìm kiếm dữ liệu...
             </div>
           ) : (
             <>
-              {/* TAB 1: TẤT CẢ */}
+              {/* TAB 1: MỌI NGƯỜI */}
               {(activeTab === "all" || activeTab === "users") && matchedUsers.length > 0 && (
-                <div className="card" style={{ padding: 18, borderRadius: 16, marginBottom: 20 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                    <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
+                <div
+                  className="card"
+                  style={{
+                    padding: 20,
+                    borderRadius: 18,
+                    marginBottom: 20,
+                    boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+                    border: "1px solid var(--border-light)",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>
                       👥 Mọi người
                     </h3>
                     {activeTab === "all" && matchedUsers.length > 3 && (
                       <span
                         onClick={() => setActiveTab("users")}
-                        style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)", cursor: "pointer" }}
+                        style={{ fontSize: 13, fontWeight: 700, color: "var(--primary)", cursor: "pointer" }}
                       >
                         Xem tất cả ({matchedUsers.length})
                       </span>
@@ -226,40 +248,54 @@ export default function SearchPage() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "space-between",
-                            padding: "10px 12px",
-                            borderRadius: 12,
+                            padding: "12px 14px",
+                            borderRadius: 14,
                             background: "var(--bg-input)",
+                            border: "1px solid var(--border-light)",
+                            transition: "all 0.15s",
                           }}
                         >
                           <div
                             onClick={() => navigate(`/profile/${u.id}`)}
-                            style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer", flex: 1 }}
+                            style={{ display: "flex", alignItems: "center", gap: 14, cursor: "pointer", flex: 1 }}
                           >
                             {u.avatarUrl ? (
-                              <img src={u.avatarUrl} alt={name} className="avatar avatar-md" style={{ width: 44, height: 44, objectFit: "cover" }} />
+                              <img src={u.avatarUrl} alt={name} className="avatar avatar-md" style={{ width: 48, height: 48, objectFit: "cover" }} />
                             ) : (
-                              <div className="avatar avatar-md" style={{ width: 44, height: 44, background: u.avatarColor ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)` : undefined }}>
+                              <div className="avatar avatar-md" style={{ width: 48, height: 48, fontSize: 16, background: u.avatarColor ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)` : undefined }}>
                                 {getInitials(name)}
                               </div>
                             )}
                             <div>
-                              <div style={{ fontWeight: 700, fontSize: 14.5, color: "var(--text-primary)" }}>{name}</div>
-                              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>@{u.username}</div>
+                              <div style={{ fontWeight: 700, fontSize: 15, color: "var(--text-primary)" }}>{name}</div>
+                              <div style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 2 }}>@{u.username}</div>
                             </div>
                           </div>
 
                           {!isSelf && (
                             <div>
                               {isFriend ? (
-                                <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/profile/${u.id}`)}>
+                                <button
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={() => navigate(`/profile/${u.id}`)}
+                                  style={{ borderRadius: 10, padding: "6px 14px", fontWeight: 700 }}
+                                >
                                   ✓ Bạn bè
                                 </button>
                               ) : isSent ? (
-                                <button className="btn btn-secondary btn-sm" disabled style={{ opacity: 0.7 }}>
+                                <button
+                                  className="btn btn-secondary btn-sm"
+                                  disabled
+                                  style={{ opacity: 0.7, borderRadius: 10, padding: "6px 14px" }}
+                                >
                                   Đã gửi lời mời
                                 </button>
                               ) : (
-                                <button className="btn btn-primary btn-sm" onClick={() => handleSendFriendRequest(u.id)}>
+                                <button
+                                  className="btn btn-primary btn-sm"
+                                  onClick={() => handleSendFriendRequest(u.id)}
+                                  style={{ borderRadius: 10, padding: "6px 14px", fontWeight: 700 }}
+                                >
                                   + Thêm bạn
                                 </button>
                               )}
@@ -274,20 +310,29 @@ export default function SearchPage() {
 
               {/* TAB VIDEO */}
               {(activeTab === "all" || activeTab === "videos") && matchedVideos.length > 0 && (
-                <div className="card" style={{ padding: 18, borderRadius: 16, marginBottom: 20 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                    <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
+                <div
+                  className="card"
+                  style={{
+                    padding: 20,
+                    borderRadius: 18,
+                    marginBottom: 20,
+                    boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+                    border: "1px solid var(--border-light)",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>
                       🎬 Video ({matchedVideos.length})
                     </h3>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 14 }}>
                     {(activeTab === "all" ? matchedVideos.slice(0, 2) : matchedVideos).map((v) => (
                       <div
                         key={v.id}
                         style={{
                           background: "var(--bg-input)",
-                          borderRadius: 12,
+                          borderRadius: 14,
                           overflow: "hidden",
                           border: "1px solid var(--border-light)",
                         }}
@@ -297,16 +342,16 @@ export default function SearchPage() {
                           controls
                           playsInline
                           webkit-playsinline="true"
-                          style={{ width: "100%", height: 160, objectFit: "cover", background: "#000" }}
+                          style={{ width: "100%", height: 180, objectFit: "cover", background: "#000" }}
                         />
-                        <div style={{ padding: 10 }}>
+                        <div style={{ padding: 12 }}>
                           <div
                             onClick={() => navigate(`/posts/${v.id}`)}
-                            style={{ fontWeight: 700, fontSize: 13.5, color: "var(--text-primary)", cursor: "pointer" }}
+                            style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", cursor: "pointer" }}
                           >
                             {v.title || "Video bài viết"}
                           </div>
-                          <div style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 4 }}>
+                          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
                             {v.user?.fullName || v.user?.username}
                           </div>
                         </div>
@@ -320,24 +365,24 @@ export default function SearchPage() {
               {(activeTab === "all" || activeTab === "posts") && (
                 <div>
                   {activeTab === "all" && matchedPosts.length > 0 && (
-                    <h3 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 14px 4px", color: "var(--text-primary)" }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 800, margin: "0 0 14px 4px", color: "var(--text-primary)" }}>
                       📝 Bài viết ({matchedPosts.length})
                     </h3>
                   )}
 
                   {matchedPosts.length === 0 && matchedUsers.length === 0 && matchedVideos.length === 0 ? (
-                    <div className="card" style={{ padding: 40, textAlign: "center", color: "var(--text-muted)", borderRadius: 16 }}>
-                      <div style={{ fontSize: 40, marginBottom: 10 }}>🔍</div>
-                      <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 6px 0" }}>
+                    <div className="card" style={{ padding: 50, textAlign: "center", color: "var(--text-muted)", borderRadius: 18 }}>
+                      <div style={{ fontSize: 44, marginBottom: 12 }}>🔍</div>
+                      <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 6px 0" }}>
                         Không tìm thấy kết quả nào cho "{query}"
                       </h3>
-                      <p style={{ fontSize: 13, margin: 0 }}>
+                      <p style={{ fontSize: 13.5, margin: 0 }}>
                         Hãy thử kiểm tra lỗi chính tả hoặc tìm kiếm bằng từ khóa ngắn hơn!
                       </p>
                     </div>
                   ) : (
                     (activeTab === "all" ? matchedPosts : matchedPosts).map((post) => (
-                      <PostCard key={post.id} post={post} />
+                      <PostCard key={post.id} post={post} style={{ marginBottom: 16 }} />
                     ))
                   )}
                 </div>
