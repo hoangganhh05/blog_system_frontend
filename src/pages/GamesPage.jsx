@@ -467,8 +467,8 @@ function OnlineCaroGame() {
 
 function GamesPage() {
   return (
-    <div className="app-layout">
-      <div style={{ maxWidth: 840, margin: "0 auto", padding: "24px 16px" }}>
+    <div className="app-layout" style={{ height: 'calc(100vh - 60px)', overflow: 'hidden' }}>
+      <div style={{ maxWidth: 840, margin: "0 auto", padding: "24px 16px", height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
         {/* Hero Header */}
         <div
           style={{

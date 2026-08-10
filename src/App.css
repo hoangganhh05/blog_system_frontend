@@ -1372,6 +1372,14 @@
   gap: 28px;
 }
 
+@media (max-width: 768px) {
+  .trending-responsive-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+}
+
 /* Nút Menu 3 Gạch ☰ Hiển thị trên cả PC lẫn Mobile */
 .mobile-menu-trigger {
   display: flex !important;
@@ -1561,7 +1569,7 @@
   }
 
   /* 5. Responsive Grids to Single-Column on Mobile */
-  .trending-responsive-grid, .grid-2-cols, div[style*="gridTemplateColumns"], div[style*="grid-template-columns"] {
+  .grid-2-cols, div[style*="gridTemplateColumns"]:not(.trending-responsive-grid), div[style*="grid-template-columns"]:not(.trending-responsive-grid) {
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
@@ -1634,8 +1642,9 @@
   .page-with-sidebar {
     display: flex !important;
     flex-direction: row !important;
-    min-height: calc(100vh - 60px) !important;
+    height: calc(100vh - 60px) !important;
     background: var(--bg-secondary) !important;
+    overflow: hidden !important;
   }
 
   .page-sidebar-menu {
@@ -1647,6 +1656,23 @@
     padding: 20px 16px !important;
     box-shadow: 2px 0 10px rgba(0,0,0,0.03) !important;
     flex-shrink: 0 !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: var(--border-light) transparent !important;
+  }
+
+  .page-sidebar-menu::-webkit-scrollbar {
+    width: 8px !important;
+  }
+
+  .page-sidebar-menu::-webkit-scrollbar-thumb {
+    background: var(--border-light) !important;
+    border-radius: 4px !important;
+  }
+
+  .page-sidebar-menu::-webkit-scrollbar-track {
+    background: transparent !important;
   }
 
   .page-sidebar-title {
@@ -1693,8 +1719,52 @@
   .page-main-content {
     flex: 1 !important;
     padding: 24px 32px !important;
+    height: 100% !important;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
     min-width: 0 !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: var(--border-light) transparent !important;
+  }
+
+  .page-main-content::-webkit-scrollbar {
+    width: 8px !important;
+  }
+
+  .page-main-content::-webkit-scrollbar-thumb {
+    background: var(--border-light) !important;
+    border-radius: 4px !important;
+  }
+
+  .page-main-content::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  /* Trending Page PC Scrollable Layout */
+  .app-layout:not(.page-with-sidebar) {
+    height: calc(100vh - 60px) !important;
+    overflow: hidden !important;
+  }
+
+  .app-layout:not(.page-with-sidebar) > div {
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: var(--border-light) transparent !important;
+  }
+
+  .app-layout:not(.page-with-sidebar) > div::-webkit-scrollbar {
+    width: 8px !important;
+  }
+
+  .app-layout:not(.page-with-sidebar) > div::-webkit-scrollbar-thumb {
+    background: var(--border-light) !important;
+    border-radius: 4px !important;
+  }
+
+  .app-layout:not(.page-with-sidebar) > div::-webkit-scrollbar-track {
+    background: transparent !important;
   }
 }
 
@@ -1703,8 +1773,9 @@
   .page-with-sidebar {
     display: flex !important;
     flex-direction: column !important;
-    min-height: 100vh !important;
+    height: 100vh !important;
     background: var(--bg-secondary) !important;
+    overflow: hidden !important;
   }
 
   .page-sidebar-menu {
@@ -1717,6 +1788,9 @@
     flex-shrink: 0 !important;
     display: flex !important;
     flex-direction: column !important;
+    position: sticky !important;
+    top: 56px !important;
+    z-index: 100 !important;
   }
 
   .page-sidebar-title {
@@ -1772,7 +1846,9 @@
     min-width: 0 !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    overflow-y: visible !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 }
 
@@ -1806,3 +1882,34 @@
   }
 }
 
+
+
+/* ============================================
+   MOBILE SCROLL FIX FOR ALL PAGES
+   ============================================ */
+@media (max-width: 768px) {
+  /* Reset height constraints on mobile for natural scrolling */
+  .app-layout {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow: visible !important;
+  }
+
+  .app-layout > div {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Page with sidebar mobile scrolling */
+  .page-with-sidebar {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow: visible !important;
+  }
+
+  .page-main-content {
+    height: auto !important;
+    overflow: visible !important;
+  }
+}
