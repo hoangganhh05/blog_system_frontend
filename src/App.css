@@ -1396,279 +1396,51 @@
   transition: transform 0.2s ease, background 0.2s ease !important;
 }
 
-.mobile-menu-trigger:hover {
-  background: var(--bg-hover) !important;
-  transform: scale(1.08) !important;
-}
-
-@media screen and (max-width: 1024px) {
-  .desktop-only-icon {
-    display: none !important;
-  }
-
-  .mobile-chat-btn {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    z-index: 1000 !important;
-    cursor: pointer !important;
-    background: var(--bg-input) !important;
-    border-radius: 50% !important;
-    width: 36px !important;
-    height: 36px !important;
-    flex-shrink: 0 !important;
-  }
-  /* 1. Global Reset & Overflows for Mobile */
-  html, body {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    background-color: var(--bg-main) !important;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: pan-y;
-  }
-
-  #root, .app-layout, .page-container {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-
-  /* 2. Facebook Mobile Top Header Bar Auto-Scaling */
-  .navbar {
-    height: 52px !important;
-    padding: 0 8px !important;
-    background: var(--bg-navbar) !important;
-    border-bottom: 1px solid var(--border-light) !important;
-  }
-
-  .navbar-container {
-    padding: 0 !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    height: 52px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    box-sizing: border-box !important;
-  }
-
-  .navbar-left {
-    display: flex !important;
-    align-items: center !important;
-    flex-shrink: 1 !important;
-    min-width: 0 !important;
-  }
-
-  .navbar-brand {
-    font-size: 20px !important;
-    font-weight: 800 !important;
-    color: var(--primary) !important;
-    letter-spacing: -0.5px !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-  }
-
-  .navbar-brand span {
-    display: inline-block !important;
-  }
-
-  .navbar-brand img, .navbar-brand .logo-icon, .navbar-brand-icon {
-    display: none !important;
-  }
-
-  .navbar-search, .navbar-center-tabs {
-    display: none !important;
-  }
-
-  .navbar-right {
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    flex-shrink: 0 !important;
-    margin-left: auto !important;
-  }
-
-  .mobile-menu-trigger, .mobile-chat-btn {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    z-index: 1000 !important;
-    cursor: pointer !important;
-    background: var(--bg-input) !important;
-    border-radius: 50% !important;
-    width: 34px !important;
-    height: 34px !important;
-    flex-shrink: 0 !important;
-  }
-
-  .mobile-header-avatar {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    margin-right: 6px;
-    flex-shrink: 0;
-  }
-
-  .navbar-auth-btns {
-    display: flex !important;
-    gap: 4px !important;
-    flex-shrink: 0 !important;
-  }
-
-  .navbar-auth-btns .btn {
-    padding: 4px 8px !important;
-    font-size: 11.5px !important;
-    white-space: nowrap !important;
-  }
-
-  .navbar-right .navbar-icon-btn {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 50% !important;
-    background: var(--bg-input) !important;
-    color: var(--text-primary) !important;
-  }
-
-  .navbar-accent-picker, .mobile-hide {
-    display: none !important;
-  }
-
-  /* 3. Facebook Mobile Page Container & Padding */
-  .app-layout {
-    padding-top: 56px !important;
-    padding-bottom: 64px !important;
-  }
-
-  .page-container {
-    padding: 8px 0 !important;
-  }
-
-  /* 4. Facebook Mobile Edge-to-Edge Feed Cards */
-  .card, .post-card {
-    border-radius: 0 !important;
-    border-left: none !important;
-    border-right: none !important;
-    border-top: 1px solid var(--border-light) !important;
-    border-bottom: 1px solid var(--border-light) !important;
-    margin-bottom: 8px !important;
-    box-shadow: none !important;
-    background: var(--bg-card) !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .post-card-thumbnail, .post-card video {
-    border-radius: 0 !important;
-    width: 100% !important;
-  }
-
-  /* 5. Responsive Grids to Single-Column on Mobile */
-  .grid-2-cols, div[style*="gridTemplateColumns"]:not(.trending-responsive-grid), div[style*="grid-template-columns"]:not(.trending-responsive-grid) {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-    width: 100% !important;
-  }
-
-  .sidebar-left, .sidebar-right {
-    display: none !important;
-  }
-
-  /* 6. Facebook Mobile Bottom Navigation Bar */
-  .mobile-bottom-nav {
-    display: flex !important;
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: 54px !important;
-    background: var(--bg-card) !important;
-    border-top: 1px solid var(--border-light) !important;
-    z-index: 99999 !important;
-    align-items: center !important;
-    justify-content: space-around !important;
-    box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.05) !important;
-  }
-
-  .mobile-nav-item {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    color: var(--text-secondary) !important;
-    text-decoration: none !important;
-    font-size: 10px !important;
-    font-weight: 600 !important;
-    flex: 1 !important;
-    height: 100% !important;
-  }
-
-  .mobile-nav-item.active {
-    color: var(--primary) !important;
-  }
-
-  .mobile-nav-item.active svg {
-    stroke: var(--primary) !important;
-  }
-
-  /* Auto wrap buttons inside cards */
-  div[style*="display: flex"], div[style*="display:flex"] {
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  p, .post-card-content, .post-detail-content {
-    word-break: break-word !important;
-    overflow-wrap: break-word !important;
-  }
-
-  .create-post-action span, .btn, .nav-tab-label, .mobile-nav-item span {
-    white-space: nowrap !important;
-    word-break: normal !important;
+  /* Mobile menu buttons */
+  .mobile-menu-trigger:hover {
+    background: var(--bg-hover) !important;
+    transform: scale(1.08) !important;
   }
 
 /* ============================================
    RESPONSIVE PAGE WITH SIDEBAR (Search, Friends & Dashboard)
    ============================================ */
 
-/* PC Layout (>= 769px) - FACEBOOK STYLE: STICKY SIDEBAR + SMOOTH CONTENT SCROLLING */
-@media (min-width: 769px) {
+/* PC Layout (>= 769px) - FACEBOOK DESKTOP SIDEBAR + MAIN CONTENT */
+@media screen and (min-width: 769px) {
   html, body {
     overflow-y: auto !important;
     height: auto !important;
+    background-color: var(--bg-main) !important;
   }
 
   .page-with-sidebar {
     display: flex !important;
     flex-direction: row !important;
+    align-items: flex-start !important;
     min-height: calc(100vh - 60px) !important;
     background: var(--bg-secondary) !important;
     position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    overflow: visible !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .page-sidebar-menu {
     position: sticky !important;
     top: 60px !important;
     height: calc(100vh - 60px) !important;
-    width: 340px !important;
+    width: 320px !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
     background: var(--bg-card) !important;
     border-right: 1px solid var(--border-light) !important;
-    padding: 16px 12px !important;
+    padding: 20px 14px !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    scrollbar-width: thin !important;
-    flex-shrink: 0 !important;
     box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.03) !important;
+    z-index: 90 !important;
   }
 
   .page-sidebar-menu::-webkit-scrollbar {
@@ -1681,9 +1453,9 @@
   }
 
   .page-sidebar-title {
-    font-size: 24px !important;
+    font-size: 22px !important;
     font-weight: 800 !important;
-    margin: 4px 0 16px 12px !important;
+    margin: 4px 0 16px 8px !important;
     color: var(--text-primary) !important;
     line-height: 1.2 !important;
   }
@@ -1691,21 +1463,24 @@
   .page-sidebar-nav {
     display: flex !important;
     flex-direction: column !important;
-    gap: 4px !important;
+    gap: 6px !important;
+    width: 100% !important;
   }
 
   .page-sidebar-nav-item {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    padding: 12px 16px !important;
+    padding: 10px 14px !important;
     border-radius: 12px !important;
     cursor: pointer !important;
-    font-size: 15px !important;
+    font-size: 14.5px !important;
     font-weight: 600 !important;
     color: var(--text-primary) !important;
-    transition: background 0.15s !important;
+    transition: background 0.15s ease !important;
     white-space: nowrap !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .page-sidebar-nav-item:hover {
@@ -1726,17 +1501,13 @@
     flex: 1 !important;
     min-width: 0 !important;
     width: auto !important;
-    margin-left: 0 !important;
-    height: auto !important;
-    min-height: calc(100vh - 60px) !important;
-    overflow-y: visible !important;
     padding: 24px 32px 100px 32px !important;
     box-sizing: border-box !important;
   }
 }
 
 /* Mobile Layout (<= 768px) */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
   .page-with-sidebar {
     display: flex !important;
     flex-direction: column !important;
@@ -1748,6 +1519,7 @@
 
   .page-sidebar-menu {
     width: 100% !important;
+    max-width: 100% !important;
     background: var(--bg-card) !important;
     border-right: none !important;
     border-bottom: 1px solid var(--border-light) !important;
@@ -1849,7 +1621,6 @@
     max-width: 100% !important;
     height: auto !important;
   }
-}
 
 
 

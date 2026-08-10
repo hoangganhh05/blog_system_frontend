@@ -130,12 +130,12 @@ function Dashboard() {
         {/* Sidebar Nav Items List */}
         <div className="page-sidebar-nav">
           {[
-            { id: "home", label: "Trang chủ" },
-            { id: "insights", label: "Thông tin chi tiết", hasSub: true },
-            { id: "content", label: "Nội dung & Bài viết", hasSub: true },
-            { id: "monetization", label: "Kiếm tiền", hasSub: true },
-            { id: "engagement", label: "Lượt tương tác", hasSub: true },
-            { id: "tools", label: "Tất cả công cụ" },
+            { id: "home", label: "Trang chủ", icon: "🏠" },
+            { id: "insights", label: "Thông tin chi tiết", icon: "📊", hasSub: true },
+            { id: "content", label: "Nội dung & Bài viết", icon: "📝", hasSub: true },
+            { id: "monetization", label: "Kiếm tiền", icon: "💰", hasSub: true },
+            { id: "engagement", label: "Lượt tương tác", icon: "❤️", hasSub: true },
+            { id: "tools", label: "Tất cả công cụ", icon: "🛠️" },
           ].map((item) => {
             const isActive = activeSideTab === item.id;
             return (
@@ -144,9 +144,27 @@ function Dashboard() {
                 onClick={() => setActiveSideTab(item.id)}
                 className={`page-sidebar-nav-item ${isActive ? "active" : ""}`}
               >
-                <span>{item.label}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
+                  <div
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: "50%",
+                      background: isActive ? "var(--primary)" : "var(--bg-input)",
+                      color: isActive ? "#ffffff" : "var(--text-primary)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 15,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {item.icon}
+                  </div>
+                  <span>{item.label}</span>
+                </div>
                 {item.hasSub && (
-                  <span className="mobile-hide" style={{ color: "var(--text-muted)", fontSize: 14, marginLeft: 4 }}>❯</span>
+                  <span className="mobile-hide" style={{ color: "var(--text-muted)", fontSize: 13, marginLeft: 4 }}>❯</span>
                 )}
               </div>
             );

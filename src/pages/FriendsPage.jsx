@@ -240,11 +240,11 @@ function FriendsPage() {
 
         <div className="page-sidebar-nav">
           {[
-            { id: "all", label: "Trang chủ bạn bè" },
-            { id: "requests", label: `Lời mời kết bạn (${incomingRequests.length})` },
-            { id: "sent", label: `Lời mời đã gửi (${outgoingSentUsers.length})` },
-            { id: "suggestions", label: `Gợi ý kết bạn (${suggestions.length})` },
-            { id: "friends", label: `Tất cả bạn bè (${friendsList.length})` },
+            { id: "all", label: "Trang chủ bạn bè", icon: "🤝" },
+            { id: "requests", label: `Lời mời kết bạn (${incomingRequests.length})`, icon: "📬" },
+            { id: "sent", label: `Lời mời đã gửi (${outgoingSentUsers.length})`, icon: "📤" },
+            { id: "suggestions", label: `Gợi ý kết bạn (${suggestions.length})`, icon: "💡" },
+            { id: "friends", label: `Tất cả bạn bè (${friendsList.length})`, icon: "👥" },
           ].map((item) => {
             const isActive = activeTab === item.id;
             return (
@@ -253,7 +253,25 @@ function FriendsPage() {
                 onClick={() => setActiveTab(item.id)}
                 className={`page-sidebar-nav-item ${isActive ? "active" : ""}`}
               >
-                <span>{item.label}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      background: isActive ? "var(--primary)" : "var(--bg-input)",
+                      color: isActive ? "#ffffff" : "var(--text-primary)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 16,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {item.icon}
+                  </div>
+                  <span>{item.label}</span>
+                </div>
               </div>
             );
           })}
