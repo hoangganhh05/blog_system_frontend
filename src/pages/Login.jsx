@@ -69,7 +69,8 @@ function Login() {
     setForgotMsg({ text: "", type: "" });
     try {
       const res = await userService.requestResetOtp(forgotEmail.trim());
-      const otpCode = res.data.otp || Math.floor(100000 + Math.random() * 900000).toString();
+      const otpCode =
+        res.data.otp || Math.floor(100000 + Math.random() * 900000).toString();
       setDemoOtpCode(otpCode);
       setForgotStep(2);
       setForgotMsg({
@@ -77,7 +78,10 @@ function Login() {
         type: "success",
       });
     } catch {
-      setForgotMsg({ text: "Không thể gửi mã OTP tới Gmail này!", type: "error" });
+      setForgotMsg({
+        text: "Không thể gửi mã OTP tới Gmail này!",
+        type: "error",
+      });
     } finally {
       setForgotLoading(false);
     }
@@ -87,25 +91,41 @@ function Login() {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (!forgotOtp.trim() || !newPassword.trim()) {
-      setForgotMsg({ text: "Vui lòng nhập đầy đủ Mã OTP và Mật khẩu mới!", type: "error" });
+      setForgotMsg({
+        text: "Vui lòng nhập đầy đủ Mã OTP và Mật khẩu mới!",
+        type: "error",
+      });
       return;
     }
     if (newPassword.trim().length < 6) {
-      setForgotMsg({ text: "Mật khẩu mới phải có ít nhất 6 ký tự!", type: "error" });
+      setForgotMsg({
+        text: "Mật khẩu mới phải có ít nhất 6 ký tự!",
+        type: "error",
+      });
       return;
     }
     setForgotLoading(true);
     setForgotMsg({ text: "", type: "" });
     try {
-      await userService.resetPasswordWithOtp(forgotEmail.trim(), forgotOtp.trim(), newPassword.trim());
-      setForgotMsg({ text: "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay.", type: "success" });
+      await userService.resetPasswordWithOtp(
+        forgotEmail.trim(),
+        forgotOtp.trim(),
+        newPassword.trim(),
+      );
+      setForgotMsg({
+        text: "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay.",
+        type: "success",
+      });
       setTimeout(() => {
         setShowForgotModal(false);
         setForm((f) => ({ ...f, password: newPassword }));
         setForgotStep(1);
       }, 1500);
     } catch (err) {
-      setForgotMsg({ text: err.message || "Mã OTP không chính xác!", type: "error" });
+      setForgotMsg({
+        text: err.message || "Mã OTP không chính xác!",
+        type: "error",
+      });
     } finally {
       setForgotLoading(false);
     }
@@ -117,25 +137,48 @@ function Login() {
         {/* Brand */}
         <div className="auth-brand">
           <div style={{ marginBottom: 12 }}>
-            <div style={{
-              width: 64, height: 64,
-              background: "linear-gradient(135deg, #ffffff33, #ffffff55)",
-              borderRadius: 16,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              backdropFilter: "blur(10px)",
-              border: "1.5px solid rgba(255,255,255,0.3)",
-              boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-            }}>
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                background: "linear-gradient(135deg, #ffffff33, #ffffff55)",
+                borderRadius: 16,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backdropFilter: "blur(10px)",
+                border: "1.5px solid rgba(255,255,255,0.3)",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+              }}
+            >
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" fill="white" opacity="0.9"/>
-                <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7"/>
-                <path d="M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                <path
+                  d="M12 2L2 7l10 5 10-5-10-5z"
+                  fill="white"
+                  opacity="0.9"
+                />
+                <path
+                  d="M2 17l10 5 10-5"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  fill="none"
+                  opacity="0.7"
+                />
+                <path
+                  d="M2 12l10 5 10-5"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  fill="none"
+                />
               </svg>
             </div>
           </div>
           <div className="auth-brand-title">BlogViet</div>
           <div className="auth-brand-subtitle">
-            Nền tảng chia sẻ kiến thức, kết nối đam mê và truyền cảm hứng cho cộng đồng.
+            Nền tảng chia sẻ kiến thức, kết nối đam mê và truyền cảm hứng cho
+            cộng đồng.
           </div>
         </div>
 
@@ -256,20 +299,42 @@ function Login() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 16,
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "var(--text-primary)",
+                }}
+              >
                 🔑 Quên mật khẩu tài khoản
               </h3>
               <button
                 onClick={() => setShowForgotModal(false)}
-                style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "var(--text-secondary)" }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 18,
+                  cursor: "pointer",
+                  color: "var(--text-secondary)",
+                }}
               >
                 ✕
               </button>
             </div>
 
             {forgotMsg.text && (
-              <div className={`alert ${forgotMsg.type === "success" ? "alert-success" : "alert-error"}`} style={{ marginBottom: 16, fontSize: 13.5 }}>
+              <div
+                className={`alert ${forgotMsg.type === "success" ? "alert-success" : "alert-error"}`}
+                style={{ marginBottom: 16, fontSize: 13.5 }}
+              >
                 {forgotMsg.text}
               </div>
             )}
@@ -277,8 +342,15 @@ function Login() {
             {/* Bước 1: Nhập Gmail */}
             {forgotStep === 1 ? (
               <form onSubmit={handleSendOtp}>
-                <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 16 }}>
-                  Vui lòng nhập địa chỉ Gmail đăng ký của bạn. Hệ thống sẽ gửi <b>Mã OTP xác minh (6 chữ số)</b> về Gmail của bạn.
+                <p
+                  style={{
+                    fontSize: 14,
+                    color: "var(--text-secondary)",
+                    marginBottom: 16,
+                  }}
+                >
+                  Vui lòng nhập địa chỉ Gmail đăng ký của bạn. Hệ thống sẽ gửi{" "}
+                  <b>Mã OTP xác minh (6 chữ số)</b> về Gmail của bạn.
                 </p>
 
                 <div className="form-group">
@@ -299,18 +371,29 @@ function Login() {
                   disabled={forgotLoading}
                   style={{ marginTop: 8 }}
                 >
-                  {forgotLoading ? "⏳ Đang gửi mã..." : "📧 Gửi mã OTP về Gmail"}
+                  {forgotLoading
+                    ? "⏳ Đang gửi mã..."
+                    : "📧 Gửi mã OTP về Gmail"}
                 </button>
               </form>
             ) : (
               /* Bước 2: Nhập OTP & Đặt mật khẩu mới */
               <form onSubmit={handleResetPassword}>
-                <p style={{ fontSize: 13.5, color: "var(--text-secondary)", marginBottom: 16 }}>
-                  Đã gửi mã OTP tới: <b>{forgotEmail}</b>. Vui lòng kiểm tra hộp thư Gmail và nhập mã OTP bên dưới.
+                <p
+                  style={{
+                    fontSize: 13.5,
+                    color: "var(--text-secondary)",
+                    marginBottom: 16,
+                  }}
+                >
+                  Đã gửi mã OTP tới: <b>{forgotEmail}</b>. Vui lòng kiểm tra hộp
+                  thư Gmail và nhập mã OTP bên dưới.
                 </p>
 
                 <div className="form-group">
-                  <label className="form-label">Mã OTP xác minh (6 chữ số)</label>
+                  <label className="form-label">
+                    Mã OTP xác minh (6 chữ số)
+                  </label>
                   <input
                     className="form-input"
                     type="text"
@@ -339,14 +422,22 @@ function Login() {
                   disabled={forgotLoading}
                   style={{ marginTop: 8, marginBottom: 12 }}
                 >
-                  {forgotLoading ? "⏳ Đang đặt lại..." : "✅ Đặt lại mật khẩu mới"}
+                  {forgotLoading
+                    ? "⏳ Đang đặt lại..."
+                    : "✅ Đặt lại mật khẩu mới"}
                 </button>
 
                 <div style={{ textAlign: "center" }}>
                   <button
                     type="button"
                     onClick={() => setForgotStep(1)}
-                    style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 13, cursor: "pointer" }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--text-muted)",
+                      fontSize: 13,
+                      cursor: "pointer",
+                    }}
                   >
                     ← Gửi lại mã OTP qua Gmail khác
                   </button>
