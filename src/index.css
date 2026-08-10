@@ -19,7 +19,7 @@
   --bg-card: #ffffff;
   --bg-input: #f1f5f9;
   --bg-hover: #f1f5f9;
-  --bg-navbar: rgba(255, 255, 255, 0.95);
+  --bg-navbar: #ffffff;
   --bg-overlay: rgba(0, 0, 0, 0.6);
   --bg-sidebar: #ffffff;
 
@@ -60,7 +60,7 @@
   --bg-card: #111827;
   --bg-input: #1f2937;
   --bg-hover: #1f2937;
-  --bg-navbar: rgba(17, 24, 39, 0.95);
+  --bg-navbar: #111827;
   --bg-sidebar: #111827;
 
   --text-primary: #ffffff;
