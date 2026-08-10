@@ -74,7 +74,6 @@ const userService = {
       return {
         data: {
           message: `Mã OTP đã được gửi về Gmail (${email})!`,
-          otp: otpCode,
         },
       };
     }

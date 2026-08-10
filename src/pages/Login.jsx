@@ -60,7 +60,7 @@ function Login() {
       setDemoOtpCode(otpCode);
       setForgotStep(2);
       setForgotMsg({
-        text: `Mã OTP đã được gửi về Gmail (${forgotEmail}). Mã xác minh của bạn: ${otpCode}`,
+        text: `Mã OTP đã được gửi thành công về Gmail (${forgotEmail}). Vui lòng kiểm tra hộp thư Inbox / Spam trong Gmail của bạn để lấy mã! 📧`,
         type: "success",
       });
     } catch {
