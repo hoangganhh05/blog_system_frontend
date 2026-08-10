@@ -79,7 +79,47 @@ function FloatingChatWidget() {
   const handlePinMessage = (msg) => {
     setPinnedMessage(msg);
     showToast("Đã ghim tin nhắn!");
+    if (currentUserId && activeFriend?.id) {
+      try {
+        const key = `pinned_msg_${currentUserId}_${activeFriend.id}`;
+        localStorage.setItem(key, JSON.stringify(msg));
+      } catch {
+        // Ignore
+      }
+    }
   };
+
+  const handleUnpinMessage = () => {
+    setPinnedMessage(null);
+    showToast("Đã bỏ ghim tin nhắn!");
+    if (currentUserId && activeFriend?.id) {
+      try {
+        const key = `pinned_msg_${currentUserId}_${activeFriend.id}`;
+        localStorage.removeItem(key);
+      } catch {
+        // Ignore
+      }
+    }
+  };
+
+  // Tải lại tin nhắn đã ghim từ localStorage khi chọn bạn chat
+  useEffect(() => {
+    if (currentUserId && activeFriend?.id) {
+      try {
+        const key = `pinned_msg_${currentUserId}_${activeFriend.id}`;
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          setPinnedMessage(JSON.parse(saved));
+        } else {
+          setPinnedMessage(null);
+        }
+      } catch {
+        setPinnedMessage(null);
+      }
+    } else {
+      setPinnedMessage(null);
+    }
+  }, [currentUserId, activeFriend?.id]);
 
   const handleEditMessage = async (msgId) => {
     if (!editingText.trim()) return;
@@ -756,7 +796,7 @@ function playNotificationSound() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setPinnedMessage(null)}
+                      onClick={handleUnpinMessage}
                       style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, padding: "0 4px", flexShrink: 0 }}
                       title="Bỏ ghim"
                     >
