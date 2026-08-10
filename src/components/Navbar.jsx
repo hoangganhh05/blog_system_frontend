@@ -300,26 +300,15 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
         </NavLink>
 
         <NavLink
-          to="/trending"
+          to="/videos"
           className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
-          title="Bảng Xu Hướng & Top Tác Giả"
+          title="Video & Clips giải trí sắc nét"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
           </svg>
-          <span className="nav-tab-label">Xu hướng</span>
-        </NavLink>
-
-        <NavLink
-          to="/radio"
-          className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
-          title="BlogViet Radio - Chill Lounge"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
-            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
-          </svg>
-          <span className="nav-tab-label">Radio</span>
+          <span className="nav-tab-label">Video</span>
         </NavLink>
 
         <NavLink
@@ -332,17 +321,6 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
             <path d="M6 12h4m-2-2v4m10-2h.01m-3-1h.01"/>
           </svg>
           <span className="nav-tab-label">Giải trí</span>
-        </NavLink>
-
-        <NavLink
-          to="/ai-creator"
-          className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
-          title="Studio Sáng Tạo Nghệ Thuật & Nội Dung"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2v8m0 4v8M4.93 4.93l5.66 5.66m2.83 2.83l5.66 5.66M2 12h8m4 0h8M4.93 19.07l5.66-5.66m2.83-2.83l5.66-5.66"/>
-          </svg>
-          <span className="nav-tab-label">Sáng tạo</span>
         </NavLink>
       </div>
 

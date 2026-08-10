@@ -101,24 +101,14 @@ export default function MobileMenuDrawer({ isOpen, onClose, isDark, onToggleThem
               <span>Trang chủ</span>
             </Link>
 
-            <Link to="/trending" onClick={onClose} className="mobile-menu-tile">
-              <div className="mobile-menu-tile-icon" style={{ background: "rgba(245,158,11,0.12)", color: "#f59e0b" }}>🔥</div>
-              <span>Xu hướng</span>
-            </Link>
-
-            <Link to="/radio" onClick={onClose} className="mobile-menu-tile">
-              <div className="mobile-menu-tile-icon" style={{ background: "rgba(236,72,153,0.12)", color: "#ec4899" }}>📻</div>
-              <span>Radio</span>
+            <Link to="/videos" onClick={onClose} className="mobile-menu-tile">
+              <div className="mobile-menu-tile-icon" style={{ background: "rgba(239,68,68,0.12)", color: "#ef4444" }}>🎥</div>
+              <span>Video Clips</span>
             </Link>
 
             <Link to="/games" onClick={onClose} className="mobile-menu-tile">
               <div className="mobile-menu-tile-icon" style={{ background: "rgba(16,185,129,0.12)", color: "#10b981" }}>🎮</div>
               <span>Giải trí</span>
-            </Link>
-
-            <Link to="/ai-creator" onClick={onClose} className="mobile-menu-tile">
-              <div className="mobile-menu-tile-icon" style={{ background: "rgba(139,92,246,0.12)", color: "#8b5cf6" }}>🎨</div>
-              <span>Sáng tạo</span>
             </Link>
 
             {currentUser && (
