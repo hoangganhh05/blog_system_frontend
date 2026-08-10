@@ -1655,10 +1655,10 @@
     left: 0 !important;
     top: 60px !important;
     bottom: 0 !important;
-    width: 280px !important;
+    width: 360px !important;
     background: var(--bg-card) !important;
     border-right: 1px solid var(--border-light) !important;
-    padding: 20px 8px !important;
+    padding: 16px 12px !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     scrollbar-width: none !important;
@@ -1670,24 +1670,25 @@
   }
 
   .page-sidebar-title {
-    font-size: 24px !important;
+    font-size: 28px !important;
     font-weight: 800 !important;
-    margin: 0 0 16px 8px !important;
+    margin: 4px 0 20px 16px !important;
     color: var(--text-primary) !important;
+    line-height: 1.2 !important;
   }
 
   .page-sidebar-nav {
     display: flex !important;
     flex-direction: column !important;
-    gap: 2px !important;
+    gap: 4px !important;
   }
 
   .page-sidebar-nav-item {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    padding: 10px 12px !important;
-    border-radius: 10px !important;
+    padding: 12px 16px !important;
+    border-radius: 12px !important;
     cursor: pointer !important;
     font-size: 15px !important;
     font-weight: 600 !important;
@@ -1711,12 +1712,12 @@
   }
 
   .page-main-content {
-    margin-left: 280px !important;
-    width: calc(100% - 280px) !important;
+    margin-left: 360px !important;
+    width: calc(100% - 360px) !important;
     height: calc(100vh - 60px) !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    padding: 24px 32px 80px 32px !important;
+    padding: 20px 24px 80px 24px !important;
     box-sizing: border-box !important;
     scrollbar-width: thin !important;
     scrollbar-color: var(--border-light) transparent !important;
@@ -1741,9 +1742,10 @@
   .page-with-sidebar {
     display: flex !important;
     flex-direction: column !important;
-    height: 100vh !important;
+    height: auto !important;
+    min-height: 100vh !important;
     background: var(--bg-secondary) !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
 
   .page-sidebar-menu {
@@ -1817,6 +1819,7 @@
     overflow-y: auto !important;
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
+    height: auto !important;
   }
 }
 
@@ -1893,29 +1896,3 @@
   }
 }
 
-@media (max-width: 768px) {
-  /* Reset height constraints on mobile for natural scrolling */
-  .app-layout {
-    height: auto !important;
-    min-height: 100vh !important;
-    overflow: visible !important;
-  }
-
-  .app-layout > div {
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-  }
-
-  /* Page with sidebar mobile scrolling */
-  .page-with-sidebar {
-    height: auto !important;
-    min-height: 100vh !important;
-    overflow: visible !important;
-  }
-
-  .page-main-content {
-    height: auto !important;
-    overflow: visible !important;
-  }
-}

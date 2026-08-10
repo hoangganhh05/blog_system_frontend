@@ -127,13 +127,13 @@ export default function SearchPage() {
   return (
     <div className="app-layout page-with-sidebar">
       {/* LEFT SIDEBAR FILTERS - FACEBOOK DESKTOP EXACT REPLICA */}
-      <div className="page-sidebar-menu" style={{ padding: "16px 12px" }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 16px 8px" }}>
+      <div className="page-sidebar-menu">
+        <h1 className="page-sidebar-title">
           Kết quả tìm kiếm
         </h1>
 
         <div style={{ borderBottom: "1px solid var(--border-light)", marginBottom: 12, paddingBottom: 12 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 10px 8px" }}>
+          <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 12px 8px" }}>
             Bộ lọc
           </div>
 

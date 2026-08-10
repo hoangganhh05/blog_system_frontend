@@ -1,9 +1,57 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 /* ============================================
-   CSS VARIABLES - MINIMALIST DESIGN SYSTEM
+   DESIGN TOKENS - PROFESSIONAL SPACING & TYPOGRAPHY SYSTEM
    ============================================ */
 :root {
+  /* === SPACING SCALE (8px base grid) === */
+  --space-1: 4px;    /* Tight - icon gaps, badge padding */
+  --space-2: 8px;    /* Small - button gaps, list items */
+  --space-3: 12px;   /* Medium - card internal spacing */
+  --space-4: 16px;   /* Default - component padding */
+  --space-5: 24px;   /* Large - section spacing */
+  --space-6: 32px;   /* XLarge - page margins */
+  --space-8: 48px;   /* 2XLarge - major sections */
+  --space-12: 80px;  /* 3XLarge - hero sections */
+
+  /* === TYPOGRAPHY SCALE === */
+  --text-xs: 11px;   /* Captions, badges */
+  --text-sm: 13px;   /* Secondary text */
+  --text-base: 15px; /* Body text */
+  --text-lg: 17px;   /* Emphasized text */
+  --text-xl: 20px;   /* Small headings (h4) */
+  --text-2xl: 24px;  /* Headings (h3) */
+  --text-3xl: 32px;  /* Headings (h2) */
+  --text-4xl: 48px;  /* Hero headings (h1) */
+
+  --line-tight: 1.2;    /* Headings */
+  --line-normal: 1.5;   /* Body */
+  --line-relaxed: 1.6;  /* Paragraphs */
+
+  --weight-normal: 400;
+  --weight-medium: 600;
+  --weight-bold: 700;
+  --weight-black: 800;
+
+  /* === BORDER RADIUS SCALE === */
+  --radius-sm: 8px;   /* Badges, small buttons */
+  --radius-md: 12px;  /* Default buttons, inputs */
+  --radius-lg: 16px;  /* Cards, large components */
+  --radius-xl: 20px;  /* Feature sections */
+  --radius-full: 9999px; /* Pills, avatars */
+
+  /* === SHADOW SCALE === */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 16px 36px -4px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 24px 48px -8px rgba(0, 0, 0, 0.16);
+
+  /* === ICON SIZES === */
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+  --icon-xl: 32px;
+
   /* Strict Minimalist Color Palette: BLACK, WHITE & BLUE */
   --primary: #2563eb;
   --primary-dark: #1d4ed8;
@@ -25,22 +73,12 @@
 
   --text-primary: #000000;
   --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --text-muted: #64748b;  /* Improved contrast */
   --text-link: #2563eb;
   --text-on-primary: #ffffff;
 
   --border-color: #cbd5e1;
   --border-light: #e2e8f0;
-
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 16px 36px -4px rgba(0, 0, 0, 0.1);
-
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  --radius-full: 9999px;
 
   --navbar-height: 60px;
   --sidebar-width: 280px;
@@ -72,8 +110,9 @@
   --border-light: #1f2937;
 
   --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.6);
-  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.6);
   --shadow-lg: 0 16px 36px -4px rgba(0, 0, 0, 0.8);
+  --shadow-xl: 0 24px 48px -8px rgba(0, 0, 0, 0.9);
 }
 
 
