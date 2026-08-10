@@ -13,28 +13,28 @@ function getInitials(name) {
     .slice(0, 2);
 }
 
-// Lấy danh sách quan hệ bạn bè 2 chiều từ localStorage
+// Lấy danh sách quan hệ bạn bè từ localStorage
 function getMutualFriendsMap() {
   try {
     return JSON.parse(
-      localStorage.getItem("blog_mutual_friends_pairs") || "[]",
+      localStorage.getItem("blog_mutual_friends_pairs") || "[]"
     );
   } catch {
     return [];
   }
 }
 
-// Lưu quan hệ bạn bè 2 chiều
+// Lưu quan hệ bạn bè
 function addMutualFriendPair(userId1, userId2) {
   try {
     const pairs = getMutualFriendsMap();
     const exists = pairs.some(
       (p) =>
-        (p.u1 === userId1 && p.u2 === userId2) ||
-        (p.u1 === userId2 && p.u2 === userId1),
+        (String(p.u1) === String(userId1) && String(p.u2) === String(userId2)) ||
+        (String(p.u1) === String(userId2) && String(p.u2) === String(userId1))
     );
     if (!exists) {
-      pairs.push({ u1: userId1, u2: userId2, createdAt: Date.now() });
+      pairs.push({ u1: String(userId1), u2: String(userId2), createdAt: Date.now() });
       localStorage.setItem("blog_mutual_friends_pairs", JSON.stringify(pairs));
     }
   } catch {}
@@ -44,38 +44,40 @@ function addMutualFriendPair(userId1, userId2) {
 function getPendingRequests() {
   try {
     return JSON.parse(
-      localStorage.getItem("blog_pending_friend_requests") || "[]",
+      localStorage.getItem("blog_pending_friend_requests") || "[]"
     );
   } catch {
     return [];
   }
 }
 
-// Gửi lời mời kết bạn từ currentUserId tới targetUserId
+// Gửi lời mời kết bạn từ fromId tới toId
 function sendFriendRequestStore(fromId, toId) {
   try {
     const reqs = getPendingRequests();
-    const exists = reqs.some((r) => r.fromId === fromId && r.toId === toId);
+    const exists = reqs.some(
+      (r) => String(r.fromId) === String(fromId) && String(r.toId) === String(toId)
+    );
     if (!exists) {
-      reqs.push({ fromId, toId, createdAt: Date.now() });
+      reqs.push({ fromId: String(fromId), toId: String(toId), createdAt: Date.now() });
       localStorage.setItem(
         "blog_pending_friend_requests",
-        JSON.stringify(reqs),
+        JSON.stringify(reqs)
       );
     }
   } catch {}
 }
 
-// Xóa lời mời kết bạn đang chờ
+// Xóa/Hủy lời mời kết bạn đang chờ
 function removePendingRequest(fromId, toId) {
   try {
     const reqs = getPendingRequests();
     const updated = reqs.filter(
-      (r) => !(r.fromId === fromId && r.toId === toId),
+      (r) => !(String(r.fromId) === String(fromId) && String(r.toId) === String(toId))
     );
     localStorage.setItem(
       "blog_pending_friend_requests",
-      JSON.stringify(updated),
+      JSON.stringify(updated)
     );
   } catch {}
 }
@@ -86,11 +88,11 @@ function FriendsPage() {
 
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("all"); // 'all', 'requests', 'suggestions', 'friends'
+  const [activeTab, setActiveTab] = useState("all"); // 'all', 'requests', 'sent', 'suggestions', 'friends'
   const [removedSuggestions, setRemovedSuggestions] = useState([]);
 
-  // State theo dõi các thay đổi thực tế
-  const [refreshKey, setRefreshKey] = useState(0);
+  // State trigger re-render khi thao tác
+  const [, setRefreshKey] = useState(0);
 
   const myId = String(currentUser?.id || currentUser?.userId || "");
   const myUsername = (currentUser?.username || "").toLowerCase();
@@ -104,7 +106,7 @@ function FriendsPage() {
     try {
       const res = await userService.getAll();
       const users = res.data || [];
-      // Lọc bỏ chính mình tuyệt đối 100% (cả id và username)
+      // Lọc bỏ chính mình tuyệt đối 100% (cả ID lẫn Username)
       const otherUsers = users.filter((u) => {
         const uId = String(u.id);
         const uName = (u.username || "").toLowerCase();
@@ -118,64 +120,72 @@ function FriendsPage() {
     }
   };
 
-  // Lời mời kết bạn THỰC TẾ gửi ĐẾN myId (những người đã ấn Thêm bạn bè với mình)
+  // 1. Lời mời nhận được THỰC TẾ (Người khác gửi đến mình)
   const pendingRequestsList = getPendingRequests();
   const incomingRequestUserIds = pendingRequestsList
     .filter((r) => String(r.toId) === myId)
     .map((r) => String(r.fromId));
 
   const incomingRequests = allUsers.filter((u) =>
-    incomingRequestUserIds.includes(String(u.id)),
+    incomingRequestUserIds.includes(String(u.id))
   );
 
-  // Lời mời do CHÍNH myId ĐÃ GỬI Đi
+  // 2. Lời mời do CHÍNH MÌNH ĐÃ GỬI ĐI
   const outgoingSentUserIds = pendingRequestsList
     .filter((r) => String(r.fromId) === myId)
     .map((r) => String(r.toId));
 
-  // Danh sách Bạn bè 2 CHIỀU THỰC TẾ (UserA <-> UserB)
+  const outgoingSentUsers = allUsers.filter((u) =>
+    outgoingSentUserIds.includes(String(u.id))
+  );
+
+  // 3. Danh sách Bạn bè THỰC TẾ (Đã chấp nhận)
   const pairs = getMutualFriendsMap();
   const myFriendIds = pairs
     .filter((p) => String(p.u1) === myId || String(p.u2) === myId)
     .map((p) => (String(p.u1) === myId ? String(p.u2) : String(p.u1)));
 
   const friendsList = allUsers.filter((u) =>
-    myFriendIds.includes(String(u.id)),
+    myFriendIds.includes(String(u.id))
   );
 
-  // Danh sách Gợi ý kết bạn (chưa là bạn bè 2 chiều, chưa gửi lời mời, chưa bị gỡ)
+  // 4. Danh sách Gợi ý kết bạn
   const suggestions = allUsers.filter(
     (u) =>
       !myFriendIds.includes(String(u.id)) &&
       !incomingRequestUserIds.includes(String(u.id)) &&
       !outgoingSentUserIds.includes(String(u.id)) &&
-      !removedSuggestions.includes(String(u.id)),
+      !removedSuggestions.includes(String(u.id))
   );
 
-  // 1. Gửi lời mời kết bạn
+  // Thao tác 1: Gửi lời mời kết bạn đến ai đó
   const handleSendRequest = (targetUserId) => {
-    sendFriendRequestStore(myId, String(targetUserId));
+    sendFriendRequestStore(myId, targetUserId);
     setRefreshKey((v) => v + 1);
   };
 
-  // 2. Chấp nhận lời mời kết bạn (TẠO BẠN BÈ 2 CHIỀU THỰC TẾ)
+  // Thao tác 2: Hủy lời mời kết bạn đã gửi đi
+  const handleCancelSentRequest = (targetUserId) => {
+    removePendingRequest(myId, targetUserId);
+    setRefreshKey((v) => v + 1);
+  };
+
+  // Thao tác 3: Chấp nhận lời mời kết bạn nhận được từ ai đó
   const handleAcceptRequest = (fromUserId) => {
-    // Thêm quan hệ bạn bè 2 chiều
-    addMutualFriendPair(myId, String(fromUserId));
-    // Xóa khỏi danh sách lời mời chờ
-    removePendingRequest(String(fromUserId), myId);
+    addMutualFriendPair(myId, fromUserId);
+    removePendingRequest(fromUserId, myId);
     setRefreshKey((v) => v + 1);
   };
 
-  // 3. Xóa/Từ chối lời mời kết bạn
+  // Thao tác 4: Từ chối / Xóa lời mời kết bạn nhận được
   const handleDeclineRequest = (fromUserId) => {
-    removePendingRequest(String(fromUserId), myId);
+    removePendingRequest(fromUserId, myId);
     setRefreshKey((v) => v + 1);
   };
 
-  // 4. Gỡ gợi ý kết bạn
+  // Thao tác 5: Gỡ gợi ý kết bạn
   const handleRemoveSuggestion = (userId) => {
-    setRemovedSuggestions((prev) => [...prev, userId]);
+    setRemovedSuggestions((prev) => [...prev, String(userId)]);
   };
 
   return (
@@ -211,19 +221,12 @@ function FriendsPage() {
           Bạn bè
         </h2>
 
-        <div
-          style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}
-        >
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
           {[
             { id: "all", label: "Trang chủ bạn bè" },
-            {
-              id: "requests",
-              label: `Lời mời kết bạn (${incomingRequests.length})`,
-            },
-            {
-              id: "suggestions",
-              label: `Gợi ý kết bạn (${suggestions.length})`,
-            },
+            { id: "requests", label: `Lời mời kết bạn (${incomingRequests.length})` },
+            { id: "sent", label: `Lời mời đã gửi (${outgoingSentUsers.length})` },
+            { id: "suggestions", label: `Gợi ý kết bạn (${suggestions.length})` },
             { id: "friends", label: `Tất cả bạn bè (${friendsList.length})` },
           ].map((item) => {
             const isActive = activeTab === item.id;
@@ -253,18 +256,12 @@ function FriendsPage() {
       <div style={{ flex: 1, padding: "24px 28px", overflowY: "auto" }}>
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
           {loading ? (
-            <div
-              style={{
-                padding: 60,
-                textAlign: "center",
-                color: "var(--text-muted)",
-              }}
-            >
+            <div style={{ padding: 60, textAlign: "center", color: "var(--text-muted)" }}>
               Đang tải danh sách người dùng...
             </div>
           ) : (
             <>
-              {/* PHẦN 1: LỜI MỜI KẾT BẠN (CHỈ CHỈ HIỆN KHI CÓ NGƯỜI THỰC TẾ GỬI) */}
+              {/* PHẦN 1: LỜI MỜI KẾT BẠN NHẬN ĐƯỢC THỰC TẾ */}
               {(activeTab === "all" || activeTab === "requests") && (
                 <div style={{ marginBottom: 32 }}>
                   <div
@@ -316,8 +313,7 @@ function FriendsPage() {
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fill, minmax(200px, 1fr))",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
                         gap: 16,
                       }}
                     >
@@ -345,11 +341,7 @@ function FriendsPage() {
                               <img
                                 src={u.avatarUrl}
                                 alt=""
-                                style={{
-                                  width: "100%",
-                                  height: "100%",
-                                  objectFit: "cover",
-                                }}
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
                               />
                             ) : (
                               <div
@@ -399,7 +391,7 @@ function FriendsPage() {
                                 marginBottom: 12,
                               }}
                             >
-                              Đã gửi lời mời kết bạn
+                              Đã gửi lời mời kết bạn cho bạn
                             </div>
 
                             <div
@@ -433,7 +425,129 @@ function FriendsPage() {
                 </div>
               )}
 
-              {/* PHẦN 2: NHỮNG NGƯỜI BẠN CÓ THỂ BIẾT (GỢI Ý KẾT BẠN) */}
+              {/* PHẦN 2: LỜI MỜI CHÍNH MÌNH ĐÃ GỬI ĐI (CÓ THỂ HỦY LỜI MỜI) */}
+              {(activeTab === "all" || activeTab === "sent") && outgoingSentUsers.length > 0 && (
+                <div style={{ marginBottom: 32 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 16,
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 800,
+                        margin: 0,
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      Lời mời bạn đã gửi ({outgoingSentUsers.length})
+                    </h3>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                      gap: 16,
+                    }}
+                  >
+                    {outgoingSentUsers.map((u) => (
+                      <div
+                        key={u.id}
+                        className="card"
+                        style={{
+                          borderRadius: 16,
+                          overflow: "hidden",
+                          display: "flex",
+                          flexDirection: "column",
+                          border: "1px solid var(--border-light)",
+                        }}
+                      >
+                        <div
+                          onClick={() => navigate(`/profile/${u.id}`)}
+                          style={{
+                            height: 160,
+                            background: "var(--bg-input)",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {u.avatarUrl ? (
+                            <img
+                              src={u.avatarUrl}
+                              alt=""
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: 32,
+                                fontWeight: 800,
+                                background: u.avatarColor
+                                  ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)`
+                                  : "var(--bg-hover)",
+                                color: "var(--text-primary)",
+                              }}
+                            >
+                              {getInitials(u.fullName || u.username)}
+                            </div>
+                          )}
+                        </div>
+
+                        <div
+                          style={{
+                            padding: 12,
+                            display: "flex",
+                            flexDirection: "column",
+                            flex: 1,
+                          }}
+                        >
+                          <div
+                            onClick={() => navigate(`/profile/${u.id}`)}
+                            style={{
+                              fontWeight: 700,
+                              fontSize: 15,
+                              color: "var(--text-primary)",
+                              cursor: "pointer",
+                              marginBottom: 2,
+                            }}
+                          >
+                            {u.fullName || u.username}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 12.5,
+                              color: "var(--primary)",
+                              fontWeight: 600,
+                              marginBottom: 12,
+                            }}
+                          >
+                            Đã gửi lời mời kết bạn
+                          </div>
+
+                          <button
+                            onClick={() => handleCancelSentRequest(u.id)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ borderRadius: 8, marginTop: "auto" }}
+                          >
+                            Hủy lời mời
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* PHẦN 3: NHỮNG NGƯỜI BẠN CÓ THỂ BIẾT (GỢI Ý KẾT BẠN) */}
               {(activeTab === "all" || activeTab === "suggestions") && (
                 <div style={{ marginBottom: 32 }}>
                   <div
@@ -485,141 +599,119 @@ function FriendsPage() {
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fill, minmax(200px, 1fr))",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
                         gap: 16,
                       }}
                     >
-                      {suggestions.map((u) => {
-                        const isSent = outgoingSentUserIds.includes(u.id);
-                        return (
+                      {suggestions.map((u) => (
+                        <div
+                          key={u.id}
+                          className="card"
+                          style={{
+                            borderRadius: 16,
+                            overflow: "hidden",
+                            display: "flex",
+                            flexDirection: "column",
+                            border: "1px solid var(--border-light)",
+                          }}
+                        >
                           <div
-                            key={u.id}
-                            className="card"
+                            onClick={() => navigate(`/profile/${u.id}`)}
                             style={{
-                              borderRadius: 16,
-                              overflow: "hidden",
+                              height: 160,
+                              background: "var(--bg-input)",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {u.avatarUrl ? (
+                              <img
+                                src={u.avatarUrl}
+                                alt=""
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: 32,
+                                  fontWeight: 800,
+                                  background: u.avatarColor
+                                    ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)`
+                                    : "var(--bg-hover)",
+                                  color: "var(--text-primary)",
+                                }}
+                              >
+                                {getInitials(u.fullName || u.username)}
+                              </div>
+                            )}
+                          </div>
+
+                          <div
+                            style={{
+                              padding: 12,
                               display: "flex",
                               flexDirection: "column",
-                              border: "1px solid var(--border-light)",
+                              flex: 1,
                             }}
                           >
                             <div
                               onClick={() => navigate(`/profile/${u.id}`)}
                               style={{
-                                height: 160,
-                                background: "var(--bg-input)",
+                                fontWeight: 700,
+                                fontSize: 15,
+                                color: "var(--text-primary)",
                                 cursor: "pointer",
+                                marginBottom: 2,
                               }}
                             >
-                              {u.avatarUrl ? (
-                                <img
-                                  src={u.avatarUrl}
-                                  alt=""
-                                  style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                  }}
-                                />
-                              ) : (
-                                <div
-                                  style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    fontSize: 32,
-                                    fontWeight: 800,
-                                    background: u.avatarColor
-                                      ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)`
-                                      : "var(--bg-hover)",
-                                    color: "var(--text-primary)",
-                                  }}
-                                >
-                                  {getInitials(u.fullName || u.username)}
-                                </div>
-                              )}
+                              {u.fullName || u.username}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: 12.5,
+                                color: "var(--text-muted)",
+                                marginBottom: 12,
+                              }}
+                            >
+                              Gợi ý cho bạn • Gần bạn
                             </div>
 
                             <div
                               style={{
-                                padding: 12,
                                 display: "flex",
                                 flexDirection: "column",
-                                flex: 1,
+                                gap: 6,
+                                marginTop: "auto",
                               }}
                             >
-                              <div
-                                onClick={() => navigate(`/profile/${u.id}`)}
-                                style={{
-                                  fontWeight: 700,
-                                  fontSize: 15,
-                                  color: "var(--text-primary)",
-                                  cursor: "pointer",
-                                  marginBottom: 2,
-                                }}
+                              <button
+                                onClick={() => handleSendRequest(u.id)}
+                                className="btn btn-primary btn-sm"
+                                style={{ borderRadius: 8, fontWeight: 700 }}
                               >
-                                {u.fullName || u.username}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: 12.5,
-                                  color: "var(--text-muted)",
-                                  marginBottom: 12,
-                                }}
+                                Thêm bạn bè
+                              </button>
+                              <button
+                                onClick={() => handleRemoveSuggestion(u.id)}
+                                className="btn btn-secondary btn-sm"
+                                style={{ borderRadius: 8 }}
                               >
-                                Gợi ý cho bạn • Gần bạn
-                              </div>
-
-                              {isSent ? (
-                                <div
-                                  style={{
-                                    fontSize: 13,
-                                    fontWeight: 700,
-                                    color: "var(--primary)",
-                                    textAlign: "center",
-                                    padding: "6px 0",
-                                  }}
-                                >
-                                  Đã gửi lời mời
-                                </div>
-                              ) : (
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 6,
-                                    marginTop: "auto",
-                                  }}
-                                >
-                                  <button
-                                    onClick={() => handleSendRequest(u.id)}
-                                    className="btn btn-primary btn-sm"
-                                    style={{ borderRadius: 8, fontWeight: 700 }}
-                                  >
-                                    Thêm bạn bè
-                                  </button>
-                                  <button
-                                    onClick={() => handleRemoveSuggestion(u.id)}
-                                    className="btn btn-secondary btn-sm"
-                                    style={{ borderRadius: 8 }}
-                                  >
-                                    Gỡ
-                                  </button>
-                                </div>
-                              )}
+                                Gỡ
+                              </button>
                             </div>
                           </div>
-                        );
-                      })}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
               )}
 
-              {/* PHẦN 3: TẤT CẢ BẠN BÈ ĐÃ KẾT BẠN (BẠN BÈ 2 CHIỀU THỰC TẾ) */}
+              {/* PHẦN 4: TẤT CẢ BẠN BÈ ĐÃ KẾT BẠN */}
               {(activeTab === "all" || activeTab === "friends") && (
                 <div>
                   <h3
@@ -643,15 +735,13 @@ function FriendsPage() {
                         borderRadius: 12,
                       }}
                     >
-                      Bạn chưa kết bạn với ai. Hãy bấm "Thêm bạn bè" từ danh
-                      sách gợi ý để kết bạn!
+                      Bạn chưa có bạn bè nào. Hãy bấm "Thêm bạn bè" từ danh sách gợi ý để kết bạn!
                     </div>
                   ) : (
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fill, minmax(280px, 1fr))",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
                         gap: 14,
                       }}
                     >
@@ -691,16 +781,12 @@ function FriendsPage() {
                                 className="avatar"
                                 style={{ width: 48, height: 48, fontSize: 16 }}
                               >
-                                {getInitials(
-                                  friend.fullName || friend.username,
-                                )}
+                                {getInitials(friend.fullName || friend.username)}
                               </div>
                             )}
                             <div>
                               <div
-                                onClick={() =>
-                                  navigate(`/profile/${friend.id}`)
-                                }
+                                onClick={() => navigate(`/profile/${friend.id}`)}
                                 style={{
                                   fontWeight: 700,
                                   fontSize: 15,
@@ -717,7 +803,7 @@ function FriendsPage() {
                                   fontWeight: 600,
                                 }}
                               >
-                                Bạn bè
+                                Bạn bè 🟢
                               </div>
                             </div>
                           </div>
@@ -727,7 +813,7 @@ function FriendsPage() {
                               window.dispatchEvent(
                                 new CustomEvent("open_chat_user", {
                                   detail: { friend },
-                                }),
+                                })
                               )
                             }
                             className="btn btn-secondary btn-sm"
