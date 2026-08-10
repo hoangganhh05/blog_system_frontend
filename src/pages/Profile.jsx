@@ -587,7 +587,7 @@ function Profile() {
 
                       <div
                         onClick={() => {
-                          setActiveTab("password");
+                          setActiveTab("security");
                           setMoreMenuOpen(false);
                         }}
                         style={{
@@ -604,7 +604,7 @@ function Profile() {
                         onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
                         onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                       >
-                        <span>🔒 Đổi mật khẩu</span>
+                        <span>🔒 Cài đặt bảo mật</span>
                       </div>
 
                       <div
@@ -709,7 +709,7 @@ function Profile() {
                 ...(isMe ? [
                   { key: "bookmarks", label: `Đã lưu (${bookmarkedPosts.length})` },
                   { key: "edit", label: "⚙️ Chỉnh sửa hồ sơ" },
-                  { key: "password", label: "🔒 Đổi mật khẩu" },
+                  { key: "security", label: "🔒 Cài đặt bảo mật" },
                 ] : []),
               ].map((tab) => (
                 <button
@@ -978,56 +978,86 @@ function Profile() {
           </div>
         )}
 
-        {/* Tab: Đổi mật khẩu */}
-        {activeTab === "password" && isMe && (
+        {/* Tab: Cài đặt bảo mật */}
+        {activeTab === "security" && isMe && (
           <div className="card" style={{ padding: 24 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: "var(--text-primary)" }}>
-              Đổi mật khẩu
+            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
+              🛡️ Cài đặt bảo mật tài khoản
             </h2>
-            <form onSubmit={handleChangePassword}>
-              <div className="form-group">
-                <label className="form-label">Mật khẩu hiện tại</label>
-                <input
-                  className="form-input"
-                  type="password"
-                  value={pwForm.oldPassword}
-                  onChange={(e) => setPwForm({ ...pwForm, oldPassword: e.target.value })}
-                  placeholder="Nhập mật khẩu hiện tại"
-                />
-              </div>
+            <p style={{ fontSize: 13.5, color: "var(--text-muted)", marginBottom: 20 }}>
+              Quản lý mật khẩu cá nhân, trạng thái xác thực Gmail và thông tin bảo mật phiên làm việc.
+            </p>
 
-              <div className="form-group">
-                <label className="form-label">Mật khẩu mới</label>
-                <input
-                  className="form-input"
-                  type="password"
-                  value={pwForm.newPassword}
-                  onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
-                  placeholder="Ít nhất 6 ký tự"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Xác nhận mật khẩu mới</label>
-                <input
-                  className="form-input"
-                  type="password"
-                  value={pwForm.confirmPassword}
-                  onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
-                  placeholder="Nhập lại mật khẩu mới"
-                />
-              </div>
-
-              {pwMsg.text && (
-                <div className={`alert ${pwMsg.type === "success" ? "alert-success" : "alert-error"}`}>
-                  {pwMsg.text}
+            {/* Khung 1: Thay đổi mật khẩu */}
+            <div style={{ background: "var(--bg-input)", padding: 18, borderRadius: 16, marginBottom: 20 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>
+                🔑 Thay đổi mật khẩu
+              </h3>
+              <form onSubmit={handleChangePassword}>
+                <div className="form-group">
+                  <label className="form-label">Mật khẩu hiện tại</label>
+                  <input
+                    className="form-input"
+                    type="password"
+                    value={pwForm.oldPassword}
+                    onChange={(e) => setPwForm({ ...pwForm, oldPassword: e.target.value })}
+                    placeholder="Nhập mật khẩu hiện tại"
+                    style={{ background: "var(--bg-card)" }}
+                  />
                 </div>
-              )}
 
-              <button className="btn btn-primary" type="submit" disabled={pwLoading}>
-                {pwLoading ? "Đang đổi..." : "Đổi mật khẩu"}
-              </button>
-            </form>
+                <div className="form-group">
+                  <label className="form-label">Mật khẩu mới</label>
+                  <input
+                    className="form-input"
+                    type="password"
+                    value={pwForm.newPassword}
+                    onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
+                    placeholder="Ít nhất 6 ký tự"
+                    style={{ background: "var(--bg-card)" }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Xác nhận mật khẩu mới</label>
+                  <input
+                    className="form-input"
+                    type="password"
+                    value={pwForm.confirmPassword}
+                    onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
+                    placeholder="Nhập lại mật khẩu mới"
+                    style={{ background: "var(--bg-card)" }}
+                  />
+                </div>
+
+                {pwMsg.text && (
+                  <div className={`alert ${pwMsg.type === "success" ? "alert-success" : "alert-error"}`} style={{ marginBottom: 12 }}>
+                    {pwMsg.text}
+                  </div>
+                )}
+
+                <button className="btn btn-primary" type="submit" disabled={pwLoading}>
+                  {pwLoading ? "Đang lưu..." : "Cập nhật mật khẩu"}
+                </button>
+              </form>
+            </div>
+
+            {/* Khung 2: Trạng thái Gmail & Bảo mật */}
+            <div style={{ background: "var(--bg-input)", padding: 18, borderRadius: 16 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 10 }}>
+                📧 Bảo mật Gmail & Thiết bị
+              </h3>
+              <div style={{ fontSize: 13.5, color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span>Khôi phục mật khẩu qua Gmail OTP:</span>
+                  <span className="badge badge-success">🟢 Đã bật</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span>Phiên làm việc hiện tại:</span>
+                  <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>Trình duyệt Web</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
