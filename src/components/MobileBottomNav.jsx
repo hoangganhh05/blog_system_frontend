@@ -37,14 +37,6 @@ export default function MobileBottomNav() {
         </svg>
         <span>Video</span>
       </NavLink>
-
-      <NavLink to="/games" className={({ isActive }) => `mobile-nav-item ${isActive ? "active" : ""}`}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="6" width="20" height="12" rx="2"/>
-          <path d="M6 12h4m-2-2v4m10-2h.01m-3-1h.01"/>
-        </svg>
-        <span>Giải trí</span>
-      </NavLink>
     </nav>
   );
 }

@@ -308,17 +308,6 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
             <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
           </svg>
         </NavLink>
-
-        <NavLink
-          to="/games"
-          className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
-          title="Góc Giải Trí Mini Games"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="6" width="20" height="12" rx="2"/>
-            <path d="M6 12h4m-2-2v4m10-2h.01m-3-1h.01"/>
-          </svg>
-        </NavLink>
       </div>
 
       {/* Right Actions */}
