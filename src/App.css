@@ -689,8 +689,9 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  z-index: 10000;
+  z-index: 100000; /* raised to be above other UI on mobile */
   background: rgba(0,0,0,0.4);
+  pointer-events: auto; /* ensure it captures touch/clicks */
 }
 
 /* The modal card that holds the post content. On desktop the card is centered; on mobile it is full-screen */
@@ -703,6 +704,23 @@
   background: var(--bg-card);
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--border-light);
+  pointer-events: auto; /* ensure buttons inside are interactive */
+  -webkit-tap-highlight-color: rgba(0,0,0,0.06);
+}
+
+/* On small screens make modal card occupy full viewport so background posts are not tappable */
+@media (max-width: 768px) {
+  .post-detail-page-wrapper {
+    align-items: stretch;
+    justify-content: stretch;
+    padding: 0;
+    background: rgba(0,0,0,0.6);
+  }
+  .post-detail-modal-card {
+    border-radius: 0;
+    max-height: 100vh;
+    height: 100vh;
+  }
 }
 
 /* Scrollable body area inside the modal */
