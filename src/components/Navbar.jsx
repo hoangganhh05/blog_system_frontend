@@ -192,6 +192,15 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
   const [navHidden, setNavHidden] = useState(false);
   const lastScrollY = useRef(0);
 
+  // Track mobile viewport so we can hide desktop-only UI like the top notification bell
+  const [isMobileView, setIsMobileView] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileView(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     const handleScroll = () => {
       // Chỉ tự động ẩn Navbar trên di động (<= 768px). Trên PC giữ cố định Navbar luôn hiển thị 100%.
@@ -658,48 +667,50 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
       <div className="navbar-right">
           {currentUser ? (
             <>
-              {/* Notification Bell */}
-              <div style={{ position: "relative" }} ref={notifRef}>
-                <button
-                  className="navbar-icon-btn"
-                  onClick={() => setNotifOpen((v) => !v)}
-                  title="Thông báo"
-                  style={{ position: "relative" }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                  </svg>
-                  {unreadCount > 0 && (
-                    <span style={{
-                      position: "absolute",
-                      top: -2,
-                      right: -2,
-                      background: "var(--danger)",
-                      color: "white",
-                      fontSize: 10,
-                      fontWeight: "bold",
-                      borderRadius: "50%",
-                      minWidth: 16,
-                      height: 16,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "0 4px",
-                    }}>
-                      {unreadCount > 9 ? "9+" : unreadCount}
-                    </span>
-                  )}
-                </button>
+              {/* Notification Bell (hidden on mobile because MobileBottomNav handles notifications) */}
+              {!isMobileView && (
+                <div style={{ position: "relative" }} ref={notifRef}>
+                  <button
+                    className="navbar-icon-btn"
+                    onClick={() => setNotifOpen((v) => !v)}
+                    title="Thông báo"
+                    style={{ position: "relative" }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                    {unreadCount > 0 && (
+                      <span style={{
+                        position: "absolute",
+                        top: -2,
+                        right: -2,
+                        background: "var(--danger)",
+                        color: "white",
+                        fontSize: 10,
+                        fontWeight: "bold",
+                        borderRadius: "50%",
+                        minWidth: 16,
+                        height: 16,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "0 4px",
+                      }}>
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
 
-                {/* Notification Drawer Component */}
-                <NotificationDrawer
-                  currentUser={currentUser}
-                  isOpen={notifOpen}
-                  onClose={() => setNotifOpen(false)}
-                  onUnreadCountChange={setUnreadCount}
-                />
-              </div>
+                  {/* Notification Drawer Component */}
+                  <NotificationDrawer
+                    currentUser={currentUser}
+                    isOpen={notifOpen}
+                    onClose={() => setNotifOpen(false)}
+                    onUnreadCountChange={setUnreadCount}
+                  />
+                </div>
+              )}
             </>
           ) : (
             <div className="navbar-auth-btns" style={{ display: "flex", gap: 6, alignItems: "center" }}>

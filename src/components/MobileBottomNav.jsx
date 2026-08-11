@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import notificationService from "../services/notificationService";
 
@@ -51,8 +51,12 @@ export default function MobileBottomNav() {
     return () => { mounted = false; clearInterval(interval); };
   }, [currentUserId]);
 
+  const navigate = useNavigate();
+
   const openNotifications = () => {
-    window.dispatchEvent(new CustomEvent("open_notifications"));
+    // Navigate to notifications page on mobile
+    if (navigate) navigate('/notifications');
+    else window.dispatchEvent(new CustomEvent("open_notifications"));
   };
 
   return (
