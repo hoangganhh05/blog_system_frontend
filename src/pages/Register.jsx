@@ -27,7 +27,7 @@ function Register() {
     if (!form.username.trim()) return "Vui lòng nhập tên đăng nhập!";
     if (form.username.length < 3) return "Tên đăng nhập phải có ít nhất 3 ký tự!";
     if (!form.email.trim() || !form.email.includes("@")) return "Email không hợp lệ!";
-    if (form.password.length < 6) return "Mật khẩu phải có ít nhất 6 ký tự!";
+    if (form.password.length < 8) return "Mật khẩu phải có ít nhất 8 ký tự!";
     if (form.password !== form.confirmPassword) return "Mật khẩu xác nhận không khớp!";
     return null;
   };
@@ -39,15 +39,15 @@ function Register() {
 
     setLoading(true);
     try {
-      await userService.register({
+      const response = await userService.register({
         fullName: form.fullName.trim(),
         username: form.username.trim(),
         email: form.email.trim(),
         password: form.password,
         role: "USER",
       });
-      localStorage.setItem("blog_pending_verify_email", form.email.trim());
-      navigate("/verify-email", { state: { email: form.email.trim() } });
+      login(response.data);
+      navigate("/", { replace: true });
     } catch (err) {
       const serverMsg = typeof err.response?.data === "string" 
         ? err.response.data 
@@ -146,7 +146,7 @@ function Register() {
                 className="form-input"
                 type="password"
                 name="password"
-                placeholder="Mật khẩu (ít nhất 6 ký tự)"
+                placeholder="Mật khẩu (ít nhất 8 ký tự)"
                 value={form.password}
                 onChange={handleChange}
                 autoComplete="new-password"

@@ -6,6 +6,12 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sessionKicked, setSessionKicked] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    window.setTimeout(() => setToast(null), 3500);
+  };
 
   // Khôi phục user từ localStorage khi load trang và lắng nghe sự thay đổi thiết bị đăng nhập
   useEffect(() => {
@@ -84,7 +90,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ currentUser, login, logout, updateUser, loading }}
+      value={{ currentUser, login, logout, updateUser, loading, showToast }}
     >
       {children}
 
@@ -149,6 +155,14 @@ export function AuthProvider({ children }) {
               Đã hiểu & Đăng nhập lại
             </button>
           </div>
+        </div>
+      )}
+      {toast && (
+        <div
+          role="status"
+          style={{ position: "fixed", right: 20, bottom: 20, zIndex: 10000000, maxWidth: 420, padding: "12px 16px", borderRadius: 12, color: "#fff", background: toast.type === "error" ? "#dc2626" : "#059669", boxShadow: "0 10px 30px rgba(0,0,0,.25)" }}
+        >
+          {toast.message}
         </div>
       )}
     </AuthContext.Provider>

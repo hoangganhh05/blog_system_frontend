@@ -14,16 +14,14 @@ function getUserId(userId) {
 
 const bookmarkService = {
   // Toggle bookmark (lưu / bỏ lưu) bài viết
-  toggleBookmark(postId, userId) {
-    const uid = getUserId(userId);
-    return axiosClient.post(`/posts/${postId}/bookmark?userId=${uid}`);
+  toggleBookmark(postId) {
+    return axiosClient.post(`/posts/${postId}/bookmark`);
   },
 
   // Kiểm tra xem bài viết đã được lưu bởi user chưa
   checkBookmarked(postId, userId) {
-    const uid = getUserId(userId);
-    if (!uid) return Promise.resolve({ data: { bookmarked: false } });
-    return axiosClient.get(`/posts/${postId}/bookmark/check?userId=${uid}`);
+    if (!getUserId(userId)) return Promise.resolve({ data: { bookmarked: false } });
+    return axiosClient.get(`/posts/${postId}/bookmark/check`);
   },
 
   // Lấy danh sách các bài viết đã bookmark của user

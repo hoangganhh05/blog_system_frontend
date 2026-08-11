@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
 
 function SecuritySettingsPage() {
-  const { currentUser, login } = useAuth();
+  const { currentUser } = useAuth();
   const [passForm, setPassForm] = useState({
     oldPassword: "",
     newPassword: "",
@@ -19,8 +19,8 @@ function SecuritySettingsPage() {
     if (!passForm.oldPassword) {
       return setPassMsg({ text: "Vui lòng nhập mật khẩu hiện tại!", type: "error" });
     }
-    if (!passForm.newPassword || passForm.newPassword.length < 6) {
-      return setPassMsg({ text: "Mật khẩu mới phải có ít nhất 6 ký tự!", type: "error" });
+    if (!passForm.newPassword || passForm.newPassword.length < 8) {
+      return setPassMsg({ text: "Mật khẩu mới phải có ít nhất 8 ký tự!", type: "error" });
     }
     if (passForm.newPassword !== passForm.confirmPassword) {
       return setPassMsg({ text: "Xác nhận mật khẩu mới không trùng khớp!", type: "error" });
@@ -28,13 +28,7 @@ function SecuritySettingsPage() {
 
     setPassLoading(true);
     try {
-      await userService.changePassword(currentUser.id, {
-        oldPassword: passForm.oldPassword,
-        newPassword: passForm.newPassword,
-      });
-
-      // Cập nhật lại cache địa phương
-      login(currentUser, localStorage.getItem("blog_token") || "mock-jwt-token");
+      await userService.changePassword(currentUser.id, passForm.oldPassword, passForm.newPassword);
       setPassMsg({ text: "Đổi mật khẩu thành công!", type: "success" });
       setPassForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err) {
@@ -83,7 +77,7 @@ function SecuritySettingsPage() {
                 className="form-input"
                 value={passForm.newPassword}
                 onChange={(e) => setPassForm({ ...passForm, newPassword: e.target.value })}
-                placeholder="Ít nhất 6 ký tự..."
+                placeholder="Ít nhất 8 ký tự..."
               />
             </div>
 

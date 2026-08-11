@@ -1,20 +1,20 @@
 import axiosClient from "../api/axiosClient";
 
 const notificationService = {
-  getUserNotifications(userId) {
-    return axiosClient.get(`/notifications?userId=${userId}`);
+  getUserNotifications() {
+    return axiosClient.get("/notifications");
   },
 
-  getUnreadCount(userId) {
-    return axiosClient.get(`/notifications/unread-count?userId=${userId}`);
+  getUnreadCount() {
+    return axiosClient.get("/notifications/unread-count");
   },
 
   markAsRead(id) {
     return axiosClient.put(`/notifications/${id}/read`);
   },
 
-  markAllAsRead(userId) {
-    return axiosClient.put(`/notifications/read-all?userId=${userId}`);
+  markAllAsRead() {
+    return axiosClient.put("/notifications/read-all");
   },
 };
 

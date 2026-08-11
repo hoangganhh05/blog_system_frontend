@@ -2,9 +2,9 @@ import axiosClient from "../api/axiosClient";
 
 const storyService = {
   // Đăng Story mới
-  create(userId, data) {
+  create(_userId, data) {
     // data: { mediaUrl, textContent, bgColor }
-    return axiosClient.post(`/stories/create?userId=${userId}`, data);
+    return axiosClient.post("/stories/create", data);
   },
 
   // Lấy các story trong 24h qua
@@ -18,13 +18,13 @@ const storyService = {
   },
 
   // Xem story
-  view(storyId, userId) {
-    return axiosClient.post(`/stories/${storyId}/view?userId=${userId}`);
+  view(storyId, _userId) {
+    return axiosClient.post(`/stories/${storyId}/view`);
   },
 
   // Thả cảm xúc Story
-  react(storyId, userId, reaction) {
-    return axiosClient.post(`/stories/${storyId}/react?userId=${userId}&reaction=${encodeURIComponent(reaction)}`);
+  react(storyId, _userId, reaction) {
+    return axiosClient.post(`/stories/${storyId}/react?reaction=${encodeURIComponent(reaction)}`);
   },
 
   // Lấy người xem & cảm xúc story

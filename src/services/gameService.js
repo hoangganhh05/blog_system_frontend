@@ -2,18 +2,18 @@ import axiosClient from "../api/axiosClient";
 
 const gameService = {
   // Tạo phòng Cờ Carô Online
-  createCaroRoom(userId, userName) {
-    return axiosClient.post(`/games/caro/create?userId=${userId}&userName=${encodeURIComponent(userName)}`);
+  createCaroRoom(_userId, userName) {
+    return axiosClient.post(`/games/caro/create?userName=${encodeURIComponent(userName)}`);
   },
 
   // Tham gia phòng
-  joinCaroRoom(roomCode, userId, userName) {
-    return axiosClient.post(`/games/caro/join?roomCode=${roomCode}&userId=${userId}&userName=${encodeURIComponent(userName)}`);
+  joinCaroRoom(roomCode, _userId, userName) {
+    return axiosClient.post(`/games/caro/join?roomCode=${roomCode}&userName=${encodeURIComponent(userName)}`);
   },
 
   // Đặt cờ
-  makeCaroMove(roomCode, userId, cellIndex) {
-    return axiosClient.post(`/games/caro/move?roomCode=${roomCode}&userId=${userId}&cellIndex=${cellIndex}`);
+  makeCaroMove(roomCode, _userId, cellIndex) {
+    return axiosClient.post(`/games/caro/move?roomCode=${roomCode}&cellIndex=${cellIndex}`);
   },
 
   // Lấy trạng thái phòng (Polling status)

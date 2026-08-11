@@ -14,9 +14,8 @@ function getUserId(userId) {
 
 const likeService = {
   // Toggle reaction (thích / thả tim / haha / ...) bài viết
-  toggleLike(postId, userId, type = "LIKE") {
-    const uid = getUserId(userId);
-    return axiosClient.post(`/posts/${postId}/like?userId=${uid}&type=${type}`);
+  toggleLike(postId, _userId, type = "LIKE") {
+    return axiosClient.post(`/posts/${postId}/like?type=${encodeURIComponent(type)}`);
   },
 
   // Lấy tổng lượt like của bài viết
@@ -26,9 +25,8 @@ const likeService = {
 
   // Kiểm tra xem user hiện tại đã like bài viết chưa
   checkLiked(postId, userId) {
-    const uid = getUserId(userId);
-    if (!uid) return Promise.resolve({ data: { liked: false, count: 0 } });
-    return axiosClient.get(`/posts/${postId}/likes/check?userId=${uid}`);
+    if (!getUserId(userId)) return Promise.resolve({ data: { liked: false, count: 0 } });
+    return axiosClient.get(`/posts/${postId}/likes/check`);
   },
 
   // Lấy chi tiết danh sách người dùng đã thả từng cảm xúc cho bài viết

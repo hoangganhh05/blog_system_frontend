@@ -2,13 +2,13 @@ import axiosClient from "../api/axiosClient";
 
 const friendService = {
   // Gửi lời mời kết bạn
-  sendRequest(senderId, receiverId) {
-    return axiosClient.post(`/friends/request?senderId=${senderId}&receiverId=${receiverId}`);
+  sendRequest(_senderId, receiverId) {
+    return axiosClient.post(`/friends/request?receiverId=${receiverId}`);
   },
 
   // Chấp nhận lời mời kết bạn
-  acceptRequest(currentUserId, requesterId) {
-    return axiosClient.post(`/friends/accept?currentUserId=${currentUserId}&requesterId=${requesterId}`);
+  acceptRequest(_currentUserId, requesterId) {
+    return axiosClient.post(`/friends/accept?requesterId=${requesterId}`);
   },
 
   // Hủy kết bạn / Từ chối / Rút lời mời
@@ -17,8 +17,8 @@ const friendService = {
   },
 
   // Lấy trạng thái mối quan hệ giữa 2 user
-  getStatus(currentUserId, targetUserId) {
-    return axiosClient.get(`/friends/status?currentUserId=${currentUserId}&targetUserId=${targetUserId}`);
+  getStatus(_currentUserId, targetUserId) {
+    return axiosClient.get(`/friends/status?targetUserId=${targetUserId}`);
   },
 
   // Lấy danh sách bạn bè đã kết bạn

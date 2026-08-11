@@ -12,9 +12,9 @@ const commentService = {
   },
 
   // Tạo comment mới
-  // commentData: { content, post: { id }, user: { id } }
-  create(commentData) {
-    return axiosClient.post("/comments", commentData);
+  // The backend obtains the author from the verified JWT.
+  create({ content, post }) {
+    return axiosClient.post("/comments", { content, post });
   },
 
   // Cập nhật comment
