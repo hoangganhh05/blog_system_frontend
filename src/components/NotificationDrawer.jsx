@@ -158,18 +158,19 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
       style={{
         position: "absolute",
         top: "calc(100% + 10px)",
-        right: 0,
+        right: 12,
         width: 360,
         maxHeight: 480,
         background: "var(--bg-card)",
-        borderRadius: 16,
-        boxShadow: "0 12px 32px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1)",
-        border: "1px solid var(--border-light)",
+        borderRadius: 18,
+        boxShadow: "0 14px 40px rgba(0, 0, 0, 0.24), 0 6px 12px rgba(0, 0, 0, 0.08)",
+        border: "1px solid rgba(0,0,0,0.04)",
         zIndex: 10000,
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        animation: "dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+        transformOrigin: "top right",
+        animation: "drawerPopIn 260ms cubic-bezier(0.2, 0.9, 0.38, 1)",
       }}
     >
       {/* Header Drawer */}
