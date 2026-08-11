@@ -1318,6 +1318,10 @@
   .navbar-search {
     display: none !important;
   }
+
+  .navbar-center-tabs {
+    display: none !important;
+  }
 }
 
 /* Ẩn nút 3 chấm và chỉ hiện khi rê chuột vào tin nhắn (Hover) */
