@@ -217,6 +217,12 @@ function PostCard({ post, onDelete, style }) {
     const isTouchDevice = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
     if (isTouchDevice) return;
 
+    // Clear any existing hide/show timer to avoid conflicting timers causing flicker
+    if (reactionTimerRef.current) {
+      clearTimeout(reactionTimerRef.current);
+      reactionTimerRef.current = null;
+    }
+
     reactionTimerRef.current = setTimeout(() => {
       setShowReactionsPicker(true);
     }, 280);
