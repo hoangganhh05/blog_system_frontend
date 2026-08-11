@@ -1663,9 +1663,7 @@
     flex-shrink: 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    position: sticky !important;
-    top: var(--navbar-height, 60px) !important;
-    z-index: 100 !important;
+    position: static !important;
     box-sizing: border-box !important;
   }
 
