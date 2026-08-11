@@ -135,7 +135,7 @@ select option {
 html {
   scroll-behavior: smooth;
   width: 100%;
-  max-width: 100vw;
+  max-width: 100%;
   overflow-x: hidden;
 }
 
@@ -148,14 +148,14 @@ body {
   transition: background-color var(--transition-slow), color var(--transition-slow);
   -webkit-font-smoothing: antialiased;
   width: 100%;
-  max-width: 100vw;
+  max-width: 100%;
   overflow-x: hidden;
   position: relative;
 }
 
 #root {
   width: 100%;
-  max-width: 100vw;
+  max-width: 100%;
   overflow-x: hidden;
   min-height: 100dvh;
 }
