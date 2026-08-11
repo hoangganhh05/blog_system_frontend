@@ -181,9 +181,20 @@ function PostCard({ post, onDelete, style }) {
     longPressTimerRef.current = setTimeout(() => {
       isLongPressRef.current = true;
       setIsReactionsModalOpen(false); // ensure modal closed when picker opens (mutual exclusion)
+      // Compute picker position from wrapper for touch as well
+      try {
+        const rect = likeBtnWrapperRef.current && likeBtnWrapperRef.current.getBoundingClientRect();
+        if (rect) {
+          const left = Math.max(8, rect.left + rect.width / 2 - 110);
+          const top = Math.max(8, rect.top - 54);
+          setPickerPos({ left, top });
+        }
+      } catch (err) {
+        // ignore
+      }
       setShowReactionsPicker(true);
     }, 250);
-  };
+  };
 
   const handleTouchMoveLike = (e) => {
     if (!showReactionsPicker) return;
@@ -220,18 +231,29 @@ function PostCard({ post, onDelete, style }) {
   const handleMouseEnterLike = () => {
     const isTouchDevice = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
     if (isTouchDevice) return;
-
+ 
     // Clear any existing hide/show timer to avoid conflicting timers causing flicker
     if (reactionTimerRef.current) {
       clearTimeout(reactionTimerRef.current);
       reactionTimerRef.current = null;
     }
-
+ 
     reactionTimerRef.current = setTimeout(() => {
       setIsReactionsModalOpen(false); // ensure modal closed when picker opens (mutual exclusion)
+      // Compute picker position from the like button wrapper to avoid layout jumps
+      try {
+        const rect = likeBtnWrapperRef.current && likeBtnWrapperRef.current.getBoundingClientRect();
+        if (rect) {
+          const left = Math.max(8, rect.left + rect.width / 2 - 110); // center picker (picker width ~220)
+          const top = Math.max(8, rect.top - 54); // appear above the button
+          setPickerPos({ left, top });
+        }
+      } catch (err) {
+        // ignore
+      }
       setShowReactionsPicker(true);
     }, 280);
-  };
+  };
 
   const handleMouseLeaveLike = () => {
     const isTouchDevice = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
@@ -765,37 +787,6 @@ function PostCard({ post, onDelete, style }) {
           document.body
         )}
 
-        {/* Like Button */}
-        <div
-          onMouseEnter={handleMouseEnterLike}
-          onMouseLeave={handleMouseLeaveLike}
-          onTouchStart={handleTouchStartLike}
-          onTouchMove={handleTouchMoveLike}
-          onTouchEnd={handleTouchEndLike}
-          style={{ flex: 1, display: "flex" }}
-        >
-          <button
-            className={`post-action-btn ${liked ? "liked" : ""}`}
-            onClick={handleToggleLike}
-            style={{
-              width: "100%",
-              color: activeReactionObj ? activeReactionObj.color : "inherit",
-              fontWeight: liked ? "700" : "500",
-              gap: 6,
-              userSelect: "none",
-              touchAction: "manipulation",
-            }}
-          >
-            {activeReactionObj ? (
-              <span style={{ fontSize: 18, lineHeight: 1 }}>{activeReactionObj.emoji}</span>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-              </svg>
-            )}
-            {activeReactionObj ? activeReactionObj.label : "Thích"}
-          </button>
-        </div>
 
         <button className="post-action-btn" onClick={goToDetail}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
