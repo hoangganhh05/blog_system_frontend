@@ -85,6 +85,7 @@ function PostDetail() {
 
   const menuRef = useRef(null);
   const reactionTimerRef = useRef(null);
+  const suppressClickRef = useRef(false);
   const commentSectionRef = useRef(null);
 
   const showToast = (message, type = "success") => {
@@ -206,7 +207,16 @@ function PostDetail() {
   }, [id, currentUser?.id]);
 
   const handleToggleLike = async (e) => {
-    e && e.stopPropagation();
+    if (e?.type === "click" && suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     if (!currentUser) {
       showToast("Vui lòng đăng nhập để tương tác bài viết!", "error");
       return;
@@ -249,6 +259,17 @@ function PostDetail() {
     reactionTimerRef.current = setTimeout(() => {
       setShowReactionsPicker(false);
     }, 300);
+  };
+
+  const handleTouchStartLike = () => {
+    suppressClickRef.current = false;
+  };
+
+  const handleTouchEndLike = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    suppressClickRef.current = true;
+    handleToggleLike(e);
   };
 
   const handleBookmark = async () => {
@@ -1280,6 +1301,8 @@ function PostDetail() {
                   >
                     <button
                       className={`post-action-btn ${liked ? "liked" : ""}`}
+                      onTouchStart={handleTouchStartLike}
+                      onTouchEnd={handleTouchEndLike}
                       onClick={handleToggleLike}
                       style={{
                         width: "100%",
@@ -1288,6 +1311,7 @@ function PostDetail() {
                           : "inherit",
                         fontWeight: liked ? "700" : "500",
                         gap: 6,
+                        touchAction: "manipulation",
                       }}
                     >
                       {activeReactionObj ? (

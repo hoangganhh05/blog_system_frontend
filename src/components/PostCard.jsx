@@ -60,6 +60,7 @@ function PostCard({ post, onDelete, style }) {
 
   const menuRef = useRef(null);
   const reactionTimerRef = useRef(null);
+  const suppressClickRef = useRef(false);
 
   const authorName = post.user?.fullName || post.user?.username || "Ẩn danh";
   const categoryName = post.category?.name || "";
@@ -113,7 +114,16 @@ function PostCard({ post, onDelete, style }) {
   }, [post?.id, currentUser?.id]);
 
   const handleToggleLike = async (e) => {
-    e && e.stopPropagation();
+    if (e?.type === "click" && suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     if (!currentUser) {
       showToast("Vui lòng đăng nhập để tương tác bài viết!", "error");
       return;
@@ -161,6 +171,7 @@ function PostCard({ post, onDelete, style }) {
   const isLongPressRef = useRef(false);
 
   const handleTouchStartLike = (e) => {
+    suppressClickRef.current = false;
     isLongPressRef.current = false;
     longPressTimerRef.current = setTimeout(() => {
       isLongPressRef.current = true;
@@ -182,14 +193,20 @@ function PostCard({ post, onDelete, style }) {
 
   const handleTouchEndLike = (e) => {
     if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    e.preventDefault();
+    e.stopPropagation();
+
     if (isLongPressRef.current) {
       if (hoveredReaction) {
         handleSelectReaction(hoveredReaction);
       }
       setHoveredReaction(null);
-    } else {
-      handleToggleLike(e);
+      suppressClickRef.current = false;
+      return;
     }
+
+    suppressClickRef.current = true;
+    handleToggleLike(e);
   };
 
   const handleMouseEnterLike = () => {
