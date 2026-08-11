@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import friendService from "../services/friendService";
 import chatService from "../services/chatService";
 import postService from "../services/postService";
@@ -120,7 +121,9 @@ function ShareModal({ post, isOpen, onClose, onToast }) {
     }
   };
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       style={{
         position: "fixed",
@@ -642,7 +645,8 @@ function ShareModal({ post, isOpen, onClose, onToast }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
