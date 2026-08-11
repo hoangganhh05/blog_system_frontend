@@ -960,7 +960,10 @@ function Dashboard() {
                     borderRadius: 10,
                   }}
                 />
-                <div style={{ display: "flex", gap: 6 }}>
+                <div
+                  className="post-filter-tabs"
+                  style={{ display: "flex", gap: 6 }}
+                >
                   {["all", "public", "draft", "private"].map((s) => (
                     <button
                       key={s}

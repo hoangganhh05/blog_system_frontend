@@ -2033,8 +2033,8 @@ img.avatar-xl,
   }
 
   .posts-table {
-    width: 760px !important;
-    min-width: 760px !important;
+    width: 100% !important;
+    min-width: 600px;
   }
 
   .posts-table th,
@@ -2044,21 +2044,8 @@ img.avatar-xl,
 
   .posts-table th:nth-child(2),
   .posts-table td:nth-child(2) {
-    width: 220px;
-    min-width: 220px;
+    min-width: 150px;
     white-space: normal;
-  }
-}
-
-/* FIX 6 Ô CẢM XÚC TRÊN MOBILE */
-@media screen and (max-width: 768px) {
-  .engagement-reaction-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
-  .engagement-reaction-grid > div {
-    min-width: 0 !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
+    overflow-wrap: break-word;
   }
 }
