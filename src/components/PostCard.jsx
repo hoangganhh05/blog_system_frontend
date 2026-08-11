@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import likeService from "../services/likeService";
@@ -58,7 +59,7 @@ function PostCard({ post, onDelete, style }) {
   const [isReactionsModalOpen, setIsReactionsModalOpen] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
 
-  const menuRef = useRef(null);
+  const menuRef = useRef(null);\n  const likeBtnWrapperRef = useRef(null);\n  const [pickerPos, setPickerPos] = useState({ left: 12, top: 12 });
   const reactionTimerRef = useRef(null);
   const suppressClickRef = useRef(false);
 
@@ -684,16 +685,39 @@ function PostCard({ post, onDelete, style }) {
       <div className="post-card-actions" style={{ position: "relative" }}>
 
         {/* Floating Emoji Popup Bar (Facebook Mobile Touch Drag & Hover Style) */}
-        {showReactionsPicker && (
-          <div
-            onMouseEnter={handleMouseEnterLike}
-            onMouseLeave={handleMouseLeaveLike}
-            onTouchMove={handleTouchMoveLike}
-            onTouchEnd={handleTouchEndLike}
+        <div ref={likeBtnWrapperRef} onMouseEnter={handleMouseEnterLike} onMouseLeave={handleMouseLeaveLike} onTouchStart={handleTouchStartLike} onTouchMove={handleTouchMoveLike} onTouchEnd={handleTouchEndLike} style={{ flex: 1, display: "flex" }}>
+          <button
+            className={`post-action-btn ${liked ? "liked" : ""}`}
+            onClick={handleToggleLike}
             style={{
-              position: "absolute",
-              bottom: "calc(100% + 8px)",
-              left: 12,
+              width: "100%",
+              color: activeReactionObj ? activeReactionObj.color : "inherit",
+              fontWeight: liked ? "700" : "500",
+              gap: 6,
+              userSelect: "none",
+              touchAction: "manipulation",
+            }}
+          >
+            {activeReactionObj ? (
+              <span style={{ fontSize: 18, lineHeight: 1 }}>{activeReactionObj.emoji}</span>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+              </svg>
+            )}
+            {activeReactionObj ? activeReactionObj.label : "Thích"}
+          </button>
+        </div>
+
+        {/* Portal-based Reaction Picker to avoid layout reflow/flicker */}
+        {showReactionsPicker && pickerPos && createPortal(
+          <div
+            onMouseEnter={() => { if (reactionTimerRef.current) { clearTimeout(reactionTimerRef.current); reactionTimerRef.current = null; } }}
+            onMouseLeave={handleMouseLeaveLike}
+            style={{
+              position: "fixed",
+              left: pickerPos.left,
+              top: pickerPos.top,
               background: "var(--bg-card)",
               borderRadius: 30,
               padding: "6px 14px",
@@ -733,7 +757,8 @@ function PostCard({ post, onDelete, style }) {
                 </button>
               );
             })}
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Like Button */}
@@ -873,3 +898,4 @@ function PostCard({ post, onDelete, style }) {
 }
 
 export default PostCard;
+
