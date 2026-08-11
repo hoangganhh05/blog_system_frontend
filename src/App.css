@@ -1322,6 +1322,10 @@
   .navbar-center-tabs {
     display: none !important;
   }
+
+  .mobile-hide {
+    display: none !important;
+  }
 }
 
 /* Ẩn nút 3 chấm và chỉ hiện khi rê chuột vào tin nhắn (Hover) */
