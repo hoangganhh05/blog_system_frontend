@@ -24,8 +24,9 @@ axiosClient.interceptors.request.use(
 
     if (token) {
       // Gắn vào header Authorization
-      // Backend JwtFilter sẽ đọc header me
-      config.headers = config.headers || {};\r\n      config.headers.Authorization = `Bearer ${token}`;
+      // Backend JwtFilter sẽ đọc header Authorization (Bearer token)
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config; // tiếp tục gửi request
@@ -55,4 +56,3 @@ axiosClient.interceptors.response.use(
 );
 
 export default axiosClient;
-
