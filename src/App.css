@@ -2059,7 +2059,8 @@ img.avatar-xl,
   }
 
   .post-filter-tabs > button {
-    flex: 0 1 auto;
-    min-width: max-content;
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+    box-sizing: border-box;
   }
 }
