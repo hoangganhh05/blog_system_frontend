@@ -681,6 +681,55 @@
 /* ============================================
    POST DETAIL
    ============================================ */
+/* Modal-like wrapper to ensure post detail is visible on small screens and when opened from feed */
+.post-detail-page-wrapper {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 10000;
+  background: rgba(0,0,0,0.4);
+}
+
+/* The modal card that holds the post content. On desktop the card is centered; on mobile it is full-screen */
+.post-detail-modal-card {
+  width: 100%;
+  max-width: 960px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-light);
+}
+
+/* Scrollable body area inside the modal */
+.post-detail-scroll-body {
+  max-height: calc(100vh - 120px);
+  overflow: auto;
+  padding: 16px 20px;
+}
+
+/* Desktop header shown inside the modal */
+.post-detail-pc-header {
+  display: none; /* hidden on mobile by default */
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.post-detail-mobile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* Fallback styles for non-modal route (post detail as full page) */
 .post-detail-container {
   max-width: 800px;
   margin: 0 auto;
