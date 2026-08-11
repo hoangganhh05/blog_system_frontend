@@ -1374,7 +1374,7 @@ function Dashboard() {
           padding: "24px 18px",
           display: "flex",
           flexDirection: "column",
-          gap: 20,
+          gap: 8,
           flexShrink: 0,
         }}
       >
