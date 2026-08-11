@@ -180,8 +180,9 @@ function PostCard({ post, onDelete, style }) {
     setShowReactionsPicker(false);
     longPressTimerRef.current = setTimeout(() => {
       isLongPressRef.current = true;
-      setShowReactionsPicker(true);
-    }, 250);
+      setIsReactionsModalOpen(false); // ensure modal closed when picker opens (mutual exclusion)
+      setShowReactionsPicker(true);
+    }, 250);
   };
 
   const handleTouchMoveLike = (e) => {
@@ -227,8 +228,9 @@ function PostCard({ post, onDelete, style }) {
     }
 
     reactionTimerRef.current = setTimeout(() => {
-      setShowReactionsPicker(true);
-    }, 280);
+      setIsReactionsModalOpen(false); // ensure modal closed when picker opens (mutual exclusion)
+      setShowReactionsPicker(true);
+    }, 280);
   };
 
   const handleMouseLeaveLike = () => {
@@ -637,7 +639,7 @@ function PostCard({ post, onDelete, style }) {
       <div className="post-card-stats">
         <div
           className="post-card-likes"
-          onClick={() => setIsReactionsModalOpen(true)}
+                  onClick={(e) => { e.stopPropagation(); setShowReactionsPicker(false); setIsReactionsModalOpen(true); }}
           style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}
           title="Nhấp để xem danh sách người thả cảm xúc"
         >
