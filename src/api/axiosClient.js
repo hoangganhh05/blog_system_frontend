@@ -1,4 +1,4 @@
-import axios from "axios";
+﻿import axios from "axios";
 
 let apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 // Tự động nâng cấp sang HTTPS bảo mật nếu gọi server sản xuất xa
@@ -25,7 +25,7 @@ axiosClient.interceptors.request.use(
     if (token) {
       // Gắn vào header Authorization
       // Backend JwtFilter sẽ đọc header me
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers = config.headers || {};\r\n      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config; // tiếp tục gửi request
@@ -55,3 +55,4 @@ axiosClient.interceptors.response.use(
 );
 
 export default axiosClient;
+
