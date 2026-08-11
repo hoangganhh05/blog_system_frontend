@@ -2023,6 +2023,9 @@ img.avatar-xl,
     background: transparent;
   }
 }
+.dashboard-right-sidebar {
+  box-sizing: border-box;
+}
 /* ===== RESPONSIVE DASHBOARD ===== */
 
 @media (max-width: 768px) {
@@ -2062,5 +2065,17 @@ img.avatar-xl,
     flex: 1 1 calc(50% - 3px);
     min-width: 0;
     box-sizing: border-box;
+  }
+  .dashboard-right-sidebar {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 10px 80px !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .dashboard-right-sidebar .card {
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 }

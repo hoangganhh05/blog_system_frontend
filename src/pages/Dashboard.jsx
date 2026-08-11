@@ -1368,6 +1368,7 @@ function Dashboard() {
 
       {/* 3. RIGHT SIDEBAR PROFILE STATUS & FEEDBACK (100% HOẠT ĐỘNG NÚT BẮT ĐẦU) */}
       <div
+        className="dashboard-right-sidebar"
         style={{
           width: 300,
           padding: "24px 18px",
