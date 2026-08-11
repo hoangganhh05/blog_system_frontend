@@ -43,16 +43,17 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.username.trim() || !form.password.trim()) {
-      return setError("Vui lòng nhập đầy đủ thông tin!");
+    const loginInput = (form.email || form.username || "").trim();
+    if (!loginInput || !form.password.trim()) {
+      return setError("Vui lòng nhập đầy đủ thông tin Email và mật khẩu!");
     }
     setLoading(true);
     try {
-      const res = await userService.login(form.username.trim(), form.password);
+      const res = await userService.login(loginInput, form.password);
       login(res.data);
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err.response?.data || err.message || "Đăng nhập thất bại!");
+      setError(err.response?.data || err.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại Email và Mật khẩu!");
     } finally {
       setLoading(false);
     }
@@ -194,27 +195,59 @@ function Login() {
               <input
                 id="email"
                 className="form-input"
-                type="email"
+                type="text"
                 name="email"
                 placeholder="Địa chỉ Email đăng ký..."
-                value={form.email}
+                value={form.email || form.username}
                 onChange={handleChange}
                 autoComplete="email"
                 autoFocus
               />
             </div>
 
-            <div className="form-group" style={{ marginBottom: 8 }}>
+            <div className="form-group" style={{ marginBottom: 8, position: "relative" }}>
               <input
                 id="password"
                 className="form-input"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Mật khẩu"
                 value={form.password}
                 onChange={handleChange}
                 autoComplete="current-password"
+                style={{ paddingRight: 40 }}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                style={{
+                  position: "absolute",
+                  right: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--text-muted)",
+                  padding: 4,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {showPassword ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                )}
+              </button>
             </div>
 
             {/* Nút Quên mật khẩu */}
