@@ -263,12 +263,14 @@ function PostDetail() {
 
   const handleTouchStartLike = () => {
     suppressClickRef.current = false;
+    setShowReactionsPicker(false);
   };
 
   const handleTouchEndLike = (e) => {
     e.preventDefault();
     e.stopPropagation();
     suppressClickRef.current = true;
+    setShowReactionsPicker(false);
     handleToggleLike(e);
   };
 

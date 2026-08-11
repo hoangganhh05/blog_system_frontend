@@ -173,6 +173,8 @@ function PostCard({ post, onDelete, style }) {
   const handleTouchStartLike = (e) => {
     suppressClickRef.current = false;
     isLongPressRef.current = false;
+    setHoveredReaction(null);
+    setShowReactionsPicker(false);
     longPressTimerRef.current = setTimeout(() => {
       isLongPressRef.current = true;
       setShowReactionsPicker(true);
@@ -201,21 +203,29 @@ function PostCard({ post, onDelete, style }) {
         handleSelectReaction(hoveredReaction);
       }
       setHoveredReaction(null);
+      setShowReactionsPicker(false);
       suppressClickRef.current = false;
       return;
     }
 
     suppressClickRef.current = true;
+    setShowReactionsPicker(false);
     handleToggleLike(e);
   };
 
   const handleMouseEnterLike = () => {
+    const isTouchDevice = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    if (isTouchDevice) return;
+
     reactionTimerRef.current = setTimeout(() => {
       setShowReactionsPicker(true);
     }, 280);
   };
 
   const handleMouseLeaveLike = () => {
+    const isTouchDevice = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    if (isTouchDevice) return;
+
     if (reactionTimerRef.current) clearTimeout(reactionTimerRef.current);
     reactionTimerRef.current = setTimeout(() => {
       setShowReactionsPicker(false);
