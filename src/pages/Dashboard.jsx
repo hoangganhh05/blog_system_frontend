@@ -324,6 +324,7 @@ function Dashboard() {
 
                 {/* Metrics Cards Horizontal Slider - THỰC TẾ 100% */}
                 <div
+                  className="engagement-reaction-grid"
                   style={{
                     display: "grid",
                     gridTemplateColumns: "repeat(3, 1fr)",

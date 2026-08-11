@@ -2023,3 +2023,15 @@ img.avatar-xl,
     background: transparent;
   }
 }
+@media screen and (max-width: 768px) {
+  .engagement-reaction-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .engagement-reaction-grid > div {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 14px !important;
+  }
+}
