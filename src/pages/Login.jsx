@@ -12,6 +12,7 @@ function Login() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Trạng thái Quên mật khẩu & Gửi mã OTP Gmail
   const [showForgotModal, setShowForgotModal] = useState(false);
