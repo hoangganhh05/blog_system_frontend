@@ -212,6 +212,13 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Listen for global event from MobileBottomNav to open notifications drawer
+  useEffect(() => {
+    const handler = () => setNotifOpen(true);
+    window.addEventListener("open_notifications", handler);
+    return () => window.removeEventListener("open_notifications", handler);
+  }, []);
+
   return (
     <nav className={`navbar ${navHidden ? "scroll-hidden" : ""}`}>
       {/* Left Section: Logo + Search Bar */}
