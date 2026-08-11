@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import likeService from "../services/likeService";
@@ -63,6 +64,7 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
   }, [isOpen, postId, currentUser, reactionsSummary]);
 
   if (!isOpen) return null;
+  if (typeof document === "undefined") return null;
 
   // Lọc người dùng theo tab cảm xúc đang chọn chuẩn xác 100%
   const filteredUsers = activeTab === "ALL"
@@ -82,7 +84,7 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
     }).length;
   };
 
-  return (
+  return createPortal(
     <div
       style={{
         position: "fixed",
@@ -294,6 +296,7 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
