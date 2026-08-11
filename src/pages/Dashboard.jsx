@@ -1213,6 +1213,7 @@ function Dashboard() {
               </p>
 
               <div
+                className="engagement-reaction-grid"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(3, 1fr)",
