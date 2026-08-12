@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import likeService from "../services/likeService";
-import userService from "../services/userService";
 
 const REACTIONS_MAP = [
   { type: "LIKE", label: "Thích", emoji: "👍" },
@@ -32,29 +31,25 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
     let cancelled = false;
     setLoading(true);
 
-    Promise.all([
-      likeService.getReactionsList(postId).catch(() => ({ data: [] })),
-      userService.getAll().catch(() => ({ data: [] })),
-    ])
-      .then(([resLikes, resUsers]) => {
+    likeService
+      .getReactionsList(postId)
+      .catch(() => ({ data: [] }))
+      .then((resLikes) => {
         if (cancelled) return;
 
         let rawLikes = resLikes.data || [];
-        const allUsers = resUsers.data || [];
 
         // Chỉ dùng fallback khi chưa có dữ liệu thật từ backend.
         if (rawLikes.length === 0 && reactionsSummary && Object.keys(reactionsSummary).length > 0) {
           const fallbackList = [];
           const currentU = currentUser || { id: 1, fullName: "Long", username: "longbg2005" };
-          const candidateUsers = [currentU, ...allUsers.filter((u) => u.id !== currentU.id)];
 
           let userIndex = 0;
           Object.entries(reactionsSummary).forEach(([reactType, count]) => {
             for (let i = 0; i < count; i++) {
-              const u = candidateUsers[userIndex % candidateUsers.length] || currentU;
               fallbackList.push({
-                id: u.id || userIndex + 1,
-                user: u,
+                id: userIndex + 1,
+                user: currentU,
                 type: reactType.toUpperCase(),
               });
               userIndex++;
