@@ -2,13 +2,23 @@ import axiosClient from "../api/axiosClient";
 
 const friendService = {
   // Gửi lời mời kết bạn
-  sendRequest(_senderId, receiverId) {
+  sendFriendRequest(_senderId, receiverId) {
     return axiosClient.post(`/friends/request?receiverId=${receiverId}`);
+  },
+
+  // Backward-compatible alias for older call sites
+  sendRequest(senderId, receiverId) {
+    return this.sendFriendRequest(senderId, receiverId);
   },
 
   // Chấp nhận lời mời kết bạn
   acceptRequest(_currentUserId, requesterId) {
     return axiosClient.post(`/friends/accept?requesterId=${requesterId}`);
+  },
+
+  // Backward-compatible alias for older call sites
+  acceptFriendRequest(currentUserId, requesterId) {
+    return this.acceptRequest(currentUserId, requesterId);
   },
 
   // Hủy kết bạn / Từ chối / Rút lời mời

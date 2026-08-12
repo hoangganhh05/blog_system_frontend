@@ -200,29 +200,63 @@ function FriendsPage() {
     )
   );
 
-  // Thao tác 1: Gửi lời mời kết bạn đến ai đó
-  const handleSendRequest = (targetUserId) => {
-    sendFriendRequestStore(myId, targetUserId);
-    setRefreshKey((v) => v + 1);
+  // Thao tác 1: Gửi lời mời kết bạn đến ai đó (gọi API, fallback về localStorage nếu lỗi)
+  const handleSendRequest = async (targetUserId) => {
+    if (!currentUser) return;
+    try {
+      await friendService.sendFriendRequest(myId, targetUserId);
+      // optimistic local copy so UI updates immediately
+      sendFriendRequestStore(myId, targetUserId);
+      setRefreshKey((v) => v + 1);
+    } catch (err) {
+      // nếu API thất bại (offline/CORS), vẫn lưu local để UX không bị block
+      sendFriendRequestStore(myId, targetUserId);
+      setRefreshKey((v) => v + 1);
+    }
   };
 
   // Thao tác 2: Hủy lời mời kết bạn đã gửi đi
-  const handleCancelSentRequest = (targetUserId) => {
-    removePendingRequest(myId, targetUserId);
-    setRefreshKey((v) => v + 1);
+  const handleCancelSentRequest = async (targetUserId) => {
+    if (!currentUser) return;
+    try {
+      // backend có thể cung cấp endpoint phù hợp; dùng removeFriendship làm generic remove
+      await friendService.removeFriendship(myId, targetUserId);
+      removePendingRequest(myId, targetUserId);
+      setRefreshKey((v) => v + 1);
+    } catch (err) {
+      // fallback local
+      removePendingRequest(myId, targetUserId);
+      setRefreshKey((v) => v + 1);
+    }
   };
 
   // Thao tác 3: Chấp nhận lời mời kết bạn nhận được từ ai đó
-  const handleAcceptRequest = (fromUserId) => {
-    addMutualFriendPair(myId, fromUserId);
-    removePendingRequest(fromUserId, myId);
-    setRefreshKey((v) => v + 1);
+  const handleAcceptRequest = async (fromUserId) => {
+    if (!currentUser) return;
+    try {
+      await friendService.acceptRequest(myId, fromUserId);
+      addMutualFriendPair(myId, fromUserId);
+      removePendingRequest(fromUserId, myId);
+      setRefreshKey((v) => v + 1);
+    } catch (err) {
+      // fallback local accept
+      addMutualFriendPair(myId, fromUserId);
+      removePendingRequest(fromUserId, myId);
+      setRefreshKey((v) => v + 1);
+    }
   };
 
   // Thao tác 4: Từ chối / Xóa lời mời kết bạn nhận được
-  const handleDeclineRequest = (fromUserId) => {
-    removePendingRequest(fromUserId, myId);
-    setRefreshKey((v) => v + 1);
+  const handleDeclineRequest = async (fromUserId) => {
+    if (!currentUser) return;
+    try {
+      await friendService.removeFriendship(fromUserId, myId);
+      removePendingRequest(fromUserId, myId);
+      setRefreshKey((v) => v + 1);
+    } catch (err) {
+      removePendingRequest(fromUserId, myId);
+      setRefreshKey((v) => v + 1);
+    }
   };
 
   // Thao tác 5: Gỡ gợi ý kết bạn

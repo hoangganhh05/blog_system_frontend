@@ -248,7 +248,7 @@ function Profile() {
   const handleSendFriendRequest = () => {
     if (!currentUser) return showToast("Vui lòng đăng nhập để kết bạn!", "error");
     setFriendLoading(true);
-    friendService.sendRequest(currentUserId, targetUserId)
+    friendService.sendFriendRequest(currentUserId, targetUserId)
       .then((res) => {
         setFriendshipStatus(res.data.status);
         showToast("Đã gửi lời mời kết bạn!", "success");
