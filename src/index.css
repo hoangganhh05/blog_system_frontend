@@ -80,9 +80,11 @@
   --border-color: #cbd5e1;
   --border-light: #e2e8f0;
 
-  --navbar-height: 60px;
-  --sidebar-width: 280px;
-  --content-max: 680px;
+  --navbar-height: clamp(56px, 6vw, 64px);
+  --sidebar-width: clamp(220px, 22vw, 280px);
+  --content-max: clamp(640px, 52vw, 760px);
+  --page-gutter: clamp(12px, 2vw, 24px);
+  --page-gap: clamp(16px, 2.2vw, 24px);
 
   --transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-slow: 0.3s cubic-bezier(0.16, 1, 0.3, 1);

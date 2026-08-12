@@ -13,6 +13,16 @@ const axiosClient = axios.create({
   },
 });
 
+const PUBLIC_AUTH_PATHS = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+];
+
+const isPublicAuthRequest = (url = "") =>
+  PUBLIC_AUTH_PATHS.some((path) => url.includes(path));
+
 // =============================================
 // REQUEST INTERCEPTOR
 // Chạy trước mỗi request — tự động gắn token
@@ -21,8 +31,9 @@ axiosClient.interceptors.request.use(
   (config) => {
     // Đọc token từ localStorage
     const token = localStorage.getItem("blog_token");
+    const requestUrl = `${config.url || ""}`;
 
-    if (token) {
+    if (token && !isPublicAuthRequest(requestUrl)) {
       // Gắn vào header Authorization
       // Backend JwtFilter sẽ đọc header Authorization
       config.headers = config.headers || {};
@@ -43,8 +54,9 @@ axiosClient.interceptors.response.use(
 
   (error) => {
     const status = error.response?.status;
+    const requestUrl = `${error.config?.url || ""}`;
 
-    if (status === 401 || status === 403) {
+    if ((status === 401 || status === 403) && !isPublicAuthRequest(requestUrl)) {
       // Token hết hạn, không hợp lệ hoặc backend từ chối quyền truy cập
       localStorage.removeItem("blog_token");
       localStorage.removeItem("blog_user");
