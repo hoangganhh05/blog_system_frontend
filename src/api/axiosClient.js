@@ -56,7 +56,7 @@ axiosClient.interceptors.response.use(
     const status = error.response?.status;
     const requestUrl = `${error.config?.url || ""}`;
 
-    if ((status === 401 || status === 403) && !isPublicAuthRequest(requestUrl)) {
+    if (status === 401 && !isPublicAuthRequest(requestUrl)) {
       // Token hết hạn, không hợp lệ hoặc backend từ chối quyền truy cập
       localStorage.removeItem("blog_token");
       localStorage.removeItem("blog_user");
@@ -65,9 +65,16 @@ axiosClient.interceptors.response.use(
       if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
         window.location.href = "/login";
       }
+    } else if (status === 403 && !isPublicAuthRequest(requestUrl)) {
+      console.warn("Forbidden API request:", requestUrl, error.response?.data || error.message);
     }
 
-    console.error("API Error:", error.response?.data || error.message);
+    console.error("API Error:", {
+      status,
+      url: requestUrl,
+      data: error.response?.data,
+      message: error.message,
+    });
     return Promise.reject(error);
   }
 );
