@@ -1,8 +1,15 @@
 ﻿import axios from "axios";
 
-let apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+const isLocalDevHost =
+  typeof window !== "undefined" &&
+  ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+let apiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL ||
+  (isLocalDevHost ? "http://localhost:8080" : "https://api.anhhoangg.id.vn");
+
 // Tự động nâng cấp sang HTTPS bảo mật nếu gọi server sản xuất xa
-if (apiBaseUrl.startsWith("http://") && !apiBaseUrl.includes("localhost")) {
+if (apiBaseUrl.startsWith("http://") && !apiBaseUrl.includes("localhost") && !apiBaseUrl.includes("127.0.0.1")) {
   apiBaseUrl = apiBaseUrl.replace("http://", "https://");
 }
 
