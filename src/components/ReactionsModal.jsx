@@ -27,41 +27,52 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen && postId) {
-      setLoading(true);
-      Promise.all([
-        likeService.getReactionsList(postId).catch(() => ({ data: [] })),
-        userService.getAll().catch(() => ({ data: [] })),
-      ])
-        .then(([resLikes, resUsers]) => {
-          let rawLikes = resLikes.data || [];
-          const allUsers = resUsers.data || [];
+    if (!isOpen || !postId) return;
 
-          // Nếu API backend chưa trả danh sách, tự động kết nối thông tin người dùng thực tế
-          if (rawLikes.length === 0 && reactionsSummary && Object.keys(reactionsSummary).length > 0) {
-            const fallbackList = [];
-            const currentU = currentUser || { id: 1, fullName: "Long", username: "longbg2005" };
-            const candidateUsers = [currentU, ...allUsers.filter((u) => u.id !== currentU.id)];
+    let cancelled = false;
+    setLoading(true);
 
-            let userIndex = 0;
-            Object.entries(reactionsSummary).forEach(([reactType, count]) => {
-              for (let i = 0; i < count; i++) {
-                const u = candidateUsers[userIndex % candidateUsers.length] || currentU;
-                fallbackList.push({
-                  id: u.id || userIndex + 1,
-                  user: u,
-                  type: reactType.toUpperCase(),
-                });
-                userIndex++;
-              }
-            });
-            rawLikes = fallbackList;
-          }
-          setReactionsList(rawLikes);
-        })
-        .finally(() => setLoading(false));
-    }
-  }, [isOpen, postId, currentUser, reactionsSummary]);
+    Promise.all([
+      likeService.getReactionsList(postId).catch(() => ({ data: [] })),
+      userService.getAll().catch(() => ({ data: [] })),
+    ])
+      .then(([resLikes, resUsers]) => {
+        if (cancelled) return;
+
+        let rawLikes = resLikes.data || [];
+        const allUsers = resUsers.data || [];
+
+        // Chỉ dùng fallback khi chưa có dữ liệu thật từ backend.
+        if (rawLikes.length === 0 && reactionsSummary && Object.keys(reactionsSummary).length > 0) {
+          const fallbackList = [];
+          const currentU = currentUser || { id: 1, fullName: "Long", username: "longbg2005" };
+          const candidateUsers = [currentU, ...allUsers.filter((u) => u.id !== currentU.id)];
+
+          let userIndex = 0;
+          Object.entries(reactionsSummary).forEach(([reactType, count]) => {
+            for (let i = 0; i < count; i++) {
+              const u = candidateUsers[userIndex % candidateUsers.length] || currentU;
+              fallbackList.push({
+                id: u.id || userIndex + 1,
+                user: u,
+                type: reactType.toUpperCase(),
+              });
+              userIndex++;
+            }
+          });
+          rawLikes = fallbackList;
+        }
+
+        setReactionsList(rawLikes);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, postId, currentUser?.id]);
 
   if (!isOpen) return null;
   if (typeof document === "undefined") return null;

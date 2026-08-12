@@ -44,10 +44,15 @@ axiosClient.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
 
-    if (status === 401) {
-      // Token hết hạn hoặc không hợp lệ
+    if (status === 401 || status === 403) {
+      // Token hết hạn, không hợp lệ hoặc backend từ chối quyền truy cập
       localStorage.removeItem("blog_token");
       localStorage.removeItem("blog_user");
+      localStorage.removeItem("blog_session_id");
+
+      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
     }
 
     console.error("API Error:", error.response?.data || error.message);
