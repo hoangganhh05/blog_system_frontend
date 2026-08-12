@@ -51,7 +51,9 @@ function Login() {
     try {
       const res = await userService.login(loginInput, form.password);
       login(res.data);
-      navigate(from, { replace: true });
+      window.setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 0);
     } catch (err) {
       setError(err.response?.data || err.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại Email và Mật khẩu!");
     } finally {

@@ -98,9 +98,14 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
 
   // Lấy dữ liệu người dùng & bài viết phục vụ gợi ý tìm kiếm
   useEffect(() => {
+    if (!currentUser) {
+      setAllUsers([]);
+      return;
+    }
+
     userService.getAll().then((res) => setAllUsers(res.data || [])).catch(() => {});
     postService.getAll(0, 50).then((res) => setAllPosts(res.data.content || [])).catch(() => {});
-  }, []);
+  }, [currentUser]);
 
   // Click outside listener
   useEffect(() => {
