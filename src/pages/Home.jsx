@@ -55,6 +55,7 @@ function Home({ searchValue = "" }) {
   const observerRef = useRef(null);
   const loadMoreRef = useRef(null);
   const isFetchingRef = useRef(false);
+  const PAGE_SIZE = 6;
 
   // Load categories
   useEffect(() => {
@@ -89,7 +90,9 @@ function Home({ searchValue = "" }) {
 
         // Handle both array and paginated response
         const newPosts = Array.isArray(data) ? data : (data.content || []);
-        const hasMoreData = Array.isArray(data) ? false : !data.last;
+        const hasMoreData = Array.isArray(data)
+          ? newPosts.length > 0 && newPosts.length >= PAGE_SIZE
+          : !data.last && (data.number + 1 < data.totalPages);
 
         if (reset || pageNum === 0) {
           setPosts(newPosts);
