@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import postService from "../services/postService";
@@ -52,6 +52,8 @@ function Home({ searchValue = "" }) {
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const search = searchValue;
+  const observerRef = useRef(null);
+  const loadMoreRef = useRef(null);
 
   // Load categories
   useEffect(() => {
@@ -101,6 +103,28 @@ function Home({ searchValue = "" }) {
   useEffect(() => {
     loadPosts(0, activeCategoryId, search, true);
   }, [activeCategoryId, search, loadPosts]);
+
+  // Infinite Scroll with IntersectionObserver
+  useEffect(() => {
+    if (!hasMore || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loadingMore && hasMore) {
+          loadPosts(page + 1, activeCategoryId, search);
+        }
+      },
+      { threshold: 0.1, rootMargin: "100px" }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observer) observer.disconnect();
+    };
+  }, [hasMore, loadingMore, page, activeCategoryId, search, loadPosts]);
 
   const handleSelectCategory = (catId) => {
     setActiveCategoryId(catId);
@@ -294,19 +318,10 @@ function Home({ searchValue = "" }) {
                 />
               ))}
 
-              {/* Load more */}
+              {/* Infinite Scroll Loader */}
               {hasMore && !search && (
                 <div
-                  ref={(node) => {
-                    if (!node) return;
-                    const observer = new IntersectionObserver((entries) => {
-                      if (entries[0].isIntersecting && !loadingMore) {
-                        loadPosts(page + 1, activeCategoryId, search);
-                      }
-                    });
-                    observer.observe(node);
-                    return () => observer.disconnect();
-                  }}
+                  ref={loadMoreRef}
                   style={{ textAlign: "center", padding: "20px 0" }}
                 >
                   {loadingMore && (

@@ -47,14 +47,17 @@ export default function ReactionsModal({
       .then((resLikes) => {
         if (cancelled) return;
 
-        // In ra Console để bạn bấm F12 xem Backend thực sự trả về cấu trúc gì
         console.log("🔥 Dữ liệu cảm xúc từ Backend:", resLikes);
 
-        // Tự động bóc tách dữ liệu dù Backend trả về mảng hay DTO phân trang (content/data)
-        const rawLikes =
-          resLikes.data?.content ||
-          resLikes.data?.data ||
-          (Array.isArray(resLikes.data) ? resLikes.data : []);
+        // Handle new UserReactionDTO format (flat structure) or legacy nested format
+        let rawLikes = [];
+        if (Array.isArray(resLikes.data)) {
+          rawLikes = resLikes.data;
+        } else if (resLikes.data?.content) {
+          rawLikes = resLikes.data.content;
+        } else if (resLikes.data?.data) {
+          rawLikes = resLikes.data.data;
+        }
 
         setReactionsList(rawLikes);
       })
@@ -87,6 +90,22 @@ export default function ReactionsModal({
           ).toUpperCase();
           return itemType === activeTab.toUpperCase();
         });
+
+  // Helper to extract user data from both new flat DTO and legacy nested formats
+  const getUserData = (item) => {
+    // New UserReactionDTO format (flat structure)
+    if (item.userId && item.username) {
+      return {
+        id: item.userId,
+        username: item.username,
+        fullName: item.fullName,
+        avatarUrl: item.avatarUrl,
+        avatarColor: item.avatarColor,
+      };
+    }
+    // Legacy nested format
+    return item.user || item;
+  };
 
   const getTabCount = (type) => {
     if (type === "ALL") return totalLikeCount || reactionsList.length;
@@ -273,7 +292,7 @@ export default function ReactionsModal({
             </div>
           ) : (
             filteredUsers.map((item, idx) => {
-              const u = item.user || item;
+              const u = getUserData(item);
               const name = u.fullName || u.username || "Người dùng";
               const rObj =
                 REACTIONS_MAP.find(

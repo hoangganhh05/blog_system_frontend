@@ -522,11 +522,10 @@ function PostCard({ post, onDelete, style }) {
       </div>
 
       {/* Shared Post */}
-      {/* Shared Post */}
       {post.sharedPost && (
         <div
           className="w-full px-4 pb-3 box-border"
-          style={{ width: "100%", maxWidth: "100%" }}
+          style={{ width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
         >
           {post.sharedPost.content &&
             !post.sharedPost.thumbNail &&
@@ -540,10 +539,15 @@ function PostCard({ post, onDelete, style }) {
             )}
           <div
             className="w-full border border-gray-200 rounded-xl p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors box-border overflow-hidden"
-            style={{ width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
+            style={{ 
+              width: "100%", 
+              maxWidth: "100%", 
+              boxSizing: "border-box",
+              minWidth: "0"
+            }}
             onClick={() => navigate(`/posts/${post.sharedPost.id}`)}
           >
-            <div className="flex items-center gap-3 mb-3 w-full">
+            <div className="flex items-center gap-3 mb-3 w-full" style={{ width: "100%" }}>
               {post.sharedPost.user?.avatarUrl ? (
                 <img
                   src={post.sharedPost.user.avatarUrl}
@@ -571,7 +575,7 @@ function PostCard({ post, onDelete, style }) {
                   )}
                 </div>
               )}
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1" style={{ minWidth: "0" }}>
                 <p className="text-sm font-semibold text-gray-900 truncate">
                   {post.sharedPost.user?.fullName ||
                     post.sharedPost.user?.username ||
@@ -585,19 +589,24 @@ function PostCard({ post, onDelete, style }) {
             {post.sharedPost.bgColor ? (
               <div
                 className="w-full rounded-lg p-6 text-center"
-                style={{ background: post.sharedPost.bgColor, width: "100%" }}
+                style={{ 
+                  background: post.sharedPost.bgColor, 
+                  width: "100%",
+                  boxSizing: "border-box"
+                }}
               >
                 <p className="text-white font-bold leading-relaxed break-words">
                   {post.sharedPost.content}
                 </p>
               </div>
             ) : (
-              <div className="w-full">
+              <div className="w-full" style={{ width: "100%", minWidth: "0" }}>
                 {post.sharedPost.thumbNail && (
                   <img
                     src={post.sharedPost.thumbNail}
                     alt={post.sharedPost.title || "Shared media"}
                     className="w-full h-auto object-cover rounded-lg mb-3 max-h-[200px]"
+                    style={{ width: "100%" }}
                   />
                 )}
                 {post.sharedPost.title && (
