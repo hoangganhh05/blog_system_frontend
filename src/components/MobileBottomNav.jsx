@@ -34,10 +34,18 @@ export default function MobileBottomNav() {
         const res = await notificationService.getUserNotifications(currentUserId);
         const rawList = res.data || [];
         const list = rawList.filter((n) => {
-          const t = String(n.type || "").toUpperCase();
-          const c = String(n.content || n.message || n.title || "").toLowerCase();
-          if (t.includes("CHAT") || t.includes("MESSAGE") || t.includes("MSG") || t.includes("INBOX") || c.includes("tin nhắn")) return false;
-          return true;
+          const type = String(n.type || '').toLowerCase();
+          const content = String(n.content || n.message || '').toLowerCase();
+          return !(
+            type.includes('chat') ||
+            type.includes('message') ||
+            type.includes('msg') ||
+            type.includes('inbox') ||
+            type.includes('tin_nhan') ||
+            content.includes('đã gửi tin nhắn') ||
+            content.includes('gửi tin nhắn') ||
+            content.includes('nhắn tin')
+          );
         });
         const unread = list.filter((n) => !n.read).length;
         if (mounted) setUnreadNotifCount(unread);
