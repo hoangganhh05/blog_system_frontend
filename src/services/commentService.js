@@ -1,9 +1,14 @@
 import axiosClient from "../api/axiosClient";
 
 const commentService = {
-  // Lấy tất cả comments
+  // Lấy tất cả comments (legacy — không dùng trực tiếp)
   getAll() {
     return axiosClient.get("/comments");
+  },
+
+  // Lấy comments theo bài viết — khớp endpoint backend GET /comments?postId={id}
+  getByPostId(postId) {
+    return axiosClient.get(`/comments?postId=${postId}`);
   },
 
   // Lấy comment theo ID

@@ -190,10 +190,9 @@ function PostDetail() {
           setBookmarked(checkB.data.bookmarked);
         }
 
-        // Lấy bình luận của bài viết
-        const cmtRes = await commentService.getAll();
-        const filtered = cmtRes.data.filter((c) => c.post?.id === parseInt(id));
-        setComments(filtered.reverse());
+        // Lấy bình luận của bài viết theo postId (gọi đúng endpoint)
+        const cmtRes = await commentService.getByPostId(id);
+        setComments((cmtRes.data || []).reverse());
       } catch {
         if (isInitial) setError("Không tìm thấy bài viết!");
       } finally {
@@ -202,7 +201,7 @@ function PostDetail() {
     };
 
     fetchData(true);
-    interval = setInterval(() => fetchData(false), 1500);
+    interval = setInterval(() => fetchData(false), 30000);
     return () => interval && clearInterval(interval);
   }, [id, currentUser?.id]);
 
