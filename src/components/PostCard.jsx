@@ -304,7 +304,7 @@ function PostCard({ post, onDelete, style }) {
 
   return (
     <div
-      className="post-card w-full block bg-white text-gray-900 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-200/80 mb-4"
+      className="post-card w-full block bg-white text-gray-900 rounded-xl border border-gray-200/80 p-4 mb-4"
       style={style}
     >
       {/* Header - Author Info */}
@@ -477,10 +477,10 @@ function PostCard({ post, onDelete, style }) {
         </div>
       </div>
 
-      <div className="mt-3 px-4 py-2">
+      <div className="mt-3">
         {post.bgColor && post.content && post.content.length <= 130 && !post.thumbNail && !post.sharedPost ? (
           <div
-            className="min-h-[140px] max-h-[220px] w-full rounded-xl bg-gray-900 text-white font-medium text-base md:text-lg flex items-center justify-center p-6 my-2 text-center cursor-pointer"
+            className="min-h-[140px] max-h-[220px] w-full rounded-xl bg-gray-900 text-white font-medium text-base md:text-lg flex items-center justify-center p-6 my-2 text-center shadow-inner cursor-pointer"
             style={{ background: post.bgColor }}
             onClick={goToDetail}
           >
@@ -756,7 +756,7 @@ function PostCard({ post, onDelete, style }) {
           onTouchMove={handleTouchMoveLike}
           onTouchEnd={handleTouchEndLike}
           onClick={handleToggleLike}
-          className="flex-1 flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-100 py-2 rounded-lg transition-colors text-sm font-medium"
+          className="flex-1 flex items-center justify-center gap-2 text-gray-600 hover:text-black hover:bg-gray-100 py-2 rounded-lg transition-colors text-sm font-medium"
           style={{ color: activeReactionObj ? activeReactionObj.color : "" }}
         >
           {activeReactionObj ? (
@@ -780,7 +780,7 @@ function PostCard({ post, onDelete, style }) {
         </button>
 
         <button
-          className="flex-1 flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-100 py-2 rounded-lg transition-colors text-sm font-medium"
+          className="flex-1 flex items-center justify-center gap-2 text-gray-600 hover:text-black hover:bg-gray-100 py-2 rounded-lg transition-colors text-sm font-medium"
           onClick={goToDetail}
         >
           <svg
@@ -800,7 +800,7 @@ function PostCard({ post, onDelete, style }) {
         </button>
 
         <button
-          className="flex-1 flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-100 py-2 rounded-lg transition-colors text-sm font-medium"
+          className="flex-1 flex items-center justify-center gap-2 text-gray-600 hover:text-black hover:bg-gray-100 py-2 rounded-lg transition-colors text-sm font-medium"
           onClick={() => setIsShareModalOpen(true)}
         >
           <svg

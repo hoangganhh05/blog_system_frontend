@@ -160,13 +160,13 @@
 }
 
 .nav-tab:hover {
-  background: var(--bg-hover);
-  color: var(--primary);
+  background: #f3f4f6;
+  color: #111827;
 }
 
 .nav-tab.active {
-  color: var(--primary);
-  background: var(--primary-light);
+  color: #111827;
+  background: #f3f4f6;
 }
 
 .nav-tab.active::after {
@@ -176,7 +176,7 @@
   left: 6px;
   right: 6px;
   height: 3px;
-  background: var(--primary);
+  background: #111827;
   border-radius: 3px 3px 0 0;
 }
 
@@ -2067,7 +2067,7 @@ img.avatar-xl,
   }
 
   .mobile-nav-item.active {
-    color: var(--primary) !important;
+    color: #111827 !important;
     transform: translateY(-4px) !important;
   }
 
@@ -2081,8 +2081,8 @@ img.avatar-xl,
     width: 44px;
     height: 6px;
     border-radius: 6px;
-    background: linear-gradient(90deg, var(--primary), var(--primary-hover));
-    box-shadow: 0 8px 26px rgba(79,70,229,0.18);
+    background: #111827;
+    box-shadow: 0 8px 26px rgba(0,0,0,0.15);
   }
 
   @keyframes drawerPopIn {
