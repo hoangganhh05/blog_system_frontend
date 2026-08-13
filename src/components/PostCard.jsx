@@ -447,26 +447,18 @@ function PostCard({ post, onDelete, style }) {
         </div>
       </div>
 
-      {/* Logic render nội dung bài viết */}
       {post.bgColor ? (
-        {/* Giao diện khi CÓ màu nền: Dùng Flexbox để căn giữa tuyệt đối */}
-        <div
-          className="w-full flex items-center justify-center min-h-[250px] p-6 my-2 rounded-lg text-white text-2xl md:text-3xl font-bold text-center break-words cursor-pointer"
-          style={{ background: post.bgColor }}
-          onClick={goToDetail}
-        >
+        <div className={`w-full flex items-center justify-center min-h-[250px] p-6 my-2 rounded-lg text-white text-2xl md:text-3xl font-bold text-center break-words cursor-pointer`} style={{ background: post.bgColor }} onClick={goToDetail}>
           <p className="max-w-full drop-shadow-md">{post.content}</p>
         </div>
       ) : (
         <>
-          {/* Giao diện khi KHÔNG CÓ màu nền: Hiển thị văn bản bình thường */}
           {post.content && !post.sharedPost && (
             <div className="w-full text-base text-gray-800 dark:text-white text-left whitespace-pre-wrap break-words my-2 px-4 pb-3">
               {post.content}
             </div>
           )}
 
-          {/* Image - Full Width */}
           {post.thumbNail &&
             !post.sharedPost &&
             (isVideoUrl(post.thumbNail) ? (
