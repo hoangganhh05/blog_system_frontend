@@ -517,7 +517,6 @@
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-light);
   margin-bottom: clamp(12px, 1.4vw, 16px);
-  overflow: hidden;
   transition:
     transform var(--transition),
     box-shadow var(--transition);
