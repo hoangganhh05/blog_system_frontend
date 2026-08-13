@@ -301,7 +301,7 @@ function PostCard({ post, onDelete, style }) {
   const topReactions = REACTIONS.filter((r) => reactionsSummary[r.type] > 0);
 
   return (
-    <div className="bg-white text-gray-900 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-200" style={style}>
+    <div className="bg-white text-gray-900 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200" style={style}>
       {/* Header - Author Info */}
       <div className="flex items-center gap-3 p-4">
         {post.user?.avatarUrl ? (
@@ -449,7 +449,7 @@ function PostCard({ post, onDelete, style }) {
 
       <div className="mt-3">
         {post.bgColor ? (
-          <div className={`w-full flex items-center justify-center min-h-[200px] md:min-h-[300px] p-4 md:p-8 rounded-xl text-white font-bold text-center break-words shadow-sm overflow-hidden cursor-pointer`} style={{ background: post.bgColor }} onClick={goToDetail}>
+          <div className={`w-full flex items-center justify-center min-h-[200px] md:min-h-[300px] p-4 md:p-8 rounded-xl text-white font-bold text-center break-words shadow-sm cursor-pointer`} style={{ background: post.bgColor }} onClick={goToDetail}>
             <p className="max-w-full text-xl md:text-3xl leading-snug drop-shadow-md">
               {post.content}
             </p>
