@@ -447,60 +447,53 @@ function PostCard({ post, onDelete, style }) {
         </div>
       </div>
 
-      {/* Content - Text */}
-      {post.content && !post.sharedPost && !post.bgColor && (
-        <div className="px-4 pb-3 bg-transparent">
-          <p className="text-base text-gray-900 dark:text-white leading-relaxed text-left font-normal">
-            {post.content}
-          </p>
-        </div>
-      )}
-
-      {/* Image - Full Width */}
-      {post.thumbNail &&
-        !post.bgColor &&
-        !post.sharedPost &&
-        (isVideoUrl(post.thumbNail) ? (
-          <video
-            src={post.thumbNail}
-            controls
-            playsInline
-            webkit-playsinline="true"
-            preload="metadata"
-            className="w-full max-h-[500px] object-contain bg-black"
-            onClick={(e) => e.stopPropagation()}
-          />
-        ) : (
-          <img
-            src={post.thumbNail}
-            alt={post.title}
-            className="w-full h-auto object-cover max-h-[500px] cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowLightbox(true);
-            }}
-            onError={(e) => {
-              e.target.style.display = "none";
-            }}
-          />
-        ))}
-
-      {/* Background Color Post */}
-      {post.bgColor && !post.sharedPost && (
+      {/* Logic render nội dung bài viết */}
+      {post.bgColor ? (
+        {/* Giao diện khi CÓ màu nền: Dùng Flexbox để căn giữa tuyệt đối */}
         <div
-          className="min-h-[250px] py-12 px-4 text-center cursor-pointer"
+          className="w-full flex items-center justify-center min-h-[250px] p-6 my-2 rounded-lg text-white text-2xl md:text-3xl font-bold text-center break-words cursor-pointer"
           style={{ background: post.bgColor }}
           onClick={goToDetail}
         >
-          <p
-            className="text-white font-bold leading-relaxed text-2xl"
-            style={{
-              textShadow: "0 1px 4px rgba(0,0,0,0.28)",
-            }}
-          >
-            {post.content}
-          </p>
+          <p className="max-w-full drop-shadow-md">{post.content}</p>
         </div>
+      ) : (
+        <>
+          {/* Giao diện khi KHÔNG CÓ màu nền: Hiển thị văn bản bình thường */}
+          {post.content && !post.sharedPost && (
+            <div className="w-full text-base text-gray-800 dark:text-white text-left whitespace-pre-wrap break-words my-2 px-4 pb-3">
+              {post.content}
+            </div>
+          )}
+
+          {/* Image - Full Width */}
+          {post.thumbNail &&
+            !post.sharedPost &&
+            (isVideoUrl(post.thumbNail) ? (
+              <video
+                src={post.thumbNail}
+                controls
+                playsInline
+                webkit-playsinline="true"
+                preload="metadata"
+                className="w-full max-h-[500px] object-contain bg-black"
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <img
+                src={post.thumbNail}
+                alt={post.title}
+                className="w-full h-auto object-cover max-h-[500px] cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowLightbox(true);
+                }}
+                onError={(e) => {
+                  e.target.style.display = "none";
+                }}
+              />
+            ))}
+        </>
       )}
 
       {/* Shared Post */}
