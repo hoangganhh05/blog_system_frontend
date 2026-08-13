@@ -341,7 +341,6 @@
     max-width: var(--content-max, 680px);
     width: 100%;
     margin: 0 auto;
-    height: calc(100dvh - (var(--navbar-height, 60px) + var(--page-gutter, 16px) * 2));
     overflow-y: auto;
     padding-right: 4px;
     padding-bottom: 60px;
