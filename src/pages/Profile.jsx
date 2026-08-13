@@ -54,32 +54,8 @@ function Profile() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
 
-  // State menu 3 chấm tùy chọn khác & Kho tin lưu trữ (Archived Stories)
+  // State menu 3 chấm tùy chọn khác
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
-  const [showStoryArchiveModal, setShowStoryArchiveModal] = useState(false);
-  const [archivedStories, setArchivedStories] = useState([
-    {
-      id: 101,
-      mediaUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80",
-      createdAt: "2026-08-01T10:00:00Z",
-      views: 12,
-      caption: "Khoảnh khắc tuyệt vời ✨",
-    },
-    {
-      id: 102,
-      mediaUrl: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=600&q=80",
-      createdAt: "2026-07-28T15:30:00Z",
-      views: 24,
-      caption: "Chuyến đi đáng nhớ 🏔️",
-    },
-    {
-      id: 103,
-      mediaUrl: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=80",
-      createdAt: "2026-07-20T08:15:00Z",
-      views: 18,
-      caption: "Bình minh rực rỡ 🌅",
-    },
-  ]);
   const moreMenuRef = useRef(null);
 
   // States hệ thống bạn bè
@@ -640,7 +616,7 @@ function Profile() {
 
                       <div
                         onClick={() => {
-                          navigate("/saved");
+                          setActiveTab("bookmarks");
                           setMoreMenuOpen(false);
                         }}
                         style={{
@@ -658,29 +634,6 @@ function Profile() {
                         onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                       >
                         <span>🔖 Bài viết đã lưu</span>
-                      </div>
-
-                      {/* Tùy chọn Kho tin lưu trữ (Archived Stories) */}
-                      <div
-                        onClick={() => {
-                          setShowStoryArchiveModal(true);
-                          setMoreMenuOpen(false);
-                        }}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          padding: "10px 16px",
-                          color: "var(--text-primary)",
-                          cursor: "pointer",
-                          fontSize: 14,
-                          fontWeight: 600,
-                          transition: "background 0.15s",
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
-                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                      >
-                        <span>🗂️ Kho tin lưu trữ</span>
                       </div>
                     </div>
                   )}
@@ -1038,92 +991,6 @@ function Profile() {
 
 
       </div>
-
-      {/* Modal Kho tin lưu trữ (Archived Stories Modal) */}
-      {showStoryArchiveModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(15, 23, 42, 0.8)",
-            backdropFilter: "blur(6px)",
-            zIndex: 999999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
-          }}
-        >
-          <div
-            style={{
-              background: "var(--bg-card)",
-              border: "1px solid var(--border-light)",
-              borderRadius: 20,
-              maxWidth: 580,
-              width: "100%",
-              maxHeight: "85vh",
-              overflowY: "auto",
-              padding: 24,
-              boxShadow: "0 20px 50px rgba(0,0,0,0.3)",
-              animation: "slideUp 0.2s ease",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, borderBottom: "1px solid var(--border-light)", paddingBottom: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 24 }}>🗂️</span>
-                <div>
-                  <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>
-                    Kho tin lưu trữ (Archived Stories)
-                  </h3>
-                  <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-                    Chỉ bạn mới có thể xem các tin đã hết hạn sau 24h này
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowStoryArchiveModal(false)}
-                style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--text-muted)" }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Grid danh sách tin lưu trữ */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-              {archivedStories.map((story) => (
-                <div
-                  key={story.id}
-                  style={{
-                    position: "relative",
-                    borderRadius: 14,
-                    overflow: "hidden",
-                    aspectRatio: "9 / 16",
-                    background: "#000",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                  }}
-                >
-                  <img src={story.mediaUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.85), transparent 60%)", padding: 10, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                    <div style={{ fontSize: 11, color: "#fff", fontWeight: 600 }}>
-                      📅 {new Date(story.createdAt).toLocaleDateString("vi-VN")}
-                    </div>
-                    <div>
-                      {story.caption && (
-                        <p style={{ fontSize: 12, color: "#fff", margin: "0 0 4px", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {story.caption}
-                        </p>
-                      )}
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", fontWeight: 700 }}>
-                        👁️ {story.views} lượt xem
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Toast Notification */}
       {toast.show && (
