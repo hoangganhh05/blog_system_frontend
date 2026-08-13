@@ -475,7 +475,7 @@ function PostCard({ post, onDelete, style }) {
       <div className="mt-3 px-4 py-2">
         {post.bgColor && post.content && post.content.length <= 130 && !post.thumbNail && !post.sharedPost ? (
           <div
-            className="w-full min-h-[180px] max-h-[260px] aspect-[16/9] px-6 py-8 rounded-xl shadow-inner flex items-center justify-center text-white font-bold text-lg md:text-xl text-center break-words cursor-pointer"
+            className="min-h-[160px] max-h-[240px] w-full rounded-xl flex items-center justify-center p-6 my-2 text-white font-bold text-lg text-center shadow-inner cursor-pointer"
             style={{ background: post.bgColor }}
             onClick={goToDetail}
           >

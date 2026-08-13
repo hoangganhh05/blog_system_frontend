@@ -20,29 +20,8 @@ function timeAgo(dateStr) {
 
 function isMessageNotification(n) {
   if (!n) return false;
-  const typeStr = String(n.type || "").toUpperCase();
-  const contentStr = String(n.content || n.message || n.title || "").toLowerCase();
-
-  if (
-    typeStr.includes("CHAT") ||
-    typeStr.includes("MESSAGE") ||
-    typeStr.includes("MSG") ||
-    typeStr.includes("INBOX") ||
-    typeStr.includes("TIN_NHAN")
-  ) {
-    return true;
-  }
-
-  if (
-    contentStr.includes("đã gửi tin nhắn") ||
-    contentStr.includes("tin nhắn:") ||
-    contentStr.includes("gửi một tin nhắn") ||
-    contentStr.includes("gửi tin nhắn")
-  ) {
-    return true;
-  }
-
-  return false;
+  const type = (n.type || '').toLowerCase();
+  return type.includes('chat') || type.includes('message') || type.includes('msg') || type.includes('inbox') || type.includes('tin_nhan');
 }
 
 function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange }) {
