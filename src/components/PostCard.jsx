@@ -522,18 +522,28 @@ function PostCard({ post, onDelete, style }) {
       </div>
 
       {/* Shared Post */}
+      {/* Shared Post */}
       {post.sharedPost && (
-        <div className="w-full px-4 pb-3 box-border">
-          {post.sharedPost.content && (
-            <p className="text-sm text-gray-900 leading-relaxed mb-3 w-full">
-              {post.sharedPost.content}
-            </p>
-          )}
+        <div
+          className="w-full px-4 pb-3 box-border"
+          style={{ width: "100%", maxWidth: "100%" }}
+        >
+          {post.sharedPost.content &&
+            !post.sharedPost.thumbNail &&
+            !post.sharedPost.bgColor && (
+              <p
+                className="text-sm text-gray-900 leading-relaxed mb-3 w-full"
+                style={{ wordBreak: "break-word" }}
+              >
+                {post.sharedPost.content}
+              </p>
+            )}
           <div
             className="w-full border border-gray-200 rounded-xl p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors box-border overflow-hidden"
+            style={{ width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
             onClick={() => navigate(`/posts/${post.sharedPost.id}`)}
           >
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-3 mb-3 w-full">
               {post.sharedPost.user?.avatarUrl ? (
                 <img
                   src={post.sharedPost.user.avatarUrl}
@@ -541,11 +551,11 @@ function PostCard({ post, onDelete, style }) {
                     post.sharedPost.user?.fullName ||
                     post.sharedPost.user?.username
                   }
-                  className="w-8 h-8 rounded-full object-cover"
+                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                 />
               ) : (
                 <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
                   style={
                     post.sharedPost.user?.avatarColor
                       ? {
@@ -561,8 +571,8 @@ function PostCard({ post, onDelete, style }) {
                   )}
                 </div>
               )}
-              <div>
-                <p className="text-sm font-semibold text-gray-900">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900 truncate">
                   {post.sharedPost.user?.fullName ||
                     post.sharedPost.user?.username ||
                     "Ẩn danh"}
@@ -575,30 +585,32 @@ function PostCard({ post, onDelete, style }) {
             {post.sharedPost.bgColor ? (
               <div
                 className="w-full rounded-lg p-6 text-center"
-                style={{ background: post.sharedPost.bgColor }}
+                style={{ background: post.sharedPost.bgColor, width: "100%" }}
               >
-                <p className="text-white font-bold leading-relaxed">
+                <p className="text-white font-bold leading-relaxed break-words">
                   {post.sharedPost.content}
                 </p>
               </div>
             ) : (
-              <>
+              <div className="w-full">
                 {post.sharedPost.thumbNail && (
                   <img
                     src={post.sharedPost.thumbNail}
-                    alt={post.sharedPost.title}
+                    alt={post.sharedPost.title || "Shared media"}
                     className="w-full h-auto object-cover rounded-lg mb-3 max-h-[200px]"
                   />
                 )}
                 {post.sharedPost.title && (
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2 w-full break-words">
                     {post.sharedPost.title}
                   </h3>
                 )}
-                <p className="text-sm text-gray-600 line-clamp-3">
-                  {post.sharedPost.content}
-                </p>
-              </>
+                {post.sharedPost.content && (
+                  <p className="text-sm text-gray-600 line-clamp-3 w-full break-words">
+                    {post.sharedPost.content}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </div>
