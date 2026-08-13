@@ -1,10 +1,12 @@
+
 /* Tailwind CSS v4 - nạp toàn bộ base/utilities/components của Tailwind.
    Đặt ở đầu file để các class Tailwind (vd trong PostCardDemo) có thể được
    override bởi các rule CSS thuần phía dưới nếu cần, không phá vỡ giao diện cũ. */
-@import "tailwindcss";
-
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap");
 
+@import "tailwindcss";
+
+@
 /* ============================================
    DESIGN TOKENS - PROFESSIONAL SPACING & TYPOGRAPHY SYSTEM
    ============================================ */
