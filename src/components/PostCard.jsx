@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import likeService from "../services/likeService";
@@ -301,146 +301,77 @@ function PostCard({ post, onDelete, style }) {
   const topReactions = REACTIONS.filter((r) => reactionsSummary[r.type] > 0);
 
   return (
-    <article className="post-card feed-item-enter" style={style}>
-      {/* Header */}
-      <div className="post-card-header">
-        <div
-          className="post-card-author"
-          onClick={goToProfile}
-          style={{ cursor: "pointer" }}
-        >
-          {post.user?.avatarUrl ? (
-            <img
-              src={post.user.avatarUrl}
-              alt={authorName}
-              className="avatar avatar-md"
-              style={{ objectFit: "cover" }}
-              onError={(e) => {
-                e.target.style.display = "none";
-              }}
-            />
-          ) : (
-            <div
-              className="avatar avatar-md"
-              style={
-                post.user?.avatarColor
-                  ? {
-                      background: `linear-gradient(135deg, ${post.user.avatarColor}, ${post.user.avatarColor}bb)`,
-                    }
-                  : {}
-              }
-            >
-              {getInitials(authorName)}
-            </div>
-          )}
-
-          <div className="post-card-author-info">
-            <span className="post-card-author-name">{authorName}</span>
-            <div
-              className="post-card-meta"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                flexWrap: "nowrap",
-                whiteSpace: "nowrap",
-              }}
-            >
-              <span>{timeAgo(post.createdAt)}</span>
-              <span>•</span>
-              <span>📖 {getReadingTime(post.content)}</span>
-              <span>•</span>
-              <span
-                title={post.status === "private" ? "Riêng tư" : "Công khai"}
-                style={{ fontSize: 13 }}
-              >
-                {post.status === "private" ? "🔒" : "🌐"}
-              </span>
-              {categoryName && (
-                <span
-                  className="badge"
-                  style={{ marginLeft: 4, whiteSpace: "nowrap" }}
-                >
-                  {categoryName}
-                </span>
-              )}
-            </div>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-200 dark:border-gray-700" style={style}>
+      {/* Header - Author Info */}
+      <div className="flex items-center gap-3 p-4">
+        {post.user?.avatarUrl ? (
+          <img 
+            src={post.user.avatarUrl} 
+            alt={authorName}
+            onClick={goToProfile}
+            className="w-10 h-10 rounded-full object-cover cursor-pointer"
+          />
+        ) : (
+          <div
+            onClick={goToProfile}
+            className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer"
+            style={
+              post.user?.avatarColor
+                ? {
+                    background: `linear-gradient(135deg, ${post.user.avatarColor}, ${post.user.avatarColor}bb)`,
+                    color: "white",
+                    fontWeight: "bold",
+                  }
+                : {
+                    background: "#e5e7eb",
+                    color: "#6b7280",
+                    fontWeight: "bold",
+                  }
+            }
+          >
+            {getInitials(authorName)}
           </div>
+        )}
+        <div className="flex-1">
+          <p 
+            className="text-sm font-semibold text-gray-900 dark:text-white hover:underline cursor-pointer"
+            onClick={goToProfile}
+          >
+            {authorName}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+            <span>{timeAgo(post.createdAt)}</span>
+            <span>·</span>
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+            </svg>
+          </p>
         </div>
-
-        {/* ⋯ Dropdown menu */}
-        <div ref={menuRef} style={{ position: "relative", zIndex: 50 }}>
-          <button
-            className="btn btn-ghost btn-sm"
+        <div ref={menuRef} style={{ position: "relative" }}>
+          <button 
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1"
             onClick={(e) => {
               e.stopPropagation();
               setMenuOpen((v) => !v);
             }}
-            title="Tuỳ chọn"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 20,
-              fontWeight: 700,
-              letterSpacing: 1,
-              color: "var(--text-secondary)",
-            }}
           >
-            ···
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+            </svg>
           </button>
 
           {menuOpen && (
-            <div
-              style={{
-                position: "absolute",
-                top: "calc(100% + 6px)",
-                right: 0,
-                minWidth: 210,
-                background: "var(--bg-card)",
-                borderRadius: 12,
-                boxShadow:
-                  "0 12px 28px rgba(0,0,0,0.18), 0 2px 4px rgba(0,0,0,0.1)",
-                border: "1px solid var(--border-light)",
-                zIndex: 1000,
-                overflow: "hidden",
-                animation: "dropdownFadeIn 0.15s ease",
-              }}
-            >
-              {/* Lưu bài viết */}
+            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
               <button
                 onClick={handleBookmark}
-                style={{
-                  width: "100%",
-                  padding: "11px 16px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: bookmarked ? "var(--primary)" : "var(--text-primary)",
-                  textAlign: "left",
-                  transition: "background 0.15s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "var(--bg-secondary)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "none")
-                }
+                className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 text-sm"
               >
                 <svg
-                  width="18"
-                  height="18"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
-                  fill={bookmarked ? "var(--primary)" : "none"}
-                  stroke={bookmarked ? "var(--primary)" : "currentColor"}
+                  fill={bookmarked ? "currentColor" : "none"}
+                  stroke="currentColor"
                   strokeWidth="2"
                 >
                   <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
@@ -448,7 +379,6 @@ function PostCard({ post, onDelete, style }) {
                 {bookmarked ? "Bỏ lưu bài viết" : "Lưu bài viết"}
               </button>
 
-              {/* Copy link */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -465,101 +395,35 @@ function PostCard({ post, onDelete, style }) {
                     } catch {}
                     document.body.removeChild(ta);
                   }
-                  showToast(
-                    "Đã sao chép liên kết vào khay nhớ tạm!",
-                    "success",
-                  );
+                  showToast("Đã sao chép liên kết!", "success");
                   setMenuOpen(false);
                 }}
-                style={{
-                  width: "100%",
-                  padding: "11px 16px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: "var(--text-primary)",
-                  textAlign: "left",
-                  transition: "background 0.15s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "var(--bg-secondary)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "none")
-                }
+                className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 text-sm"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                   <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                 </svg>
                 Sao chép liên kết
               </button>
 
-              {/* Chỉnh sửa & Xóa */}
               {isOwner && (
                 <>
-                  <div
-                    style={{
-                      height: 1,
-                      background: "var(--border)",
-                      margin: "4px 0",
-                    }}
-                  />
-
+                  <div className="border-t border-gray-200 dark:border-gray-700" />
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/dashboard?edit=${post.id}`);
                       setMenuOpen(false);
                     }}
-                    style={{
-                      width: "100%",
-                      padding: "11px 16px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: "var(--text-primary)",
-                      textAlign: "left",
-                      transition: "background 0.15s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = "var(--bg-secondary)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "none")
-                    }
+                    className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 text-sm"
                   >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 20h9" />
                       <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                     </svg>
                     Chỉnh sửa bài viết
                   </button>
-
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -568,37 +432,9 @@ function PostCard({ post, onDelete, style }) {
                       }
                       setMenuOpen(false);
                     }}
-                    style={{
-                      width: "100%",
-                      padding: "11px 16px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: "var(--danger)",
-                      textAlign: "left",
-                      transition: "background 0.15s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(255,59,48,0.07)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "none")
-                    }
+                    className="w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 text-sm text-red-600 dark:text-red-400"
                   >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="3 6 5 6 21 6" />
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                     </svg>
@@ -611,7 +447,16 @@ function PostCard({ post, onDelete, style }) {
         </div>
       </div>
 
-      {/* Media / Thumbnail — hỗ trợ Video playsInline di động & Xem ảnh toàn màn hình Facebook Lightbox */}
+      {/* Content - Text */}
+      {post.content && !post.sharedPost && !post.bgColor && (
+        <div className="px-4 pb-3">
+          <p className="text-sm text-gray-900 dark:text-white leading-relaxed">
+            {post.content}
+          </p>
+        </div>
+      )}
+
+      {/* Image - Full Width */}
       {post.thumbNail &&
         !post.bgColor &&
         !post.sharedPost &&
@@ -622,362 +467,167 @@ function PostCard({ post, onDelete, style }) {
             playsInline
             webkit-playsinline="true"
             preload="metadata"
-            style={{
-              width: "100%",
-              maxHeight: 450,
-              objectFit: "contain",
-              background: "#000",
-              display: "block",
-            }}
+            className="w-full max-h-[500px] object-contain bg-black"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <img
             src={post.thumbNail}
             alt={post.title}
-            className="post-card-thumbnail"
+            className="w-full h-auto object-cover max-h-[500px] cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               setShowLightbox(true);
             }}
-            style={{ cursor: "pointer" }}
             onError={(e) => {
               e.target.style.display = "none";
             }}
           />
         ))}
 
-      {/* Body / Content */}
-      {post.sharedPost ? (
-        /* GIAO DIỆN BÀI VIẾT CHIA SẺ CHUẨN FACEBOOK (NHÚNG BÀI GỐC BÊN TRONG) */
-        <div className="post-card-body" style={{ padding: "0 16px 16px 16px" }}>
-          {/* Nội dung bình luận của người chia sẻ (nếu có) */}
+      {/* Background Color Post */}
+      {post.bgColor && !post.sharedPost && (
+        <div
+          className="py-12 px-4 text-center cursor-pointer"
+          style={{ background: post.bgColor }}
+          onClick={goToDetail}
+        >
+          <p
+            className="text-white font-bold leading-relaxed"
+            style={{
+              fontSize: post.content?.length < 80 ? "1.5rem" : "1rem",
+              textShadow: "0 1px 4px rgba(0,0,0,0.28)",
+            }}
+          >
+            {post.content}
+          </p>
+        </div>
+      )}
+
+      {/* Shared Post */}
+      {post.sharedPost && (
+        <div className="px-4 pb-3">
           {post.content && (
-            <p
-              style={{
-                fontSize: 15,
-                color: "var(--text-primary)",
-                marginBottom: 12,
-                lineHeight: 1.45,
-              }}
-            >
+            <p className="text-sm text-gray-900 dark:text-white leading-relaxed mb-3">
               {post.content}
             </p>
           )}
-
-          {/* Hộp nhúng bài viết gốc bên trong */}
           <div
+            className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             onClick={() => navigate(`/posts/${post.sharedPost.id}`)}
-            style={{
-              border: "1px solid var(--border-light)",
-              borderRadius: 12,
-              padding: 16,
-              background: "var(--bg-input)",
-              cursor: "pointer",
-              transition: "background 0.2s",
-              position: "relative",
-              overflow: "hidden",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.background = "var(--bg-input)")
-            }
           >
-            {/* Header của bài viết gốc */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                marginBottom: 12,
-              }}
-            >
+            <div className="flex items-center gap-3 mb-3">
               {post.sharedPost.user?.avatarUrl ? (
                 <img
                   src={post.sharedPost.user.avatarUrl}
-                  alt={
-                    post.sharedPost.user?.fullName ||
-                    post.sharedPost.user?.username
-                  }
-                  className="avatar avatar-sm"
-                  style={{ objectFit: "cover" }}
+                  alt={post.sharedPost.user?.fullName || post.sharedPost.user?.username}
+                  className="w-8 h-8 rounded-full object-cover"
                 />
               ) : (
                 <div
-                  className="avatar avatar-sm"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
                   style={
                     post.sharedPost.user?.avatarColor
                       ? {
                           background: `linear-gradient(135deg, ${post.sharedPost.user.avatarColor}, ${post.sharedPost.user.avatarColor}bb)`,
                         }
-                      : {}
+                      : { background: "#9ca3af" }
                   }
                 >
-                  {getInitials(
-                    post.sharedPost.user?.fullName ||
-                      post.sharedPost.user?.username ||
-                      "?",
-                  )}
+                  {getInitials(post.sharedPost.user?.fullName || post.sharedPost.user?.username || "?")}
                 </div>
               )}
               <div>
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 13.5,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  {post.sharedPost.user?.fullName ||
-                    post.sharedPost.user?.username ||
-                    "Ẩn danh"}
-                </div>
-                <div
-                  style={{
-                    fontSize: 11,
-                    color: "var(--text-muted)",
-                    marginTop: 1,
-                  }}
-                >
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {post.sharedPost.user?.fullName || post.sharedPost.user?.username || "Ẩn danh"}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {timeAgo(post.sharedPost.createdAt)}
-                </div>
+                </p>
               </div>
             </div>
-
-            {/* Nội dung bài viết gốc */}
             {post.sharedPost.bgColor ? (
               <div
-                style={{
-                  background: post.sharedPost.bgColor,
-                  borderRadius: 10,
-                  padding: "24px 16px",
-                  minHeight: 120,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                }}
+                className="rounded-lg p-6 text-center"
+                style={{ background: post.sharedPost.bgColor }}
               >
-                <p
-                  style={{
-                    color: "#fff",
-                    textAlign: "center",
-                    fontSize: post.sharedPost.content?.length < 80 ? 17 : 14,
-                    fontWeight: 700,
-                    lineHeight: 1.45,
-                    margin: 0,
-                    textShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                  }}
-                >
+                <p className="text-white font-bold leading-relaxed">
                   {post.sharedPost.content}
                 </p>
               </div>
             ) : (
               <>
-                {post.sharedPost.thumbNail &&
-                  (isVideoUrl(post.sharedPost.thumbNail) ? (
-                    <video
-                      src={post.sharedPost.thumbNail}
-                      controls
-                      style={{
-                        width: "100%",
-                        maxHeight: 240,
-                        objectFit: "contain",
-                        background: "#000",
-                        borderRadius: 8,
-                        marginBottom: 10,
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  ) : (
-                    <img
-                      src={post.sharedPost.thumbNail}
-                      alt={post.sharedPost.title}
-                      style={{
-                        width: "100%",
-                        maxHeight: 200,
-                        objectFit: "cover",
-                        borderRadius: 8,
-                        marginBottom: 10,
-                      }}
-                    />
-                  ))}
-                <h3
-                  style={{
-                    fontSize: 15,
-                    fontWeight: 700,
-                    marginBottom: 6,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  {post.sharedPost.title}
-                </h3>
-                <p
-                  style={{
-                    fontSize: 13.5,
-                    color: "var(--text-secondary)",
-                    lineHeight: 1.4,
-                    display: "-webkit-box",
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}
-                >
+                {post.sharedPost.thumbNail && (
+                  <img
+                    src={post.sharedPost.thumbNail}
+                    alt={post.sharedPost.title}
+                    className="w-full h-auto object-cover rounded-lg mb-3 max-h-[200px]"
+                  />
+                )}
+                {post.sharedPost.title && (
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                    {post.sharedPost.title}
+                  </h3>
+                )}
+                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
                   {post.sharedPost.content}
                 </p>
               </>
             )}
           </div>
         </div>
-      ) : post.bgColor ? (
-        <div
-          className="post-card-bg-color"
-          style={{ background: post.bgColor }}
-          onClick={goToDetail}
-        >
-          <p
-            style={{
-              color: "rgba(255,255,255,0.97)",
-              textAlign: "center",
-              fontSize: post.content?.length < 80 ? 24 : 17,
-              fontWeight: 700,
-              lineHeight: 1.55,
-              textShadow: "0 1px 4px rgba(0,0,0,0.28)",
-              margin: 0,
-            }}
-          >
-            {post.content}
-          </p>
-        </div>
-      ) : (
-        <div className="post-card-body">
-          <h2 className="post-card-title" onClick={goToDetail}>
-            {post.title}
-          </h2>
-          <p className="post-card-excerpt">{post.content}</p>
-        </div>
       )}
 
-      {/* Stats — Hiển thị các icon cảm xúc top đầu */}
-      <div className="post-card-stats">
-        <div
-          className="post-card-likes"
+      {/* Stats */}
+      <div className="flex items-center justify-between px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+        <div 
+          className="flex items-center gap-1 cursor-pointer hover:underline"
           onClick={() => setIsReactionsModalOpen(true)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            cursor: "pointer",
-          }}
-          title="Nhấp để xem danh sách người thả cảm xúc"
         >
-          {likeCount > 0 && (
-            <>
-              <div
-                style={{ display: "flex", alignItems: "center", marginLeft: 2 }}
-              >
-                {topReactions.length > 0 ? (
-                  topReactions.slice(0, 3).map((r, idx) => (
-                    <span
-                      key={r.type}
-                      style={{
-                        fontSize: 16,
-                        marginLeft: idx > 0 ? -6 : 0,
-                        zIndex: 3 - idx,
-                        filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.2))",
-                      }}
-                    >
-                      {r.emoji}
-                    </span>
-                  ))
-                ) : (
-                  <div
-                    style={{
-                      width: 18,
-                      height: 18,
-                      borderRadius: "50%",
-                      background: "#1877f2",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    <svg
-                      width="11"
-                      height="11"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              <span
-                style={{
-                  fontSize: 13,
-                  color: "var(--text-muted)",
-                  fontWeight: 500,
-                  marginLeft: 4,
-                }}
-              >
-                {likeCount}
+          <div className="flex -space-x-1">
+            {topReactions.length > 0 ? (
+              topReactions.slice(0, 3).map((r, idx) => (
+                <span
+                  key={r.type}
+                  className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-xs"
+                  style={{ marginLeft: idx > 0 ? "-4px" : "0", zIndex: 3 - idx }}
+                >
+                  {r.emoji}
+                </span>
+              ))
+            ) : (
+              <span className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                </svg>
               </span>
-            </>
-          )}
+            )}
+          </div>
+          <span>{likeCount}</span>
         </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            fontSize: 13,
-            color: "var(--text-muted)",
-          }}
-        >
-          {post.viewCount > 0 && <span>{post.viewCount} lượt xem</span>}
-          <span style={{ cursor: "pointer" }} onClick={goToDetail}>
+        <div className="flex gap-3">
+          <span className="hover:underline cursor-pointer" onClick={goToDetail}>
             Xem bình luận
           </span>
+          {post.viewCount > 0 && (
+            <span>{post.viewCount} lượt xem</span>
+          )}
         </div>
       </div>
 
-      <div className="post-card-divider" />
-
-      {/* Action buttons với Popup Emoji Cảm Xúc */}
-      <div className="post-card-actions" style={{ position: "relative" }}>
-        {/* Floating Emoji Popup Bar (Facebook Mobile Touch Drag & Hover Style) */}
+      {/* Interactions - Like, Comment, Share */}
+      <div className="flex items-center justify-around py-1 border-t border-gray-100 dark:border-gray-700 relative">
+        {/* Reactions Picker */}
         {showReactionsPicker && (
           <div
             onMouseEnter={handleMouseEnterLike}
             onMouseLeave={handleMouseLeaveLike}
             onTouchMove={handleTouchMoveLike}
             onTouchEnd={handleTouchEndLike}
-            style={{
-              position: "absolute",
-              bottom: "calc(100% + 8px)",
-              left: 12,
-              background: "var(--bg-card)",
-              borderRadius: 30,
-              padding: "6px 14px",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              boxShadow:
-                "0 10px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.12)",
-              border: "1px solid var(--border-light)",
-              zIndex: 9999,
-              animation:
-                "reactionPopIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-              touchAction: "none",
-            }}
+            className="absolute bottom-full left-2 mb-2 bg-white dark:bg-gray-800 rounded-full px-3 py-2 flex items-center gap-2 shadow-lg border border-gray-200 dark:border-gray-700 z-50"
           >
             {REACTIONS.map((r) => {
-              const isSelected =
-                hoveredReaction === r.type || userReaction === r.type;
+              const isSelected = hoveredReaction === r.type || userReaction === r.type;
               return (
                 <button
                   key={r.type}
@@ -985,112 +635,59 @@ function PostCard({ post, onDelete, style }) {
                   data-reaction-type={r.type}
                   title={r.label}
                   onClick={() => handleSelectReaction(r.type)}
+                  className="text-2xl transition-transform hover:scale-125"
                   style={{
-                    background: "none",
-                    border: "none",
-                    fontSize: 28,
-                    cursor: "pointer",
-                    padding: 2,
-                    lineHeight: 1,
-                    transition:
-                      "transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                    transform: isSelected
-                      ? "scale(1.5) translateY(-6px)"
-                      : "scale(1)",
+                    transform: isSelected ? "scale(1.5) translateY(-4px)" : "scale(1)",
                   }}
                   onMouseEnter={() => setHoveredReaction(r.type)}
                   onMouseLeave={() => setHoveredReaction(null)}
                 >
-                  <span
-                    data-reaction-type={r.type}
-                    style={{ pointerEvents: "none" }}
-                  >
-                    {r.emoji}
-                  </span>
+                  {r.emoji}
                 </button>
               );
             })}
           </div>
         )}
 
-        {/* Like Button */}
-        <div
+        <button
           onMouseEnter={handleMouseEnterLike}
           onMouseLeave={handleMouseLeaveLike}
           onTouchStart={handleTouchStartLike}
           onTouchMove={handleTouchMoveLike}
           onTouchEnd={handleTouchEndLike}
-          style={{ flex: 1, display: "flex" }}
+          onClick={handleToggleLike}
+          className={`flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors ${liked ? "text-blue-500" : ""}`}
+          style={{ color: activeReactionObj ? activeReactionObj.color : "" }}
         >
-          <button
-            className={`post-action-btn ${liked ? "liked" : ""}`}
-            onClick={handleToggleLike}
-            style={{
-              width: "100%",
-              color: activeReactionObj ? activeReactionObj.color : "inherit",
-              fontWeight: liked ? "700" : "500",
-              gap: 6,
-              userSelect: "none",
-              touchAction: "manipulation",
-            }}
-          >
-            {activeReactionObj ? (
-              <span style={{ fontSize: 18, lineHeight: 1 }}>
-                {activeReactionObj.emoji}
-              </span>
-            ) : (
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-              </svg>
-            )}
-            {activeReactionObj ? activeReactionObj.label : "Thích"}
-          </button>
-        </div>
-
-        <button className="post-action-btn" onClick={goToDetail}>
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-          Bình luận
+          {activeReactionObj ? (
+            <span className="text-lg">{activeReactionObj.emoji}</span>
+          ) : (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+            </svg>
+          )}
+          <span className="text-sm font-medium">{activeReactionObj ? activeReactionObj.label : "Thích"}</span>
         </button>
 
-        <div style={{ flex: 1, display: "flex" }}>
-          <button
-            className="post-action-btn"
-            onClick={() => setIsShareModalOpen(true)}
-            style={{ width: "100%", gap: 6 }}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="18" cy="5" r="3" />
-              <circle cx="6" cy="12" r="3" />
-              <circle cx="18" cy="19" r="3" />
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-            </svg>
-            Chia sẻ
-          </button>
-        </div>
+        <button 
+          className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+          onClick={goToDetail}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          <span className="text-sm font-medium">Bình luận</span>
+        </button>
+
+        <button 
+          className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+          onClick={() => setIsShareModalOpen(true)}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+          </svg>
+          <span className="text-sm font-medium">Chia sẻ</span>
+        </button>
       </div>
 
       {/* Share Modal */}
@@ -1101,7 +698,7 @@ function PostCard({ post, onDelete, style }) {
         onToast={showToast}
       />
 
-      {/* Reactions Modal - Danh sách người thả cảm xúc */}
+      {/* Reactions Modal */}
       <ReactionsModal
         postId={post.id}
         isOpen={isReactionsModalOpen}
@@ -1112,71 +709,36 @@ function PostCard({ post, onDelete, style }) {
 
       {/* Toast Notification */}
       {toast.show && (
-        <div className={`custom-toast ${toast.type}`}>
-          <span>
-            {toast.type === "success"
-              ? "✓"
-              : toast.type === "error"
-                ? "❌"
-                : "ℹ️"}
-          </span>
-          <span>{toast.message}</span>
+        <div
+          className={`fixed bottom-5 right-5 px-4 py-3 rounded-lg shadow-lg text-white z-50 ${
+            toast.type === "success" ? "bg-green-500" : toast.type === "error" ? "bg-red-500" : "bg-blue-500"
+          }`}
+        >
+          {toast.message}
         </div>
       )}
 
-      {/* Facebook Lightbox Fullscreen Image Viewer Modal */}
+      {/* Lightbox */}
       {showLightbox && (
         <div
           onClick={() => setShowLightbox(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.94)",
-            zIndex: 99999999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
-            animation: "fadeIn 0.2s ease",
-          }}
+          className="fixed inset-0 bg-black/94 z-[99999999] flex items-center justify-center p-4"
         >
           <button
             onClick={() => setShowLightbox(false)}
-            style={{
-              position: "absolute",
-              top: 20,
-              right: 20,
-              background: "rgba(255, 255, 255, 0.25)",
-              color: "#ffffff",
-              border: "none",
-              borderRadius: "50%",
-              width: 44,
-              height: 44,
-              fontSize: 22,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 10,
-            }}
+            className="absolute top-5 right-5 bg-white/25 text-white rounded-full w-11 h-11 flex items-center justify-center text-xl cursor-pointer hover:bg-white/40 transition-colors z-10"
           >
             ✕
           </button>
           <img
             src={post.thumbNail}
             alt=""
-            style={{
-              maxWidth: "100%",
-              maxHeight: "90vh",
-              objectFit: "contain",
-              borderRadius: 12,
-              boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
-            }}
+            className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}
-    </article>
+    </div>
   );
 }
 
