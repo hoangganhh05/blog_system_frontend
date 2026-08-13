@@ -95,6 +95,10 @@ axiosClient.interceptors.response.use(
         requestUrl,
         error.response?.data || error.message,
       );
+      // Hiển thị thông báo rõ ràng cho người dùng
+      if (typeof window !== "undefined") {
+        console.warn("Bạn không có quyền truy cập tài nguyên này.");
+      }
     }
 
     console.error("API Error:", {
