@@ -54,6 +54,7 @@ function Home({ searchValue = "" }) {
   const search = searchValue;
   const observerRef = useRef(null);
   const loadMoreRef = useRef(null);
+  const isFetchingRef = useRef(false);
 
   // Load categories
   useEffect(() => {
@@ -66,6 +67,10 @@ function Home({ searchValue = "" }) {
   // Load posts (reset khi đổi category hoặc tìm kiếm)
   const loadPosts = useCallback(
     async (pageNum = 0, categoryId = null, searchQuery = "", reset = false) => {
+      // Fetch guard: prevent duplicate requests
+      if (isFetchingRef.current) return;
+      isFetchingRef.current = true;
+
       if (pageNum === 0) setLoading(true);
       else setLoadingMore(true);
 
@@ -104,6 +109,7 @@ function Home({ searchValue = "" }) {
       } finally {
         setLoading(false);
         setLoadingMore(false);
+        isFetchingRef.current = false;
       }
     },
     [],
@@ -119,11 +125,15 @@ function Home({ searchValue = "" }) {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loadingMore && hasMore) {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
           loadPosts(page + 1, activeCategoryId, search);
         }
       },
-      { threshold: 0.1, rootMargin: "100px" }
+      {
+        root: null,
+        rootMargin: '300px',
+        threshold: 0.1
+      }
     );
 
     if (loadMoreRef.current) {
@@ -331,6 +341,7 @@ function Home({ searchValue = "" }) {
               {hasMore && !search && (
                 <div
                   ref={loadMoreRef}
+                  className="h-12 w-full flex justify-center items-center my-4"
                   style={{ textAlign: "center", padding: "20px 0" }}
                 >
                   {loadingMore && (
@@ -338,6 +349,13 @@ function Home({ searchValue = "" }) {
                       ⏳ Đang tải thêm bài viết...
                     </span>
                   )}
+                </div>
+              )}
+
+              {/* End of posts message */}
+              {!hasMore && posts.length > 0 && (
+                <div style={{ textAlign: "center", padding: "20px 0" }}>
+                  <p className="text-gray-400 text-sm">Bạn đã xem hết bài viết!</p>
                 </div>
               )}
             </>

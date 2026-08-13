@@ -190,7 +190,8 @@ function PostDetail() {
           if (checkL.data.reactionsSummary) setReactionsSummary(checkL.data.reactionsSummary);
           setBookmarked(checkB.data.bookmarked);
         }
-      } catch {
+      } catch (err) {
+        console.error("Error fetching post:", err);
         if (isInitial) setError("Đang tải...");
       } finally {
         if (isInitial) setLoading(false);
