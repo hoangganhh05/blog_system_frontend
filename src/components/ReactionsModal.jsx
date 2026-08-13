@@ -15,10 +15,21 @@ const REACTIONS_MAP = [
 
 function getInitials(name) {
   if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 }
 
-export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount, reactionsSummary }) {
+export default function ReactionsModal({
+  postId,
+  isOpen,
+  onClose,
+  totalLikeCount,
+  reactionsSummary,
+}) {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState("ALL");
@@ -37,19 +48,38 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
       .then((resLikes) => {
         if (cancelled) return;
 
-        let rawLikes = resLikes.data || [];
+        // Xử lý cả mảng thường lẫn dữ liệu phân trang Spring Boot (resLikes.data.content)
+        let rawLikes = [];
+        if (Array.isArray(resLikes.data)) {
+          rawLikes = resLikes.data;
+        } else if (resLikes.data && Array.isArray(resLikes.data.content)) {
+          rawLikes = resLikes.data.content;
+        } else if (resLikes.data && Array.isArray(resLikes.data.data)) {
+          rawLikes = resLikes.data.data;
+        }
 
-        // Chỉ dùng fallback khi chưa có dữ liệu thật từ backend.
-        if (rawLikes.length === 0 && reactionsSummary && Object.keys(reactionsSummary).length > 0) {
+        // Nếu Backend chưa trả đủ danh sách người dùng thật, tạo danh sách hiển thị tạm không bị trùng tên
+        if (
+          rawLikes.length === 0 &&
+          reactionsSummary &&
+          Object.keys(reactionsSummary).length > 0
+        ) {
           const fallbackList = [];
-          const currentU = currentUser || { id: 1, fullName: "Long", username: "longbg2005" };
-
           let userIndex = 0;
+
           Object.entries(reactionsSummary).forEach(([reactType, count]) => {
             for (let i = 0; i < count; i++) {
+              const isSelf = userIndex === 0 && currentUser;
               fallbackList.push({
-                id: userIndex + 1,
-                user: currentU,
+                id: `fallback-${userIndex}`,
+                user: isSelf
+                  ? currentUser
+                  : {
+                      id: `user-${userIndex}`,
+                      fullName: `Người dùng ${userIndex + 1}`,
+                      username: `user_${userIndex + 1}`,
+                      avatarColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+                    },
                 type: reactType.toUpperCase(),
               });
               userIndex++;
@@ -72,20 +102,32 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
   if (!isOpen) return null;
   if (typeof document === "undefined") return null;
 
-  // Lọc người dùng theo tab cảm xúc đang chọn chuẩn xác 100%
-  const filteredUsers = activeTab === "ALL"
-    ? reactionsList
-    : reactionsList.filter((item) => {
-        const itemType = (item.type || item.reactionType || item.userReaction || item.reaction || "").toUpperCase();
-        return itemType === activeTab.toUpperCase();
-      });
+  const filteredUsers =
+    activeTab === "ALL"
+      ? reactionsList
+      : reactionsList.filter((item) => {
+          const itemType = (
+            item.type ||
+            item.reactionType ||
+            item.userReaction ||
+            item.reaction ||
+            ""
+          ).toUpperCase();
+          return itemType === activeTab.toUpperCase();
+        });
 
-  // Đếm số lượng theo từng tab
   const getTabCount = (type) => {
     if (type === "ALL") return totalLikeCount || reactionsList.length;
-    if (reactionsSummary && reactionsSummary[type] !== undefined) return reactionsSummary[type];
+    if (reactionsSummary && reactionsSummary[type] !== undefined)
+      return reactionsSummary[type];
     return reactionsList.filter((item) => {
-      const itemType = (item.type || item.reactionType || item.userReaction || item.reaction || "").toUpperCase();
+      const itemType = (
+        item.type ||
+        item.reactionType ||
+        item.userReaction ||
+        item.reaction ||
+        ""
+      ).toUpperCase();
       return itemType === type.toUpperCase();
     }).length;
   };
@@ -131,7 +173,14 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
             borderBottom: "1px solid var(--border-light)",
           }}
         >
-          <h3 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
+          <h3
+            style={{
+              fontSize: 17,
+              fontWeight: 700,
+              margin: 0,
+              color: "var(--text-primary)",
+            }}
+          >
             Bảng cảm xúc bài viết ({totalLikeCount || reactionsList.length})
           </h3>
           <button
@@ -154,7 +203,7 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
           </button>
         </div>
 
-        {/* Reaction Tabs Header Bar */}
+        {/* Reaction Tabs */}
         <div
           style={{
             display: "flex",
@@ -165,14 +214,19 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
             scrollbarWidth: "none",
           }}
         >
-          {/* Tab All */}
           <button
             onClick={() => setActiveTab("ALL")}
             style={{
               background: activeTab === "ALL" ? "var(--primary-light)" : "none",
               border: "none",
-              borderBottom: activeTab === "ALL" ? "3px solid var(--primary)" : "3px solid transparent",
-              color: activeTab === "ALL" ? "var(--primary)" : "var(--text-secondary)",
+              borderBottom:
+                activeTab === "ALL"
+                  ? "3px solid var(--primary)"
+                  : "3px solid transparent",
+              color:
+                activeTab === "ALL"
+                  ? "var(--primary)"
+                  : "var(--text-secondary)",
               padding: "8px 14px",
               borderRadius: "8px 8px 0 0",
               fontWeight: activeTab === "ALL" ? 700 : 600,
@@ -184,7 +238,6 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
             Tất cả ({getTabCount("ALL")})
           </button>
 
-          {/* Individual Reaction Tabs */}
           {REACTIONS_MAP.map((r) => {
             const count = getTabCount(r.type);
             if (count === 0 && activeTab !== r.type) return null;
@@ -193,10 +246,17 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
                 key={r.type}
                 onClick={() => setActiveTab(r.type)}
                 style={{
-                  background: activeTab === r.type ? "var(--primary-light)" : "none",
+                  background:
+                    activeTab === r.type ? "var(--primary-light)" : "none",
                   border: "none",
-                  borderBottom: activeTab === r.type ? "3px solid var(--primary)" : "3px solid transparent",
-                  color: activeTab === r.type ? "var(--primary)" : "var(--text-secondary)",
+                  borderBottom:
+                    activeTab === r.type
+                      ? "3px solid var(--primary)"
+                      : "3px solid transparent",
+                  color:
+                    activeTab === r.type
+                      ? "var(--primary)"
+                      : "var(--text-secondary)",
                   padding: "8px 14px",
                   borderRadius: "8px 8px 0 0",
                   fontWeight: activeTab === r.type ? 700 : 600,
@@ -215,25 +275,42 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
           })}
         </div>
 
-        {/* Scrollable Users List */}
+        {/* Users List */}
         <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
           {loading ? (
-            <div style={{ textAlign: "center", padding: "30px 0", color: "var(--text-muted)", fontSize: 14 }}>
+            <div
+              style={{
+                textAlign: "center",
+                padding: "30px 0",
+                color: "var(--text-muted)",
+                fontSize: 14,
+              }}
+            >
               ⏳ Đang tải danh sách người dùng...
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "30px 0", color: "var(--text-muted)", fontSize: 14 }}>
+            <div
+              style={{
+                textAlign: "center",
+                padding: "30px 0",
+                color: "var(--text-muted)",
+                fontSize: 14,
+              }}
+            >
               Chưa có ai thả cảm xúc ở mục này.
             </div>
           ) : (
             filteredUsers.map((item, idx) => {
               const u = item.user || item;
               const name = u.fullName || u.username || "Người dùng";
-              const rObj = REACTIONS_MAP.find((r) => r.type === (item.type || item.reactionType)) || REACTIONS_MAP[0];
+              const rObj =
+                REACTIONS_MAP.find(
+                  (r) => r.type === (item.type || item.reactionType),
+                ) || REACTIONS_MAP[0];
 
               return (
                 <div
-                  key={u.id || idx}
+                  key={item.id || idx}
                   onClick={() => {
                     if (u.id) {
                       onClose();
@@ -249,16 +326,24 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
                     cursor: "pointer",
                     transition: "background 0.15s",
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "var(--bg-hover)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "transparent")
+                  }
                 >
-                  {/* Avatar + Reaction Emoji Sub-Badge */}
                   <div style={{ position: "relative" }}>
                     {u.avatarUrl ? (
                       <img
                         src={u.avatarUrl}
                         alt={name}
-                        style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }}
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
                       />
                     ) : (
                       <div
@@ -267,7 +352,17 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
                           width: 44,
                           height: 44,
                           fontSize: 15,
-                          background: u.avatarColor ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)` : undefined,
+                          background: u.avatarColor
+                            ? u.avatarColor.startsWith("#")
+                              ? u.avatarColor
+                              : `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)`
+                            : "#3b82f6",
+                          color: "#fff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: "50%",
+                          fontWeight: "bold",
                         }}
                       >
                         {getInitials(name)}
@@ -289,11 +384,28 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
                     </span>
                   </div>
 
-                  {/* Name info */}
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{name}</span>
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 700,
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      {name}
+                    </span>
                     {u.username && (
-                      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>@{u.username}</span>
+                      <span
+                        style={{ fontSize: 12, color: "var(--text-muted)" }}
+                      >
+                        @{u.username}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -303,6 +415,6 @@ export default function ReactionsModal({ postId, isOpen, onClose, totalLikeCount
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
