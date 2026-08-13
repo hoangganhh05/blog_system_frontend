@@ -292,7 +292,7 @@ function PostCard({ post, onDelete, style }) {
   const topReactions = REACTIONS.filter((r) => reactionsSummary[r.type] > 0);
 
   return (
-    <div className="bg-white text-gray-900 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 h-auto" style={style}>
+    <div className="post-card w-full block bg-white text-gray-900 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 box-border" style={style}>
       {/* Header - Author Info */}
       <div className="flex items-center gap-3 p-4">
         {post.user?.avatarUrl ? (

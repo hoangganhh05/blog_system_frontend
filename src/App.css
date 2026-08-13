@@ -338,14 +338,16 @@
 
   .feed-column {
     min-width: 0;
-    max-width: var(--content-max, 680px);
+    max-width: min(760px, 100%);
     width: 100%;
     margin: 0 auto;
     height: calc(100dvh - (var(--navbar-height, 60px) + var(--page-gutter, 16px) * 2));
     overflow-y: auto;
+    overflow-x: hidden;
     padding-right: 4px;
     padding-bottom: 60px;
     scrollbar-width: thin;
+    box-sizing: border-box;
   }
 }
 
@@ -520,6 +522,12 @@
   transition:
     transform var(--transition),
     box-shadow var(--transition);
+  /* Đảm bảo card luôn chiếm toàn bộ chiều ngang của container cha */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: block;
+  overflow: hidden;
 }
 
 .post-card:hover {
