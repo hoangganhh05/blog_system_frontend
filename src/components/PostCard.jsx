@@ -301,7 +301,7 @@ function PostCard({ post, onDelete, style }) {
   const topReactions = REACTIONS.filter((r) => reactionsSummary[r.type] > 0);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-200 dark:border-gray-700" style={style}>
+    <div className="bg-white text-gray-900 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-200" style={style}>
       {/* Header - Author Info */}
       <div className="flex items-center gap-3 p-4">
         {post.user?.avatarUrl ? (
@@ -334,12 +334,12 @@ function PostCard({ post, onDelete, style }) {
         )}
         <div className="flex-1">
           <p 
-            className="text-sm font-semibold text-gray-900 dark:text-white hover:underline cursor-pointer"
+            className="text-sm font-semibold text-gray-900 hover:underline cursor-pointer"
             onClick={goToProfile}
           >
             {authorName}
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+          <p className="text-xs text-gray-500 flex items-center gap-1">
             <span>{timeAgo(post.createdAt)}</span>
             <span>·</span>
             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -349,7 +349,7 @@ function PostCard({ post, onDelete, style }) {
         </div>
         <div ref={menuRef} style={{ position: "relative" }}>
           <button 
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1"
+            className="text-gray-400 hover:text-gray-600 p-1"
             onClick={(e) => {
               e.stopPropagation();
               setMenuOpen((v) => !v);
@@ -361,10 +361,10 @@ function PostCard({ post, onDelete, style }) {
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
+            <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
               <button
                 onClick={handleBookmark}
-                className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 text-sm"
+                className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center gap-3 text-sm"
               >
                 <svg
                   width="16"
@@ -398,7 +398,7 @@ function PostCard({ post, onDelete, style }) {
                   showToast("Đã sao chép liên kết!", "success");
                   setMenuOpen(false);
                 }}
-                className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 text-sm"
+                className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center gap-3 text-sm"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
@@ -409,14 +409,14 @@ function PostCard({ post, onDelete, style }) {
 
               {isOwner && (
                 <>
-                  <div className="border-t border-gray-200 dark:border-gray-700" />
+                  <div className="border-t border-gray-200" />
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/dashboard?edit=${post.id}`);
                       setMenuOpen(false);
                     }}
-                    className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 text-sm"
+                    className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center gap-3 text-sm"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 20h9" />
@@ -432,7 +432,7 @@ function PostCard({ post, onDelete, style }) {
                       }
                       setMenuOpen(false);
                     }}
-                    className="w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 text-sm text-red-600 dark:text-red-400"
+                    className="w-full px-4 py-3 text-left hover:bg-red-50 flex items-center gap-3 text-sm text-red-600"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="3 6 5 6 21 6" />
@@ -447,57 +447,61 @@ function PostCard({ post, onDelete, style }) {
         </div>
       </div>
 
-      {post.bgColor ? (
-        <div className="w-full flex items-center justify-center min-h-[280px] p-6 my-3 rounded-xl text-white text-2xl font-bold text-center break-words shadow-md cursor-pointer md:min-h-[350px] md:text-4xl md:p-8" style={{ background: post.bgColor }} onClick={goToDetail}>
-          <p className="max-w-full drop-shadow-md leading-relaxed">{post.content}</p>
-        </div>
-      ) : (
-        <>
-          {post.content && !post.sharedPost && (
-            <div className="w-full text-base text-gray-800 dark:text-white text-left whitespace-pre-wrap break-words my-2 px-4 pb-3">
+      <div className="mt-3">
+        {post.bgColor ? (
+          <div className={`w-full flex items-center justify-center min-h-[200px] md:min-h-[300px] p-4 md:p-8 rounded-xl text-white font-bold text-center break-words shadow-sm overflow-hidden cursor-pointer`} style={{ background: post.bgColor }} onClick={goToDetail}>
+            <p className="max-w-full text-xl md:text-3xl leading-snug drop-shadow-md">
               {post.content}
-            </div>
-          )}
+            </p>
+          </div>
+        ) : (
+          <>
+            {post.content && !post.sharedPost && (
+              <div className="w-full text-base md:text-lg text-gray-800 text-left whitespace-pre-wrap break-words">
+                {post.content}
+              </div>
+            )}
 
-          {post.thumbNail &&
-            !post.sharedPost &&
-            (isVideoUrl(post.thumbNail) ? (
-              <video
-                src={post.thumbNail}
-                controls
-                playsInline
-                webkit-playsinline="true"
-                preload="metadata"
-                className="w-full max-h-[500px] object-contain bg-black"
-                onClick={(e) => e.stopPropagation()}
-              />
-            ) : (
-              <img
-                src={post.thumbNail}
-                alt={post.title}
-                className="w-full h-auto object-cover max-h-[500px] cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowLightbox(true);
-                }}
-                onError={(e) => {
-                  e.target.style.display = "none";
-                }}
-              />
-            ))}
-        </>
-      )}
+            {post.thumbNail &&
+              !post.sharedPost &&
+              (isVideoUrl(post.thumbNail) ? (
+                <video
+                  src={post.thumbNail}
+                  controls
+                  playsInline
+                  webkit-playsinline="true"
+                  preload="metadata"
+                  className="w-full max-h-[500px] object-contain bg-black"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <img
+                  src={post.thumbNail}
+                  alt={post.title}
+                  className="w-full h-auto object-cover max-h-[500px] cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowLightbox(true);
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                  }}
+                />
+              ))}
+          </>
+        )}
+      </div>
 
       {/* Shared Post */}
       {post.sharedPost && (
         <div className="px-4 pb-3">
           {post.content && (
-            <p className="text-sm text-gray-900 dark:text-white leading-relaxed mb-3">
+            <p className="text-sm text-gray-900 leading-relaxed mb-3">
               {post.content}
             </p>
           )}
           <div
-            className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="border border-gray-200 rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
             onClick={() => navigate(`/posts/${post.sharedPost.id}`)}
           >
             <div className="flex items-center gap-3 mb-3">
@@ -522,10 +526,10 @@ function PostCard({ post, onDelete, style }) {
                 </div>
               )}
               <div>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                <p className="text-sm font-semibold text-gray-900">
                   {post.sharedPost.user?.fullName || post.sharedPost.user?.username || "Ẩn danh"}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500">
                   {timeAgo(post.sharedPost.createdAt)}
                 </p>
               </div>
@@ -549,11 +553,11 @@ function PostCard({ post, onDelete, style }) {
                   />
                 )}
                 {post.sharedPost.title && (
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">
                     {post.sharedPost.title}
                   </h3>
                 )}
-                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                <p className="text-sm text-gray-600 line-clamp-3">
                   {post.sharedPost.content}
                 </p>
               </>
@@ -563,7 +567,7 @@ function PostCard({ post, onDelete, style }) {
       )}
 
       {/* Stats */}
-      <div className="flex items-center justify-between px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+      <div className="flex items-center justify-between px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
         <div 
           className="flex items-center gap-1 cursor-pointer hover:underline"
           onClick={() => setIsReactionsModalOpen(true)}
@@ -600,7 +604,7 @@ function PostCard({ post, onDelete, style }) {
       </div>
 
       {/* Interactions - Like, Comment, Share */}
-      <div className="flex items-center justify-around py-1 border-t border-gray-100 dark:border-gray-700 relative">
+      <div className="flex items-center justify-around py-1 border-t border-gray-100 relative">
         {/* Reactions Picker */}
         {showReactionsPicker && (
           <div
@@ -608,7 +612,7 @@ function PostCard({ post, onDelete, style }) {
             onMouseLeave={handleMouseLeaveLike}
             onTouchMove={handleTouchMoveLike}
             onTouchEnd={handleTouchEndLike}
-            className="absolute bottom-full left-2 mb-2 bg-white dark:bg-gray-800 rounded-full px-3 py-2 flex items-center gap-2 shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+            className="absolute bottom-full left-2 mb-2 bg-white rounded-full px-3 py-2 flex items-center gap-2 shadow-lg border border-gray-200 z-50"
           >
             {REACTIONS.map((r) => {
               const isSelected = hoveredReaction === r.type || userReaction === r.type;
@@ -640,7 +644,7 @@ function PostCard({ post, onDelete, style }) {
           onTouchMove={handleTouchMoveLike}
           onTouchEnd={handleTouchEndLike}
           onClick={handleToggleLike}
-          className={`flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors ${liked ? "text-blue-500" : ""}`}
+          className={`flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors ${liked ? "text-blue-500" : ""}`}
           style={{ color: activeReactionObj ? activeReactionObj.color : "" }}
         >
           {activeReactionObj ? (
@@ -654,7 +658,7 @@ function PostCard({ post, onDelete, style }) {
         </button>
 
         <button 
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
           onClick={goToDetail}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -664,7 +668,7 @@ function PostCard({ post, onDelete, style }) {
         </button>
 
         <button 
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
           onClick={() => setIsShareModalOpen(true)}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
