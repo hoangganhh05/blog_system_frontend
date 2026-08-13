@@ -303,7 +303,7 @@ function PostCard({ post, onDelete, style }) {
       style={style}
     >
       {/* Header - Author Info */}
-      <div className="flex items-center gap-3 p-4">
+      <div className="flex items-center gap-3 p-4 pb-2">
         {post.user?.avatarUrl ? (
           <img
             src={post.user.avatarUrl}
@@ -473,13 +473,13 @@ function PostCard({ post, onDelete, style }) {
       </div>
 
       <div className="mt-3">
-        {post.bgColor ? (
+        {post.bgColor && post.content && post.content.length <= 130 && !post.thumbNail && !post.sharedPost ? (
           <div
-            className={`w-full flex items-center justify-center !min-h-[300px] !h-auto p-4 md:p-8 rounded-xl text-white font-bold text-center break-words shadow-sm cursor-pointer !overflow-visible`}
+            className="w-full min-h-[200px] max-h-[320px] aspect-[16/9] py-12 px-6 rounded-2xl shadow-inner flex items-center justify-center text-white font-bold text-xl md:text-2xl text-center break-words cursor-pointer"
             style={{ background: post.bgColor }}
             onClick={goToDetail}
           >
-            <p className="max-w-full text-xl md:text-3xl leading-snug drop-shadow-md">
+            <p className="max-w-full leading-snug drop-shadow-md">
               {post.content}
             </p>
           </div>
@@ -665,14 +665,14 @@ function PostCard({ post, onDelete, style }) {
         </div>
         <div className="flex gap-3">
           <span className="hover:underline cursor-pointer" onClick={goToDetail}>
-            Xem bình luận
+            Bình luận
           </span>
           {post.viewCount > 0 && <span>{post.viewCount} lượt xem</span>}
         </div>
       </div>
 
       {/* Interactions - Like, Comment, Share */}
-      <div className="flex items-center justify-around py-1 border-t border-gray-100 relative">
+      <div className="grid grid-cols-3 items-center py-2 border-t border-gray-100 relative">
         {/* Reactions Picker */}
         {showReactionsPicker && (
           <div
@@ -715,7 +715,7 @@ function PostCard({ post, onDelete, style }) {
           onTouchMove={handleTouchMoveLike}
           onTouchEnd={handleTouchEndLike}
           onClick={handleToggleLike}
-          className={`flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors ${liked ? "text-blue-500" : ""}`}
+          className="flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium"
           style={{ color: activeReactionObj ? activeReactionObj.color : "" }}
         >
           {activeReactionObj ? (
@@ -735,13 +735,13 @@ function PostCard({ post, onDelete, style }) {
               />
             </svg>
           )}
-          <span className="text-sm font-medium">
+          <span>
             {activeReactionObj ? activeReactionObj.label : "Thích"}
           </span>
         </button>
 
         <button
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+          className="flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium"
           onClick={goToDetail}
         >
           <svg
@@ -757,11 +757,11 @@ function PostCard({ post, onDelete, style }) {
               d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
             />
           </svg>
-          <span className="text-sm font-medium">Bình luận</span>
+          <span>Bình luận</span>
         </button>
 
         <button
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+          className="flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium"
           onClick={() => setIsShareModalOpen(true)}
         >
           <svg
@@ -777,7 +777,7 @@ function PostCard({ post, onDelete, style }) {
               d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
             />
           </svg>
-          <span className="text-sm font-medium">Chia sẻ</span>
+          <span>Chia sẻ</span>
         </button>
       </div>
 
