@@ -67,8 +67,9 @@ axiosClient.interceptors.response.use(
     const status = error.response?.status;
     const requestUrl = `${error.config?.url || ""}`;
 
-    if ((status === 401 || status === 403) && !isPublicAuthRequest(requestUrl)) {
-      // Token hết hạn, không hợp lệ hoặc backend từ chối quyền truy cập
+    // Chỉ xử lý 401 (token hết hạn/không hợp lệ) - tự động logout
+    if (status === 401 && !isPublicAuthRequest(requestUrl)) {
+      // Token hết hạn, không hợp lệ
       localStorage.removeItem("blog_token");
       localStorage.removeItem("blog_user");
       localStorage.removeItem("blog_session_id");
@@ -86,6 +87,14 @@ axiosClient.interceptors.response.use(
       ) {
         window.location.href = "/login";
       }
+    }
+    // 403 (Forbidden) - chỉ log error, không tự động logout (có thể là permission issue bình thường)
+    else if (status === 403 && !isPublicAuthRequest(requestUrl)) {
+      console.warn(
+        "Forbidden API request (permission denied):",
+        requestUrl,
+        error.response?.data || error.message,
+      );
     }
 
     console.error("API Error:", {
