@@ -449,8 +449,8 @@ function PostCard({ post, onDelete, style }) {
 
       {/* Content - Text */}
       {post.content && !post.sharedPost && !post.bgColor && (
-        <div className="px-4 pb-3">
-          <p className="text-sm text-gray-900 dark:text-white leading-relaxed">
+        <div className="px-4 pb-3 bg-transparent">
+          <p className="text-base text-gray-900 dark:text-white leading-relaxed text-left font-normal">
             {post.content}
           </p>
         </div>
@@ -488,14 +488,13 @@ function PostCard({ post, onDelete, style }) {
       {/* Background Color Post */}
       {post.bgColor && !post.sharedPost && (
         <div
-          className="py-12 px-4 text-center cursor-pointer"
+          className="min-h-[250px] py-12 px-4 text-center cursor-pointer"
           style={{ background: post.bgColor }}
           onClick={goToDetail}
         >
           <p
-            className="text-white font-bold leading-relaxed"
+            className="text-white font-bold leading-relaxed text-2xl"
             style={{
-              fontSize: post.content?.length < 80 ? "1.5rem" : "1rem",
               textShadow: "0 1px 4px rgba(0,0,0,0.28)",
             }}
           >
