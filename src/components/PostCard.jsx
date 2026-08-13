@@ -485,14 +485,14 @@ function PostCard({ post, onDelete, style }) {
 
       {/* Shared Post */}
       {post.sharedPost && (
-        <div className="px-4 pb-3">
+        <div className="w-full px-4 pb-3 box-border">
           {post.content && (
-            <p className="text-sm text-gray-900 leading-relaxed mb-3">
+            <p className="text-sm text-gray-900 leading-relaxed mb-3 w-full">
               {post.content}
             </p>
           )}
           <div
-            className="border border-gray-200 rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+            className="w-full border border-gray-200 rounded-xl p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors box-border overflow-hidden"
             onClick={() => navigate(`/posts/${post.sharedPost.id}`)}
           >
             <div className="flex items-center gap-3 mb-3">
@@ -527,7 +527,7 @@ function PostCard({ post, onDelete, style }) {
             </div>
             {post.sharedPost.bgColor ? (
               <div
-                className="rounded-lg p-6 text-center"
+                className="w-full rounded-lg p-6 text-center"
                 style={{ background: post.sharedPost.bgColor }}
               >
                 <p className="text-white font-bold leading-relaxed">
