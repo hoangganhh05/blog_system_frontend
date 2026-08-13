@@ -106,7 +106,8 @@ function PostCard({ post, onDelete, style }) {
         const lRes = await likeService.getLikeCount(post.id);
         if (cancelled) return;
         setLikeCount(lRes.data.count || 0);
-        if (lRes.data.reactionsSummary) setReactionsSummary(lRes.data.reactionsSummary);
+        if (lRes.data.reactionsSummary)
+          setReactionsSummary(lRes.data.reactionsSummary);
       } catch {}
 
       if (currentUser?.id) {
@@ -117,15 +118,20 @@ function PostCard({ post, onDelete, style }) {
           ]);
           if (cancelled) return;
           setLiked(checkL.data.liked);
-          setUserReaction(checkL.data.userReaction || (checkL.data.liked ? "LIKE" : null));
-          if (checkL.data.reactionsSummary) setReactionsSummary(checkL.data.reactionsSummary);
+          setUserReaction(
+            checkL.data.userReaction || (checkL.data.liked ? "LIKE" : null),
+          );
+          if (checkL.data.reactionsSummary)
+            setReactionsSummary(checkL.data.reactionsSummary);
           setBookmarked(checkB.data.bookmarked);
         } catch {}
       }
     };
 
     fetchInitialState();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [post?.id, currentUser?.id]);
 
   const handleToggleLike = async (e) => {
@@ -292,12 +298,15 @@ function PostCard({ post, onDelete, style }) {
   const topReactions = REACTIONS.filter((r) => reactionsSummary[r.type] > 0);
 
   return (
-    <div className="post-card w-full block bg-white text-gray-900 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 box-border" style={style}>
+    <div
+      className="post-card w-full block bg-white text-gray-900 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 box-border"
+      style={style}
+    >
       {/* Header - Author Info */}
       <div className="flex items-center gap-3 p-4">
         {post.user?.avatarUrl ? (
-          <img 
-            src={post.user.avatarUrl} 
+          <img
+            src={post.user.avatarUrl}
             alt={authorName}
             onClick={goToProfile}
             className="w-10 h-10 rounded-full object-cover cursor-pointer"
@@ -324,7 +333,7 @@ function PostCard({ post, onDelete, style }) {
           </div>
         )}
         <div className="flex-1">
-          <p 
+          <p
             className="text-sm font-semibold text-gray-900 hover:underline cursor-pointer"
             onClick={goToProfile}
           >
@@ -334,12 +343,16 @@ function PostCard({ post, onDelete, style }) {
             <span>{timeAgo(post.createdAt)}</span>
             <span>·</span>
             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                clipRule="evenodd"
+              />
             </svg>
           </p>
         </div>
         <div ref={menuRef} style={{ position: "relative" }}>
-          <button 
+          <button
             className="text-gray-400 hover:text-gray-600 p-1"
             onClick={(e) => {
               e.stopPropagation();
@@ -391,7 +404,14 @@ function PostCard({ post, onDelete, style }) {
                 }}
                 className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center gap-3 text-sm"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                   <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                 </svg>
@@ -409,7 +429,14 @@ function PostCard({ post, onDelete, style }) {
                     }}
                     className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center gap-3 text-sm"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <path d="M12 20h9" />
                       <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                     </svg>
@@ -425,7 +452,14 @@ function PostCard({ post, onDelete, style }) {
                     }}
                     className="w-full px-4 py-3 text-left hover:bg-red-50 flex items-center gap-3 text-sm text-red-600"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <polyline points="3 6 5 6 21 6" />
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                     </svg>
@@ -440,7 +474,11 @@ function PostCard({ post, onDelete, style }) {
 
       <div className="mt-3">
         {post.bgColor ? (
-          <div className={`w-full flex items-center justify-center !min-h-[300px] !h-auto p-4 md:p-8 rounded-xl text-white font-bold text-center break-words shadow-sm cursor-pointer !overflow-visible`} style={{ background: post.bgColor }} onClick={goToDetail}>
+          <div
+            className={`w-full flex items-center justify-center !min-h-[300px] !h-auto p-4 md:p-8 rounded-xl text-white font-bold text-center break-words shadow-sm cursor-pointer !overflow-visible`}
+            style={{ background: post.bgColor }}
+            onClick={goToDetail}
+          >
             <p className="max-w-full text-xl md:text-3xl leading-snug drop-shadow-md">
               {post.content}
             </p>
@@ -486,9 +524,9 @@ function PostCard({ post, onDelete, style }) {
       {/* Shared Post */}
       {post.sharedPost && (
         <div className="w-full px-4 pb-3 box-border">
-          {post.content && (
+          {post.sharedPost.content && (
             <p className="text-sm text-gray-900 leading-relaxed mb-3 w-full">
-              {post.content}
+              {post.sharedPost.content}
             </p>
           )}
           <div
@@ -499,7 +537,10 @@ function PostCard({ post, onDelete, style }) {
               {post.sharedPost.user?.avatarUrl ? (
                 <img
                   src={post.sharedPost.user.avatarUrl}
-                  alt={post.sharedPost.user?.fullName || post.sharedPost.user?.username}
+                  alt={
+                    post.sharedPost.user?.fullName ||
+                    post.sharedPost.user?.username
+                  }
                   className="w-8 h-8 rounded-full object-cover"
                 />
               ) : (
@@ -513,12 +554,18 @@ function PostCard({ post, onDelete, style }) {
                       : { background: "#9ca3af" }
                   }
                 >
-                  {getInitials(post.sharedPost.user?.fullName || post.sharedPost.user?.username || "?")}
+                  {getInitials(
+                    post.sharedPost.user?.fullName ||
+                      post.sharedPost.user?.username ||
+                      "?",
+                  )}
                 </div>
               )}
               <div>
                 <p className="text-sm font-semibold text-gray-900">
-                  {post.sharedPost.user?.fullName || post.sharedPost.user?.username || "Ẩn danh"}
+                  {post.sharedPost.user?.fullName ||
+                    post.sharedPost.user?.username ||
+                    "Ẩn danh"}
                 </p>
                 <p className="text-xs text-gray-500">
                   {timeAgo(post.sharedPost.createdAt)}
@@ -559,7 +606,7 @@ function PostCard({ post, onDelete, style }) {
 
       {/* Stats */}
       <div className="flex items-center justify-between px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
-        <div 
+        <div
           className="flex items-center gap-1 cursor-pointer hover:underline"
           onClick={() => setIsReactionsModalOpen(true)}
         >
@@ -569,15 +616,26 @@ function PostCard({ post, onDelete, style }) {
                 <span
                   key={r.type}
                   className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-xs"
-                  style={{ marginLeft: idx > 0 ? "-4px" : "0", zIndex: 3 - idx }}
+                  style={{
+                    marginLeft: idx > 0 ? "-4px" : "0",
+                    zIndex: 3 - idx,
+                  }}
                 >
                   {r.emoji}
                 </span>
               ))
             ) : (
               <span className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
-                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                <svg
+                  className="w-2.5 h-2.5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </span>
             )}
@@ -588,9 +646,7 @@ function PostCard({ post, onDelete, style }) {
           <span className="hover:underline cursor-pointer" onClick={goToDetail}>
             Xem bình luận
           </span>
-          {post.viewCount > 0 && (
-            <span>{post.viewCount} lượt xem</span>
-          )}
+          {post.viewCount > 0 && <span>{post.viewCount} lượt xem</span>}
         </div>
       </div>
 
@@ -606,7 +662,8 @@ function PostCard({ post, onDelete, style }) {
             className="absolute bottom-full left-2 mb-2 bg-white rounded-full px-3 py-2 flex items-center gap-2 shadow-lg border border-gray-200 z-50"
           >
             {REACTIONS.map((r) => {
-              const isSelected = hoveredReaction === r.type || userReaction === r.type;
+              const isSelected =
+                hoveredReaction === r.type || userReaction === r.type;
               return (
                 <button
                   key={r.type}
@@ -616,7 +673,9 @@ function PostCard({ post, onDelete, style }) {
                   onClick={() => handleSelectReaction(r.type)}
                   className="text-2xl transition-transform hover:scale-125"
                   style={{
-                    transform: isSelected ? "scale(1.5) translateY(-4px)" : "scale(1)",
+                    transform: isSelected
+                      ? "scale(1.5) translateY(-4px)"
+                      : "scale(1)",
                   }}
                   onMouseEnter={() => setHoveredReaction(r.type)}
                   onMouseLeave={() => setHoveredReaction(null)}
@@ -641,29 +700,61 @@ function PostCard({ post, onDelete, style }) {
           {activeReactionObj ? (
             <span className="text-lg">{activeReactionObj.emoji}</span>
           ) : (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+              />
             </svg>
           )}
-          <span className="text-sm font-medium">{activeReactionObj ? activeReactionObj.label : "Thích"}</span>
+          <span className="text-sm font-medium">
+            {activeReactionObj ? activeReactionObj.label : "Thích"}
+          </span>
         </button>
 
-        <button 
+        <button
           className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
           onClick={goToDetail}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
           </svg>
           <span className="text-sm font-medium">Bình luận</span>
         </button>
 
-        <button 
+        <button
           className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
           onClick={() => setIsShareModalOpen(true)}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+            />
           </svg>
           <span className="text-sm font-medium">Chia sẻ</span>
         </button>
@@ -690,7 +781,11 @@ function PostCard({ post, onDelete, style }) {
       {toast.show && (
         <div
           className={`fixed bottom-5 right-5 px-4 py-3 rounded-lg shadow-lg text-white z-50 ${
-            toast.type === "success" ? "bg-green-500" : toast.type === "error" ? "bg-red-500" : "bg-blue-500"
+            toast.type === "success"
+              ? "bg-green-500"
+              : toast.type === "error"
+                ? "bg-red-500"
+                : "bg-blue-500"
           }`}
         >
           {toast.message}
