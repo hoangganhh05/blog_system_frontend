@@ -449,7 +449,7 @@ function PostCard({ post, onDelete, style }) {
 
       <div className="mt-3">
         {post.bgColor ? (
-          <div className={`w-full flex items-center justify-center min-h-[200px] md:min-h-[300px] p-4 md:p-8 rounded-xl text-white font-bold text-center break-words shadow-sm cursor-pointer`} style={{ background: post.bgColor }} onClick={goToDetail}>
+          <div className={`w-full flex items-center justify-center !min-h-[300px] !h-auto p-4 md:p-8 rounded-xl text-white font-bold text-center break-words shadow-sm cursor-pointer !overflow-visible`} style={{ background: post.bgColor }} onClick={goToDetail}>
             <p className="max-w-full text-xl md:text-3xl leading-snug drop-shadow-md">
               {post.content}
             </p>
