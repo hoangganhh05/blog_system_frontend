@@ -21,6 +21,7 @@ import FriendsPage from "./pages/FriendsPage";
 import SearchPage from "./pages/SearchPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import PostCardDemoPage from "./pages/PostCardDemoPage";
 import FloatingChatWidget from "./components/FloatingChatWidget";
 import MobileBottomNav from "./components/MobileBottomNav";
 import "./index.css";
@@ -86,6 +87,7 @@ function AppContent() {
         <Route path="/saved" element={<ProtectedRoute><SavedPosts /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+        <Route path="/demo-posts" element={<ProtectedRoute><PostCardDemoPage /></ProtectedRoute>} />
         {/* 404 */}
         <Route
           path="*"

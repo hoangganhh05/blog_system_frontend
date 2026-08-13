@@ -9,6 +9,16 @@
   overflow-x: hidden;
 }
 
+/* Demo page wrapper - full width, centered content */
+.demo-page-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--bg-main);
+}
+
 /* Main layout with fixed navbar */
 .app-layout {
   padding-top: calc(var(--navbar-height, 60px) + var(--page-gutter, 20px));

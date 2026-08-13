@@ -9,7 +9,11 @@ let apiBaseUrl =
   (isLocalDevHost ? "http://localhost:8080" : "https://api.anhhoangg.id.vn");
 
 // Tự động nâng cấp sang HTTPS bảo mật nếu gọi server sản xuất xa
-if (apiBaseUrl.startsWith("http://") && !apiBaseUrl.includes("localhost") && !apiBaseUrl.includes("127.0.0.1")) {
+if (
+  apiBaseUrl.startsWith("http://") &&
+  !apiBaseUrl.includes("localhost") &&
+  !apiBaseUrl.includes("127.0.0.1")
+) {
   apiBaseUrl = apiBaseUrl.replace("http://", "https://");
 }
 
@@ -44,12 +48,12 @@ axiosClient.interceptors.request.use(
       // Gắn vào header Authorization
       // Backend JwtFilter sẽ đọc header Authorization
       config.headers = config.headers || {};
-      config.headers.Authorization = 'Bearer ' + token;
+      config.headers.Authorization = "Bearer " + token;
     }
 
     return config; // tiếp tục gửi request
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // =============================================
@@ -69,11 +73,18 @@ axiosClient.interceptors.response.use(
       localStorage.removeItem("blog_user");
       localStorage.removeItem("blog_session_id");
 
-      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.includes("/login")
+      ) {
         window.location.href = "/login";
       }
     } else if (status === 403 && !isPublicAuthRequest(requestUrl)) {
-      console.warn("Forbidden API request:", requestUrl, error.response?.data || error.message);
+      console.warn(
+        "Forbidden API request:",
+        requestUrl,
+        error.response?.data || error.message,
+      );
     }
 
     console.error("API Error:", {
@@ -83,9 +94,7 @@ axiosClient.interceptors.response.use(
       message: error.message,
     });
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosClient;
-
-
