@@ -25,8 +25,21 @@ function timeAgo(dateStr) {
 
 function isMessageNotification(n) {
   if (!n) return false;
-  const type = (n.type || '').toLowerCase();
-  return type.includes('chat') || type.includes('message') || type.includes('msg') || type.includes('inbox') || type.includes('tin_nhan');
+
+  const type = String(n.type || '').toLowerCase();
+  const content = String(n.content || n.message || '').toLowerCase();
+
+  // Bắt tất cả kiểu type hoặc nội dung có liên quan tới tin nhắn / chat
+  return (
+    type.includes('chat') ||
+    type.includes('message') ||
+    type.includes('msg') ||
+    type.includes('inbox') ||
+    type.includes('tin_nhan') ||
+    content.includes('đã gửi tin nhắn') ||
+    content.includes('gửi tin nhắn') ||
+    content.includes('nhắn tin')
+  );
 }
 
 function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange }) {
