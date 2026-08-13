@@ -103,14 +103,8 @@ function Home({ searchValue = "" }) {
     setPosts((prev) => [newPost, ...prev]);
   };
 
-  // Filter by search
-  const filteredPosts = search.trim()
-    ? posts.filter(
-        (p) =>
-          p.title?.toLowerCase().includes(search.toLowerCase()) ||
-          p.content?.toLowerCase().includes(search.toLowerCase())
-      )
-    : posts;
+  // Không cần filter lại bằng JS — API search đã trả về đúng kết quả
+  const filteredPosts = posts;
 
   return (
     <div className="app-layout">

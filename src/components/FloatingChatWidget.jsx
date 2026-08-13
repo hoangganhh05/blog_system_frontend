@@ -324,50 +324,56 @@ function FloatingChatWidget() {
     fetchFriends();
   }, [currentUserId]);
 
-  // 2. Polling liên tục chạy ngầm đếm chính xác tin nhắn chưa đọc từ bạn bè
+  // 2. Poll unread count — chỉ chạy khi widget đã mở và có bạn bè, dùng Promise.all tránh N+1 loop
   useEffect(() => {
     if (!currentUserId || friends.length <= 1) return;
 
     const fetchAllSummaries = async () => {
-      const newMap = { ...conversationsMap };
-      let totalUnread = 0;
+      const realFriends = friends.filter((f) => f && !f.isAi);
+      if (realFriends.length === 0) return;
 
-      for (const friend of friends) {
-        if (!friend || friend.isAi) continue;
-        try {
-          const res = await chatService.getHistory(currentUserId, friend.id);
+      try {
+        const results = await Promise.all(
+          realFriends.map((friend) =>
+            chatService.getHistory(currentUserId, friend.id).catch(() => ({ data: [] }))
+          )
+        );
+
+        const newMap = { ...conversationsMap };
+        let totalUnread = 0;
+
+        results.forEach((res, idx) => {
+          const friend = realFriends[idx];
           const history = res.data || [];
-          if (history.length > 0) {
-            const lastMsg = history[history.length - 1];
+          if (history.length === 0) return;
 
-            // Chỉ đếm tin nhắn do BẠN BÈ GỬI TỚI mà MÌNH CHƯA XEM (read !== true)
-            const unreadCount = history.filter(
-              (m) => String(m.senderId || m.sender?.id) === String(friend.id) && !m.read
-            ).length;
+          const lastMsg = history[history.length - 1];
+          const unreadCount = history.filter(
+            (m) => String(m.senderId || m.sender?.id) === String(friend.id) && !m.read
+          ).length;
 
-            const isCurrentActive = isOpen && String(activeFriend?.id) === String(friend.id);
-            const effectiveUnread = isCurrentActive ? 0 : unreadCount;
+          const isCurrentActive = isOpen && String(activeFriend?.id) === String(friend.id);
+          const effectiveUnread = isCurrentActive ? 0 : unreadCount;
 
-            newMap[friend.id] = {
-              lastMessage: lastMsg.content || "Đã gửi 1 tệp đính kèm",
-              unreadCount: effectiveUnread,
-              timestamp: lastMsg.createdAt,
-            };
+          newMap[friend.id] = {
+            lastMessage: lastMsg.content || "Đã gửi 1 tệp đính kèm",
+            unreadCount: effectiveUnread,
+            timestamp: lastMsg.createdAt,
+          };
+          totalUnread += effectiveUnread;
+        });
 
-            totalUnread += effectiveUnread;
-          }
-        } catch {}
-      }
-
-      setConversationsMap(newMap);
-      setUnreadChatCount(totalUnread);
-      window.dispatchEvent(
-        new CustomEvent("unread_chat_count_updated", { detail: { count: totalUnread } })
-      );
+        setConversationsMap(newMap);
+        setUnreadChatCount(totalUnread);
+        window.dispatchEvent(
+          new CustomEvent("unread_chat_count_updated", { detail: { count: totalUnread } })
+        );
+      } catch {}
     };
 
     fetchAllSummaries();
-    const interval = setInterval(fetchAllSummaries, 2500);
+    // Poll chậu 15s — chỉ cần biết unread count, không cần real-time
+    const interval = setInterval(fetchAllSummaries, 15000);
     return () => clearInterval(interval);
   }, [currentUserId, friends, isOpen, activeFriend?.id]);
 
@@ -439,7 +445,7 @@ function playNotificationSound() {
       };
 
       fetchChat();
-      timer = setInterval(fetchChat, 1200); // Fast Polling 1.2s cho tin nhắn hiển thị tức thì
+      timer = setInterval(fetchChat, 5000); // Poll 5s — đủ nhanh cho chat, không spam server
     }
     return () => timer && clearInterval(timer);
   }, [isOpen, currentUserId, activeFriend]);

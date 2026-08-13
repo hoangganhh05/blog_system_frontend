@@ -95,46 +95,37 @@ function PostCard({ post, onDelete, style }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Polling siêu tốc 1.5s cập nhật Lượt thích & Cảm xúc bài viết tức thì giữa mọi máy
+  // Tải thông tin like/bookmark một lần khi PostCard mount — không polling liên tục
+  // Optimistic UI xử lý update tức thì khi user tương tác, không cần poll server
   useEffect(() => {
-    let interval;
-    if (post?.id) {
-      const fetchLiveReactions = () => {
-        likeService
-          .getLikeCount(post.id)
-          .then((res) => {
-            setLikeCount(res.data.count || 0);
-            if (res.data.reactionsSummary)
-              setReactionsSummary(res.data.reactionsSummary);
-          })
-          .catch(() => {});
+    if (!post?.id) return;
+    let cancelled = false;
 
-        if (currentUser?.id) {
-          likeService
-            .checkLiked(post.id, currentUser.id)
-            .then((res) => {
-              setLiked(res.data.liked);
-              setUserReaction(
-                res.data.userReaction || (res.data.liked ? "LIKE" : null),
-              );
-              if (res.data.reactionsSummary)
-                setReactionsSummary(res.data.reactionsSummary);
-            })
-            .catch(() => {});
+    const fetchInitialState = async () => {
+      try {
+        const lRes = await likeService.getLikeCount(post.id);
+        if (cancelled) return;
+        setLikeCount(lRes.data.count || 0);
+        if (lRes.data.reactionsSummary) setReactionsSummary(lRes.data.reactionsSummary);
+      } catch {}
 
-          bookmarkService
-            .checkBookmarked(post.id, currentUser.id)
-            .then((res) => {
-              setBookmarked(res.data.bookmarked);
-            })
-            .catch(() => {});
-        }
-      };
+      if (currentUser?.id) {
+        try {
+          const [checkL, checkB] = await Promise.all([
+            likeService.checkLiked(post.id, currentUser.id),
+            bookmarkService.checkBookmarked(post.id, currentUser.id),
+          ]);
+          if (cancelled) return;
+          setLiked(checkL.data.liked);
+          setUserReaction(checkL.data.userReaction || (checkL.data.liked ? "LIKE" : null));
+          if (checkL.data.reactionsSummary) setReactionsSummary(checkL.data.reactionsSummary);
+          setBookmarked(checkB.data.bookmarked);
+        } catch {}
+      }
+    };
 
-      fetchLiveReactions();
-      interval = setInterval(fetchLiveReactions, 1500);
-    }
-    return () => interval && clearInterval(interval);
+    fetchInitialState();
+    return () => { cancelled = true; };
   }, [post?.id, currentUser?.id]);
 
   const handleToggleLike = async (e) => {

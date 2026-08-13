@@ -162,47 +162,57 @@ function PostDetail() {
 
   useEffect(() => {
     let interval;
+    let cancelled = false;
+
     const fetchData = async (isInitial = false) => {
       if (isInitial) setLoading(true);
       try {
-        const postRes = await postService.getById(id);
+        // Batch 1: fetch post + like count song song (không đợi từng cái)
+        const [postRes, lRes] = await Promise.all([
+          postService.getById(id),
+          likeService.getLikeCount(id),
+        ]);
+        if (cancelled) return;
+
         setPost(postRes.data);
-
-        // Lấy thông tin Lượt thích & Thả cảm xúc
-        const lRes = await likeService.getLikeCount(id);
         setLikeCount(lRes.data.count || 0);
-        if (lRes.data.reactionsSummary)
-          setReactionsSummary(lRes.data.reactionsSummary);
+        if (lRes.data.reactionsSummary) setReactionsSummary(lRes.data.reactionsSummary);
 
+        // Batch 2: các API cần userId chạy song song
         if (currentUser?.id) {
-          const checkL = await likeService.checkLiked(id, currentUser.id);
+          const [checkL, checkB] = await Promise.all([
+            likeService.checkLiked(id, currentUser.id),
+            bookmarkService.checkBookmarked(id, currentUser.id),
+          ]);
+          if (cancelled) return;
           setLiked(checkL.data.liked);
-          setUserReaction(
-            checkL.data.userReaction || (checkL.data.liked ? "LIKE" : null),
-          );
-          if (checkL.data.reactionsSummary)
-            setReactionsSummary(checkL.data.reactionsSummary);
-
-          const checkB = await bookmarkService.checkBookmarked(
-            id,
-            currentUser.id,
-          );
+          setUserReaction(checkL.data.userReaction || (checkL.data.liked ? "LIKE" : null));
+          if (checkL.data.reactionsSummary) setReactionsSummary(checkL.data.reactionsSummary);
           setBookmarked(checkB.data.bookmarked);
         }
-
-        // Lấy bình luận của bài viết theo postId (gọi đúng endpoint)
-        const cmtRes = await commentService.getByPostId(id);
-        setComments((cmtRes.data || []).reverse());
       } catch {
-        if (isInitial) setError("Không tìm thấy bài viết!");
+        if (isInitial) setError("Đang tải...");
       } finally {
         if (isInitial) setLoading(false);
       }
     };
 
+    // Comments chỉ fetch 1 lần khi mount — không cần poll vì user sẽ thấy comment mới sau khi gửi
+    const fetchComments = async () => {
+      try {
+        const cmtRes = await commentService.getByPostId(id);
+        if (!cancelled) setComments((cmtRes.data || []).reverse());
+      } catch {}
+    };
+
     fetchData(true);
-    interval = setInterval(() => fetchData(false), 30000);
-    return () => interval && clearInterval(interval);
+    fetchComments();
+    // Poll nhẹ 60s chỉ để cập nhật like count, không fetch comment trong loop
+    interval = setInterval(() => fetchData(false), 60000);
+    return () => {
+      cancelled = true;
+      interval && clearInterval(interval);
+    };
   }, [id, currentUser?.id]);
 
   const handleToggleLike = async (e) => {
