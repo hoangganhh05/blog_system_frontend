@@ -5,7 +5,12 @@ import notificationService from "../services/notificationService";
 
 function timeAgo(dateStr) {
   if (!dateStr) return "";
-  const diff = Date.now() - new Date(dateStr).getTime();
+  // Fix UTC timezone issue: add 'Z' suffix if missing
+  let formattedString = dateStr;
+  if (typeof dateStr === 'string' && !dateStr.endsWith('Z') && !dateStr.includes('+')) {
+    formattedString = dateStr + 'Z';
+  }
+  const diff = Date.now() - new Date(formattedString).getTime();
   const m = Math.floor(diff / 60000);
   if (m < 1) return "Vừa xong";
   if (m < 60) return `${m} phút trước`;
@@ -24,19 +29,10 @@ export default function NotificationsPage() {
 
   const isMessageNotification = (n) => {
     if (!n) return false;
-    const typeStr = String(n.type || "").toUpperCase();
-    const contentStr = String(n.content || n.message || n.title || "").toLowerCase();
-    if (
-      typeStr.includes("CHAT") ||
-      typeStr.includes("MESSAGE") ||
-      typeStr.includes("MSG") ||
-      typeStr.includes("INBOX")
-    ) return true;
-    if (
-      contentStr.includes("đã gửi tin nhắn") ||
-      contentStr.includes("tin nhắn")
-    ) return true;
-    return false;
+    const type = (n.type || '').toLowerCase();
+    const content = (n.content || '').toLowerCase();
+    return type.includes('chat') || type.includes('message') || type.includes('msg') || 
+           type.includes('inbox') || type.includes('tin_nhan') || content.includes('đã gửi tin nhắn');
   };
 
   const fetchNotifications = async () => {
@@ -45,9 +41,9 @@ export default function NotificationsPage() {
     try {
       const res = await notificationService.getUserNotifications(currentUserId);
       const rawList = res.data || [];
-      // On the notifications page, show everything (including messages) OR choose to filter - here we show non-message notifications first
-      const list = rawList;
-      setNotifications(list);
+      // Filter out message notifications from the notifications page
+      const systemNotifications = rawList.filter(n => !isMessageNotification(n));
+      setNotifications(systemNotifications);
     } catch (e) {
       setNotifications([]);
     } finally {

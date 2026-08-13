@@ -29,7 +29,12 @@ function getInitials(name) {
 
 function timeAgo(dateStr) {
   if (!dateStr) return "";
-  const diff = Date.now() - new Date(dateStr).getTime();
+  // Fix UTC timezone issue: add 'Z' suffix if missing
+  let formattedString = dateStr;
+  if (typeof dateStr === 'string' && !dateStr.endsWith('Z') && !dateStr.includes('+')) {
+    formattedString = dateStr + 'Z';
+  }
+  const diff = Date.now() - new Date(formattedString).getTime();
   const m = Math.floor(diff / 60000);
   if (m < 1) return "Vừa xong";
   if (m < 60) return `${m} phút trước`;

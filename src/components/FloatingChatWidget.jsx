@@ -199,7 +199,12 @@ function FloatingChatWidget() {
 
   function formatTime(dateStr) {
     if (!dateStr) return "";
-    const d = new Date(dateStr);
+    // Fix UTC timezone issue: add 'Z' suffix if missing
+    let formattedString = dateStr;
+    if (typeof dateStr === 'string' && !dateStr.endsWith('Z') && !dateStr.includes('+')) {
+      formattedString = dateStr + 'Z';
+    }
+    const d = new Date(formattedString);
     if (isNaN(d.getTime())) return "";
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
