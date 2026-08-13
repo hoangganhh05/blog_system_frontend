@@ -299,7 +299,7 @@ function PostCard({ post, onDelete, style }) {
 
   return (
     <div
-      className="post-card w-full block bg-white text-gray-900 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 box-border"
+      className="post-card w-full block bg-white text-gray-900 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-200/80 mb-4"
       style={style}
     >
       {/* Header - Author Info */}
@@ -472,10 +472,10 @@ function PostCard({ post, onDelete, style }) {
         </div>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-3 px-4 py-2">
         {post.bgColor && post.content && post.content.length <= 130 && !post.thumbNail && !post.sharedPost ? (
           <div
-            className="w-full min-h-[200px] max-h-[320px] aspect-[16/9] py-12 px-6 rounded-2xl shadow-inner flex items-center justify-center text-white font-bold text-xl md:text-2xl text-center break-words cursor-pointer"
+            className="w-full min-h-[180px] max-h-[260px] aspect-[16/9] px-6 py-8 rounded-xl shadow-inner flex items-center justify-center text-white font-bold text-lg md:text-xl text-center break-words cursor-pointer"
             style={{ background: post.bgColor }}
             onClick={goToDetail}
           >
@@ -494,28 +494,64 @@ function PostCard({ post, onDelete, style }) {
             {post.thumbNail &&
               !post.sharedPost &&
               (isVideoUrl(post.thumbNail) ? (
-                <video
-                  src={post.thumbNail}
-                  controls
-                  playsInline
-                  webkit-playsinline="true"
-                  preload="metadata"
-                  className="w-full max-h-[500px] object-contain bg-black"
-                  onClick={(e) => e.stopPropagation()}
-                />
+                <div className="relative">
+                  <video
+                    src={post.thumbNail}
+                    controls
+                    playsInline
+                    webkit-playsinline="true"
+                    preload="metadata"
+                    className="w-full max-h-[500px] object-contain bg-black"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  {topReactions.length > 0 && (
+                    <div className="absolute bottom-2 right-2 flex -space-x-1">
+                      {topReactions.slice(0, 3).map((r, idx) => (
+                        <span
+                          key={r.type}
+                          className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-sm shadow-md"
+                          style={{
+                            marginLeft: idx > 0 ? "-8px" : "0",
+                            zIndex: 3 - idx,
+                          }}
+                        >
+                          {r.emoji}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ) : (
-                <img
-                  src={post.thumbNail}
-                  alt={post.title}
-                  className="w-full h-auto object-cover max-h-[500px] cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowLightbox(true);
-                  }}
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                  }}
-                />
+                <div className="relative">
+                  <img
+                    src={post.thumbNail}
+                    alt={post.title}
+                    className="w-full h-auto object-cover max-h-[500px] cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowLightbox(true);
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
+                  {topReactions.length > 0 && (
+                    <div className="absolute bottom-2 right-2 flex -space-x-1">
+                      {topReactions.slice(0, 3).map((r, idx) => (
+                        <span
+                          key={r.type}
+                          className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-sm shadow-md"
+                          style={{
+                            marginLeft: idx > 0 ? "-8px" : "0",
+                            zIndex: 3 - idx,
+                          }}
+                        >
+                          {r.emoji}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
           </>
         )}
@@ -672,7 +708,7 @@ function PostCard({ post, onDelete, style }) {
       </div>
 
       {/* Interactions - Like, Comment, Share */}
-      <div className="grid grid-cols-3 items-center py-2 border-t border-gray-100 relative">
+      <div className="flex items-center py-2 border-t border-gray-100 relative">
         {/* Reactions Picker */}
         {showReactionsPicker && (
           <div
@@ -715,7 +751,7 @@ function PostCard({ post, onDelete, style }) {
           onTouchMove={handleTouchMoveLike}
           onTouchEnd={handleTouchEndLike}
           onClick={handleToggleLike}
-          className="flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium"
+          className="flex-1 flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-100 py-2 rounded-lg transition-colors text-sm font-medium"
           style={{ color: activeReactionObj ? activeReactionObj.color : "" }}
         >
           {activeReactionObj ? (
@@ -735,13 +771,11 @@ function PostCard({ post, onDelete, style }) {
               />
             </svg>
           )}
-          <span>
-            {activeReactionObj ? activeReactionObj.label : "Thích"}
-          </span>
+          <span>Thích</span>
         </button>
 
         <button
-          className="flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium"
+          className="flex-1 flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-100 py-2 rounded-lg transition-colors text-sm font-medium"
           onClick={goToDetail}
         >
           <svg
@@ -761,7 +795,7 @@ function PostCard({ post, onDelete, style }) {
         </button>
 
         <button
-          className="flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium"
+          className="flex-1 flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-100 py-2 rounded-lg transition-colors text-sm font-medium"
           onClick={() => setIsShareModalOpen(true)}
         >
           <svg

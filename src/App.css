@@ -313,25 +313,28 @@
 @media (min-width: 1200px) {
   /* Chỉ áp dụng overflow hidden cho trang Home có 3 cột */
   .page-container {
-    height: calc(100dvh - var(--navbar-height, 60px));
     box-sizing: border-box;
-    overflow: hidden;
+    overflow: visible;
     padding-bottom: 0;
   }
 
-  /* Home page: html body overflow hidden */
+  /* Home page: html body overflow visible */
   body.home-page {
-    overflow: hidden;
+    overflow: visible;
   }
 
   .sidebar-left {
-    height: calc(100dvh - (var(--navbar-height, 60px) + var(--page-gutter, 16px) * 2));
+    position: sticky;
+    top: calc(var(--navbar-height, 60px) + var(--page-gutter, 16px));
+    max-height: calc(100dvh - (var(--navbar-height, 60px) + var(--page-gutter, 16px) * 2));
     overflow-y: auto;
     scrollbar-width: none;
   }
 
   .sidebar-right {
-    height: calc(100dvh - (var(--navbar-height, 60px) + var(--page-gutter, 16px) * 2));
+    position: sticky;
+    top: calc(var(--navbar-height, 60px) + var(--page-gutter, 16px));
+    max-height: calc(100dvh - (var(--navbar-height, 60px) + var(--page-gutter, 16px) * 2));
     overflow-y: auto;
     scrollbar-width: none;
   }
@@ -341,12 +344,8 @@
     max-width: min(760px, 100%);
     width: 100%;
     margin: 0 auto;
-    height: calc(100dvh - (var(--navbar-height, 60px) + var(--page-gutter, 16px) * 2));
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 4px;
+    overflow: visible;
     padding-bottom: 60px;
-    scrollbar-width: thin;
     box-sizing: border-box;
   }
 }

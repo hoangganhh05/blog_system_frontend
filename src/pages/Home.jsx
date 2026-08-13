@@ -181,7 +181,7 @@ function Home({ searchValue = "" }) {
         </div>
 
         {/* Feed */}
-        <main className="feed-column">
+        <main className="feed-column max-w-[680px] mx-auto">
           {/* Story Bar đầu trang */}
           <StoryBar />
 
