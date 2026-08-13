@@ -80,15 +80,24 @@ function Home({ searchValue = "" }) {
         }
 
         const data = res.data;
-        const newPosts = data.content || [];
+        console.log("Loaded posts:", data);
+
+        // Handle both array and paginated response
+        const newPosts = Array.isArray(data) ? data : (data.content || []);
+        const hasMoreData = Array.isArray(data) ? false : !data.last;
 
         if (reset || pageNum === 0) {
           setPosts(newPosts);
         } else {
-          setPosts((prev) => [...prev, ...newPosts]);
+          // Deduplicate posts by id to avoid duplicates
+          setPosts((prev) => {
+            const existingIds = new Set(prev.map(p => p.id));
+            const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
+            return [...prev, ...uniqueNewPosts];
+          });
         }
 
-        setHasMore(!data.last);
+        setHasMore(hasMoreData);
         setPage(pageNum);
       } catch {
         // Nếu backend chưa bật, hiển thị empty state
