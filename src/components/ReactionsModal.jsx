@@ -44,51 +44,23 @@ export default function ReactionsModal({
 
     likeService
       .getReactionsList(postId)
-      .catch(() => ({ data: [] }))
       .then((resLikes) => {
         if (cancelled) return;
 
-        // Xử lý cả mảng thường lẫn dữ liệu phân trang Spring Boot (resLikes.data.content)
-        let rawLikes = [];
-        if (Array.isArray(resLikes.data)) {
-          rawLikes = resLikes.data;
-        } else if (resLikes.data && Array.isArray(resLikes.data.content)) {
-          rawLikes = resLikes.data.content;
-        } else if (resLikes.data && Array.isArray(resLikes.data.data)) {
-          rawLikes = resLikes.data.data;
-        }
+        // In ra Console để bạn bấm F12 xem Backend thực sự trả về cấu trúc gì
+        console.log("🔥 Dữ liệu cảm xúc từ Backend:", resLikes);
 
-        // Nếu Backend chưa trả đủ danh sách người dùng thật, tạo danh sách hiển thị tạm không bị trùng tên
-        if (
-          rawLikes.length === 0 &&
-          reactionsSummary &&
-          Object.keys(reactionsSummary).length > 0
-        ) {
-          const fallbackList = [];
-          let userIndex = 0;
-
-          Object.entries(reactionsSummary).forEach(([reactType, count]) => {
-            for (let i = 0; i < count; i++) {
-              const isSelf = userIndex === 0 && currentUser;
-              fallbackList.push({
-                id: `fallback-${userIndex}`,
-                user: isSelf
-                  ? currentUser
-                  : {
-                      id: `user-${userIndex}`,
-                      fullName: `Người dùng ${userIndex + 1}`,
-                      username: `user_${userIndex + 1}`,
-                      avatarColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-                    },
-                type: reactType.toUpperCase(),
-              });
-              userIndex++;
-            }
-          });
-          rawLikes = fallbackList;
-        }
+        // Tự động bóc tách dữ liệu dù Backend trả về mảng hay DTO phân trang (content/data)
+        const rawLikes =
+          resLikes.data?.content ||
+          resLikes.data?.data ||
+          (Array.isArray(resLikes.data) ? resLikes.data : []);
 
         setReactionsList(rawLikes);
+      })
+      .catch((err) => {
+        console.error("Lỗi gọi API lấy cảm xúc:", err);
+        if (!cancelled) setReactionsList([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -97,7 +69,7 @@ export default function ReactionsModal({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, postId, currentUser?.id]);
+  }, [isOpen, postId]);
 
   if (!isOpen) return null;
   if (typeof document === "undefined") return null;
