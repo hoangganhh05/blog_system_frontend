@@ -2,18 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
-  Calendar,
-  Link as LinkIcon,
   MessageCircle,
   UserPlus,
   UserCheck,
-  Edit3,
   X,
   Camera,
   Loader2,
-  Bookmark,
-  Grid,
-  FileText
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
@@ -175,7 +169,7 @@ export default function Profile() {
     return (
       <div className="p-12 text-center text-zinc-500">
         <p>Không tìm thấy người dùng này.</p>
-        <Link to="/" className="text-primary font-bold mt-2 inline-block">
+        <Link to="/" className="text-black dark:text-white font-bold mt-2 inline-block">
           ← Về trang chủ
         </Link>
       </div>
@@ -196,7 +190,7 @@ export default function Profile() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex flex-col min-w-0">
-          <span className="font-extrabold text-base text-zinc-900 dark:text-white truncate">
+          <span className="font-bold text-base text-zinc-900 dark:text-white truncate">
             {user.fullName || user.username}
           </span>
           <span className="text-xs text-zinc-500">
@@ -205,169 +199,161 @@ export default function Profile() {
         </div>
       </header>
 
-      {/* Profile Header (Threads / X Minimalist Style) */}
-      <div className="p-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col gap-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col min-w-0">
-            <h1 className="font-extrabold text-2xl text-zinc-900 dark:text-white tracking-tight">
-              {user.fullName || user.username}
-            </h1>
-            <span className="text-sm text-zinc-500 font-medium">
-              @{user.username}
-            </span>
-          </div>
+      {/* 1. Cover Banner Tối Giản (~120px) */}
+      <div className="h-28 md:h-32 bg-gradient-to-r from-zinc-100 to-zinc-200 dark:from-zinc-900 dark:to-zinc-800 w-full relative shrink-0" />
 
-          {/* Large Avatar on Right */}
+      {/* 2. Header Thông Tin (Avatar + Nút Hành Động Ngang Hàng) */}
+      <div className="px-4 -mt-10 md:-mt-12 mb-3 flex flex-col">
+        <div className="flex justify-between items-end gap-3 mb-2">
+          {/* Avatar vừa vặn w-20 h-20 md:w-24 md:h-24 */}
           <div className="shrink-0">
             {user.avatarUrl ? (
               <img
                 src={user.avatarUrl}
                 alt=""
-                className="w-18 h-18 rounded-full object-cover border-2 border-zinc-100 dark:border-zinc-800 shadow-sm"
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-950 shadow-sm object-cover"
               />
             ) : (
               <div
-                className="w-18 h-18 rounded-full flex items-center justify-center font-bold text-white text-2xl shrink-0"
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-950 shadow-sm flex items-center justify-center font-bold text-white text-xl md:text-2xl"
                 style={{ backgroundColor: user.avatarColor || "#4f46e5" }}
               >
                 {getInitials(user.fullName || user.username)}
               </div>
             )}
           </div>
+
+          {/* Action Buttons: Nằm bên phải ngang hàng avatar, không rớt dòng */}
+          <div className="flex items-center gap-2 shrink-0 pb-1">
+            {isMe ? (
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(true)}
+                className="px-4 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 text-sm font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition"
+              >
+                Chỉnh sửa hồ sơ
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleToggleFriend}
+                  disabled={friendLoading}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition flex items-center gap-1.5 ${
+                    friendshipStatus === "ACCEPTED"
+                      ? "bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white"
+                      : friendshipStatus === "PENDING"
+                      ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                      : "bg-black dark:bg-white text-white dark:text-black hover:opacity-90"
+                  }`}
+                >
+                  {friendLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : friendshipStatus === "ACCEPTED" ? (
+                    <>
+                      <UserCheck className="w-3.5 h-3.5" />
+                      <span>Bạn bè</span>
+                    </>
+                  ) : friendshipStatus === "PENDING" ? (
+                    <span>Đã gửi lời mời</span>
+                  ) : (
+                    <>
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Kết bạn</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent("open_chat_user", { detail: { friend: user } })
+                    );
+                  }}
+                  className="p-2 rounded-full border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                  title="Nhắn tin"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Bio */}
+        {/* 3. Typography: Họ tên, @username, Bio & Thống kê */}
+        <div className="flex flex-col">
+          <h1 className="font-bold text-xl text-zinc-900 dark:text-white tracking-tight">
+            {user.fullName || user.username}
+          </h1>
+          <span className="text-sm text-zinc-500 font-medium">
+            @{user.username}
+          </span>
+        </div>
+
         {user.bio ? (
-          <p className="text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-200 whitespace-pre-line">
+          <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 mt-2 whitespace-pre-line">
             {user.bio}
           </p>
         ) : isMe ? (
-          <p className="text-xs text-zinc-400 italic">
+          <p className="text-xs text-zinc-400 italic mt-2">
             Chưa có tiểu sử. Bấm "Chỉnh sửa hồ sơ" để thêm giới thiệu về bạn!
           </p>
         ) : null}
 
-        {/* Stats Row */}
-        <div className="flex items-center gap-4 text-xs text-zinc-500">
+        {/* Thống kê bạn bè / bài viết */}
+        <div className="flex items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400 mt-2.5 pb-2">
           <span>
-            <strong className="text-zinc-900 dark:text-white font-bold">{friendCount}</strong> bạn bè
+            <strong className="text-zinc-900 dark:text-white font-semibold">{friendCount}</strong> bạn bè
           </span>
           <span>·</span>
           <span>
-            <strong className="text-zinc-900 dark:text-white font-bold">{posts.length}</strong> bài viết
+            <strong className="text-zinc-900 dark:text-white font-semibold">{posts.length}</strong> bài viết
           </span>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2.5 pt-1">
-          {isMe ? (
-            <button
-              type="button"
-              onClick={() => setIsEditModalOpen(true)}
-              className="flex-1 py-2 px-4 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-bold text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition text-center"
-            >
-              Chỉnh sửa hồ sơ
-            </button>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={handleToggleFriend}
-                disabled={friendLoading}
-                className={`flex-1 py-2 px-4 rounded-full text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-                  friendshipStatus === "ACCEPTED"
-                    ? "bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
-                    : friendshipStatus === "PENDING"
-                    ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                    : "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:opacity-90"
-                }`}
-              >
-                {friendLoading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : friendshipStatus === "ACCEPTED" ? (
-                  <>
-                    <UserCheck className="w-3.5 h-3.5" />
-                    <span>Bạn bè</span>
-                  </>
-                ) : friendshipStatus === "PENDING" ? (
-                  <span>Đã gửi lời mời</span>
-                ) : (
-                  <>
-                    <UserPlus className="w-3.5 h-3.5" />
-                    <span>Kết bạn</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  window.dispatchEvent(
-                    new CustomEvent("open_chat_user", { detail: { friend: user } })
-                  );
-                }}
-                className="py-2 px-4 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-bold text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition flex items-center gap-1.5"
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-                <span>Nhắn tin</span>
-              </button>
-            </>
-          )}
         </div>
       </div>
 
-      {/* Flat Tab Bar Underline Style */}
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+      {/* 4. Thanh Tabs: Chia đều 3 cột (grid grid-cols-3 text-center border-b border-zinc-200) */}
+      <div className="grid grid-cols-3 text-center border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <button
           type="button"
           onClick={() => setActiveTab("posts")}
-          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition ${
+          className={`py-3 text-sm transition cursor-pointer ${
             activeTab === "posts"
-              ? "text-zinc-950 dark:text-white"
-              : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              ? "border-b-2 border-black dark:border-white font-semibold text-black dark:text-white"
+              : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
           }`}
         >
           Bài viết
-          {activeTab === "posts" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-950 dark:bg-white" />
-          )}
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("media")}
-          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition ${
+          className={`py-3 text-sm transition cursor-pointer ${
             activeTab === "media"
-              ? "text-zinc-950 dark:text-white"
-              : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              ? "border-b-2 border-black dark:border-white font-semibold text-black dark:text-white"
+              : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
           }`}
         >
           Ảnh & Media
-          {activeTab === "media" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-950 dark:bg-white" />
-          )}
         </button>
 
-        {isMe && (
-          <button
-            type="button"
-            onClick={() => setActiveTab("saved")}
-            className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition ${
-              activeTab === "saved"
-                ? "text-zinc-950 dark:text-white"
-                : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
-            }`}
-          >
-            Đã lưu
-            {activeTab === "saved" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-950 dark:bg-white" />
-            )}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setActiveTab("saved")}
+          className={`py-3 text-sm transition cursor-pointer ${
+            activeTab === "saved"
+              ? "border-b-2 border-black dark:border-white font-semibold text-black dark:text-white"
+              : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+          }`}
+        >
+          Đã lưu
+        </button>
       </div>
 
       {/* Tab Content List */}
-      <div className="flex flex-col divide-y divide-zinc-200 dark:divide-zinc-800">
+      <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900">
         {activeTab === "posts" ? (
           posts.length === 0 ? (
             <div className="p-12 text-center text-zinc-400 text-xs">
@@ -457,7 +443,7 @@ export default function Profile() {
                 <button
                   type="button"
                   onClick={() => avatarInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 p-1.5 rounded-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow"
+                  className="absolute bottom-0 right-0 p-1.5 rounded-full bg-black dark:bg-white text-white dark:text-black shadow"
                 >
                   <Camera className="w-3.5 h-3.5" />
                 </button>
@@ -518,7 +504,7 @@ export default function Profile() {
               <button
                 type="submit"
                 disabled={isUpdating}
-                className="px-6 py-2 rounded-full text-xs font-bold bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:opacity-90 transition"
+                className="px-6 py-2 rounded-full text-xs font-bold bg-black dark:bg-white text-white dark:text-black hover:opacity-90 transition"
               >
                 {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Lưu thay đổi"}
               </button>

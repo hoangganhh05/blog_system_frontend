@@ -229,12 +229,12 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
             <Link
               to={`/profile/${author.id}`}
               onClick={(e) => e.stopPropagation()}
-              className="font-bold text-[15px] text-zinc-900 dark:text-white hover:underline truncate"
+              className="font-bold text-sm text-zinc-900 dark:text-white hover:underline truncate"
             >
               {authorName}
             </Link>
             {author.username && (
-              <span className="text-xs text-zinc-500 truncate">
+              <span className="text-xs text-zinc-400 truncate">
                 @{author.username}
               </span>
             )}
@@ -325,7 +325,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
         )}
 
         {/* Thân Bài Viết (Typography Thoáng) */}
-        <div className="text-[15px] leading-relaxed text-zinc-900 dark:text-zinc-100 break-words whitespace-pre-line mb-2">
+        <div className="text-sm leading-relaxed text-zinc-900 dark:text-zinc-100 break-words whitespace-pre-line my-2">
           {post.content}
         </div>
 
