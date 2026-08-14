@@ -27,36 +27,34 @@ export default function TrendingPage() {
   return (
     <div className="w-full min-h-full flex flex-col">
       {/* Page Header with Filters */}
-      <div className="flex items-center justify-between pb-3 mb-4 border-b border-stone-200 dark:border-stone-800 shrink-0">
+      <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5" style={{ color: "#E8650A" }} />
-          <span className="font-extrabold text-lg text-stone-900 dark:text-stone-100">
+          <TrendingUp className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
+          <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">
             Khám phá
           </span>
         </div>
 
-        <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 p-1 rounded-full text-xs font-semibold">
+        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-lg text-xs font-semibold">
           <button
             type="button"
             onClick={() => setFilter("trending")}
-            className={`px-3 py-1 rounded-full transition cursor-pointer ${
+            className={`px-3 py-1 rounded-md transition cursor-pointer ${
               filter === "trending"
-                ? "bg-white dark:bg-[#181818] text-stone-900 dark:text-stone-100 shadow-xs"
-                : "text-stone-400 hover:text-stone-700 dark:hover:text-stone-300"
+                ? "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xs font-bold"
+                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
             }`}
-            style={filter === "trending" ? { color: "#E8650A" } : {}}
           >
             Thịnh hành
           </button>
           <button
             type="button"
             onClick={() => setFilter("recent")}
-            className={`px-3 py-1 rounded-full transition cursor-pointer ${
+            className={`px-3 py-1 rounded-md transition cursor-pointer ${
               filter === "recent"
-                ? "bg-white dark:bg-[#181818] text-stone-900 dark:text-stone-100 shadow-xs"
-                : "text-stone-400 hover:text-stone-700 dark:hover:text-stone-300"
+                ? "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xs font-bold"
+                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
             }`}
-            style={filter === "recent" ? { color: "#E8650A" } : {}}
           >
             Mới nhất
           </button>

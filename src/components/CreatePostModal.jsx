@@ -136,138 +136,137 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated, onCrea
         className="w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header Modal */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800">
+        {/* Header Modal - Centered title with circular close button */}
+        <div className="relative flex items-center justify-center px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800">
+          <span className="font-bold text-base text-zinc-900 dark:text-white">
+            {editPost ? "Chỉnh sửa bài viết" : "Tạo bài viết"}
+          </span>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-full text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+            title="Đóng"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
-          <span className="font-bold text-base text-zinc-900 dark:text-white">
-            {editPost ? "Chỉnh sửa bài viết" : "Tạo bài viết mới"}
-          </span>
-          <div className="w-7" />
         </div>
 
         {/* Body Modal */}
-        <div className="p-5 overflow-y-auto flex-1 flex gap-3.5">
-          {/* Avatar Cột Trái */}
-          <div className="shrink-0">
+        <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
+          {/* User Meta Row */}
+          <div className="flex items-center gap-3">
             {currentUser?.avatarUrl ? (
               <img
                 src={currentUser.avatarUrl}
                 alt=""
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
               />
             ) : (
               <div
-                className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm"
-                style={{ backgroundColor: currentUser?.avatarColor || "#4f46e5" }}
+                className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs bg-zinc-800 dark:bg-zinc-700 shrink-0"
               >
                 {getInitials(currentUser?.fullName || currentUser?.username)}
               </div>
             )}
-          </div>
 
-          {/* Cột Soạn Thảo */}
-          <div className="flex-1 min-w-0 flex flex-col">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-bold text-sm text-zinc-900 dark:text-white">
+            <div className="flex flex-col min-w-0">
+              <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 truncate">
                 {currentUser?.fullName || currentUser?.username}
               </span>
               <button
                 type="button"
                 onClick={() => setPrivacy(privacy === "PUBLIC" ? "FRIENDS" : "PUBLIC")}
-                className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 w-fit mt-0.5 cursor-pointer"
               >
                 {privacy === "PUBLIC" ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
                 <span>{privacy === "PUBLIC" ? "Công khai" : "Bạn bè"}</span>
               </button>
             </div>
-
-            <textarea
-              ref={textareaRef}
-              autoFocus
-              value={content}
-              onChange={handleInput}
-              placeholder="Có gì mới hôm nay?..."
-              rows={4}
-              className="w-full bg-transparent border-none resize-none text-[16px] leading-relaxed text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none scrollbar-none my-1"
-            />
-
-            {/* Preview hình ảnh */}
-            {images.length > 0 && (
-              <div className={`mt-2 mb-3 grid gap-2 ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
-                {images.map((imgUrl, idx) => (
-                  <div key={idx} className="relative rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 group aspect-video max-h-56 bg-zinc-100 dark:bg-zinc-900">
-                    <img src={imgUrl} alt="" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(idx)}
-                      className="absolute top-2 right-2 p-1 rounded-full bg-black/70 hover:bg-black text-white transition"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {isUploading && (
-              <div className="flex items-center gap-2 text-xs text-zinc-400 my-2">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Đang tải ảnh...</span>
-              </div>
-            )}
           </div>
+
+          {/* Textarea */}
+          <textarea
+            ref={textareaRef}
+            autoFocus
+            value={content}
+            onChange={handleInput}
+            placeholder="Bạn đang nghĩ gì thế? Chia sẻ câu chuyện của bạn..."
+            rows={4}
+            className="w-full bg-transparent border-none resize-none text-[15px] leading-relaxed text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none scrollbar-none my-1"
+          />
+
+          {/* Preview Images */}
+          {images.length > 0 && (
+            <div className={`mt-2 grid gap-2 ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+              {images.map((imgUrl, idx) => (
+                <div key={idx} className="relative rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 group aspect-video max-h-56 bg-zinc-100 dark:bg-zinc-800">
+                  <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(idx)}
+                    className="absolute top-2 right-2 p-1 rounded-full bg-black/70 hover:bg-black text-white transition cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {isUploading && (
+            <div className="flex items-center gap-2 text-xs text-zinc-400 my-2">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Đang tải ảnh...</span>
+            </div>
+          )}
         </div>
 
-        {/* Footer Toolbar */}
-        <div className="px-5 py-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 rounded-full text-zinc-500 hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition"
-              title="Đính kèm ảnh"
-            >
-              <Image className="w-5 h-5" />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileChange}
-              className="hidden"
-            />
-
-            {categories.length > 0 && (
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="text-xs bg-zinc-200/60 dark:bg-zinc-800 border-none rounded-full px-3 py-1.5 text-zinc-700 dark:text-zinc-300 focus:outline-none"
+        {/* Footer Toolbar & Submit Button */}
+        <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-3 bg-zinc-50/50 dark:bg-zinc-900/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition cursor-pointer"
+                title="Đính kèm ảnh"
               >
-                <option value="">Chủ đề...</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            )}
+                <Image className="w-4 h-4" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileChange}
+                className="hidden"
+              />
+
+              {categories.length > 0 && (
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="text-xs bg-zinc-200/70 dark:bg-zinc-800 border-none rounded-full px-3 py-1 text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer"
+                >
+                  <option value="">Chủ đề...</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
 
             <button
               type="button"
               onClick={handleAiRefine}
               disabled={!content.trim() || isAiGenerating}
-              className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 hover:opacity-80 transition font-medium"
+              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition font-medium cursor-pointer"
               title="Nhờ AI viết hay hơn"
             >
-              {isAiGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-              <span>AI Viết lại</span>
+              {isAiGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
+              <span>AI Tối ưu</span>
             </button>
           </div>
 
@@ -275,13 +274,9 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated, onCrea
             type="button"
             onClick={handleSubmit}
             disabled={(!content.trim() && images.length === 0) || isSubmitting || isUploading}
-            className={`px-6 py-2 rounded-full text-sm font-bold transition ${
-              content.trim() || images.length > 0
-                ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:opacity-90 active:scale-95"
-                : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed"
-            }`}
+            className="w-full py-2.5 rounded-full text-xs font-semibold text-white dark:text-black bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
-            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : editPost ? "Lưu" : "Đăng"}
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : editPost ? "Lưu thay đổi" : "Đăng bài"}
           </button>
         </div>
       </div>

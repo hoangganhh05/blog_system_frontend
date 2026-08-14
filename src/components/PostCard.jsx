@@ -189,7 +189,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   return (
     <article
       onClick={handleCardClick}
-      className={`rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1e1e1e] p-5 mb-4 shadow-sm hover:shadow-md transition flex gap-3.5 ${
+      className={`rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs mb-3 transition flex gap-3.5 ${
         !isDetailed ? "cursor-pointer" : ""
       }`}
     >
@@ -229,17 +229,17 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
             <Link
               to={`/profile/${author.id}`}
               onClick={(e) => e.stopPropagation()}
-              className="font-bold text-sm text-zinc-900 dark:text-white hover:underline truncate"
+              className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 hover:underline truncate"
             >
               {authorName}
             </Link>
             {author.username && (
-              <span className="text-xs text-zinc-400 truncate">
+              <span className="text-xs text-zinc-500 truncate">
                 @{author.username}
               </span>
             )}
             <span className="text-zinc-400 text-xs">·</span>
-            <span className="text-xs text-zinc-400 hover:underline">
+            <span className="text-xs text-zinc-500 hover:underline">
               {timeAgo(post.createdAt)}
             </span>
           </div>
@@ -344,19 +344,19 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
         {/* Tag Chủ Đề */}
         {post.category?.name && (
           <div className="my-1">
-            <span className="inline-block text-xs font-medium text-primary hover:underline">
+            <span className="inline-block text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-md">
               #{post.category.name}
             </span>
           </div>
         )}
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-between text-stone-400 pt-2.5 mt-1 max-w-[400px]">
+        <div className="flex items-center justify-between text-zinc-500 pt-2 mt-1 max-w-[380px]">
           {/* Like */}
           <button
             type="button"
             onClick={handleToggleLike}
-            className={`flex items-center gap-1.5 text-xs font-medium group transition ${
+            className={`flex items-center gap-1.5 text-xs font-medium group transition cursor-pointer ${
               liked ? "text-rose-500" : "hover:text-rose-500"
             }`}
             title="Thích"
@@ -371,10 +371,10 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); navigate(`/posts/${post.id}`); }}
-            className="flex items-center gap-1.5 text-xs font-medium group hover:text-stone-700 dark:hover:text-stone-200 transition"
+            className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
             title="Bình luận"
           >
-            <div className="p-1.5 rounded-full group-hover:bg-stone-100 dark:group-hover:bg-stone-800 transition">
+            <div className="p-1.5 rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
               <MessageCircle strokeWidth={1.8} className="w-4 h-4" />
             </div>
             <span>{commentCount > 0 ? commentCount : ""}</span>
@@ -384,25 +384,25 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           <button
             type="button"
             onClick={handleCopyLink}
-            className="flex items-center gap-1.5 text-xs font-medium group hover:text-stone-700 dark:hover:text-stone-200 transition"
+            className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
             title="Chia sẻ"
           >
-            <div className="p-1.5 rounded-full group-hover:bg-stone-100 dark:group-hover:bg-stone-800 transition">
+            <div className="p-1.5 rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
               <Repeat strokeWidth={1.8} className="w-4 h-4" />
             </div>
           </button>
 
-          {/* Bookmark — amber */}
+          {/* Bookmark */}
           <button
             type="button"
             onClick={handleToggleBookmark}
-            className={`flex items-center gap-1.5 text-xs font-medium group transition ${
-              bookmarked ? "text-[#E8650A]" : "hover:text-[#E8650A]"
+            className={`flex items-center gap-1.5 text-xs font-medium group transition cursor-pointer ${
+              bookmarked ? "text-black dark:text-white" : "hover:text-black dark:hover:text-white"
             }`}
             title="Lưu bài viết"
           >
-            <div className="p-1.5 rounded-full group-hover:bg-orange-50 dark:group-hover:bg-orange-950/30 transition">
-              <Bookmark strokeWidth={1.8} className={`w-4 h-4 transition ${bookmarked ? "fill-[#E8650A]" : ""}`} />
+            <div className="p-1.5 rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
+              <Bookmark strokeWidth={1.8} className={`w-4 h-4 transition ${bookmarked ? "fill-black dark:fill-white" : ""}`} />
             </div>
           </button>
         </div>

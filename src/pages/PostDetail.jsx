@@ -95,15 +95,15 @@ export default function PostDetail() {
   return (
     <div className="w-full min-h-full flex flex-col">
       {/* Page Header */}
-      <div className="flex items-center gap-3 pb-3 mb-4 border-b border-stone-200 dark:border-stone-800 shrink-0">
+      <div className="flex items-center gap-3 pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="p-1.5 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition text-stone-700 dark:text-stone-300 cursor-pointer"
+          className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition text-zinc-700 dark:text-zinc-300 cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <span className="font-extrabold text-lg text-stone-900 dark:text-stone-100">
+        <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">
           Bài viết
         </span>
       </div>
@@ -119,20 +119,18 @@ export default function PostDetail() {
       {currentUser && (
         <form
           onSubmit={handleCreateComment}
-          className="p-4 rounded-2xl border border-stone-200 dark:border-stone-800 flex items-center gap-3 bg-white dark:bg-[#1e1e1e] shadow-xs mb-4"
+          className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 flex items-center gap-3 bg-white dark:bg-zinc-900 shadow-xs mb-3"
         >
           <div className="shrink-0">
             {currentUser.avatarUrl ? (
               <img
                 src={currentUser.avatarUrl}
                 alt=""
-                className="w-9 h-9 rounded-full object-cover ring-2"
-                style={{ outline: "2px solid #E8650A30" }}
+                className="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
               />
             ) : (
               <div
-                className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
-                style={{ backgroundColor: currentUser.avatarColor || "#E8650A" }}
+                className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs bg-zinc-800 dark:bg-zinc-700 shrink-0"
               >
                 {getInitials(currentUser.fullName || currentUser.username)}
               </div>
@@ -145,14 +143,13 @@ export default function PostDetail() {
             placeholder="Đăng câu trả lời của bạn..."
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
-            className="flex-1 bg-transparent border-none text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+            className="flex-1 bg-transparent border-none text-[14px] text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none"
           />
 
           <button
             type="submit"
             disabled={!replyText.trim() || isSubmitting}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold text-white transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
-            style={{ backgroundColor: replyText.trim() ? "#E8650A" : "#d1cdc9" }}
+            className="px-4 py-1.5 rounded-full text-xs font-semibold text-white dark:text-black bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Trả lời"}
           </button>

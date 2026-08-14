@@ -89,60 +89,57 @@ export default function FriendsPage() {
   return (
     <div className="w-full min-h-full flex flex-col">
       {/* Page Header */}
-      <div className="flex items-center gap-2 pb-3 mb-3 border-b border-stone-200 dark:border-stone-800 shrink-0">
-        <Users className="w-5 h-5" style={{ color: "#E8650A" }} />
-        <span className="font-extrabold text-lg text-stone-900 dark:text-stone-100">
-          Bạn bè & Kết nối
+      <div className="flex items-center gap-2 pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+        <Users className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
+        <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">
+          Bạn bè &amp; Kết nối
         </span>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-stone-200 dark:border-stone-800 mb-4 shrink-0 bg-white dark:bg-[#181818] rounded-xl overflow-hidden shadow-xs">
+      <div className="flex border-b border-zinc-200 dark:border-zinc-800 mb-4 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
         <button
           type="button"
           onClick={() => setActiveTab("friends")}
-          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition cursor-pointer ${
+          className={`flex-1 py-3 text-xs font-semibold tracking-tight text-center relative transition cursor-pointer ${
             activeTab === "friends"
-              ? "text-stone-900 dark:text-stone-100"
-              : "text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+              ? "text-black dark:text-white"
+              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
-          style={activeTab === "friends" ? { color: "#E8650A" } : {}}
         >
           Bạn bè ({friends.length})
           {activeTab === "friends" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
           )}
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("requests")}
-          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition cursor-pointer ${
+          className={`flex-1 py-3 text-xs font-semibold tracking-tight text-center relative transition cursor-pointer ${
             activeTab === "requests"
-              ? "text-stone-900 dark:text-stone-100"
-              : "text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+              ? "text-black dark:text-white"
+              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
-          style={activeTab === "requests" ? { color: "#E8650A" } : {}}
         >
           Lời mời ({pendingRequests.length})
           {activeTab === "requests" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
           )}
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("suggestions")}
-          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition cursor-pointer ${
+          className={`flex-1 py-3 text-xs font-semibold tracking-tight text-center relative transition cursor-pointer ${
             activeTab === "suggestions"
-              ? "text-stone-900 dark:text-stone-100"
-              : "text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+              ? "text-black dark:text-white"
+              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
-          style={activeTab === "suggestions" ? { color: "#E8650A" } : {}}
         >
           Gợi ý ({suggestions.length})
           {activeTab === "suggestions" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
           )}
         </button>
       </div>

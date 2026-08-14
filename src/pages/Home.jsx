@@ -111,36 +111,34 @@ export default function Home({ searchValue = "" }) {
     <div className="w-full min-h-full flex flex-col">
       {/* Sticky Top Header with 2 Tabs (Threads / X Style) */}
       {/* Feed Tabs */}
-      <div className="flex border-b border-stone-200 dark:border-stone-800 mb-4 shrink-0 bg-white dark:bg-[#181818] rounded-xl overflow-hidden shadow-xs">
+      <div className="flex border-b border-zinc-200 dark:border-zinc-800 mb-4 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
         <button
           type="button"
           onClick={() => setActiveTab("forYou")}
-          className={`flex-1 py-3 text-center text-sm font-semibold transition relative cursor-pointer ${
+          className={`flex-1 py-3 text-center text-xs font-semibold transition relative cursor-pointer ${
             activeTab === "forYou"
-              ? "text-stone-900 dark:text-stone-100"
-              : "text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
+              ? "text-black dark:text-white"
+              : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
-          style={activeTab === "forYou" ? { color: "#E8650A" } : {}}
         >
           Dành cho bạn
           {activeTab === "forYou" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
           )}
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("following")}
-          className={`flex-1 py-3 text-center text-sm font-semibold transition relative cursor-pointer ${
+          className={`flex-1 py-3 text-center text-xs font-semibold transition relative cursor-pointer ${
             activeTab === "following"
-              ? "text-stone-900 dark:text-stone-100"
-              : "text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
+              ? "text-black dark:text-white"
+              : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
-          style={activeTab === "following" ? { color: "#E8650A" } : {}}
         >
           Đang theo dõi
           {activeTab === "following" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
           )}
         </button>
       </div>

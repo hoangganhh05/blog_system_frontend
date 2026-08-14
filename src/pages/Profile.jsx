@@ -181,55 +181,54 @@ export default function Profile() {
   return (
     <div className="w-full min-h-full flex flex-col">
       {/* Page Header */}
-      <div className="flex items-center gap-3 pb-3 mb-4 border-b border-stone-200 dark:border-stone-800 shrink-0">
+      <div className="flex items-center gap-3 pb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="p-1.5 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition text-stone-700 dark:text-stone-300 cursor-pointer"
+          className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition text-zinc-700 dark:text-zinc-300 cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex flex-col min-w-0">
-          <span className="font-bold text-lg text-stone-900 dark:text-stone-100 truncate">
+          <span className="font-bold text-base text-zinc-900 dark:text-zinc-100 truncate">
             {user.fullName || user.username}
           </span>
-          <span className="text-xs text-stone-400">
+          <span className="text-xs text-zinc-500">
             {posts.length} bài viết
           </span>
         </div>
       </div>
 
-      {/* 1. Cover Banner — warm amber/stone gradient */}
-      <div className="h-32 md:h-36 w-full shrink-0" style={{ background: "linear-gradient(135deg, #E8650A22 0%, #f5f0eb 50%, #e5e2dd 100%)" }} />
+      {/* 1. Cover Banner */}
+      <div className="h-32 md:h-36 w-full rounded-2xl bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-800 shrink-0 border border-zinc-200 dark:border-zinc-800" />
 
-      {/* 2. Header Thông Tin (Avatar + Nút Hành Động Ngang Hàng) */}
-      <div className="px-4 -mt-10 md:-mt-12 mb-3 flex flex-col">
+      {/* 2. Header Info (Avatar + Action Buttons) */}
+      <div className="px-3 -mt-10 md:-mt-12 mb-2 flex flex-col">
         <div className="flex justify-between items-end gap-3 mb-2">
-          {/* Avatar vừa vặn w-20 h-20 md:w-24 md:h-24 */}
+          {/* Avatar */}
           <div className="shrink-0">
             {user.avatarUrl ? (
               <img
                 src={user.avatarUrl}
                 alt=""
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-[#181818] shadow-md object-cover ring-2 ring-[#E8650A]/30"
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-900 shadow-sm object-cover"
               />
             ) : (
               <div
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-[#181818] shadow-md flex items-center justify-center font-bold text-white text-xl md:text-2xl"
-                style={{ backgroundColor: user.avatarColor || "#E8650A" }}
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-900 shadow-sm flex items-center justify-center font-bold text-white text-xl md:text-2xl bg-zinc-800 dark:bg-zinc-700"
               >
                 {getInitials(user.fullName || user.username)}
               </div>
             )}
           </div>
 
-          {/* Action Buttons: Nằm bên phải ngang hàng avatar, không rớt dòng */}
+          {/* Action Buttons */}
           <div className="flex items-center gap-2 shrink-0 pb-1">
             {isMe ? (
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(true)}
-                className="px-4 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 text-sm font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition"
+                className="px-4 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition cursor-pointer"
               >
                 Chỉnh sửa hồ sơ
               </button>
@@ -239,12 +238,12 @@ export default function Profile() {
                   type="button"
                   onClick={handleToggleFriend}
                   disabled={friendLoading}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition flex items-center gap-1.5 ${
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
                     friendshipStatus === "ACCEPTED"
                       ? "bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white"
                       : friendshipStatus === "PENDING"
                       ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                      : "bg-black dark:bg-white text-white dark:text-black hover:opacity-90"
+                      : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-100"
                   }`}
                 >
                   {friendLoading ? (
@@ -271,7 +270,7 @@ export default function Profile() {
                       new CustomEvent("open_chat_user", { detail: { friend: user } })
                     );
                   }}
-                  className="p-2 rounded-full border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                  className="p-2 rounded-full border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
                   title="Nhắn tin"
                 >
                   <MessageCircle className="w-4 h-4" />
@@ -281,18 +280,18 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* 3. Typography: Họ tên, @username, Bio & Thống kê */}
+        {/* Typography */}
         <div className="flex flex-col">
-          <h1 className="font-bold text-xl text-zinc-900 dark:text-white tracking-tight">
+          <h1 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 tracking-tight">
             {user.fullName || user.username}
           </h1>
-          <span className="text-sm text-zinc-500 font-medium">
+          <span className="text-xs text-zinc-500 font-medium">
             @{user.username}
           </span>
         </div>
 
         {user.bio ? (
-          <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 mt-2 whitespace-pre-line">
+          <p className="text-xs leading-relaxed text-zinc-700 dark:text-zinc-300 mt-2 whitespace-pre-line">
             {user.bio}
           </p>
         ) : isMe ? (
@@ -301,55 +300,61 @@ export default function Profile() {
           </p>
         ) : null}
 
-        {/* Thống kê bạn bè / bài viết */}
-        <div className="flex items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400 mt-2.5 pb-2">
+        {/* Stats */}
+        <div className="flex items-center gap-4 text-xs text-zinc-500 mt-2 pb-2">
           <span>
-            <strong className="text-zinc-900 dark:text-white font-semibold">{friendCount}</strong> bạn bè
+            <strong className="text-zinc-900 dark:text-zinc-100 font-semibold">{friendCount}</strong> bạn bè
           </span>
           <span>·</span>
           <span>
-            <strong className="text-zinc-900 dark:text-white font-semibold">{posts.length}</strong> bài viết
+            <strong className="text-zinc-900 dark:text-zinc-100 font-semibold">{posts.length}</strong> bài viết
           </span>
         </div>
       </div>
 
-      {/* 4. Tabs — amber underline indicator */}
-      <div className="grid grid-cols-3 text-center border-b border-stone-200 dark:border-stone-800 shrink-0">
+      {/* Tabs: Chia đều 3 cột với thanh active tối giản */}
+      <div className="grid grid-cols-3 text-center border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
         <button
           type="button"
           onClick={() => setActiveTab("posts")}
-          className={`py-3 text-sm font-medium transition cursor-pointer ${
+          className={`py-3 text-xs font-semibold transition cursor-pointer relative ${
             activeTab === "posts"
-              ? "font-semibold text-stone-900 dark:text-stone-100 border-b-2"
-              : "text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
+              ? "text-black dark:text-white"
+              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
-          style={activeTab === "posts" ? { borderBottomColor: "#E8650A", color: "#E8650A" } : {}}
         >
           Bài viết
+          {activeTab === "posts" && (
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-black dark:bg-white rounded-full" />
+          )}
         </button>
         <button
           type="button"
           onClick={() => setActiveTab("media")}
-          className={`py-3 text-sm font-medium transition cursor-pointer ${
+          className={`py-3 text-xs font-semibold transition cursor-pointer relative ${
             activeTab === "media"
-              ? "font-semibold border-b-2"
-              : "text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
+              ? "text-black dark:text-white"
+              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
-          style={activeTab === "media" ? { borderBottomColor: "#E8650A", color: "#E8650A" } : {}}
         >
           Ảnh &amp; Media
+          {activeTab === "media" && (
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-black dark:bg-white rounded-full" />
+          )}
         </button>
         <button
           type="button"
           onClick={() => setActiveTab("saved")}
-          className={`py-3 text-sm font-medium transition cursor-pointer ${
+          className={`py-3 text-xs font-semibold transition cursor-pointer relative ${
             activeTab === "saved"
-              ? "font-semibold border-b-2"
-              : "text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
+              ? "text-black dark:text-white"
+              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
-          style={activeTab === "saved" ? { borderBottomColor: "#E8650A", color: "#E8650A" } : {}}
         >
           Đã lưu
+          {activeTab === "saved" && (
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-black dark:bg-white rounded-full" />
+          )}
         </button>
       </div>
 
@@ -406,65 +411,66 @@ export default function Profile() {
 
       {/* Minimalist Edit Profile Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <form
-            onSubmit={handleSaveProfile}
-            className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 flex flex-col gap-4 shadow-2xl animate-in zoom-in-95 duration-150"
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150" onClick={() => setIsEditModalOpen(false)}>
+          <div
+            className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-base text-zinc-900 dark:text-white">
-                Chỉnh sửa hồ sơ
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsEditModalOpen(false)}
-                className="p-1 rounded-full text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Avatar picker */}
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                {editForm.avatarUrl ? (
-                  <img
-                    src={editForm.avatarUrl}
-                    alt=""
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                ) : (
-                  <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-white text-xl"
-                    style={{ backgroundColor: user.avatarColor || "#4f46e5" }}
-                  >
-                    {getInitials(editForm.fullName || user.username)}
-                  </div>
-                )}
+            <form onSubmit={handleSaveProfile} className="p-5 flex flex-col gap-4">
+              {/* Header with centered title and close button */}
+              <div className="relative flex items-center justify-center pb-3 border-b border-zinc-100 dark:border-zinc-800">
+                <span className="font-bold text-base text-zinc-900 dark:text-white">
+                  Chỉnh sửa hồ sơ
+                </span>
                 <button
                   type="button"
-                  onClick={() => avatarInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 p-1.5 rounded-full bg-black dark:bg-white text-white dark:text-black shadow"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
                 >
-                  <Camera className="w-3.5 h-3.5" />
+                  <X className="w-4 h-4" />
                 </button>
-                <input
-                  ref={avatarInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarFileChange}
-                  className="hidden"
-                />
               </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-zinc-900 dark:text-white">
-                  Ảnh đại diện
-                </span>
-                <span className="text-[11px] text-zinc-400">
-                  Nhấn vào máy ảnh để đổi ảnh mới
-                </span>
+
+              {/* Avatar picker */}
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  {editForm.avatarUrl ? (
+                    <img
+                      src={editForm.avatarUrl}
+                      alt=""
+                      className="w-16 h-16 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
+                    />
+                  ) : (
+                    <div
+                      className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-white text-xl bg-zinc-800 dark:bg-zinc-700"
+                    >
+                      {getInitials(editForm.fullName || user.username)}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 p-1.5 rounded-full bg-black dark:bg-white text-white dark:text-black shadow-xs cursor-pointer"
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                  </button>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarFileChange}
+                    className="hidden"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-zinc-900 dark:text-white">
+                    Ảnh đại diện
+                  </span>
+                  <span className="text-[11px] text-zinc-400">
+                    Nhấn vào máy ảnh để đổi ảnh mới
+                  </span>
+                </div>
               </div>
-            </div>
 
             {/* Full name input */}
             <div className="flex flex-col gap-1">
@@ -512,7 +518,8 @@ export default function Profile() {
             </div>
           </form>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
 }

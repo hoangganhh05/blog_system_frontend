@@ -56,59 +56,56 @@ export default function SearchPage() {
   return (
     <div className="w-full min-h-full flex flex-col">
       {/* Page Header with Search Input */}
-      <div className="flex items-center gap-3 pb-3 mb-4 border-b border-stone-200 dark:border-stone-800 shrink-0">
+      <div className="flex items-center gap-3 pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="p-1.5 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition text-stone-700 dark:text-stone-300 shrink-0 cursor-pointer"
+          className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition text-zinc-700 dark:text-zinc-300 shrink-0 cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
 
         <form onSubmit={handleSubmit} className="flex-1 relative">
-          <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Tìm bài viết, tác giả..."
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
-            className="w-full bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-full py-2 pl-10 pr-4 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2"
-            style={{ "--tw-ring-color": "#E8650A55" }}
+            className="w-full bg-zinc-100 dark:bg-zinc-800 border border-transparent focus:border-zinc-300 dark:focus:border-zinc-700 rounded-full py-1.5 pl-10 pr-4 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none"
           />
         </form>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-stone-200 dark:border-stone-800 mb-4 shrink-0 bg-white dark:bg-[#181818] rounded-xl overflow-hidden shadow-xs">
+      <div className="flex border-b border-zinc-200 dark:border-zinc-800 mb-4 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
         <button
           type="button"
           onClick={() => setActiveTab("posts")}
-          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition cursor-pointer ${
+          className={`flex-1 py-3 text-xs font-semibold tracking-tight text-center relative transition cursor-pointer ${
             activeTab === "posts"
-              ? "text-stone-900 dark:text-stone-100"
-              : "text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+              ? "text-black dark:text-white"
+              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
-          style={activeTab === "posts" ? { color: "#E8650A" } : {}}
         >
           Bài viết ({posts.length})
           {activeTab === "posts" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
           )}
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("people")}
-          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition cursor-pointer ${
+          className={`flex-1 py-3 text-xs font-semibold tracking-tight text-center relative transition cursor-pointer ${
             activeTab === "people"
-              ? "text-stone-900 dark:text-stone-100"
-              : "text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+              ? "text-black dark:text-white"
+              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
-          style={activeTab === "people" ? { color: "#E8650A" } : {}}
         >
           Mọi người ({users.length})
           {activeTab === "people" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
           )}
         </button>
       </div>

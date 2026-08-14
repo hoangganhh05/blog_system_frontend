@@ -31,15 +31,15 @@ export default function SavedPosts() {
   return (
     <div className="w-full min-h-full flex flex-col">
       {/* Page Header */}
-      <div className="flex items-center gap-3 pb-3 mb-4 border-b border-stone-200 dark:border-stone-800 shrink-0">
+      <div className="flex items-center gap-3 pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="p-1.5 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition text-stone-700 dark:text-stone-300 cursor-pointer"
+          className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition text-zinc-700 dark:text-zinc-300 cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <span className="font-extrabold text-lg text-stone-900 dark:text-stone-100">
+        <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">
           Đã lưu
         </span>
       </div>

@@ -99,16 +99,15 @@ export default function NotificationsPage() {
   return (
     <div className="w-full min-h-full flex flex-col">
       {/* Page Header */}
-      <div className="flex items-center justify-between pb-3 mb-4 border-b border-stone-200 dark:border-stone-800 shrink-0">
-        <span className="font-extrabold text-lg text-stone-900 dark:text-stone-100">
+      <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+        <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">
           Thông báo
         </span>
         {notifications.some((n) => !n.read) && (
           <button
             type="button"
             onClick={markAllRead}
-            className="text-xs font-semibold hover:underline flex items-center gap-1 cursor-pointer"
-            style={{ color: "#E8650A" }}
+            className="text-xs font-semibold hover:underline flex items-center gap-1 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white cursor-pointer"
           >
             <CheckCheck className="w-3.5 h-3.5" />
             <span>Đọc tất cả</span>

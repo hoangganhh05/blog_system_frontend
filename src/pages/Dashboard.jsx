@@ -10,8 +10,6 @@ import postService from "../services/postService";
 import CreatePostModal from "../components/CreatePostModal";
 import { ConfirmModal } from "../components/CustomModal";
 
-const AMBER = "#E8650A";
-
 export default function Dashboard() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -87,17 +85,17 @@ export default function Dashboard() {
   if (!currentUser) return null;
 
   return (
-    <div className="w-full flex flex-col gap-6">
+    <div className="w-full flex flex-col gap-5">
       {/* 1. Header with Page Title & Create Post Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200 dark:border-stone-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-200 dark:border-zinc-800">
         <div>
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-6 h-6" style={{ color: AMBER }} />
-            <h1 className="text-2xl font-extrabold text-stone-900 dark:text-stone-100 tracking-tight">
+            <BarChart3 className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
+            <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
               Bảng điều khiển
             </h1>
           </div>
-          <p className="text-xs text-stone-500 mt-1">
+          <p className="text-xs text-zinc-500 mt-0.5">
             Theo dõi hiệu quả thực tế và quản lý bài viết của bạn.
           </p>
         </div>
@@ -108,93 +106,89 @@ export default function Dashboard() {
             setEditPost(null);
             setShowCreateModal(true);
           }}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-white text-sm font-semibold shadow-xs transition active:scale-95 cursor-pointer"
-          style={{ backgroundColor: AMBER }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#c8540a")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = AMBER)}
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black text-xs font-semibold shadow-xs transition active:scale-95 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Tạo bài viết mới</span>
         </button>
       </div>
 
-      {/* 2. Grid Thống Kê 2 Cột Chuẩn Tạp Chí Số */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+      {/* 2. Grid Thống Kê 2 Cột / 4 Cột */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {/* Total Views */}
-        <div className="p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1e1e1e] shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-stone-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Lượt xem</span>
-            <Eye className="w-4 h-4" style={{ color: AMBER }} />
+        <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between text-zinc-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Lượt xem</span>
+            <Eye className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
           </div>
-          <div className="mt-3">
-            <span className="text-2xl font-black text-stone-900 dark:text-stone-100">
+          <div className="mt-2.5">
+            <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
               {realTotalViews.toLocaleString()}
             </span>
-            <span className="text-[11px] text-stone-400 block mt-0.5">Tổng lượt đọc</span>
+            <span className="text-[11px] text-zinc-400 block mt-0.5">Tổng lượt đọc</span>
           </div>
         </div>
 
         {/* Total Posts */}
-        <div className="p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1e1e1e] shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-stone-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Bài viết</span>
-            <FileText className="w-4 h-4" style={{ color: AMBER }} />
+        <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between text-zinc-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Bài viết</span>
+            <FileText className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
           </div>
-          <div className="mt-3">
-            <span className="text-2xl font-black text-stone-900 dark:text-stone-100">
+          <div className="mt-2.5">
+            <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
               {realTotalPosts}
             </span>
-            <span className="text-[11px] text-stone-400 block mt-0.5">Đã tạo</span>
+            <span className="text-[11px] text-zinc-400 block mt-0.5">Đã tạo</span>
           </div>
         </div>
 
         {/* Total Likes */}
-        <div className="p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1e1e1e] shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-stone-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Lượt thích</span>
+        <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between text-zinc-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Lượt thích</span>
             <Heart className="w-4 h-4 text-rose-500" />
           </div>
-          <div className="mt-3">
-            <span className="text-2xl font-black text-stone-900 dark:text-stone-100">
+          <div className="mt-2.5">
+            <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
               {realTotalLikes.toLocaleString()}
             </span>
-            <span className="text-[11px] text-stone-400 block mt-0.5">Tương tác</span>
+            <span className="text-[11px] text-zinc-400 block mt-0.5">Tương tác</span>
           </div>
         </div>
 
         {/* Total Followers */}
-        <div className="p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1e1e1e] shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-stone-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Người theo dõi</span>
-            <Users className="w-4 h-4 text-sky-500" />
+        <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between text-zinc-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Người theo dõi</span>
+            <Users className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
           </div>
-          <div className="mt-3">
-            <span className="text-2xl font-black text-stone-900 dark:text-stone-100">
+          <div className="mt-2.5">
+            <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
               {realFollowersCount.toLocaleString()}
             </span>
-            <span className="text-[11px] text-stone-400 block mt-0.5">Bạn đọc</span>
+            <span className="text-[11px] text-zinc-400 block mt-0.5">Bạn đọc</span>
           </div>
         </div>
       </div>
 
       {/* 3. Post Management Table / List */}
-      <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1e1e1e] shadow-xs p-5 flex flex-col gap-4">
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-4 flex flex-col gap-3">
         {/* Search & Filter Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100 dark:border-stone-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800">
           <div className="relative flex-1 max-w-xs">
-            <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Tìm bài viết của bạn..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="w-full bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-full py-1.5 pl-9 pr-3 text-xs text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2"
-              style={{ "--tw-ring-color": AMBER + "55" }}
+              className="w-full bg-zinc-100 dark:bg-zinc-800 border border-transparent focus:border-zinc-300 dark:focus:border-zinc-700 rounded-full py-1.5 pl-9 pr-3 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none"
             />
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-stone-400 mr-1">Trạng thái:</span>
+          <div className="flex items-center gap-1 text-xs">
+            <span className="text-zinc-400 mr-1">Trạng thái:</span>
             {["all", "PUBLISHED", "DRAFT"].map((st) => (
               <button
                 key={st}
@@ -202,8 +196,8 @@ export default function Dashboard() {
                 onClick={() => setFilterStatus(st)}
                 className={`px-3 py-1 rounded-full font-medium transition cursor-pointer ${
                   filterStatus === st
-                    ? "bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 font-semibold"
-                    : "text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 bg-stone-100 dark:bg-stone-800"
+                    ? "bg-black dark:bg-white text-white dark:text-black font-semibold shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 bg-zinc-100 dark:bg-zinc-800"
                 }`}
               >
                 {st === "all" ? "Tất cả" : st === "PUBLISHED" ? "Đã xuất bản" : "Bản nháp"}

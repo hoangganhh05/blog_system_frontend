@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { Sparkles, Trash2, HelpCircle, X } from "lucide-react";
 
 /**
- * Modern Custom AI Prompt Modal (Thay thế window.prompt)
+ * Modern Custom AI Prompt Modal
  */
 export function AiPromptModal({ isOpen, onClose, onSubmit, loading }) {
   const [promptText, setPromptText] = useState("");
@@ -24,108 +25,57 @@ export function AiPromptModal({ isOpen, onClose, onSubmit, loading }) {
 
   return (
     <div
-      className="modal-overlay"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
       onClick={onClose}
-      style={{
-        position: "fixed",
-        top: 0, left: 0, right: 0, bottom: 0,
-        background: "rgba(0, 0, 0, 0.65)",
-        backdropFilter: "blur(8px)",
-        zIndex: 999999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-      }}
     >
       <div
-        className="modal-card"
+        className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4 animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%",
-          maxWidth: 460,
-          background: "var(--bg-card)",
-          borderRadius: 20,
-          padding: 24,
-          boxShadow: "0 20px 50px rgba(0,0,0,0.3), 0 0 0 1px var(--border-light)",
-          animation: "scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
       >
-        <div style={{ display: "flex", alignItems: "center", justify: "space-between", marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div
-              style={{
-                width: 40, height: 40, borderRadius: 12,
-                background: "linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 22, color: "#fff", boxShadow: "0 4px 12px rgba(124,58,237,0.3)"
-              }}
-            >
-              ✨
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100 font-bold">
+              <Sparkles className="w-4 h-4 text-amber-500" />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>
-                Trợ Lý Gợi Ý Viết Bài
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                Trợ lý gợi ý viết bài
               </h3>
-              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                Nhập chủ đề để Trợ lý khơi nguồn ý tưởng viết bài cho bạn
-              </span>
+              <p className="text-[11px] text-zinc-500">
+                Nhập chủ đề để trợ lý khơi nguồn ý tưởng
+              </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 20, cursor: "pointer" }}
+            className="p-1 rounded-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 16 }}>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="VD: Kinh nghiệm du lịch tự túc, Học lập trình..."
-              value={promptText}
-              onChange={(e) => setPromptText(e.target.value)}
-              autoFocus
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                borderRadius: 14,
-                border: "1.5px solid var(--primary)",
-                fontSize: 14.5,
-                background: "var(--bg-input)",
-                color: "var(--text-primary)",
-                outline: "none",
-                boxShadow: "0 0 0 3px rgba(79,70,229,0.15)",
-              }}
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <input
+            type="text"
+            placeholder="VD: Kinh nghiệm du lịch, học lập trình..."
+            value={promptText}
+            onChange={(e) => setPromptText(e.target.value)}
+            autoFocus
+            className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-black dark:focus:border-white"
+          />
 
-          {/* Tag gợi ý */}
-          <div style={{ marginBottom: 20 }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 8 }}>
-              💡 Gợi ý ý tưởng hot:
-            </span>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {SUGGESTED_TOPICS.map((topic) => (
+          {/* Suggested topics */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-semibold text-zinc-400">Gợi ý chủ đề nhanh:</span>
+            <div className="flex flex-wrap gap-1.5">
+              {SUGGESTED_TOPICS.map((topic, idx) => (
                 <button
-                  key={topic}
+                  key={idx}
                   type="button"
                   onClick={() => setPromptText(topic.replace(/^[^\s]+\s/, ""))}
-                  style={{
-                    background: "var(--bg-hover)",
-                    border: "1px solid var(--border-light)",
-                    borderRadius: 16,
-                    padding: "4px 10px",
-                    fontSize: 12,
-                    color: "var(--text-secondary)",
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--primary)"}
-                  onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-light)"}
+                  className="text-xs px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition cursor-pointer"
                 >
                   {topic}
                 </button>
@@ -133,27 +83,20 @@ export function AiPromptModal({ isOpen, onClose, onSubmit, loading }) {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
             <button
               type="button"
-              className="btn btn-secondary"
               onClick={onClose}
-              style={{ borderRadius: 12 }}
+              className="px-4 py-2 rounded-full text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="btn btn-primary"
               disabled={loading || !promptText.trim()}
-              style={{
-                borderRadius: 12,
-                background: "linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)",
-                fontWeight: 700,
-                padding: "10px 20px"
-              }}
+              className="px-4 py-2 rounded-full text-xs font-semibold text-white dark:text-black bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 transition active:scale-95 disabled:opacity-40 cursor-pointer"
             >
-              {loading ? "🤖 AI đang suy nghĩ..." : "✨ AI Tạo Bài Viết"}
+              {loading ? "Đang suy nghĩ..." : "Tạo bài viết"}
             </button>
           </div>
         </form>
@@ -163,77 +106,58 @@ export function AiPromptModal({ isOpen, onClose, onSubmit, loading }) {
 }
 
 /**
- * Modern Custom Confirm Dialog (Thay thế window.confirm)
+ * Modern Custom Confirm Dialog
  */
 export function ConfirmModal({ isOpen, title, message, confirmText = "Xác nhận", confirmVariant = "danger", onClose, onConfirm }) {
   if (!isOpen) return null;
 
   return (
     <div
-      className="modal-overlay"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
       onClick={onClose}
-      style={{
-        position: "fixed",
-        top: 0, left: 0, right: 0, bottom: 0,
-        background: "rgba(0, 0, 0, 0.65)",
-        backdropFilter: "blur(8px)",
-        zIndex: 999999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-      }}
     >
       <div
-        className="modal-card"
+        className="w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xl flex flex-col items-center text-center gap-3 animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%",
-          maxWidth: 400,
-          background: "var(--bg-card)",
-          borderRadius: 20,
-          padding: 24,
-          textAlign: "center",
-          boxShadow: "0 20px 50px rgba(0,0,0,0.3), 0 0 0 1px var(--border-light)",
-          animation: "scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
       >
         <div
-          style={{
-            width: 52, height: 52, borderRadius: "50%",
-            background: confirmVariant === "danger" ? "rgba(239, 68, 68, 0.12)" : "var(--primary-light)",
-            color: confirmVariant === "danger" ? "#ef4444" : "var(--primary)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 24, margin: "0 auto 16px"
-          }}
+          className={`w-10 h-10 rounded-full flex items-center justify-center text-base ${
+            confirmVariant === "danger"
+              ? "bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400"
+              : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+          }`}
         >
-          {confirmVariant === "danger" ? "🗑️" : "❓"}
+          {confirmVariant === "danger" ? <Trash2 className="w-5 h-5" /> : <HelpCircle className="w-5 h-5" />}
         </div>
 
-        <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
-          {title || "Xác nhận hành động"}
-        </h3>
-        <p style={{ margin: "0 0 24px", fontSize: 14, color: "var(--text-muted)", lineHeight: 1.5 }}>
-          {message}
-        </p>
+        <div className="flex flex-col gap-1">
+          <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+            {title || "Xác nhận hành động"}
+          </h3>
+          <p className="text-xs text-zinc-500 leading-relaxed max-w-xs">
+            {message}
+          </p>
+        </div>
 
-        <div style={{ display: "flex", gap: 12 }}>
+        <div className="grid grid-cols-2 gap-2 w-full pt-2">
           <button
             type="button"
-            className="btn btn-secondary btn-full"
             onClick={onClose}
-            style={{ borderRadius: 12 }}
+            className="w-full py-2 rounded-full border border-zinc-200 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
           >
             Hủy bỏ
           </button>
           <button
             type="button"
-            className={`btn btn-${confirmVariant === "danger" ? "danger" : "primary"} btn-full`}
             onClick={() => {
               onConfirm();
               onClose();
             }}
-            style={{ borderRadius: 12, fontWeight: 700 }}
+            className={`w-full py-2 rounded-full text-xs font-semibold text-white transition active:scale-95 cursor-pointer ${
+              confirmVariant === "danger"
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-black hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-100"
+            }`}
           >
             {confirmText}
           </button>
