@@ -3,67 +3,35 @@
 @import "tailwindcss";
 
 /* ============================================
-   DESIGN TOKENS & SYSTEM VARIABLES
+   ROOT & BASE CONTAINER RESETS (FULL WIDTH)
    ============================================ */
-:root {
-  --font: "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
-  --bg-main: #fafafa;
-  --bg-card: #ffffff;
-  --text-primary: #09090b;
-  --text-secondary: #71717a;
-  --border-color: #e4e4e7;
+html,
+body,
+#root {
+  width: 100% !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
 }
 
-[data-theme="dark"] {
-  --bg-main: #09090b;
-  --bg-card: #18181b;
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --border-color: #27272a;
-}
-
-/* ============================================
-   BASE RESETS & DEFAULTS
-   ============================================ */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 html {
   scroll-behavior: smooth;
-  width: 100%;
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  font-family: var(--font);
+  font-family: "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
 }
 
 body {
-  font-family: var(--font);
-  background-color: var(--bg-main);
-  color: var(--text-primary);
-  width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
-  margin: 0;
-  padding: 0;
+  font-family: "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-#root {
-  width: 100%;
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
-  display: block;
 }
 
 a {
@@ -75,22 +43,6 @@ img {
   max-width: 100%;
   height: auto;
   display: block;
-}
-
-button {
-  font-family: var(--font);
-}
-
-input,
-textarea,
-select {
-  font-family: var(--font);
-}
-
-/* Dark mode select option fix */
-select option {
-  background-color: var(--bg-card);
-  color: var(--text-primary);
 }
 
 /* ============================================
@@ -112,35 +64,4 @@ select option {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(150, 150, 150, 0.5);
-}
-
-/* ============================================
-   SMOOTH TRANSITIONS & ANIMATIONS
-   ============================================ */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes zoomIn {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-in.fade-in {
-  animation: fadeIn 0.15s ease-out forwards;
-}
-
-.animate-in.zoom-in-95 {
-  animation: zoomIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

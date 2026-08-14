@@ -77,10 +77,10 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   return (
     <div className="w-full min-h-screen bg-[#F0F2F5] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 flex flex-col">
       {/* ======================================================================
-          STICKY TOP HEADER (h-14, Max-w-5xl, Crisp border-b)
+          STICKY TOP HEADER (h-14, Max-w-6xl, Crisp border-b)
           ====================================================================== */}
-      <header className="sticky top-0 z-50 h-14 w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur shrink-0">
-        <div className="max-w-5xl mx-auto h-full flex items-center justify-between px-4 gap-4">
+      <header className="w-full bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
 
           {/* LEFT: Minimalist Logo + Nav Links */}
           <div className="flex items-center gap-6 shrink-0">
@@ -288,9 +288,9 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       </header>
 
       {/* ======================================================================
-          MAIN CONTENT CONTAINER (Centered max-w-[640px] with balanced spacing)
+          MAIN CONTENT CONTAINER (Centered max-w-[680px] with balanced spacing)
           ====================================================================== */}
-      <main className="w-full max-w-[640px] mx-auto py-5 px-3 flex-1 flex flex-col gap-4">
+      <main className="w-full max-w-[680px] mx-auto px-4 py-6 flex-1 flex flex-col gap-4">
         {children}
       </main>
 
