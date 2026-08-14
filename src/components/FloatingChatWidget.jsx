@@ -9,14 +9,14 @@ import {
   Image,
   Smile,
   Copy,
-  Pin,
   Trash2,
   Edit2,
   Check,
   Loader2,
-  Sparkles,
   PhoneOff,
   MoreHorizontal,
+  Mic,
+  Square,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -24,6 +24,7 @@ import friendService from "../services/friendService";
 import chatService from "../services/chatService";
 import uploadService from "../services/uploadService";
 import aiService from "../services/aiService";
+import AudioMessagePlayer from "./AudioMessagePlayer";
 
 const AI_USER = {
   id: "ai_bot",
@@ -69,6 +70,20 @@ function formatTime(dateStr) {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+function isAudioMessage(content) {
+  if (!content || typeof content !== "string") return false;
+  if (content.startsWith("🎙️ http")) return true;
+  const lower = content.toLowerCase();
+  return (
+    lower.includes("/audio/") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mp3") ||
+    lower.endsWith(".wav") ||
+    lower.endsWith(".m4a") ||
+    lower.endsWith(".ogg")
+  );
+}
+
 function playNotificationSound() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -103,9 +118,13 @@ export default function FloatingChatWidget() {
   const [activeMsgMenuId, setActiveMsgMenuId] = useState(null);
   const [editingMsgId, setEditingMsgId] = useState(null);
   const [editingText, setEditingText] = useState("");
-  const [pinnedMessage, setPinnedMessage] = useState(null);
   const [conversationsMap, setConversationsMap] = useState({});
   const [unreadChatCount, setUnreadChatCount] = useState(0);
+
+  // Voice Recording States
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [isUploadingVoice, setIsUploadingVoice] = useState(false);
 
   const messagesEndRef = useRef(null);
   const chatScrollContainerRef = useRef(null);
@@ -114,6 +133,12 @@ export default function FloatingChatWidget() {
   const localVideoRef = useRef(null);
   const callStreamRef = useRef(null);
   const prevMsgLengthRef = useRef(0);
+
+  // MediaRecorder Refs
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const recordingTimerRef = useRef(null);
+  const audioStreamRef = useRef(null);
 
   // 1. Fetch friend list
   useEffect(() => {
@@ -174,8 +199,12 @@ export default function FloatingChatWidget() {
           const isCurrentActive = isOpen && String(activeFriend?.id) === String(friend.id);
           const effectiveUnread = isCurrentActive ? 0 : unreadCount;
 
+          let previewContent = lastMsg.content || "Đã gửi 1 tệp đính kèm";
+          if (previewContent.startsWith("📷 http")) previewContent = "📷 [Hình ảnh]";
+          if (previewContent.startsWith("🎙️ http")) previewContent = "🎙️ [Tin nhắn thoại]";
+
           newMap[friend.id] = {
-            lastMessage: lastMsg.content || "Đã gửi 1 tệp đính kèm",
+            lastMessage: previewContent,
             unreadCount: effectiveUnread,
             timestamp: lastMsg.createdAt,
           };
@@ -311,6 +340,16 @@ export default function FloatingChatWidget() {
     return () => timer && clearInterval(timer);
   }, [activeCall?.type]);
 
+  // Clean up recording on unmount or active friend change
+  useEffect(() => {
+    return () => {
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+      if (audioStreamRef.current) {
+        audioStreamRef.current.getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, [activeFriend]);
+
   if (!currentUser) return null;
 
   // Send Message
@@ -405,6 +444,133 @@ export default function FloatingChatWidget() {
     }
   };
 
+  // -------------------------------------------------------------
+  // VOICE RECORDING (HTML5 MediaRecorder & Cloudinary Audio Upload)
+  // -------------------------------------------------------------
+  const handleStartRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioStreamRef.current = stream;
+      audioChunksRef.current = [];
+
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/mp4")
+        ? "audio/mp4"
+        : "audio/webm";
+
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.start(100);
+      setIsRecording(true);
+      setRecordingSeconds(0);
+
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingSeconds((prev) => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error("Lỗi cấp quyền Micro:", err);
+      toast.error("Không thể truy cập Microphone. Vui lòng cấp quyền ghi âm!");
+    }
+  };
+
+  const handleStopAndSendVoice = async () => {
+    if (!mediaRecorderRef.current || !isRecording) return;
+
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    setIsRecording(false);
+
+    const recorder = mediaRecorderRef.current;
+
+    recorder.onstop = async () => {
+      if (audioStreamRef.current) {
+        audioStreamRef.current.getTracks().forEach((t) => t.stop());
+        audioStreamRef.current = null;
+      }
+
+      if (audioChunksRef.current.length === 0) {
+        toast.error("Không có dữ liệu âm thanh!");
+        return;
+      }
+
+      const mimeType = recorder.mimeType || "audio/webm";
+      const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+      const extension = mimeType.includes("mp4") ? "mp4" : "webm";
+      const audioFile = new File([audioBlob], `voice_${Date.now()}.${extension}`, {
+        type: mimeType,
+      });
+
+      setIsUploadingVoice(true);
+      try {
+        const uploadRes = await uploadService.uploadFile(audioFile);
+        const audioUrl = uploadRes.data?.url || uploadRes.data?.secureUrl || uploadRes.data;
+        const voiceText = `🎙️ ${audioUrl}`;
+
+        const targetFriend = activeFriend || AI_USER;
+
+        if (targetFriend.isAi) {
+          const userMsgObj = {
+            id: Date.now(),
+            senderId: currentUserId,
+            content: voiceText,
+            createdAt: new Date().toISOString(),
+          };
+          setMessages((prev) => [...prev, userMsgObj]);
+          setIsAiTyping(true);
+          try {
+            const aiResponse = await aiService.chatWithAI("Tôi vừa gửi một tin nhắn thoại cho bạn!");
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: Date.now() + 1,
+                senderId: "ai_bot",
+                content: aiResponse,
+                createdAt: new Date().toISOString(),
+              },
+            ]);
+          } catch {
+          } finally {
+            setIsAiTyping(false);
+          }
+        } else if (targetFriend.id) {
+          const res = await chatService.sendMessage(currentUserId, targetFriend.id, voiceText);
+          setMessages((prev) => [...prev, res.data]);
+        }
+      } catch (err) {
+        console.error("Lỗi gửi tin nhắn thoại:", err);
+        toast.error("Không thể gửi tin nhắn thoại. Vui lòng thử lại!");
+      } finally {
+        setIsUploadingVoice(false);
+      }
+    };
+
+    recorder.stop();
+  };
+
+  const handleCancelRecording = () => {
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.onstop = null;
+      mediaRecorderRef.current.stop();
+    }
+    if (audioStreamRef.current) {
+      audioStreamRef.current.getTracks().forEach((t) => t.stop());
+      audioStreamRef.current = null;
+    }
+    audioChunksRef.current = [];
+    setIsRecording(false);
+    setRecordingSeconds(0);
+    toast.info("Đã hủy ghi âm");
+  };
+
   const handleCopyMessage = (content) => {
     if (!content) return;
     navigator.clipboard.writeText(content);
@@ -427,13 +593,18 @@ export default function FloatingChatWidget() {
 
   const handleDeleteMessage = async (msgId) => {
     setMessages((prev) => prev.filter((m) => m.id !== msgId));
-    if (pinnedMessage?.id === msgId) setPinnedMessage(null);
     toast.success("Đã xóa tin nhắn!");
     try {
       if (!activeFriend?.isAi) {
         await chatService.deleteMessage(msgId);
       }
     } catch {}
+  };
+
+  const formatRecTime = (sec) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
   return (
@@ -465,7 +636,10 @@ export default function FloatingChatWidget() {
                 <div className="flex items-center gap-2 w-full">
                   <button
                     type="button"
-                    onClick={() => setActiveFriend(null)}
+                    onClick={() => {
+                      if (isRecording) handleCancelRecording();
+                      setActiveFriend(null);
+                    }}
                     className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
                     title="Quay lại danh sách"
                   >
@@ -536,7 +710,10 @@ export default function FloatingChatWidget() {
 
             <button
               type="button"
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                if (isRecording) handleCancelRecording();
+                setIsOpen(false);
+              }}
               className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer ml-1"
               title="Đóng chat"
             >
@@ -630,6 +807,7 @@ export default function FloatingChatWidget() {
                     const friendAvatar = activeFriend?.avatarUrl;
                     const friendName = activeFriend?.fullName || activeFriend?.username || "Bạn";
                     const isEditingThis = editingMsgId === msg.id;
+                    const isVoice = isAudioMessage(msg.content);
 
                     return (
                       <div
@@ -694,18 +872,20 @@ export default function FloatingChatWidget() {
 
                                 {isMe && (
                                   <>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setEditingMsgId(msg.id);
-                                        setEditingText(msg.content);
-                                        setActiveMsgMenuId(null);
-                                      }}
-                                      className="px-2.5 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg flex items-center gap-2 text-left"
-                                    >
-                                      <Edit2 className="w-3 h-3" />
-                                      <span>Chỉnh sửa</span>
-                                    </button>
+                                    {!isVoice && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setEditingMsgId(msg.id);
+                                          setEditingText(msg.content);
+                                          setActiveMsgMenuId(null);
+                                        }}
+                                        className="px-2.5 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg flex items-center gap-2 text-left"
+                                      >
+                                        <Edit2 className="w-3 h-3" />
+                                        <span>Chỉnh sửa</span>
+                                      </button>
+                                    )}
                                     <button
                                       type="button"
                                       onClick={() => {
@@ -723,7 +903,7 @@ export default function FloatingChatWidget() {
                             )}
                           </div>
 
-                          {/* Message Bubble */}
+                          {/* Message Bubble: Text / Image / Voice */}
                           {isEditingThis ? (
                             <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700">
                               <input
@@ -747,6 +927,8 @@ export default function FloatingChatWidget() {
                                 <X className="w-3 h-3" />
                               </button>
                             </div>
+                          ) : isVoice ? (
+                            <AudioMessagePlayer src={msg.content} isMe={isMe} />
                           ) : msg.content?.startsWith("📷 http") ? (
                             <div className="rounded-2xl overflow-hidden max-w-[220px] max-h-[220px] border border-zinc-200 dark:border-zinc-800 shadow-sm">
                               <img
@@ -778,6 +960,14 @@ export default function FloatingChatWidget() {
                       </div>
                     );
                   })
+                )}
+
+                {/* Uploading Voice Indicator */}
+                {isUploadingVoice && (
+                  <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 self-end">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />
+                    <span>Đang tải lên tin nhắn thoại...</span>
+                  </div>
                 )}
 
                 {/* AI Typing Indicator */}
@@ -813,60 +1003,103 @@ export default function FloatingChatWidget() {
 
           {/* Input Footer */}
           {activeFriend && (
-            <form
-              onSubmit={handleSendMessage}
-              className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2.5 flex items-center gap-2 shrink-0"
-            >
-              {/* Sticker Toggle */}
-              <button
-                type="button"
-                onClick={() => setShowStickers((v) => !v)}
-                className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
-                title="Sticker & Emoji"
-              >
-                <Smile className="w-4 h-4" />
-              </button>
+            <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2.5 shrink-0">
+              {isRecording ? (
+                /* Active Recording State */
+                <div className="flex items-center justify-between gap-3 animate-in fade-in duration-100">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-rose-500">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+                    <span className="font-mono">{formatRecTime(recordingSeconds)}</span>
+                    <span className="text-[11px] text-zinc-400 font-normal">Đang ghi âm...</span>
+                  </div>
 
-              {/* Image Select */}
-              <button
-                type="button"
-                onClick={() => imageInputRef.current?.click()}
-                disabled={uploadingImage}
-                className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
-                title="Gửi hình ảnh"
-              >
-                {uploadingImage ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Image className="w-4 h-4" />
-                )}
-              </button>
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageSelect}
-              />
+                  <div className="flex items-center gap-2">
+                    {/* Cancel Recording */}
+                    <button
+                      type="button"
+                      onClick={handleCancelRecording}
+                      className="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-xs font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition cursor-pointer"
+                    >
+                      Hủy
+                    </button>
 
-              {/* Input text */}
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Nhập tin nhắn..."
-                className="flex-1 px-3.5 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 border border-zinc-200 dark:border-zinc-700 outline-none focus:ring-1 focus:ring-black dark:focus:ring-white transition"
-              />
+                    {/* Stop & Send Voice */}
+                    <button
+                      type="button"
+                      onClick={handleStopAndSendVoice}
+                      className="px-3.5 py-1.5 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-bold flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition cursor-pointer shadow-sm"
+                    >
+                      <Send className="w-3 h-3" />
+                      <span>Gửi voice</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Standard Message Input Form */
+                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                  {/* Sticker Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setShowStickers((v) => !v)}
+                    className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
+                    title="Sticker & Emoji"
+                  >
+                    <Smile className="w-4 h-4" />
+                  </button>
 
-              {/* Send Button */}
-              <button
-                type="submit"
-                disabled={!inputMessage.trim()}
-                className="w-8 h-8 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer disabled:opacity-40 shrink-0"
-              >
-                <Send className="w-3.5 h-3.5" />
-              </button>
-            </form>
+                  {/* Image Select */}
+                  <button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={uploadingImage || isUploadingVoice}
+                    className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
+                    title="Gửi hình ảnh"
+                  >
+                    {uploadingImage ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Image className="w-4 h-4" />
+                    )}
+                  </button>
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelect}
+                  />
+
+                  {/* Mic / Voice Record Button */}
+                  <button
+                    type="button"
+                    onClick={handleStartRecording}
+                    disabled={isUploadingVoice || uploadingImage}
+                    className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition cursor-pointer"
+                    title="Ghi âm tin nhắn thoại (Voice Message)"
+                  >
+                    <Mic className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+                  </button>
+
+                  {/* Input text */}
+                  <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    placeholder="Nhập tin nhắn..."
+                    className="flex-1 px-3.5 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 border border-zinc-200 dark:border-zinc-700 outline-none focus:ring-1 focus:ring-black dark:focus:ring-white transition"
+                  />
+
+                  {/* Send Button */}
+                  <button
+                    type="submit"
+                    disabled={!inputMessage.trim()}
+                    className="w-8 h-8 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer disabled:opacity-40 shrink-0"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                  </button>
+                </form>
+              )}
+            </div>
           )}
         </div>
       )}
