@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import EditPostModal from "./EditPostModal";
 import ReactionsModal from "./ReactionsModal";
 import ConfirmModal from "./ConfirmModal";
+import ShareModal from "./ShareModal";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -61,6 +62,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isReactionsModalOpen, setIsReactionsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   useEffect(() => {
     setCurrentPost(post);
@@ -480,7 +482,10 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           {/* Share */}
           <button
             type="button"
-            onClick={handleCopyLink}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsShareModalOpen(true);
+            }}
             className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
             title="Chia sẻ"
           >
@@ -525,6 +530,18 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           isOpen={isReactionsModalOpen}
           onClose={() => setIsReactionsModalOpen(false)}
           totalLikeCount={likeCount}
+        />
+      )}
+
+      {/* Share / Repost Modal */}
+      {isShareModalOpen && (
+        <ShareModal
+          post={currentPost}
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          onPostShared={(shared) => {
+            if (onEdit) onEdit(shared);
+          }}
         />
       )}
 

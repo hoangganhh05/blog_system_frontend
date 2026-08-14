@@ -1,653 +1,424 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import {
+  X,
+  Share2,
+  MessageCircle,
+  Copy,
+  Check,
+  Send,
+  Loader2,
+  Repeat,
+  Sparkles,
+  Search,
+} from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "../context/AuthContext";
 import friendService from "../services/friendService";
 import chatService from "../services/chatService";
 import postService from "../services/postService";
-import { useAuth } from "../context/AuthContext";
 
 function getInitials(name) {
   if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 }
 
-function ShareModal({ post, isOpen, onClose, onToast }) {
+export default function ShareModal({
+  post,
+  isOpen = true,
+  onClose,
+  onPostShared,
+}) {
   const { currentUser } = useAuth();
+  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
+
+  const [activeTab, setActiveTab] = useState("quote"); // "quote" | "message" | "link"
+  const [caption, setCaption] = useState("");
   const [friends, setFriends] = useState([]);
-  const [sentFriendIds, setSentFriendIds] = useState([]);
-  const [shareComment, setShareComment] = useState("");
-  const [showQrCode, setShowQrCode] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [searchFriend, setSearchFriend] = useState("");
+  const [sentFriendIds, setSentFriendIds] = useState(new Set());
+  const [isSharing, setIsSharing] = useState(false);
+  const [isSendingMsg, setIsSendingMsg] = useState(null);
+  const [copied, setCopied] = useState(false);
 
-  const messengerRowRef = useRef(null);
-  const shareLinksRowRef = useRef(null);
+  const postUrl = typeof window !== "undefined" ? `${window.location.origin}/posts/${post?.id}` : "";
 
+  // Load friends when message tab is active
   useEffect(() => {
-    if (isOpen && currentUser) {
-      const userId = currentUser.id || currentUser.userId;
-      friendService.getFriendsList(userId)
+    if (isOpen && currentUserId) {
+      friendService
+        .getFriendsList(currentUserId)
         .then((res) => setFriends(res.data || []))
         .catch(() => {});
     }
-    if (!isOpen) {
-      setShareComment("");
-      setSentFriendIds([]);
-    }
-  }, [isOpen, currentUser]);
+  }, [isOpen, currentUserId]);
 
-  if (!isOpen) return null;
-
-  const currentUserId = currentUser?.id || currentUser?.userId;
-  const authorName = post.user?.fullName || post.user?.username || "Ẩn danh";
-  const myName = currentUser?.fullName || currentUser?.username || "Bạn";
-
-  // Chia sẻ lên trang cá nhân
-  const handleShareToTimeline = async () => {
-    if (!currentUser) {
-      onToast("Vui lòng đăng nhập để chia sẻ!", "error");
-      return;
-    }
-    setLoading(true);
-    const postData = {
-      title: `${myName} đã chia sẻ một bài viết`,
-      content: shareComment.trim(),
-      thumbNail: null,
-      status: "public",
-      bgColor: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      user: { id: currentUserId },
-      category: post.category ? { id: post.category.id } : null,
-      sharedPost: { id: post.sharedPost ? post.sharedPost.id : post.id }
-    };
-
-    try {
-      await postService.create(postData);
-      onToast("Đã chia sẻ bài viết lên trang cá nhân của bạn!", "success");
-      onClose();
-      // Reload feed
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } catch {
-      onToast("Không thể chia sẻ bài viết lên trang cá nhân!", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Chia sẻ qua Messenger cho bạn bè
-  const handleSendViaMessenger = async (friend) => {
-    if (!currentUser) {
-      onToast("Vui lòng đăng nhập để gửi tin nhắn!", "error");
-      return;
-    }
-    const postLink = window.location.origin + `/posts/${post.id}`;
-    const messageText = `Đã chia sẻ bài viết của ${authorName}: ${postLink}`;
-
-    try {
-      await chatService.sendMessage(currentUserId, friend.id, messageText);
-      setSentFriendIds((prev) => [...prev, friend.id]);
-      onToast(`Đã gửi qua Messenger cho ${friend.fullName || friend.username}!`, "success");
-    } catch {
-      onToast("Không thể gửi tin nhắn chia sẻ!", "error");
-    }
-  };
-
-  // Sao chép liên kết
-  const handleCopyLink = () => {
-    const postLink = window.location.origin + `/posts/${post.id}`;
-    navigator.clipboard.writeText(postLink)
-      .then(() => {
-        onToast("Đã sao chép liên kết vào khay nhớ tạm!", "success");
-      })
-      .catch(() => {
-        onToast("Không thể sao chép liên kết!", "error");
-      });
-  };
-
-  // Cuộn ngang danh sách bạn bè
-  const scrollMessenger = (direction) => {
-    if (messengerRowRef.current) {
-      const scrollAmount = direction === "left" ? -240 : 240;
-      messengerRowRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
-    }
-  };
-
-  // Cuộn ngang danh sách nút chia sẻ
-  const scrollShareLinks = (direction) => {
-    if (shareLinksRowRef.current) {
-      const scrollAmount = direction === "left" ? -200 : 200;
-      shareLinksRowRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
-    }
-  };
-
+  if (!isOpen || !post) return null;
   if (typeof document === "undefined") return null;
+
+  const author = post.user || {};
+  const authorName = author.fullName || author.username || "Người dùng";
+  const postSnippet = (post.content || post.body || post.title || "").slice(0, 150);
+
+  // 1. Chia sẻ lại bài viết kèm Caption (Quote Post)
+  const handleQuoteShare = async () => {
+    if (!currentUserId) {
+      toast.error("Vui lòng đăng nhập để chia sẻ bài viết!");
+      return;
+    }
+
+    setIsSharing(true);
+    try {
+      const payload = {
+        title: caption.trim().slice(0, 100) || `${currentUser.fullName || "Người dùng"} đã chia sẻ bài viết`,
+        content: caption.trim(),
+        body: caption.trim(),
+        status: "PUBLISHED",
+        sharedPost: { id: post.sharedPost?.id || post.id },
+        originalPost: { id: post.sharedPost?.id || post.id },
+        parentPostId: post.sharedPost?.id || post.id,
+      };
+
+      const res = await postService.create(payload);
+      toast.success("Đã chia sẻ bài viết lên trang cá nhân!");
+      if (onPostShared) onPostShared(res.data);
+      onClose();
+    } catch (err) {
+      console.error("Lỗi chia sẻ bài viết:", err);
+      toast.error("Không thể chia sẻ bài viết. Vui lòng thử lại!");
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  // 2. Gửi cho bạn bè qua Chat
+  const handleSendMessage = async (friend) => {
+    if (!currentUserId) {
+      toast.error("Vui lòng đăng nhập để gửi tin nhắn!");
+      return;
+    }
+
+    setIsSendingMsg(friend.id);
+    try {
+      const msgContent = `Đã chia sẻ bài viết của @${author.username || authorName}:\n${postUrl}`;
+      await chatService.sendMessage(currentUserId, friend.id, msgContent);
+      setSentFriendIds((prev) => new Set(prev).add(friend.id));
+      toast.success(`Đã gửi tin nhắn đến ${friend.fullName || friend.username}!`);
+    } catch (err) {
+      console.error("Lỗi gửi tin nhắn:", err);
+      toast.error("Không thể gửi tin nhắn!");
+    } finally {
+      setIsSendingMsg(null);
+    }
+  };
+
+  // 3. Sao chép liên kết bài viết
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(postUrl);
+    setCopied(true);
+    toast.success("Đã sao chép liên kết bài viết vào bộ nhớ tạm!");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const filteredFriends = friends.filter((f) => {
+    const q = searchFriend.toLowerCase();
+    return (
+      (f.fullName && f.fullName.toLowerCase().includes(q)) ||
+      (f.username && f.username.toLowerCase().includes(q))
+    );
+  });
 
   return createPortal(
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0, 0, 0, 0.45)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 99999,
-        backdropFilter: "blur(4px)",
-      }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        style={{
-          background: "var(--bg-card)",
-          borderRadius: 16,
-          boxShadow: "0 16px 40px rgba(0, 0, 0, 0.25)",
-          width: "100%",
-          maxWidth: 550,
-          maxHeight: "92vh",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-          animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
+        className="w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "14px 20px",
-            borderBottom: "1px solid var(--border-light)",
-            position: "relative",
-          }}
-        >
-          <span style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>Chia sẻ</span>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+          <div className="flex items-center gap-2">
+            <Share2 className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
+            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+              Chia sẻ bài viết
+            </h3>
+          </div>
           <button
+            type="button"
             onClick={onClose}
-            style={{
-              position: "absolute",
-              right: 16,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "var(--bg-hover)",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 16,
-              color: "var(--text-secondary)",
-              transition: "background 0.2s",
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = "var(--border-color)"}
-            onMouseLeave={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
+            className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Scrollable Body */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-          {/* Section 1: Tạo bài viết chia sẻ */}
-          <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-            {currentUser?.avatarUrl ? (
-              <img
-                src={currentUser.avatarUrl}
-                alt={myName}
-                style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }}
+        {/* 3 Tabs Options */}
+        <div className="grid grid-cols-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+          <button
+            type="button"
+            onClick={() => setActiveTab("quote")}
+            className={`py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer border-b-2 ${
+              activeTab === "quote"
+                ? "border-black dark:border-white text-zinc-900 dark:text-zinc-100"
+                : "border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+            }`}
+          >
+            <Repeat className="w-3.5 h-3.5" />
+            <span>Chia sẻ lại</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("message")}
+            className={`py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer border-b-2 ${
+              activeTab === "message"
+                ? "border-black dark:border-white text-zinc-900 dark:text-zinc-100"
+                : "border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+            }`}
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            <span>Gửi bạn bè</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("link")}
+            className={`py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer border-b-2 ${
+              activeTab === "link"
+                ? "border-black dark:border-white text-zinc-900 dark:text-zinc-100"
+                : "border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+            }`}
+          >
+            <Copy className="w-3.5 h-3.5" />
+            <span>Sao chép link</span>
+          </button>
+        </div>
+
+        {/* Tab 1: Chia sẻ lại kèm Caption (Quote Post) */}
+        {activeTab === "quote" && (
+          <div className="p-6 flex flex-col gap-4 overflow-y-auto">
+            <div>
+              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5 block">
+                Cảm nghĩ của bạn về bài viết này
+              </label>
+              <textarea
+                rows={3}
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder="Viết thêm suy nghĩ hoặc chia sẻ bài viết này..."
+                className="w-full p-3.5 text-sm rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-black dark:focus:ring-white resize-none transition"
+                autoFocus
               />
-            ) : (
-              <div
-                className="avatar avatar-md"
-                style={{
-                  width: 44,
-                  height: 44,
-                  fontSize: 16,
-                  background: currentUser?.avatarColor ? `linear-gradient(135deg, ${currentUser.avatarColor}, ${currentUser.avatarColor}bb)` : undefined,
-                }}
+            </div>
+
+            {/* Embedded Post Preview */}
+            <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 flex flex-col gap-2.5">
+              <div className="flex items-center gap-2.5">
+                {author.avatarUrl ? (
+                  <img
+                    src={author.avatarUrl}
+                    alt=""
+                    className="w-7 h-7 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-zinc-800 text-white font-bold text-[10px] flex items-center justify-center">
+                    {getInitials(authorName)}
+                  </div>
+                )}
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                    {authorName}
+                  </span>
+                  <span className="text-[10px] text-zinc-400">
+                    @{author.username || "user"}
+                  </span>
+                </div>
+              </div>
+
+              {postSnippet && (
+                <p className="text-xs text-zinc-700 dark:text-zinc-300 line-clamp-2 leading-relaxed">
+                  {postSnippet}
+                </p>
+              )}
+
+              {post.thumbNail && (
+                <div className="rounded-xl overflow-hidden max-h-32 border border-zinc-200 dark:border-zinc-800">
+                  <img
+                    src={post.thumbNail}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition cursor-pointer"
               >
-                {getInitials(myName)}
-              </div>
-            )}
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <span style={{ fontWeight: 700, fontSize: 15, color: "var(--text-primary)" }}>{myName}</span>
-              <div style={{ display: "flex", gap: 8 }}>
-                <span
-                  style={{
-                    background: "var(--bg-input)",
-                    padding: "3px 10px",
-                    borderRadius: 6,
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  Bảng feed
-                </span>
-                <span
-                  style={{
-                    background: "var(--bg-input)",
-                    padding: "3px 10px",
-                    borderRadius: 6,
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    color: "var(--text-primary)",
-                    cursor: "pointer",
-                  }}
-                >
-                  🌐 Công khai ▾
-                </span>
-              </div>
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleQuoteShare}
+                disabled={isSharing}
+                className="px-5 py-2 text-xs font-bold text-white bg-black dark:bg-white dark:text-black rounded-xl hover:opacity-90 transition shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {isSharing ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Đang đăng...</span>
+                  </>
+                ) : (
+                  "Đăng chia sẻ"
+                )}
+              </button>
             </div>
           </div>
+        )}
 
-          {/* Text Input */}
-          <textarea
-            placeholder="Hãy nói gì đó về nội dung này..."
-            value={shareComment}
-            onChange={(e) => setShareComment(e.target.value)}
-            style={{
-              width: "100%",
-              minHeight: 70,
-              border: "none",
-              outline: "none",
-              resize: "none",
-              fontSize: 14.5,
-              background: "none",
-              color: "var(--text-primary)",
-              fontFamily: "inherit",
-              marginBottom: 10,
-            }}
-          />
+        {/* Tab 2: Gửi cho bạn bè qua Chat */}
+        {activeTab === "message" && (
+          <div className="p-5 flex flex-col gap-3 overflow-y-auto flex-1 min-h-[300px]">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Tìm bạn bè để gửi bài viết..."
+                value={searchFriend}
+                onChange={(e) => setSearchFriend(e.target.value)}
+                className="w-full pl-9.5 pr-4 py-2 text-xs rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 border border-transparent focus:border-zinc-300 dark:focus:border-zinc-700 outline-none"
+              />
+            </div>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-            <button
-              onClick={handleShareToTimeline}
-              disabled={loading}
-              style={{
-                background: "#1877f2",
-                color: "#fff",
-                border: "none",
-                padding: "8px 24px",
-                borderRadius: 6,
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: "pointer",
-                transition: "opacity 0.2s",
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = "0.9"}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-            >
-              {loading ? "Đang chia sẻ..." : "Chia sẻ ngay"}
-            </button>
-          </div>
-
-          <div style={{ height: 1, background: "var(--border-light)", margin: "16px 0" }} />
-
-          {/* Section 2: Gửi bằng Messenger */}
-          <div style={{ position: "relative", marginBottom: 16 }}>
-            <h4 style={{ fontSize: 14.5, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 12px 0" }}>
-              Gửi bằng Messenger
-            </h4>
-
-            {/* Left/Right scroll buttons */}
-            <button
-              onClick={() => scrollMessenger("left")}
-              style={{
-                position: "absolute",
-                left: -8,
-                top: "55%",
-                transform: "translateY(-50%)",
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                background: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                zIndex: 10,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--text-primary)",
-              }}
-            >
-              ‹
-            </button>
-            <button
-              onClick={() => scrollMessenger("right")}
-              style={{
-                position: "absolute",
-                right: -8,
-                top: "55%",
-                transform: "translateY(-50%)",
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                background: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                zIndex: 10,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--text-primary)",
-              }}
-            >
-              ›
-            </button>
-
-            {/* Horizontal List */}
-            <div
-              ref={messengerRowRef}
-              style={{
-                display: "flex",
-                gap: 16,
-                overflowX: "auto",
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-                padding: "4px 8px",
-              }}
-            >
-              {friends.length === 0 ? (
-                <span style={{ fontSize: 12.5, color: "var(--text-muted)", padding: "10px 0" }}>
-                  Chưa có bạn bè nào
-                </span>
+            {/* Friends List */}
+            <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800/60 overflow-y-auto max-h-60 pr-1">
+              {filteredFriends.length === 0 ? (
+                <div className="py-12 text-center text-zinc-400 text-xs">
+                  {friends.length === 0
+                    ? "Bạn chưa có bạn bè nào để gửi bài viết."
+                    : "Không tìm thấy bạn bè phù hợp."}
+                </div>
               ) : (
-                friends.map((friend) => {
-                  const fName = friend.fullName || friend.username;
-                  const isSent = sentFriendIds.includes(friend.id);
+                filteredFriends.map((friend) => {
+                  const isSent = sentFriendIds.has(friend.id);
+                  const isSendingThis = isSendingMsg === friend.id;
+
                   return (
                     <div
                       key={friend.id}
-                      onClick={() => !isSent && handleSendViaMessenger(friend)}
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 6,
-                        width: 70,
-                        flexShrink: 0,
-                        cursor: isSent ? "default" : "pointer",
-                        position: "relative",
-                      }}
+                      className="py-2.5 flex items-center justify-between gap-3"
                     >
-                      <div style={{ position: "relative" }}>
+                      <div className="flex items-center gap-3 min-w-0">
                         {friend.avatarUrl ? (
                           <img
                             src={friend.avatarUrl}
-                            alt={fName}
-                            style={{
-                              width: 52,
-                              height: 52,
-                              borderRadius: "50%",
-                              objectFit: "cover",
-                              border: isSent ? "2.5px solid #2e7d32" : "2px solid transparent",
-                            }}
+                            alt=""
+                            className="w-9 h-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
                           />
                         ) : (
-                          <div
-                            className="avatar"
-                            style={{
-                              width: 52,
-                              height: 52,
-                              fontSize: 16,
-                              background: friend.avatarColor ? `linear-gradient(135deg, ${friend.avatarColor}, ${friend.avatarColor}bb)` : undefined,
-                              border: isSent ? "2.5px solid #2e7d32" : "2px solid transparent",
-                            }}
-                          >
-                            {getInitials(fName)}
+                          <div className="w-9 h-9 rounded-full bg-zinc-800 text-white font-bold text-xs flex items-center justify-center">
+                            {getInitials(friend.fullName || friend.username)}
                           </div>
                         )}
-                        {/* Sent Checkmark Indicator */}
-                        {isSent && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              bottom: 0,
-                              right: 0,
-                              background: "#2e7d32",
-                              color: "#fff",
-                              borderRadius: "50%",
-                              width: 18,
-                              height: 18,
-                              fontSize: 10,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontWeight: 700,
-                              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                            }}
-                          >
-                            ✓
-                          </div>
-                        )}
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                            {friend.fullName || friend.username}
+                          </span>
+                          <span className="text-[11px] text-zinc-400 truncate">
+                            @{friend.username}
+                          </span>
+                        </div>
                       </div>
-                      <span
-                        style={{
-                          fontSize: 11.5,
-                          fontWeight: 500,
-                          textAlign: "center",
-                          color: isSent ? "#2e7d32" : "var(--text-primary)",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          width: "100%",
-                        }}
+
+                      <button
+                        type="button"
+                        onClick={() => handleSendMessage(friend)}
+                        disabled={isSent || isSendingThis}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                          isSent
+                            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-default"
+                            : "bg-black dark:bg-white text-white dark:text-black hover:opacity-90"
+                        }`}
                       >
-                        {fName.split(" ").slice(-2).join(" ")}
-                      </span>
+                        {isSendingThis ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : isSent ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-500" />
+                            <span>Đã gửi</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-3 h-3" />
+                            <span>Gửi</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   );
                 })
               )}
             </div>
           </div>
+        )}
 
-          <div style={{ height: 1, background: "var(--border-light)", margin: "16px 0" }} />
+        {/* Tab 3: Sao chép liên kết */}
+        {activeTab === "link" && (
+          <div className="p-6 flex flex-col gap-4 text-center">
+            <div className="mx-auto w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center">
+              <Copy className="w-6 h-6" />
+            </div>
 
-          {/* Section 3: Chia sẻ lên */}
-          <div style={{ position: "relative" }}>
-            <h4 style={{ fontSize: 14.5, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 12px 0" }}>
-              Chia sẻ lên
-            </h4>
+            <div className="flex flex-col gap-1">
+              <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                Liên kết bài viết
+              </h4>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Chia sẻ liên kết này qua các nền tảng mạng xã hội hoặc tin nhắn.
+              </p>
+            </div>
 
-            {/* Left/Right scroll buttons */}
-            <button
-              onClick={() => scrollShareLinks("left")}
-              style={{
-                position: "absolute",
-                left: -8,
-                top: "55%",
-                transform: "translateY(-50%)",
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                background: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                zIndex: 10,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--text-primary)",
-              }}
-            >
-              ‹
-            </button>
-            <button
-              onClick={() => scrollShareLinks("right")}
-              style={{
-                position: "absolute",
-                right: -8,
-                top: "55%",
-                transform: "translateY(-50%)",
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                background: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                zIndex: 10,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--text-primary)",
-              }}
-            >
-              ›
-            </button>
-
-            {/* Icons Horizontal Row */}
-            <div
-              ref={shareLinksRowRef}
-              style={{
-                display: "flex",
-                gap: 20,
-                overflowX: "auto",
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-                padding: "4px 8px",
-              }}
-            >
-              {/* Target 1: Messenger */}
-              <div
-                onClick={() => onToast("Đang chuyển sang ứng dụng Messenger...", "info")}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 70, flexShrink: 0, cursor: "pointer" }}
-              >
-                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#e7f3ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#1877f2" }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                  </svg>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 500, textAlign: "center", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
-                  Messenger
-                </span>
-              </div>
-
-              {/* Target 2: WhatsApp */}
-              <div
-                onClick={() => onToast("Đang chuyển sang ứng dụng WhatsApp...", "info")}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 70, flexShrink: 0, cursor: "pointer" }}
-              >
-                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#e8f8ef", display: "flex", alignItems: "center", justifyContent: "center", color: "#2e7d32" }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17 10H3v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8h-4z"/>
-                    <path d="M12 2v8"/>
-                    <path d="m15 7-3-3-3 3"/>
-                  </svg>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 500, textAlign: "center", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
-                  WhatsApp
-                </span>
-              </div>
-
-              {/* Target 3: Tin của bạn */}
-              <div
-                onClick={() => onToast("Tính năng chia sẻ lên Tin đang phát triển!", "info")}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 70, flexShrink: 0, cursor: "pointer" }}
-              >
-                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--bg-input)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-primary)" }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                    <circle cx="9" cy="9" r="2"/>
-                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                  </svg>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 500, textAlign: "center", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
-                  Tin của bạn
-                </span>
-              </div>
-
-              {/* Target 4: Sao chép liên kết */}
-              <div
+            <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/80 p-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+              <input
+                type="text"
+                readOnly
+                value={postUrl}
+                className="bg-transparent border-none text-xs text-zinc-800 dark:text-zinc-200 px-3 flex-1 outline-none font-mono truncate"
+              />
+              <button
+                type="button"
                 onClick={handleCopyLink}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 70, flexShrink: 0, cursor: "pointer" }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-black dark:bg-white text-white dark:text-black hover:opacity-90 transition flex items-center gap-1.5 shrink-0 cursor-pointer"
               >
-                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--bg-input)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-primary)" }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                  </svg>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 500, textAlign: "center", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
-                  Sao chép liên kết
-                </span>
-              </div>
-
-              {/* Target 5: Mã QR Code */}
-              <div
-                onClick={() => setShowQrCode((v) => !v)}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 75, flexShrink: 0, cursor: "pointer" }}
-              >
-                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--primary-light)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--primary)" }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 600, textAlign: "center", color: "var(--primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
-                  Mã QR Bài viết
-                </span>
-              </div>
-
-              {/* Target 6: Nhóm */}
-              <div
-                onClick={() => onToast("Đang chuyển tiếp chia sẻ vào Nhóm...", "info")}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 70, flexShrink: 0, cursor: "pointer" }}
-              >
-                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--bg-input)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-primary)" }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                  </svg>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 500, textAlign: "center", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
-                  Nhóm
-                </span>
-              </div>
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Đã chép</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Sao chép</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
-
-          {/* Ô hiển thị Mã QR Code Bài Viết khi được nhấp chọn */}
-          {showQrCode && (
-            <div style={{ marginTop: 16, background: "var(--bg-input)", padding: 16, borderRadius: 16, textAlign: "center", animation: "slideDown 0.2s ease" }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", marginBottom: 4 }}>
-                📱 Mã QR Bài Viết Trực Tiếp
-              </div>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>
-                Quét mã bằng Điện thoại để mở xem bài viết ngay lập tức
-              </div>
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(window.location.origin + `/posts/${post.id}`)}`}
-                alt="Mã QR"
-                style={{ width: 160, height: 160, borderRadius: 12, border: "3px solid #fff", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", margin: "0 auto 10px", display: "block" }}
-              />
-              <div>
-                <a
-                  href={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(window.location.origin + `/posts/${post.id}`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  download="qr-code-post.png"
-                  style={{ fontSize: 12, fontWeight: 700, color: "var(--primary)", textDecoration: "underline" }}
-                >
-                  📥 Tải mã QR về máy
-                </a>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>,
     document.body
   );
 }
-
-export default ShareModal;
