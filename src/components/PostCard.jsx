@@ -189,7 +189,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   return (
     <article
       onClick={handleCardClick}
-      className={`p-4 border-b border-zinc-100 dark:border-zinc-800/80 bg-white dark:bg-zinc-950 transition hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30 flex gap-3.5 ${
+      className={`mx-3 my-2.5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1e1e1e] p-5 shadow-sm hover:shadow-md transition flex gap-3.5 ${
         !isDetailed ? "cursor-pointer" : ""
       }`}
     >
@@ -350,9 +350,9 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           </div>
         )}
 
-        {/* Hàng Action Buttons Tối Giản */}
-        <div className="flex items-center justify-between text-zinc-500 pt-2 mt-1 max-w-[420px]">
-          {/* Like Button */}
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between text-stone-400 pt-2.5 mt-1 max-w-[400px]">
+          {/* Like */}
           <button
             type="button"
             onClick={handleToggleLike}
@@ -361,57 +361,48 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
             }`}
             title="Thích"
           >
-            <div className="p-2 rounded-full group-hover:bg-rose-50 dark:group-hover:bg-rose-950/40 transition">
-              <Heart
-                strokeWidth={1.8}
-                className={`w-4 h-4 transition ${liked ? "fill-rose-500 scale-110" : ""}`}
-              />
+            <div className="p-1.5 rounded-full group-hover:bg-rose-50 dark:group-hover:bg-rose-950/30 transition">
+              <Heart strokeWidth={1.8} className={`w-4 h-4 transition ${liked ? "fill-rose-500 scale-110" : ""}`} />
             </div>
             <span>{likeCount > 0 ? likeCount : ""}</span>
           </button>
 
-          {/* Comment Button */}
+          {/* Comment */}
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/posts/${post.id}`);
-            }}
-            className="flex items-center gap-1.5 text-xs font-medium group hover:text-sky-500 transition"
+            onClick={(e) => { e.stopPropagation(); navigate(`/posts/${post.id}`); }}
+            className="flex items-center gap-1.5 text-xs font-medium group hover:text-stone-700 dark:hover:text-stone-200 transition"
             title="Bình luận"
           >
-            <div className="p-2 rounded-full group-hover:bg-sky-50 dark:group-hover:bg-sky-950/40 transition">
+            <div className="p-1.5 rounded-full group-hover:bg-stone-100 dark:group-hover:bg-stone-800 transition">
               <MessageCircle strokeWidth={1.8} className="w-4 h-4" />
             </div>
             <span>{commentCount > 0 ? commentCount : ""}</span>
           </button>
 
-          {/* Repost / Share Button */}
+          {/* Share */}
           <button
             type="button"
             onClick={handleCopyLink}
-            className="flex items-center gap-1.5 text-xs font-medium group hover:text-emerald-500 transition"
-            title="Chia sẻ liên kết"
+            className="flex items-center gap-1.5 text-xs font-medium group hover:text-stone-700 dark:hover:text-stone-200 transition"
+            title="Chia sẻ"
           >
-            <div className="p-2 rounded-full group-hover:bg-emerald-50 dark:group-hover:bg-emerald-950/40 transition">
+            <div className="p-1.5 rounded-full group-hover:bg-stone-100 dark:group-hover:bg-stone-800 transition">
               <Repeat strokeWidth={1.8} className="w-4 h-4" />
             </div>
           </button>
 
-          {/* Bookmark Button */}
+          {/* Bookmark — amber */}
           <button
             type="button"
             onClick={handleToggleBookmark}
             className={`flex items-center gap-1.5 text-xs font-medium group transition ${
-              bookmarked ? "text-amber-500" : "hover:text-amber-500"
+              bookmarked ? "text-[#E8650A]" : "hover:text-[#E8650A]"
             }`}
             title="Lưu bài viết"
           >
-            <div className="p-2 rounded-full group-hover:bg-amber-50 dark:group-hover:bg-amber-950/40 transition">
-              <Bookmark
-                strokeWidth={1.8}
-                className={`w-4 h-4 transition ${bookmarked ? "fill-amber-500" : ""}`}
-              />
+            <div className="p-1.5 rounded-full group-hover:bg-orange-50 dark:group-hover:bg-orange-950/30 transition">
+              <Bookmark strokeWidth={1.8} className={`w-4 h-4 transition ${bookmarked ? "fill-[#E8650A]" : ""}`} />
             </div>
           </button>
         </div>

@@ -199,8 +199,8 @@ export default function Profile() {
         </div>
       </header>
 
-      {/* 1. Cover Banner Tối Giản (~120px) */}
-      <div className="h-28 md:h-32 bg-gradient-to-r from-zinc-100 to-zinc-200 dark:from-zinc-900 dark:to-zinc-800 w-full relative shrink-0" />
+      {/* 1. Cover Banner — warm amber/stone gradient */}
+      <div className="h-32 md:h-36 w-full shrink-0" style={{ background: "linear-gradient(135deg, #E8650A22 0%, #f5f0eb 50%, #e5e2dd 100%)" }} />
 
       {/* 2. Header Thông Tin (Avatar + Nút Hành Động Ngang Hàng) */}
       <div className="px-4 -mt-10 md:-mt-12 mb-3 flex flex-col">
@@ -211,12 +211,12 @@ export default function Profile() {
               <img
                 src={user.avatarUrl}
                 alt=""
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-950 shadow-sm object-cover"
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-[#181818] shadow-md object-cover ring-2 ring-[#E8650A]/30"
               />
             ) : (
               <div
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-950 shadow-sm flex items-center justify-center font-bold text-white text-xl md:text-2xl"
-                style={{ backgroundColor: user.avatarColor || "#4f46e5" }}
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-[#181818] shadow-md flex items-center justify-center font-bold text-white text-xl md:text-2xl"
+                style={{ backgroundColor: user.avatarColor || "#E8650A" }}
               >
                 {getInitials(user.fullName || user.username)}
               </div>
@@ -313,40 +313,41 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* 4. Thanh Tabs: Chia đều 3 cột (grid grid-cols-3 text-center border-b border-zinc-200) */}
-      <div className="grid grid-cols-3 text-center border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+      {/* 4. Tabs — amber underline indicator */}
+      <div className="grid grid-cols-3 text-center border-b border-stone-200 dark:border-stone-800 shrink-0">
         <button
           type="button"
           onClick={() => setActiveTab("posts")}
-          className={`py-3 text-sm transition cursor-pointer ${
+          className={`py-3 text-sm font-medium transition cursor-pointer ${
             activeTab === "posts"
-              ? "border-b-2 border-black dark:border-white font-semibold text-black dark:text-white"
-              : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              ? "font-semibold text-stone-900 dark:text-stone-100 border-b-2"
+              : "text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
           }`}
+          style={activeTab === "posts" ? { borderBottomColor: "#E8650A", color: "#E8650A" } : {}}
         >
           Bài viết
         </button>
-
         <button
           type="button"
           onClick={() => setActiveTab("media")}
-          className={`py-3 text-sm transition cursor-pointer ${
+          className={`py-3 text-sm font-medium transition cursor-pointer ${
             activeTab === "media"
-              ? "border-b-2 border-black dark:border-white font-semibold text-black dark:text-white"
-              : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              ? "font-semibold border-b-2"
+              : "text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
           }`}
+          style={activeTab === "media" ? { borderBottomColor: "#E8650A", color: "#E8650A" } : {}}
         >
-          Ảnh & Media
+          Ảnh &amp; Media
         </button>
-
         <button
           type="button"
           onClick={() => setActiveTab("saved")}
-          className={`py-3 text-sm transition cursor-pointer ${
+          className={`py-3 text-sm font-medium transition cursor-pointer ${
             activeTab === "saved"
-              ? "border-b-2 border-black dark:border-white font-semibold text-black dark:text-white"
-              : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              ? "font-semibold border-b-2"
+              : "text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
           }`}
+          style={activeTab === "saved" ? { borderBottomColor: "#E8650A", color: "#E8650A" } : {}}
         >
           Đã lưu
         </button>
