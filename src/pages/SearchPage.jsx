@@ -54,11 +54,11 @@ export default function SearchPage() {
       setLoading(true);
       try {
         const [usersRes, postsRes] = await Promise.all([
-          userService.getAll().catch(() => ({ data: [] })),
+          query ? userService.search(query).catch(() => ({ data: { content: [] } })) : Promise.resolve({ data: [] }),
           postService.getAll(0, 200).catch(() => ({ data: { content: [] } })),
         ]);
 
-        setUsers(usersRes.data || []);
+        setUsers(usersRes.data?.content || usersRes.data || []);
         setPosts(postsRes.data?.content || postsRes.data || []);
 
         if (currentUserId) {

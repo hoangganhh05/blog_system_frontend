@@ -22,29 +22,35 @@ function TrendingPage() {
     Promise.all([
       postService.getAll(),
       categoryService.getAll(),
-      userService.getAll()
     ])
-      .then(([postsRes, catRes, userRes]) => {
-        const pList = postsRes.data || [];
+      .then(([postsRes, catRes]) => {
+        const pList = postsRes.data?.content || postsRes.data || [];
         // Sắp xếp bài viết theo tổng lượt xem + tương tác
         const sorted = [...pList].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
         setPosts(sorted);
 
         setCategories(catRes.data || []);
 
-        // Tính Top Tác Giả dựa trên số bài viết
-        const uList = userRes.data || [];
-        const uWithCount = uList.map((u) => {
-          const userPosts = pList.filter((p) => p.user?.id === u.id);
-          const totalViews = userPosts.reduce((acc, p) => acc + (p.viewCount || 0), 0);
-          return {
-            ...u,
-            postCount: userPosts.length,
-            totalViews
-          };
-        }).sort((a, b) => b.postCount - a.postCount || b.totalViews - a.totalViews);
+        // Tính Top Tác Giả dựa trên các bài viết thịnh hành
+        const userMap = new Map();
+        pList.forEach((p) => {
+          if (p.user && p.user.id) {
+            const uid = String(p.user.id);
+            const existing = userMap.get(uid) || {
+              ...p.user,
+              postCount: 0,
+              totalViews: 0,
+            };
+            existing.postCount += 1;
+            existing.totalViews += (p.viewCount || 0);
+            userMap.set(uid, existing);
+          }
+        });
 
-        setTopUsers(uWithCount.slice(0, 5));
+        const sortedAuthors = Array.from(userMap.values())
+          .sort((a, b) => b.postCount - a.postCount || b.totalViews - a.totalViews);
+
+        setTopUsers(sortedAuthors.slice(0, 5));
       })
       .catch(() => {})
       .finally(() => setLoading(false));

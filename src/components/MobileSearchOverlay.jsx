@@ -64,13 +64,23 @@ function MobileSearchOverlay({ isOpen, onClose }) {
     setRecentItems([]);
   };
 
+  useEffect(() => {
+    const q = (searchTerm || "").trim();
+    if (!q) {
+      setAllUsers([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      userService.search(q).then((res) => {
+        setAllUsers(res.data?.content || res.data || []);
+      }).catch(() => setAllUsers([]));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const loadSearchData = async () => {
     try {
-      const [uRes, pRes] = await Promise.all([
-        userService.getAllUsers(),
-        postService.getAll(0, 50),
-      ]);
-      setAllUsers(uRes.data || []);
+      const pRes = await postService.getAll(0, 50);
       setAllPosts(pRes.data?.content || pRes.data || []);
     } catch {
       // Fallback

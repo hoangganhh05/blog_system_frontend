@@ -106,24 +106,15 @@ function FriendsPage() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const [resUsers, resFriends] = await Promise.all([
-        userService.getAll().catch(() => ({ data: [] })),
-        myId ? friendService.getFriendsList(myId).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
-      ]);
+      const resFriends = myId
+        ? await friendService.getFriendsList(myId).catch(() => ({ data: [] }))
+        : { data: [] };
 
-      const users = resUsers.data || [];
       const friendsData = resFriends.data || [];
       const backendFriends = friendsData.map((f) => f.friend || f.user || f).filter(Boolean);
 
       setApiFriends(backendFriends);
-
-      // Lọc bỏ chính mình tuyệt đối 100% (cả ID lẫn Username)
-      const otherUsers = users.filter((u) => {
-        const uId = String(u.id);
-        const uName = (u.username || "").toLowerCase();
-        return uId !== myId && uName !== myUsername && uId !== "undefined";
-      });
-      setAllUsers(otherUsers);
+      setAllUsers(backendFriends);
     } catch {
       setAllUsers([]);
     } finally {

@@ -1,8 +1,19 @@
 import axiosClient from "../api/axiosClient";
 
 const userService = {
-  getAll() {
-    return axiosClient.get("/users");
+  getAll(query = "", page = 0, size = 20) {
+    if (query) {
+      return axiosClient.get(`/users?query=${encodeURIComponent(query)}&page=${page}&size=${size}`);
+    }
+    return axiosClient.get(`/users?page=${page}&size=${size}`);
+  },
+
+  getAllUsers(query = "", page = 0, size = 20) {
+    return this.getAll(query, page, size);
+  },
+
+  search(query = "", page = 0, size = 20) {
+    return axiosClient.get(`/users/search?q=${encodeURIComponent(query)}&page=${page}&size=${size}`);
   },
 
   getById(id) {

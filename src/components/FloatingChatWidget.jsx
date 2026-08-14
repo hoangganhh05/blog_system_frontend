@@ -287,34 +287,18 @@ function FloatingChatWidget() {
     if (!currentUserId) return;
     const fetchFriends = async () => {
       try {
-        const [friendsRes, usersRes] = await Promise.all([
-          friendService.getFriendsList(currentUserId).catch(() => ({ data: [] })),
-          userService.getAll().catch(() => ({ data: [] })),
-        ]);
+        const friendsRes = await friendService.getFriendsList(currentUserId).catch(() => ({ data: [] }));
 
         const rawFriends = friendsRes.data || [];
         const apiFriendsList = rawFriends
           .map((f) => f.friend || f.user || f)
           .filter((f) => f && String(f.id) !== String(currentUserId));
 
-        // Đọc bạn bè từ localStorage
-        let localPairs = [];
-        try {
-          localPairs = JSON.parse(localStorage.getItem("blog_mutual_friends_pairs") || "[]");
-        } catch {}
-
-        const myLocalFriendIds = localPairs
-          .filter((p) => String(p.u1) === String(currentUserId) || String(p.u2) === String(currentUserId))
-          .map((p) => (String(p.u1) === String(currentUserId) ? String(p.u2) : String(p.u1)));
-
-        const allUsers = usersRes.data || [];
-        const localFriendObjs = allUsers.filter((u) => myLocalFriendIds.includes(String(u.id)));
-
         // Hợp nhất danh sách BẠN BÈ THỰC SỰ (Tuyệt đối không đưa người chưa kết bạn vào)
         const friendMap = new Map();
         friendMap.set("ai_bot", AI_USER);
 
-        [...apiFriendsList, ...localFriendObjs].forEach((u) => {
+        apiFriendsList.forEach((u) => {
           if (u && u.id && String(u.id) !== String(currentUserId)) {
             friendMap.set(String(u.id), u);
           }

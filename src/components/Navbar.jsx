@@ -96,16 +96,30 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
   const notifRef = useRef(null);
   const searchRef = useRef(null);
 
-  // Lấy dữ liệu người dùng & bài viết phục vụ gợi ý tìm kiếm
+  // Lấy dữ liệu bài viết phục vụ gợi ý tìm kiếm
   useEffect(() => {
     if (!currentUser) {
+      setAllPosts([]);
+      return;
+    }
+    postService.getAll(0, 50).then((res) => setAllPosts(res.data.content || [])).catch(() => {});
+  }, [currentUser]);
+
+  // Live search users khi người dùng nhập từ khóa (Debounced 300ms)
+  useEffect(() => {
+    const q = (searchValue || "").trim();
+    if (!q) {
       setAllUsers([]);
       return;
     }
+    const timer = setTimeout(() => {
+      userService.search(q).then((res) => {
+        setAllUsers(res.data?.content || res.data || []);
+      }).catch(() => setAllUsers([]));
+    }, 300);
 
-    userService.getAll().then((res) => setAllUsers(res.data || [])).catch(() => {});
-    postService.getAll(0, 50).then((res) => setAllPosts(res.data.content || [])).catch(() => {});
-  }, [currentUser]);
+    return () => clearTimeout(timer);
+  }, [searchValue]);
 
   // Click outside listener
   useEffect(() => {
