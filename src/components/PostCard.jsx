@@ -315,7 +315,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
               <Sparkles className="w-3.5 h-3.5" />
               <span>Tóm tắt thông minh:</span>
             </div>
-            <p>{summary}</p>
+            <p className="whitespace-pre-line">{summary}</p>
           </div>
         )}
 

@@ -1,8 +1,12 @@
 import axiosClient from "../api/axiosClient";
 
 const notificationService = {
-  getUserNotifications() {
+  getUserNotifications(_userId) {
     return axiosClient.get("/notifications");
+  },
+
+  getNotifications(userId) {
+    return this.getUserNotifications(userId);
   },
 
   getUnreadCount() {
@@ -13,9 +17,15 @@ const notificationService = {
     return axiosClient.put(`/notifications/${id}/read`);
   },
 
-  markAllAsRead() {
+  markAllAsRead(_userId) {
     return axiosClient.put("/notifications/read-all");
   },
 };
+
+export const getUserNotifications = notificationService.getUserNotifications.bind(notificationService);
+export const getNotifications = notificationService.getNotifications.bind(notificationService);
+export const getUnreadCount = notificationService.getUnreadCount.bind(notificationService);
+export const markAsRead = notificationService.markAsRead.bind(notificationService);
+export const markAllAsRead = notificationService.markAllAsRead.bind(notificationService);
 
 export default notificationService;

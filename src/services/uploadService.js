@@ -37,6 +37,18 @@ const uploadService = {
       },
     };
   },
+
+  async uploadImage(file, onProgress) {
+    return this.uploadFile(file, onProgress);
+  },
+
+  async uploadMedia(file, onProgress) {
+    return this.uploadFile(file, onProgress);
+  },
 };
+
+export const uploadFile = uploadService.uploadFile.bind(uploadService);
+export const uploadImage = uploadService.uploadImage.bind(uploadService);
+export const uploadMedia = uploadService.uploadMedia.bind(uploadService);
 
 export default uploadService;

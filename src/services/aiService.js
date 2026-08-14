@@ -1,5 +1,5 @@
 /**
- * AI Assistant Service - Sinh nội dung bài viết thông minh & Tóm tắt nội dung
+ * AI Assistant Service - Sinh nội dung bài viết thông minh, Tóm tắt nội dung & Sáng tác nghệ thuật
  */
 
 const SAMPLE_TEMPLATES = {
@@ -20,6 +20,15 @@ const SAMPLE_TEMPLATES = {
   }
 };
 
+const POEMS_DATA = {
+  "Tình Yêu": "Nắng nhẹ nhàng vương tóc em bay\nTình ta êm ả những tháng ngày\nTrao nhau ánh mắt đầy thương mến\nNguyện mãi bên nhau trọn kiếp này.",
+  "Cà Phê": "Tách cà phê đắng giữa ban mai\nKhói tỏa hương thơm quyện tháng ngày\nNhấp ngụm bình yên đời lắng lại\nBao nỗi lo toan bỗng nhẹ lay.",
+  "Cơn Mưa": "Mưa rơi tí tách góc hiên nhà\nRửa sạch muộn phiền tháng ngày qua\nThả trôi bao nỗi buồn năm cũ\nĐón ánh mai về rạng ngời hoa.",
+  "Chiều Thu": "Lá vàng nhè nhẹ rụng bên sông\nHeo may khẽ thoảng buốt cõi lòng\nChiều buông nghiêng bóng người lữ thứ\nGửi chút hương thu nhớ người thương.",
+  "Cuộc Sống": "Cuộc sống thăng trầm tựa dòng trôi\nCứ an nhiên sống giữa đất trời\nMiệng cười rạng rỡ lòng thanh thản\nHạnh phúc đong đầy khắp muôn nơi.",
+  "Công Việc": "Bàn phím lách cách gõ từng dòng\nNhiệt huyết đam mê cháy trong lòng\nMiệt mài kiến tạo tương lai mới\nThành công gặt hái thoả ước mong."
+};
+
 const aiService = {
   /**
    * Sinh bài viết tự động dựa trên prompt của người dùng
@@ -27,7 +36,6 @@ const aiService = {
    * @returns {Promise<{title: string, content: string, hashtags: string}>}
    */
   async generatePost(prompt) {
-    // Giả lập xử lý AI siêu tốc (mô phỏng gọi AI Model)
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     const p = (prompt || "").toLowerCase();
@@ -50,6 +58,26 @@ const aiService = {
   },
 
   /**
+   * Sinh nội dung bài viết dạng chuỗi văn bản (Alias cho generatePost)
+   * @param {string} prompt
+   * @returns {Promise<string>}
+   */
+  async generatePostContent(prompt) {
+    const res = await this.generatePost(prompt);
+    return res.content || "";
+  },
+
+  /**
+   * Sáng tác thơ 4 câu theo chủ đề
+   * @param {string} topic
+   * @returns {Promise<string>}
+   */
+  async generatePoem(topic) {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    return POEMS_DATA[topic] || POEMS_DATA["Cuộc Sống"];
+  },
+
+  /**
    * Tóm tắt bài viết thành 3 ý chính
    * @param {string} text 
    * @returns {Promise<string[]>}
@@ -69,6 +97,16 @@ const aiService = {
     ];
 
     return summaryPoints;
+  },
+
+  /**
+   * Tóm tắt bài viết dạng chuỗi văn bản (Alias cho summarize)
+   * @param {string} text
+   * @returns {Promise<string>}
+   */
+  async summarizePost(text) {
+    const points = await this.summarize(text);
+    return Array.isArray(points) ? points.join("\n") : String(points);
   },
 
   /**
@@ -136,5 +174,12 @@ const aiService = {
     return `Cảm ơn bạn đã nhắn: "${msg}". Mình luôn sẵn sàng hỗ trợ bạn sáng tạo bài viết, giải đáp thắc mắc hay tư vấn thông tin bất kỳ lúc nào! 😊✨`;
   }
 };
+
+export const generatePost = aiService.generatePost.bind(aiService);
+export const generatePostContent = aiService.generatePostContent.bind(aiService);
+export const generatePoem = aiService.generatePoem.bind(aiService);
+export const summarize = aiService.summarize.bind(aiService);
+export const summarizePost = aiService.summarizePost.bind(aiService);
+export const chatWithAI = aiService.chatWithAI.bind(aiService);
 
 export default aiService;

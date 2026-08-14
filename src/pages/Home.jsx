@@ -165,7 +165,7 @@ export default function Home({ searchValue = "" }) {
             </p>
           </div>
         ) : (
-          posts.map((post) => (
+          (Array.isArray(posts) ? posts : []).map((post) => (
             <PostCard
               key={post.id}
               post={post}

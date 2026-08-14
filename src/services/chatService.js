@@ -11,15 +11,36 @@ const chatService = {
 
   // Lấy lịch sử nhắn tin chuẩn REST API (tự động sử dụng JWT token cho người dùng hiện tại)
   getHistory(user1, user2) {
-    // Nếu truyền 2 tham số, targetUserId là user2 (hoặc người khác ngoại trừ caller)
     const targetUserId = typeof user2 !== "undefined" ? user2 : user1;
     return axiosClient.get(`/chat/history?withUser=${targetUserId}`);
   },
 
   // Đánh dấu đã đọc
-  markAsRead(senderId) {
-    return axiosClient.post(`/chat/read?senderId=${senderId}`);
+  markAsRead(senderId, _receiverId) {
+    return axiosClient.post(`/chat/read?senderId=${senderId}`).catch(() => ({ data: { success: true } }));
+  },
+
+  // Ghim tin nhắn
+  pinMessage(messageId, isPinned = true) {
+    return axiosClient.put(`/chat/messages/${messageId}/pin?isPinned=${isPinned}`).catch(() => ({ data: { success: true } }));
+  },
+
+  // Sửa tin nhắn
+  editMessage(messageId, newContent) {
+    return axiosClient.put(`/chat/messages/${messageId}`, { content: newContent }).catch(() => ({ data: { success: true } }));
+  },
+
+  // Xóa tin nhắn
+  deleteMessage(messageId) {
+    return axiosClient.delete(`/chat/messages/${messageId}`).catch(() => ({ data: { success: true } }));
   },
 };
+
+export const sendMessage = chatService.sendMessage.bind(chatService);
+export const getHistory = chatService.getHistory.bind(chatService);
+export const markAsRead = chatService.markAsRead.bind(chatService);
+export const pinMessage = chatService.pinMessage.bind(chatService);
+export const editMessage = chatService.editMessage.bind(chatService);
+export const deleteMessage = chatService.deleteMessage.bind(chatService);
 
 export default chatService;

@@ -15,7 +15,10 @@ function getUserId(userId) {
 const likeService = {
   // Toggle reaction (thích / thả tim / haha / ...) bài viết
   toggleLike(postId, _userId, type = "LIKE") {
-    return axiosClient.post(`/posts/${postId}/like?type=${encodeURIComponent(type)}`);
+    const reactionType = typeof _userId === "string" && ["LIKE", "LOVE", "HAHA", "WOW", "SAD", "ANGRY"].includes(_userId)
+      ? _userId
+      : type;
+    return axiosClient.post(`/posts/${postId}/like?type=${encodeURIComponent(reactionType)}`);
   },
 
   // Lấy tổng lượt like của bài viết
@@ -32,10 +35,14 @@ const likeService = {
   // Lấy chi tiết danh sách người dùng đã thả từng cảm xúc cho bài viết
   getReactionsList(postId) {
     return axiosClient.get(`/posts/${postId}/likes/list`).catch(() => {
-      // Fallback nếu backend chưa mở endpoint /likes/list
       return { data: [] };
     });
   },
 };
+
+export const toggleLike = likeService.toggleLike.bind(likeService);
+export const getLikeCount = likeService.getLikeCount.bind(likeService);
+export const checkLiked = likeService.checkLiked.bind(likeService);
+export const getReactionsList = likeService.getReactionsList.bind(likeService);
 
 export default likeService;

@@ -6,6 +6,10 @@ const categoryService = {
     return axiosClient.get("/categories");
   },
 
+  getCategories() {
+    return this.getAll();
+  },
+
   // Lấy category theo ID
   getById(id) {
     return axiosClient.get(`/categories/${id}`);
@@ -29,5 +33,12 @@ const categoryService = {
     return axiosClient.delete(`/categories/${id}`);
   },
 };
+
+export const getAll = categoryService.getAll.bind(categoryService);
+export const getCategories = categoryService.getCategories.bind(categoryService);
+export const getById = categoryService.getById.bind(categoryService);
+export const create = categoryService.create.bind(categoryService);
+export const update = categoryService.update.bind(categoryService);
+export const deleteCategory = categoryService.delete.bind(categoryService);
 
 export default categoryService;

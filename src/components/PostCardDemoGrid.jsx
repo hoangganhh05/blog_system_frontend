@@ -5,7 +5,7 @@ const PostCardDemoGrid = ({ posts }) => {
   return (
     <div className="w-full">
       <div className="space-y-4">
-        {posts.map((post) => (
+        {(posts || []).map((post) => (
           <PostCardDemo key={post.id} post={post} />
         ))}
       </div>

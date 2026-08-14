@@ -29,6 +29,15 @@ const bookmarkService = {
     const uid = getUserId(userId);
     return axiosClient.get(`/users/${uid}/bookmarks`);
   },
+
+  getBookmarks(userId) {
+    return this.getUserBookmarks(userId);
+  },
 };
+
+export const toggleBookmark = bookmarkService.toggleBookmark.bind(bookmarkService);
+export const checkBookmarked = bookmarkService.checkBookmarked.bind(bookmarkService);
+export const getUserBookmarks = bookmarkService.getUserBookmarks.bind(bookmarkService);
+export const getBookmarks = bookmarkService.getBookmarks.bind(bookmarkService);
 
 export default bookmarkService;

@@ -3,20 +3,20 @@ import axiosClient from "../api/axiosClient";
 const friendService = {
   // Gửi lời mời kết bạn
   sendFriendRequest(_senderId, receiverId) {
-    return axiosClient.post(`/friends/request?receiverId=${receiverId}`);
+    const targetId = typeof receiverId !== "undefined" ? receiverId : _senderId;
+    return axiosClient.post(`/friends/request?receiverId=${targetId}`);
   },
 
-  // Backward-compatible alias
   sendRequest(senderId, receiverId) {
     return this.sendFriendRequest(senderId, receiverId);
   },
 
   // Chấp nhận lời mời kết bạn
   acceptRequest(_currentUserId, requesterId) {
-    return axiosClient.post(`/friends/accept?requesterId=${requesterId}`);
+    const targetId = typeof requesterId !== "undefined" ? requesterId : _currentUserId;
+    return axiosClient.post(`/friends/accept?requesterId=${targetId}`);
   },
 
-  // Backward-compatible alias
   acceptFriendRequest(currentUserId, requesterId) {
     return this.acceptRequest(currentUserId, requesterId);
   },
@@ -29,7 +29,8 @@ const friendService = {
 
   // Lấy trạng thái mối quan hệ giữa 2 user
   getStatus(_currentUserId, targetUserId) {
-    return axiosClient.get(`/friends/status?targetUserId=${targetUserId}`);
+    const targetId = typeof targetUserId !== "undefined" ? targetUserId : _currentUserId;
+    return axiosClient.get(`/friends/status?targetUserId=${targetId}`);
   },
 
   // Lấy danh sách bạn bè đã kết bạn
@@ -37,6 +38,10 @@ const friendService = {
     return userId
       ? axiosClient.get(`/friends/list/${userId}`)
       : axiosClient.get(`/friends/list`);
+  },
+
+  getFriends(userId) {
+    return this.getFriendsList(userId);
   },
 
   // Lấy danh sách lời mời kết bạn đang chờ
@@ -53,5 +58,16 @@ const friendService = {
       : axiosClient.get(`/friends/count`);
   },
 };
+
+export const sendFriendRequest = friendService.sendFriendRequest.bind(friendService);
+export const sendRequest = friendService.sendRequest.bind(friendService);
+export const acceptRequest = friendService.acceptRequest.bind(friendService);
+export const acceptFriendRequest = friendService.acceptFriendRequest.bind(friendService);
+export const removeFriendship = friendService.removeFriendship.bind(friendService);
+export const getStatus = friendService.getStatus.bind(friendService);
+export const getFriendsList = friendService.getFriendsList.bind(friendService);
+export const getFriends = friendService.getFriends.bind(friendService);
+export const getPendingRequests = friendService.getPendingRequests.bind(friendService);
+export const getFriendCount = friendService.getFriendCount.bind(friendService);
 
 export default friendService;

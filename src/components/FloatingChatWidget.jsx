@@ -5,6 +5,7 @@ import friendService from "../services/friendService";
 import userService from "../services/userService";
 import chatService from "../services/chatService";
 import uploadService from "../services/uploadService";
+import aiService from "../services/aiService";
 
 const AI_USER = {
   id: "ai_bot",

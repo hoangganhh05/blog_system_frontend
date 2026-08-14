@@ -16,7 +16,7 @@ function getInitials(name) {
     .slice(0, 2);
 }
 
-export default function CreatePostModal({ isOpen, onClose, onPostCreated, onCreated, editPost }) {
+export default function CreatePostModal({ isOpen = true, onClose, onPostCreated, onCreated, editPost }) {
   const { currentUser } = useAuth();
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);

@@ -3,8 +3,8 @@ import axiosClient from "../api/axiosClient";
 const storyService = {
   // Đăng Story mới
   create(_userId, data) {
-    // data: { mediaUrl, textContent, bgColor }
-    return axiosClient.post("/stories/create", data);
+    const payload = typeof data !== "undefined" ? data : _userId;
+    return axiosClient.post("/stories/create", payload);
   },
 
   // Lấy các story trong 24h qua
@@ -24,7 +24,8 @@ const storyService = {
 
   // Thả cảm xúc Story
   react(storyId, _userId, reaction) {
-    return axiosClient.post(`/stories/${storyId}/react?reaction=${encodeURIComponent(reaction)}`);
+    const reactionValue = typeof reaction !== "undefined" ? reaction : _userId;
+    return axiosClient.post(`/stories/${storyId}/react?reaction=${encodeURIComponent(reactionValue)}`);
   },
 
   // Lấy người xem & cảm xúc story
@@ -32,5 +33,12 @@ const storyService = {
     return axiosClient.get(`/stories/${storyId}/viewers`);
   },
 };
+
+export const create = storyService.create.bind(storyService);
+export const getActiveStories = storyService.getActiveStories.bind(storyService);
+export const deleteStory = storyService.delete.bind(storyService);
+export const view = storyService.view.bind(storyService);
+export const react = storyService.react.bind(storyService);
+export const getViewers = storyService.getViewers.bind(storyService);
 
 export default storyService;

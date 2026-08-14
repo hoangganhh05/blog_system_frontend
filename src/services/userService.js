@@ -20,6 +20,10 @@ const userService = {
     return axiosClient.get(`/users/search?q=${encodeURIComponent(query)}&page=${page}&size=${size}`);
   },
 
+  searchUsers(query = "", page = 0, size = 20) {
+    return this.search(query, page, size);
+  },
+
   getById(id) {
     return axiosClient.get(`/users/${id}`);
   },
@@ -41,7 +45,7 @@ const userService = {
     return axiosClient.post("/auth/login", { username, password });
   },
 
-  // Cập nhật thông tin cá nhân (fullName, email, bio, avatarColor)
+  // Cập nhật thông tin cá nhân (fullName, email, bio, avatarColor, avatarUrl)
   update(id, userData) {
     return axiosClient.put(`/users/${id}`, userData);
   },
@@ -80,5 +84,22 @@ const userService = {
     return axiosClient.delete(`/users/${id}`);
   },
 };
+
+export const getAll = userService.getAll.bind(userService);
+export const getAllUsers = userService.getAllUsers.bind(userService);
+export const getUsers = userService.getUsers.bind(userService);
+export const search = userService.search.bind(userService);
+export const searchUsers = userService.searchUsers.bind(userService);
+export const getById = userService.getById.bind(userService);
+export const getUserById = userService.getUserById.bind(userService);
+export const register = userService.register.bind(userService);
+export const login = userService.login.bind(userService);
+export const update = userService.update.bind(userService);
+export const updateUser = userService.updateUser.bind(userService);
+export const changePassword = userService.changePassword.bind(userService);
+export const requestResetOtp = userService.requestResetOtp.bind(userService);
+export const resetPasswordWithOtp = userService.resetPasswordWithOtp.bind(userService);
+export const getUserStats = userService.getUserStats.bind(userService);
+export const deleteUser = userService.delete.bind(userService);
 
 export default userService;

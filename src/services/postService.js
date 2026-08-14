@@ -6,9 +6,21 @@ const postService = {
     return axiosClient.get(`/posts?page=${page}&size=${size}&sort=createdAt,desc`);
   },
 
+  getAllPosts(page = 0, size = 10) {
+    return this.getAll(page, size);
+  },
+
+  getPosts(page = 0, size = 10) {
+    return this.getAll(page, size);
+  },
+
   // Lấy post theo ID
   getById(id) {
     return axiosClient.get(`/posts/${id}`);
+  },
+
+  getPostById(id) {
+    return this.getById(id);
   },
 
   // Lấy posts theo category
@@ -21,9 +33,17 @@ const postService = {
     return axiosClient.post("/posts", postData);
   },
 
+  createPost(postData) {
+    return this.create(postData);
+  },
+
   // Cập nhật post
   update(id, postData) {
     return axiosClient.put(`/posts/${id}`, postData);
+  },
+
+  updatePost(id, postData) {
+    return this.update(id, postData);
   },
 
   // Xóa post
@@ -31,17 +51,25 @@ const postService = {
     return axiosClient.delete(`/posts/${id}`);
   },
 
+  deletePost(id) {
+    return this.delete(id);
+  },
+
   // Tìm kiếm bài viết theo từ khóa
   search(query, page = 0, size = 10) {
     return axiosClient.get(`/posts/search?query=${encodeURIComponent(query)}&page=${page}&size=${size}&sort=createdAt,desc`);
   },
 
-  // Lấy bài viết theo khoảng thời gian chuẩn SARGable (Tối ưu B-Tree Index Range Scan)
+  searchPosts(query, page = 0, size = 10) {
+    return this.search(query, page, size);
+  },
+
+  // Lấy bài viết theo khoảng thời gian chuẩn SARGable
   getByDateRange(startDate, endDate, page = 0, size = 10) {
     return axiosClient.get(`/posts/date-range?start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}&page=${page}&size=${size}&sort=createdAt,desc`);
   },
 
-  // Lấy bài viết theo tháng (Ví dụ: 2026-08) dùng dải thời gian SARGable >= và < thay vì bọc hàm DATE_FORMAT trên cột Index
+  // Lấy bài viết theo tháng
   getByMonth(yearMonth, page = 0, size = 10) {
     const parts = yearMonth.split("-");
     const year = parseInt(parts[0]);
@@ -53,14 +81,13 @@ const postService = {
     return this.getByDateRange(startDate, endDate, page, size);
   },
 
-  // Tăng lượt xem bài viết chuẩn thực tế (Chỉ cộng 1 lượt xem duy nhất cho 1 người trong 30 phút, chống click ảo)
+  // Tăng lượt xem bài viết
   incrementViewCount(id) {
     if (!id) return Promise.resolve();
     const sessionKey = `viewed_post_${id}`;
     const lastViewed = sessionStorage.getItem(sessionKey);
     const now = Date.now();
 
-    // Nếu đã xem bài viết này trong vòng 30 phút qua -> Không cộng dồn ảo
     if (lastViewed && now - parseInt(lastViewed) < 30 * 60 * 1000) {
       return Promise.resolve({ data: { message: "Lượt xem đã được ghi nhận trong phiên này." } });
     }
@@ -72,5 +99,20 @@ const postService = {
   },
 };
 
+export const getAll = postService.getAll.bind(postService);
+export const getAllPosts = postService.getAllPosts.bind(postService);
+export const getById = postService.getById.bind(postService);
+export const getPostById = postService.getPostById.bind(postService);
+export const getByCategory = postService.getByCategory.bind(postService);
+export const create = postService.create.bind(postService);
+export const createPost = postService.createPost.bind(postService);
+export const update = postService.update.bind(postService);
+export const updatePost = postService.updatePost.bind(postService);
+export const deletePost = postService.delete.bind(postService);
+export const search = postService.search.bind(postService);
+export const searchPosts = postService.searchPosts.bind(postService);
+export const getByDateRange = postService.getByDateRange.bind(postService);
+export const getByMonth = postService.getByMonth.bind(postService);
+export const incrementViewCount = postService.incrementViewCount.bind(postService);
 
 export default postService;
