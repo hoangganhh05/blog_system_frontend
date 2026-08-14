@@ -1,8 +1,8 @@
 import axios from "axios";
 
-// Sử dụng đường dẫn tương đối qua biến môi trường hoặc mặc định '/api'
+// Sử dụng đường dẫn tương đối qua biến môi trường hoặc mặc định '/api/v1'
 // Tất cả API request sẽ đi qua Reverse Proxy để ẩn domain backend thật trên F12 Network
-const apiBaseUrl = import.meta.env.VITE_API_URL || "/api";
+const apiBaseUrl = import.meta.env.VITE_API_URL || "/api/v1";
 
 const axiosClient = axios.create({
   baseURL: apiBaseUrl,
@@ -52,6 +52,7 @@ axiosClient.interceptors.response.use(
 
   (error) => {
     const status = error.response?.status;
+    const requestUrl = error.config?.url || "";
     const errorMessage =
       error.response?.data?.message ||
       (typeof error.response?.data === "string" &&
@@ -85,17 +86,13 @@ axiosClient.interceptors.response.use(
         window.location.href = "/login";
       }
     }
-    // 403 (Forbidden) - chỉ log error, không tự động logout (có thể là permission issue bình thường)
+    // 403 (Forbidden) - chỉ log error, không tự động logout
     else if (status === 403 && !isPublicAuthRequest(requestUrl)) {
       console.warn(
         "Forbidden API request (permission denied):",
         requestUrl,
         errorMessage,
       );
-      // Hiển thị thông báo rõ ràng cho người dùng
-      if (typeof window !== "undefined") {
-        console.warn("Bạn không có quyền truy cập tài nguyên này.");
-      }
     }
 
     console.error("API Error:", {

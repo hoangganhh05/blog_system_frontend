@@ -9,16 +9,17 @@ const chatService = {
     );
   },
 
-  // Lấy lịch sử nhắn tin giữa 2 người
+  // Lấy lịch sử nhắn tin chuẩn REST API (tự động sử dụng JWT token cho người dùng hiện tại)
   getHistory(user1, user2) {
-    return axiosClient.get(`/chat/history?user1=${user1}&user2=${user2}`);
+    // Nếu truyền 2 tham số, targetUserId là user2 (hoặc người khác ngoại trừ caller)
+    const targetUserId = typeof user2 !== "undefined" ? user2 : user1;
+    return axiosClient.get(`/chat/history?withUser=${targetUserId}`);
   },
 
   // Đánh dấu đã đọc
   markAsRead(senderId) {
     return axiosClient.post(`/chat/read?senderId=${senderId}`);
   },
-
 };
 
 export default chatService;

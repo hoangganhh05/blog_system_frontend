@@ -313,9 +313,9 @@ function FloatingChatWidget() {
     fetchFriends();
   }, [currentUserId]);
 
-  // 2. Poll unread count — chỉ chạy khi widget đã mở và có bạn bè, dùng Promise.all tránh N+1 loop
+  // 2. Poll unread count — CHỈ chạy khi widget ĐANG MỞ để tránh làm rác F12 Network tab
   useEffect(() => {
-    if (!currentUserId || friends.length <= 1) return;
+    if (!currentUserId || friends.length <= 1 || !isOpen) return;
 
     const fetchAllSummaries = async () => {
       const realFriends = friends.filter((f) => f && !f.isAi);
@@ -361,8 +361,7 @@ function FloatingChatWidget() {
     };
 
     fetchAllSummaries();
-    // Poll chậu 15s — chỉ cần biết unread count, không cần real-time
-    const interval = setInterval(fetchAllSummaries, 15000);
+    const interval = setInterval(fetchAllSummaries, 30000); // 30s interval
     return () => clearInterval(interval);
   }, [currentUserId, friends, isOpen, activeFriend?.id]);
 

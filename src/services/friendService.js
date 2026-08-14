@@ -6,7 +6,7 @@ const friendService = {
     return axiosClient.post(`/friends/request?receiverId=${receiverId}`);
   },
 
-  // Backward-compatible alias for older call sites
+  // Backward-compatible alias
   sendRequest(senderId, receiverId) {
     return this.sendFriendRequest(senderId, receiverId);
   },
@@ -16,14 +16,15 @@ const friendService = {
     return axiosClient.post(`/friends/accept?requesterId=${requesterId}`);
   },
 
-  // Backward-compatible alias for older call sites
+  // Backward-compatible alias
   acceptFriendRequest(currentUserId, requesterId) {
     return this.acceptRequest(currentUserId, requesterId);
   },
 
   // Hủy kết bạn / Từ chối / Rút lời mời
   removeFriendship(userId1, userId2) {
-    return axiosClient.post(`/friends/remove?userId1=${userId1}&userId2=${userId2}`);
+    const targetId = userId2 || userId1;
+    return axiosClient.post(`/friends/remove?targetUserId=${targetId}`);
   },
 
   // Lấy trạng thái mối quan hệ giữa 2 user
@@ -33,17 +34,23 @@ const friendService = {
 
   // Lấy danh sách bạn bè đã kết bạn
   getFriendsList(userId) {
-    return axiosClient.get(`/friends/list/${userId}`);
+    return userId
+      ? axiosClient.get(`/friends/list/${userId}`)
+      : axiosClient.get(`/friends/list`);
   },
 
   // Lấy danh sách lời mời kết bạn đang chờ
   getPendingRequests(userId) {
-    return axiosClient.get(`/friends/pending/${userId}`);
+    return userId
+      ? axiosClient.get(`/friends/pending/${userId}`)
+      : axiosClient.get(`/friends/pending`);
   },
 
   // Đếm số bạn bè
   getFriendCount(userId) {
-    return axiosClient.get(`/friends/count/${userId}`);
+    return userId
+      ? axiosClient.get(`/friends/count/${userId}`)
+      : axiosClient.get(`/friends/count`);
   },
 };
 
