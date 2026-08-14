@@ -3,11 +3,12 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Bell, Plus, ChevronDown, LogOut,
   Sun, Moon, Shield, User, Settings, Home,
-  Compass, Bookmark, Users, BarChart2, X,
+  Compass, Bookmark, Users, BarChart2, X, Sparkles,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import notificationService from "../services/notificationService";
 import CreatePostModal from "../components/CreatePostModal";
+import AiAssistantModal from "../components/AiAssistantModal";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -22,6 +23,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
 
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -139,6 +141,16 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
             >
               <Plus strokeWidth={2.5} className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Đăng bài</span>
+            </button>
+
+            {/* Trợ lý AI Gemini */}
+            <button
+              type="button"
+              onClick={() => setIsAiModalOpen(true)}
+              className="p-2 rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer"
+              title="Trợ lý AI Gemini"
+            >
+              <Sparkles strokeWidth={2} className="w-4 h-4" />
             </button>
 
             {/* Notifications */}
@@ -445,6 +457,12 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           setIsCreateModalOpen(false);
           window.dispatchEvent(new CustomEvent("refresh_feed_posts"));
         }}
+      />
+
+      {/* AI Assistant Gemini Modal */}
+      <AiAssistantModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
       />
     </div>
   );

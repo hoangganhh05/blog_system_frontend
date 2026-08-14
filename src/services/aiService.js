@@ -1,6 +1,7 @@
 /**
- * AI Assistant Service - Sinh nội dung bài viết thông minh, Tóm tắt nội dung & Sáng tác nghệ thuật
+ * AI Assistant Service - Gọi trực tiếp Spring Boot Backend Proxy (Gemini 1.5 Flash bảo mật API Key)
  */
+import axiosClient from "../api/axiosClient";
 
 const SAMPLE_TEMPLATES = {
   du_lich: {
@@ -31,86 +32,7 @@ const POEMS_DATA = {
 
 const aiService = {
   /**
-   * Sinh bài viết tự động dựa trên prompt của người dùng
-   * @param {string} prompt 
-   * @returns {Promise<{title: string, content: string, hashtags: string}>}
-   */
-  async generatePost(prompt) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const p = (prompt || "").toLowerCase();
-    let template = SAMPLE_TEMPLATES.doi_song;
-
-    if (p.includes("du lịch") || p.includes("đi chơi") || p.includes("phượt") || p.includes("travel")) {
-      template = SAMPLE_TEMPLATES.du_lich;
-    } else if (p.includes("code") || p.includes("lập trình") || p.includes("java") || p.includes("web") || p.includes("cntt")) {
-      template = SAMPLE_TEMPLATES.lap_trinh;
-    }
-
-    const randomTitle = template.titles[Math.floor(Math.random() * template.titles.length)];
-    const generatedContent = `${template.content}\n\n${template.hashtags}`;
-
-    return {
-      title: `${(prompt || "").trim() ? prompt.trim() : randomTitle}`,
-      content: generatedContent,
-      hashtags: template.hashtags,
-    };
-  },
-
-  /**
-   * Sinh nội dung bài viết dạng chuỗi văn bản (Alias cho generatePost)
-   * @param {string} prompt
-   * @returns {Promise<string>}
-   */
-  async generatePostContent(prompt) {
-    const res = await this.generatePost(prompt);
-    return res.content || "";
-  },
-
-  /**
-   * Sáng tác thơ 4 câu theo chủ đề
-   * @param {string} topic
-   * @returns {Promise<string>}
-   */
-  async generatePoem(topic) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return POEMS_DATA[topic] || POEMS_DATA["Cuộc Sống"];
-  },
-
-  /**
-   * Tóm tắt bài viết thành 3 ý chính
-   * @param {string} text 
-   * @returns {Promise<string[]>}
-   */
-  async summarize(text) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    if (!text || text.trim().length < 20) {
-      return ["Nội dung bài viết quá ngắn để tóm tắt."];
-    }
-
-    const lines = text.split("\n").filter((l) => l.trim().length > 0);
-    const summaryPoints = [
-      `📌 **Ý chính**: ${lines[0] || text.slice(0, 80)}`,
-      `💡 **Điểm nổi bật**: Bài viết chia sẻ thông tin chi tiết và góc nhìn thực tế.`,
-      `🚀 **Kết luận**: Đáng đọc và ứng dụng cho nhu cầu tham khảo hàng ngày.`
-    ];
-
-    return summaryPoints;
-  },
-
-  /**
-   * Tóm tắt bài viết dạng chuỗi văn bản (Alias cho summarize)
-   * @param {string} text
-   * @returns {Promise<string>}
-   */
-  async summarizePost(text) {
-    const points = await this.summarize(text);
-    return Array.isArray(points) ? points.join("\n") : String(points);
-  },
-
-  /**
-   * Trò chuyện thông minh với Trợ lý AI (Tích hợp Google Gemini 1.5 Real API)
+   * Trò chuyện thông minh với Trợ lý AI qua Backend Spring Boot (Bảo mật 100% API Key)
    * @param {string} userMessage 
    * @returns {Promise<string>}
    */
@@ -118,68 +40,91 @@ const aiService = {
     const msg = (userMessage || "").trim();
     if (!msg) return "Bạn hãy nhập nội dung để trò chuyện với Trợ lý AI nhé! ✨";
 
-    // 1. Thử gọi API Google Gemini 1.5 Flash thực tế
-    const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
-    if (GEMINI_API_KEY) {
-      try {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: "user",
-                  parts: [
-                    {
-                      text: `Bạn là Trợ lý AI thông minh, thân thiện của mạng xã hội BlogViet. Hãy trả lời ngắn gọn, hữu ích và lịch sự bằng tiếng Việt cho câu hỏi sau: ${msg}`,
-                    },
-                  ],
-                },
-              ],
-            }),
-          }
-        );
-        const data = await response.json();
-        const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (replyText) {
-          return replyText.trim();
-        }
-      } catch {
-        // Chuyển sang thuật toán NLP dự phòng bên dưới
+    try {
+      const response = await axiosClient.post("/ai/chat", { prompt: msg });
+      if (response.data && response.data.reply) {
+        return response.data.reply;
       }
+      return typeof response.data === "string" ? response.data : "Trợ lý BlogViet đã nhận thông điệp!";
+    } catch (err) {
+      console.warn("Backend AI chat error, falling back:", err);
+      // Fallback NLP nếu server chưa khởi động xong
+      const lowerMsg = msg.toLowerCase();
+      if (lowerMsg.includes("chào") || lowerMsg.includes("hi") || lowerMsg.includes("hello")) {
+        return "Xin chào bạn! Mình là Trợ lý AI của BlogViet ✨. Mình luôn ở đây 24/7 để tư vấn ý tưởng bài viết, giải đáp thắc mắc hay trò chuyện cùng bạn!";
+      }
+      return `Cảm ơn bạn đã nhắn: "${msg}". Mình luôn sẵn sàng hỗ trợ bạn sáng tạo bài viết, giải đáp thắc mắc hay tư vấn thông tin bất kỳ lúc nào! 😊✨`;
     }
+  },
 
-    // 2. Thuật toán NLP dự phòng nếu chưa có API Key
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    const lowerMsg = msg.toLowerCase();
-
-    if (lowerMsg.includes("chào") || lowerMsg.includes("hi") || lowerMsg.includes("hello")) {
-      return "Xin chào bạn! Mình là Trợ lý AI của BlogViet ✨. Mình luôn ở đây 24/7 để tư vấn ý tưởng bài viết, giải đáp thắc mắc hay trò chuyện cùng bạn!";
+  /**
+   * Sinh bài viết tự động dựa trên prompt của người dùng
+   * @param {string} prompt 
+   * @returns {Promise<{title: string, content: string, hashtags: string}>}
+   */
+  async generatePost(prompt) {
+    try {
+      const p = (prompt || "").trim();
+      const aiPrompt = `Hãy viết một bài đăng mạng xã hội ngắn gọn, hấp dẫn, chuẩn tiếng Việt về chủ đề: "${p}". Có bao gồm tiêu đề và vài hashtag phù hợp.`;
+      const reply = await this.chatWithAI(aiPrompt);
+      return {
+        title: p || "Bài viết mới cùng BlogViet AI",
+        content: reply,
+        hashtags: "#BlogViet #AI #ChiaSe",
+      };
+    } catch {
+      const template = SAMPLE_TEMPLATES.doi_song;
+      return {
+        title: prompt || template.titles[0],
+        content: `${template.content}\n\n${template.hashtags}`,
+        hashtags: template.hashtags,
+      };
     }
+  },
 
-    if (lowerMsg.includes("code") || lowerMsg.includes("lập trình") || lowerMsg.includes("lỗi") || lowerMsg.includes("react") || lowerMsg.includes("java")) {
-      return "Về lập trình, bí quyết là chia nhỏ bài toán và debug cẩn thận từng dòng lệnh. Bạn đang gặp vướng mắc ở phần nào, hãy chia sẻ cụ thể để mình hỗ trợ nhé! 💻🚀";
+  async generatePostContent(prompt) {
+    const res = await this.generatePost(prompt);
+    return res.content || "";
+  },
+
+  async generatePoem(topic) {
+    try {
+      const poemPrompt = `Hãy sáng tác một bài thơ 4 câu ngắn gọn, dạt dào cảm xúc về chủ đề "${topic}".`;
+      return await this.chatWithAI(poemPrompt);
+    } catch {
+      return POEMS_DATA[topic] || POEMS_DATA["Cuộc Sống"];
     }
+  },
 
-    if (lowerMsg.includes("ý tưởng") || lowerMsg.includes("viết bài") || lowerMsg.includes("chủ đề")) {
-      return "Gợi ý một số chủ đề viết bài siêu thu hút trên BlogViet:\n1. 🏖️ Nhật ký trải nghiệm du lịch tự túc\n2. 💻 Lộ trình tự học lập trình Web hiệu quả\n3. ☕ Thói quen giúp bạn quản lý thời gian cực chuẩn\nBạn quan tâm chủ đề nào nhất? 🌟";
+  async summarize(text) {
+    if (!text || text.trim().length < 20) {
+      return ["Nội dung bài viết quá ngắn để tóm tắt."];
     }
-
-    if (lowerMsg.includes("bạn là ai") || lowerMsg.includes("tên gì")) {
-      return "Mình là Trợ lý AI thông minh của mạng xã hội BlogViet! 🤖✨ Mình có thể giúp bạn viết bài, giải đáp câu hỏi và trò chuyện trực tuyến.";
+    try {
+      const prompt = `Hãy tóm tắt bài viết sau thành 3 gạch đầu dòng ngắn gọn và súc tích:\n\n${text}`;
+      const reply = await this.chatWithAI(prompt);
+      return reply.split("\n").filter((l) => l.trim().length > 0);
+    } catch {
+      const lines = text.split("\n").filter((l) => l.trim().length > 0);
+      return [
+        `📌 **Ý chính**: ${lines[0] || text.slice(0, 80)}`,
+        `💡 **Điểm nổi bật**: Bài viết chia sẻ thông tin chi tiết và góc nhìn thực tế.`,
+        `🚀 **Kết luận**: Đáng đọc và ứng dụng cho nhu cầu tham khảo hàng ngày.`
+      ];
     }
+  },
 
-    return `Cảm ơn bạn đã nhắn: "${msg}". Mình luôn sẵn sàng hỗ trợ bạn sáng tạo bài viết, giải đáp thắc mắc hay tư vấn thông tin bất kỳ lúc nào! 😊✨`;
-  }
+  async summarizePost(text) {
+    const points = await this.summarize(text);
+    return Array.isArray(points) ? points.join("\n") : String(points);
+  },
 };
 
+export const chatWithAI = aiService.chatWithAI.bind(aiService);
 export const generatePost = aiService.generatePost.bind(aiService);
 export const generatePostContent = aiService.generatePostContent.bind(aiService);
 export const generatePoem = aiService.generatePoem.bind(aiService);
 export const summarize = aiService.summarize.bind(aiService);
 export const summarizePost = aiService.summarizePost.bind(aiService);
-export const chatWithAI = aiService.chatWithAI.bind(aiService);
 
 export default aiService;
