@@ -48,12 +48,21 @@ const aiService = {
       return typeof response.data === "string" ? response.data : "Trợ lý BlogViet đã nhận thông điệp!";
     } catch (err) {
       console.warn("Backend AI chat error, falling back:", err);
-      // Fallback NLP nếu server chưa khởi động xong
+      // Fallback NLP nếu server chưa kết nối
       const lowerMsg = msg.toLowerCase();
-      if (lowerMsg.includes("chào") || lowerMsg.includes("hi") || lowerMsg.includes("hello")) {
-        return "Xin chào bạn! Mình là Trợ lý AI của BlogViet ✨. Mình luôn ở đây 24/7 để tư vấn ý tưởng bài viết, giải đáp thắc mắc hay trò chuyện cùng bạn!";
+      if (lowerMsg.includes("đăng bài") || lowerMsg.includes("tạo bài")) {
+        return "Để đăng bài viết mới, bạn bấm vào nút **(+) Đăng bài** ở góc trên bên phải thanh Header hoặc trên ô tạo bài viết tại Trang chủ nhé! ✨";
       }
-      return `Cảm ơn bạn đã nhắn: "${msg}". Mình luôn sẵn sàng hỗ trợ bạn sáng tạo bài viết, giải đáp thắc mắc hay tư vấn thông tin bất kỳ lúc nào! 😊✨`;
+      if (lowerMsg.includes("chat") || lowerMsg.includes("nhắn tin")) {
+        return "Để nhắn tin trực tiếp với bạn bè hoặc Trợ lý AI, bạn hãy bấm vào biểu tượng bong bóng chat 💬 ở góc dưới bên phải màn hình nhé!";
+      }
+      if (lowerMsg.includes("chia sẻ") || lowerMsg.includes("share")) {
+        return "Bạn có thể dùng nút **Chia sẻ** dưới mỗi bài viết để Quote kèm suy nghĩ cá nhân, gửi qua tin nhắn cho bạn bè hoặc sao chép liên kết bài viết!";
+      }
+      if (lowerMsg.includes("chào") || lowerMsg.includes("hi") || lowerMsg.includes("hello")) {
+        return "Xin chào bạn! Mình là Trợ lý AI chuyên nghiệp của BlogViet (https://anhhoangg.id.vn/) ✨. Mình có thể giúp bạn sáng tạo nội dung, gợi ý chủ đề blog và hướng dẫn sử dụng nền tảng hiệu quả!";
+      }
+      return `Cảm ơn bạn đã nhắn: "${msg}". Mình là Trợ lý BlogViet, luôn sẵn sàng hỗ trợ bạn sáng tạo bài viết, giải đáp thắc mắc hay tư vấn thông tin bất kỳ lúc nào! 😊✨`;
     }
   },
 
