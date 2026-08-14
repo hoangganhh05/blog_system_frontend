@@ -52,7 +52,17 @@ axiosClient.interceptors.response.use(
 
   (error) => {
     const status = error.response?.status;
-    const requestUrl = `${error.config?.url || ""}`;
+    const errorMessage =
+      error.response?.data?.message ||
+      (typeof error.response?.data === "string" &&
+      error.response.data.includes("<!DOCTYPE")
+        ? "Không thể kết nối đến máy chủ. Vui lòng thử lại!"
+        : error.message || "Đã có lỗi xảy ra");
+
+    // Nếu server/hosting trả về HTML thay vì JSON, chuẩn hóa lại data để UI hiển thị thông báo sạch
+    if (typeof error.response?.data === "string" && error.response.data.includes("<!DOCTYPE")) {
+      error.response.data = { message: errorMessage };
+    }
 
     // Chỉ xử lý 401 (token hết hạn/không hợp lệ) - tự động logout
     if (status === 401 && !isPublicAuthRequest(requestUrl)) {
@@ -80,7 +90,7 @@ axiosClient.interceptors.response.use(
       console.warn(
         "Forbidden API request (permission denied):",
         requestUrl,
-        error.response?.data || error.message,
+        errorMessage,
       );
       // Hiển thị thông báo rõ ràng cho người dùng
       if (typeof window !== "undefined") {
@@ -92,7 +102,7 @@ axiosClient.interceptors.response.use(
       status,
       url: requestUrl,
       data: error.response?.data,
-      message: error.message,
+      message: errorMessage,
     });
     return Promise.reject(error);
   },

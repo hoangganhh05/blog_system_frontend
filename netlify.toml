@@ -2,6 +2,7 @@
   from = "/api/*"
   to = "https://api.anhhoangg.id.vn/:splat"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
