@@ -28,17 +28,22 @@ function AppContent() {
   const isAuthPage = ["/login", "/register", "/verify-email", "/forgot-password"].includes(location.pathname);
 
   const [isDark, setIsDark] = useState(() => {
-    return localStorage.getItem("blog_theme") === "dark";
+    const saved = localStorage.getItem("theme") || localStorage.getItem("blog_theme");
+    if (saved) return saved === "dark";
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
     if (isDark) {
       document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      localStorage.setItem("blog_theme", "dark");
     } else {
       document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      localStorage.setItem("blog_theme", "light");
     }
-    localStorage.setItem("blog_theme", isDark ? "dark" : "light");
   }, [isDark]);
 
   const toggleTheme = () => setIsDark((v) => !v);

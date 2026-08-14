@@ -602,152 +602,89 @@ function playNotificationSound() {
     <>
       {/* Floating Messenger Icon Button */}
       {!isOpen && (
-        <div
-          onMouseDown={handleDragStart}
-          onTouchStart={handleDragStart}
-          onClick={() => {
-            if (!dragRef.current.moved) {
-              setIsOpen(true);
-            }
-          }}
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
           title="Nhắn tin với bạn bè"
-          style={{
-            position: "fixed",
-            left: (hasMoved && window.innerWidth <= 768) ? bubblePos.x : "auto",
-            top: (hasMoved && window.innerWidth <= 768) ? bubblePos.y : "auto",
-            right: (hasMoved && window.innerWidth <= 768) ? "auto" : 24,
-            bottom: (hasMoved && window.innerWidth <= 768) ? "auto" : 24,
-            zIndex: 999999,
-            width: 56,
-            height: 56,
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)",
-            color: "#fff",
-            boxShadow: "0 8px 28px rgba(79, 70, 229, 0.45)",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 24,
-            userSelect: "none",
-            touchAction: "none",
-            transition: isDragging ? "none" : "box-shadow 0.2s, transform 0.2s",
-          }}
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 shadow-2xl flex items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer border border-zinc-200/20"
         >
-          💬
+          <span className="text-2xl">💬</span>
           {unreadChatCount > 0 && (
-            <span
-              style={{
-                position: "absolute",
-                top: -4,
-                right: -4,
-                background: "#ef4444",
-                color: "#ffffff",
-                fontSize: 11,
-                fontWeight: 800,
-                borderRadius: "50%",
-                minWidth: 20,
-                height: 20,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "0 5px",
-                border: "2px solid #ffffff",
-                boxShadow: "0 2px 8px rgba(239, 68, 68, 0.5)",
-                animation: "pulse 1.5s infinite",
-              }}
-            >
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[11px] font-extrabold rounded-full min-w-5 h-5 flex items-center justify-center px-1 border-2 border-white dark:border-zinc-900 shadow-md animate-pulse">
               {unreadChatCount > 99 ? "99+" : unreadChatCount}
             </span>
           )}
-        </div>
+        </button>
       )}
 
-      {/* Mini Messenger / Mobile Fullscreen Window */}
+      {/* Mini Messenger / Mobile Window */}
       {isOpen && (
         <div
-          className="messenger-window-container"
-          style={{
-            position: "fixed",
-            bottom: 24,
-            right: 24,
-            zIndex: 999999,
-            width: 360,
-            height: 520,
-            background: "var(--bg-card)",
-            borderRadius: 20,
-            boxShadow: "0 16px 48px rgba(0, 0, 0, 0.25), 0 2px 10px rgba(0, 0, 0, 0.1)",
-            border: "1px solid var(--border-light)",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            animation: "slideUp 0.2s ease",
-          }}
+          className="fixed bottom-20 right-6 z-50 w-80 sm:w-88 h-[520px] max-h-[82vh] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-150"
         >
           {/* Messenger Header */}
           <div
-            style={{
-              padding: "12px 16px",
-              background: "var(--primary)",
-              color: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
+            className="px-4 py-3 bg-zinc-950 dark:bg-zinc-900 text-white border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0"
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
               {activeFriend ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+                <div className="flex items-center gap-2 w-full">
                   <button
+                    type="button"
                     onClick={() => setActiveFriend(null)}
-                    style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 16 }}
+                    className="p-1 rounded-full hover:bg-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer text-sm"
                   >
                     ←
                   </button>
                   <div
                     onClick={() => activeFriend.id && navigate(`/profile/${activeFriend.id}`)}
-                    style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", minWidth: 0, flex: 1 }}
+                    className="flex items-center gap-2 cursor-pointer min-w-0 flex-1 group"
                     title={`Xem trang cá nhân của ${activeFriend.fullName || activeFriend.username}`}
                   >
                     {activeFriend.avatarUrl ? (
-                      <img src={activeFriend.avatarUrl} alt="" className="avatar avatar-sm" style={{ width: 28, height: 28, objectFit: "cover", border: "1px solid #fff", flexShrink: 0 }} />
+                      <img src={activeFriend.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover border border-zinc-700 shrink-0" />
                     ) : (
-                      <div className="avatar avatar-sm" style={{ width: 28, height: 28, fontSize: 11, background: "rgba(255,255,255,0.2)", border: "1px solid #fff", flexShrink: 0 }}>
+                      <div className="w-7 h-7 rounded-full text-[11px] font-bold bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0 text-white">
                         {getInitials(activeFriend.fullName || activeFriend.username)}
                       </div>
                     )}
-                    <span style={{ fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <span className="font-bold text-xs truncate text-white group-hover:underline">
                       {activeFriend.fullName || activeFriend.username}
                     </span>
                   </div>
 
-                  {/* Nút Gọi Thoại & Gọi Video HD */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto", marginRight: 6 }}>
+                  {/* Nút Gọi Thoại & Gọi Video */}
+                  <div className="flex items-center gap-1.5 ml-auto pr-1">
                     <button
                       type="button"
                       onClick={() => handleStartCall("voice")}
                       title="Gọi thoại Messenger"
-                      style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 18, padding: 2 }}
+                      className="p-1 rounded-md text-zinc-300 hover:text-white hover:bg-zinc-800 text-sm cursor-pointer"
                     >
                       📞
                     </button>
                     <button
                       type="button"
                       onClick={() => handleStartCall("video")}
-                      title="Gọi Video TikTok HD"
-                      style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 18, padding: 2 }}
+                      title="Gọi Video HD"
+                      className="p-1 rounded-md text-zinc-300 hover:text-white hover:bg-zinc-800 text-sm cursor-pointer"
                     >
                       📹
                     </button>
                   </div>
                 </div>
               ) : (
-                <span style={{ fontWeight: 700, fontSize: 15 }}>💬 Chat Messenger</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-base">💬</span>
+                  <span className="font-bold text-sm text-white">Tin nhắn</span>
+                </div>
               )}
             </div>
             <button
+              type="button"
               onClick={() => setIsOpen(false)}
-              style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 18 }}
+              className="p-1 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer text-sm font-bold ml-2"
+              title="Đóng tin nhắn"
             >
               ✕
             </button>

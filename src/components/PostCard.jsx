@@ -320,9 +320,14 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
         )}
 
         {/* Thân Bài Viết (Typography Thoáng) */}
-        <div className="text-sm leading-relaxed text-zinc-900 dark:text-zinc-100 break-words whitespace-pre-line my-2">
-          {post.content}
-        </div>
+        {post?.title && post.title !== (post?.content || post?.body || post?.text) && post?.content && (
+          <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+            {post.title}
+          </h2>
+        )}
+        <p className="text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-200 my-2 whitespace-pre-line break-words">
+          {post?.content || post?.body || post?.title || post?.text}
+        </p>
 
         {/* Adaptive Image Grid */}
         {post.thumbNail && (
