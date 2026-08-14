@@ -606,11 +606,11 @@ function playNotificationSound() {
           type="button"
           onClick={() => setIsOpen(true)}
           title="Nhắn tin với bạn bè"
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 shadow-2xl flex items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer border border-zinc-200/20"
+          className="fixed bottom-20 md:bottom-6 right-5 md:right-6 z-40 w-12 h-12 md:w-14 md:h-14 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer border border-zinc-200/20"
         >
-          <span className="text-2xl">💬</span>
+          <span className="text-xl md:text-2xl">💬</span>
           {unreadChatCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[11px] font-extrabold rounded-full min-w-5 h-5 flex items-center justify-center px-1 border-2 border-white dark:border-zinc-900 shadow-md animate-pulse">
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] md:text-[11px] font-extrabold rounded-full min-w-4.5 h-4.5 md:min-w-5 md:h-5 flex items-center justify-center px-1 border-2 border-white dark:border-zinc-900 shadow-md animate-pulse">
               {unreadChatCount > 99 ? "99+" : unreadChatCount}
             </span>
           )}
@@ -620,7 +620,7 @@ function playNotificationSound() {
       {/* Mini Messenger / Mobile Window */}
       {isOpen && (
         <div
-          className="fixed bottom-20 right-6 z-50 w-80 sm:w-88 h-[520px] max-h-[82vh] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-150"
+          className="fixed bottom-36 md:bottom-20 right-4 md:right-6 z-50 w-[calc(100vw-2rem)] max-w-80 sm:w-88 h-[480px] md:h-[520px] max-h-[75vh] md:max-h-[82vh] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-150"
         >
           {/* Messenger Header */}
           <div
