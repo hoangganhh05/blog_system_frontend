@@ -1,20 +1,8 @@
 import axios from "axios";
 
 // Sử dụng đường dẫn tương đối qua biến môi trường hoặc mặc định '/api'
-// Mọi request sẽ đi qua Reverse Proxy (Vite dev proxy / Vercel rewrite / Netlify redirect)
-let apiBaseUrl =
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_API_BASE_URL ||
-  "/api";
-
-// Nếu biến môi trường truyền URL tuyệt đối từ xa, tự động nâng cấp sang HTTPS bảo mật
-if (
-  apiBaseUrl.startsWith("http://") &&
-  !apiBaseUrl.includes("localhost") &&
-  !apiBaseUrl.includes("127.0.0.1")
-) {
-  apiBaseUrl = apiBaseUrl.replace("http://", "https://");
-}
+// Tất cả API request sẽ đi qua Reverse Proxy để ẩn domain backend thật trên F12 Network
+const apiBaseUrl = import.meta.env.VITE_API_URL || "/api";
 
 const axiosClient = axios.create({
   baseURL: apiBaseUrl,
