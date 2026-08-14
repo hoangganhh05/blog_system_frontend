@@ -290,9 +290,103 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       {/* ======================================================================
           MAIN CONTENT CONTAINER (Centered max-w-[680px] with balanced spacing)
           ====================================================================== */}
-      <main className="w-full max-w-[680px] mx-auto px-4 py-6 flex-1 flex flex-col gap-4">
+      <main className="w-full max-w-[680px] mx-auto px-4 py-6 pb-20 md:pb-6 flex-1 flex flex-col gap-4">
         {children}
       </main>
+
+      {/* ======================================================================
+          MOBILE BOTTOM NAVIGATION (Fixed Instagram-style, md:hidden)
+          ====================================================================== */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 h-14 bg-white/95 dark:bg-zinc-950/95 backdrop-blur border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-around px-2 md:hidden">
+        {/* 1. Trang chủ */}
+        <NavLink
+          to="/"
+          end
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center p-2 transition ${
+              isActive ? "text-black dark:text-white font-bold" : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+            }`
+          }
+          title="Trang chủ"
+        >
+          {({ isActive }) => <Home strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5" />}
+        </NavLink>
+
+        {/* 2. Khám phá / Tìm kiếm */}
+        <NavLink
+          to="/trending"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center p-2 transition ${
+              isActive ? "text-black dark:text-white font-bold" : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+            }`
+          }
+          title="Khám phá"
+        >
+          {({ isActive }) => <Compass strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5" />}
+        </NavLink>
+
+        {/* 3. Tạo bài viết (Nút cộng ở giữa nổi bật) */}
+        <button
+          type="button"
+          onClick={() => {
+            if (!currentUser) {
+              navigate("/login");
+            } else {
+              setIsCreateModalOpen(true);
+            }
+          }}
+          className="w-10 h-10 rounded-xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-sm active:scale-95 transition cursor-pointer"
+          title="Tạo bài viết mới"
+        >
+          <Plus strokeWidth={2.5} className="w-5 h-5" />
+        </button>
+
+        {/* 4. Thông báo */}
+        <NavLink
+          to="/notifications"
+          className={({ isActive }) =>
+            `relative flex flex-col items-center justify-center p-2 transition ${
+              isActive ? "text-black dark:text-white font-bold" : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+            }`
+          }
+          title="Thông báo"
+        >
+          {({ isActive }) => (
+            <>
+              <Bell strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5" />
+              {unreadNotifs > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
+              )}
+            </>
+          )}
+        </NavLink>
+
+        {/* 5. Trang cá nhân */}
+        <NavLink
+          to={currentUserId ? `/profile/${currentUserId}` : "/login"}
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center p-0.5 rounded-full transition ${
+              isActive ? "ring-2 ring-black dark:ring-white" : ""
+            }`
+          }
+          title="Trang cá nhân"
+        >
+          {currentUser?.avatarUrl ? (
+            <img
+              src={currentUser.avatarUrl}
+              alt=""
+              className="w-6 h-6 rounded-full object-cover"
+            />
+          ) : (
+            <div
+              className="w-6 h-6 rounded-full flex items-center justify-center font-bold text-white text-[10px]"
+              style={{ backgroundColor: currentUser?.avatarColor || "#27272a" }}
+            >
+              {getInitials(currentUser?.fullName || currentUser?.username)}
+            </div>
+          )}
+        </NavLink>
+      </nav>
 
       {/* Create Post Modal */}
       <CreatePostModal
