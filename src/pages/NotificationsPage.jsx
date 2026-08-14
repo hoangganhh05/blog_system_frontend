@@ -35,6 +35,9 @@ export default function NotificationsPage() {
   const navigate = useNavigate();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const isMessageNotification = (n) => {
     if (!n) return false;
     const type = String(n.type || "").toLowerCase();

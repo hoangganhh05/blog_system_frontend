@@ -139,30 +139,30 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-white dark:bg-black text-zinc-900 dark:text-zinc-100 font-sans select-none">
-      {/* Container cân đối chuẩn: max-w-6xl mx-auto flex justify-center min-h-screen */}
-      <div className="max-w-6xl mx-auto min-h-screen flex justify-center">
+    <div className="min-h-screen w-full bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 font-sans select-none">
+      {/* Container căn giữa toàn bộ 3 cột */}
+      <div className="max-w-6xl mx-auto min-h-screen flex justify-center bg-white dark:bg-zinc-950 shadow-sm border-x border-zinc-200 dark:border-zinc-800">
         
         {/* ========================================================
             1. CỘT TRÁI (SIDEBAR NAVIGATION) - w-[76px] xl:w-[240px]
             ======================================================== */}
-        <aside className="w-[76px] xl:w-[240px] h-screen sticky top-0 flex flex-col justify-between p-3 xl:p-4 border-r border-zinc-200 dark:border-zinc-800 shrink-0 hidden md:flex">
+        <aside className="w-[76px] xl:w-[240px] h-screen sticky top-0 flex flex-col justify-between p-3 xl:p-4 border-r border-zinc-100 dark:border-zinc-800/80 shrink-0 hidden md:flex">
           <div className="flex flex-col gap-2">
             {/* Logo Thương Hiệu Tối Giản */}
             <Link
               to="/"
-              className="w-10 h-10 xl:w-auto xl:h-auto p-2 xl:px-3 xl:py-2 flex items-center gap-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 transition mb-1"
+              className="w-10 h-10 xl:w-auto xl:h-auto p-2 xl:px-3.5 xl:py-2.5 flex items-center gap-3 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-900 transition mb-2"
               title="BlogViet"
             >
-              <div className="w-7 h-7 rounded-lg bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-black text-base tracking-tighter shrink-0 shadow-sm">
+              <div className="w-8 h-8 rounded-xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-black text-lg tracking-tighter shrink-0 shadow-sm">
                 B
               </div>
-              <span className="font-bold text-lg tracking-tight hidden xl:inline text-zinc-900 dark:text-white">
+              <span className="font-extrabold text-xl tracking-tight hidden xl:inline text-zinc-900 dark:text-white">
                 BlogViet
               </span>
             </Link>
 
-            {/* Navigation List: Màu xám/đen tối giản, text-sm font-medium */}
+            {/* Navigation List: Màu đen/xám tối giản */}
             <nav className="flex flex-col gap-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -173,10 +173,10 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                     key={item.to}
                     to={item.to}
                     onClick={item.onClick}
-                    className={`flex items-center gap-3.5 p-2.5 rounded-xl transition text-sm font-medium ${
+                    className={`flex items-center gap-4 px-3.5 py-2.5 rounded-full transition text-[15px] font-medium ${
                       isActive
-                        ? "font-semibold text-black dark:text-white bg-zinc-100 dark:bg-zinc-800"
-                        : "text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                        ? "font-bold text-black dark:text-white bg-zinc-100 dark:bg-zinc-800"
+                        : "text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900"
                     }`}
                     title={item.label}
                   >
@@ -196,11 +196,11 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               })}
             </nav>
 
-            {/* Nút "Đăng bài": w-full py-2.5 rounded-full bg-black text-white text-sm font-semibold */}
+            {/* Nút "Đăng bài" bo tròn đen nhám */}
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(true)}
-              className="mt-3 w-10 h-10 xl:w-full xl:py-2.5 rounded-full bg-black dark:bg-white text-white dark:text-black text-sm font-semibold flex items-center justify-center gap-2 hover:bg-zinc-800 dark:hover:bg-zinc-200 active:scale-98 transition shadow-sm cursor-pointer"
+              className="mt-4 w-10 h-10 xl:w-full xl:py-3 rounded-full bg-black dark:bg-white text-white dark:text-black text-sm font-bold flex items-center justify-center gap-2 hover:bg-zinc-800 dark:hover:bg-zinc-200 active:scale-98 transition shadow-sm cursor-pointer"
               title="Đăng bài viết mới"
             >
               <Plus strokeWidth={2.4} className="w-5 h-5 shrink-0 xl:hidden" />
@@ -252,7 +252,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
             <button
               type="button"
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="w-full flex items-center justify-between p-1.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition group cursor-pointer"
+              className="w-full flex items-center justify-between p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition group cursor-pointer"
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 {currentUser?.avatarUrl ? (
@@ -286,16 +286,16 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         {/* ========================================================
             2. CỘT GIỮA (MAIN FEED / PROFILE) - max-w-[620px] w-full min-h-screen
             ======================================================== */}
-        <main className="w-full max-w-[620px] min-h-screen border-x border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-950 relative pb-16 md:pb-0">
+        <main className="w-full max-w-[620px] min-h-screen border-r border-zinc-100 dark:border-zinc-800/80 shrink-0 bg-white dark:bg-zinc-950 relative pb-16 md:pb-0">
           {children}
         </main>
 
         {/* ========================================================
             3. CỘT PHẢI (WIDGETS) - hidden lg:block w-[300px] p-4
             ======================================================== */}
-        <aside className="w-[300px] h-screen sticky top-0 hidden lg:flex flex-col gap-4 p-4 shrink-0 overflow-y-auto scrollbar-none border-l border-zinc-200 dark:border-zinc-800">
+        <aside className="w-[300px] h-screen sticky top-0 hidden lg:flex flex-col gap-4 p-4 shrink-0 overflow-y-auto scrollbar-none">
           {/* Search Pill Input */}
-          <form onSubmit={handleSearchSubmit} className="relative w-full">
+          <form onSubmit={handleSearchSubmit} className="relative w-full pt-1">
             <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -308,14 +308,14 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
 
           {/* Widget 1: Chủ đề động từ Backend (Chỉ hiện khi có dữ liệu thật) */}
           {realCategories.length > 0 && (
-            <div className="bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-3.5">
-              <div className="flex items-center gap-2 mb-2.5">
+            <div className="bg-zinc-50/80 dark:bg-zinc-900/60 border border-zinc-100 dark:border-zinc-800/80 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
-                <h3 className="font-bold text-xs text-zinc-900 dark:text-white">
+                <h3 className="font-bold text-xs text-zinc-900 dark:text-white uppercase tracking-wider">
                   Chủ đề thảo luận
                 </h3>
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2.5">
                 {realCategories.map((cat) => (
                   <Link
                     key={cat.id}
@@ -325,7 +325,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                     <span className="font-medium text-xs text-zinc-800 dark:text-zinc-200 group-hover:text-black dark:group-hover:text-white transition">
                       #{cat.name}
                     </span>
-                    <Sparkles className="w-3 h-3 text-zinc-400 opacity-0 group-hover:opacity-100 transition" />
+                    <Sparkles className="w-3.5 h-3.5 text-zinc-400 opacity-0 group-hover:opacity-100 transition" />
                   </Link>
                 ))}
               </div>
@@ -334,11 +334,11 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
 
           {/* Widget 2: Gợi ý người dùng thật từ Backend (Chỉ hiện khi có user) */}
           {suggestedUsers.length > 0 && (
-            <div className="bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-3.5">
-              <h3 className="font-bold text-xs text-zinc-900 dark:text-white mb-2.5">
+            <div className="bg-zinc-50/80 dark:bg-zinc-900/60 border border-zinc-100 dark:border-zinc-800/80 rounded-2xl p-4">
+              <h3 className="font-bold text-xs text-zinc-900 dark:text-white mb-3 uppercase tracking-wider">
                 Gợi ý cho bạn
               </h3>
-              <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col gap-3">
                 {suggestedUsers.map((user) => (
                   <div key={user.id} className="flex items-center justify-between gap-2">
                     <Link
@@ -370,7 +370,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                     </Link>
                     <Link
                       to={`/profile/${user.id}`}
-                      className="px-3 py-0.5 text-xs font-semibold rounded-full border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition shrink-0"
+                      className="px-3 py-1 text-xs font-semibold rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition shrink-0"
                     >
                       Xem
                     </Link>
@@ -389,15 +389,15 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               <span>·</span>
               <a href="#guidelines" className="hover:underline">Nguyên tắc</a>
             </div>
-            <p className="mt-1.5">© 2026 BlogViet, Inc.</p>
+            <p className="mt-2">© 2026 BlogViet, Inc.</p>
           </div>
         </aside>
       </div>
 
       {/* ========================================================
-          4. MOBILE BOTTOM NAVIGATION BAR - TUYỆT ĐỐI ẨN TRÊN DESKTOP/TABLET (block md:hidden)
+          4. MOBILE BOTTOM NAVIGATION BAR - CHỈ HIỆN TRÊN MOBILE (mobile-only-nav)
           ======================================================== */}
-      <div className="fixed bottom-0 left-0 right-0 h-14 bg-white/90 dark:bg-zinc-950/90 backdrop-blur border-t border-zinc-200 dark:border-zinc-800 flex justify-around items-center z-40 block md:hidden">
+      <div className="mobile-only-nav fixed bottom-0 left-0 right-0 h-14 bg-white/95 dark:bg-zinc-950/95 backdrop-blur border-t border-zinc-200 dark:border-zinc-800 flex justify-around items-center z-40">
         <NavLink
           to="/"
           className={({ isActive }) =>
