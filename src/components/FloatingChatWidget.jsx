@@ -607,6 +607,11 @@ export default function FloatingChatWidget() {
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
+  // Tìm tin nhắn cuối cùng của CHÍNH MÌNH đã được đối phương đọc
+  const mySentMessages = messages.filter((m) => Number(m.senderId || m.sender?.id) === currentUserId);
+  const myReadMessages = mySentMessages.filter((m) => m.isRead || m.read);
+  const lastReadMessageId = myReadMessages.length > 0 ? myReadMessages[myReadMessages.length - 1].id : null;
+
   return (
     <>
       {/* Floating Messenger Icon Button */}
@@ -808,6 +813,7 @@ export default function FloatingChatWidget() {
                     const friendName = activeFriend?.fullName || activeFriend?.username || "Bạn";
                     const isEditingThis = editingMsgId === msg.id;
                     const isVoice = isAudioMessage(msg.content);
+                    const isLastRead = isMe && msg.id === lastReadMessageId && !activeFriend?.isAi;
 
                     return (
                       <div
@@ -957,6 +963,27 @@ export default function FloatingChatWidget() {
                         <span className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 px-1 font-normal">
                           {formatTime(msg.createdAt)}
                         </span>
+
+                        {/* Read Receipt Avatar Badge (Chỉ hiện dưới tin nhắn cuối cùng đối phương đã đọc) */}
+                        {isLastRead && (
+                          <div className="flex items-center justify-end mt-0.5 pr-0.5 animate-in fade-in zoom-in-75 duration-150">
+                            {friendAvatar ? (
+                              <img
+                                src={friendAvatar}
+                                alt="Đã xem"
+                                title={`Đã xem lúc ${formatTime(msg.readAt || msg.createdAt)}`}
+                                className="w-3.5 h-3.5 rounded-full object-cover border border-white dark:border-zinc-900 shadow-xs ring-1 ring-zinc-200 dark:ring-zinc-700"
+                              />
+                            ) : (
+                              <div
+                                title={`Đã xem lúc ${formatTime(msg.readAt || msg.createdAt)}`}
+                                className="w-3.5 h-3.5 rounded-full bg-zinc-800 text-white font-bold text-[8px] flex items-center justify-center border border-white dark:border-zinc-900 shadow-xs"
+                              >
+                                {getInitials(friendName)}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })
