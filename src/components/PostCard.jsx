@@ -193,32 +193,27 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
         !isDetailed ? "cursor-pointer" : ""
       }`}
     >
-      {/* Cột Avatar & Thread Connector Line */}
-      <div className="flex flex-col items-center shrink-0">
+      {/* Avatar */}
+      <div className="shrink-0">
         <Link
           to={`/profile/${author.id}`}
           onClick={(e) => e.stopPropagation()}
-          className="relative group shrink-0"
+          className="relative group block shrink-0"
         >
           {author.avatarUrl ? (
             <img
               src={author.avatarUrl}
               alt=""
-              className="w-10 h-10 rounded-full object-cover group-hover:opacity-90 transition"
+              className="w-10 h-10 rounded-full object-cover group-hover:opacity-90 transition border border-zinc-200 dark:border-zinc-700"
             />
           ) : (
             <div
-              className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
-              style={{ backgroundColor: author.avatarColor || "#4f46e5" }}
+              className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0 bg-zinc-800 dark:bg-zinc-700"
             >
               {getInitials(authorName)}
             </div>
           )}
         </Link>
-        {/* Đường kẻ chỉ dẫn luồng thread nếu có bình luận */}
-        {!isDetailed && commentCount > 0 && (
-          <div className="w-0.5 flex-1 bg-zinc-200 dark:bg-zinc-800 mt-2 rounded-full" />
-        )}
       </div>
 
       {/* Cột Nội Dung & Tương Tác */}

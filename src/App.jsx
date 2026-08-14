@@ -22,8 +22,6 @@ import SearchPage from "./pages/SearchPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import FloatingChatWidget from "./components/FloatingChatWidget";
-import "./index.css";
-import "./App.css";
 
 function AppContent() {
   const location = useLocation();

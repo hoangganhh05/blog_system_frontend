@@ -147,7 +147,7 @@ export default function Home({ searchValue = "" }) {
       <QuickComposer onPostCreated={handlePostCreated} categories={categories} />
 
       {/* Feed Posts List */}
-      <div className="flex flex-col divide-y divide-zinc-200 dark:divide-zinc-800">
+      <div className="flex flex-col gap-3.5 mt-3.5">
         {loading ? (
           <>
             <PostSkeleton />
@@ -155,7 +155,7 @@ export default function Home({ searchValue = "" }) {
             <PostSkeleton />
           </>
         ) : posts.length === 0 ? (
-          <div className="p-12 text-center flex flex-col items-center justify-center gap-3 text-zinc-400">
+          <div className="p-12 text-center flex flex-col items-center justify-center gap-3 text-zinc-400 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
             <MessageSquare className="w-12 h-12 stroke-[1.25] text-zinc-300 dark:text-zinc-700" />
             <p className="font-semibold text-sm text-zinc-600 dark:text-zinc-400">
               Chưa có bài viết nào
