@@ -466,17 +466,6 @@ export default function Profile() {
             <strong className="text-zinc-900 dark:text-zinc-100 font-semibold">{posts.length}</strong> bài viết
           </span>
         </div>
-
-        {/* Mobile Logout Button (Visible only on mobile for own profile) */}
-        {isMe && (
-          <button
-            type="button"
-            onClick={() => setIsLogoutConfirmOpen(true)}
-            className="w-full mt-2 py-2.5 px-4 rounded-xl border border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-950/20 text-xs font-semibold flex items-center justify-center gap-2 md:hidden cursor-pointer active:scale-98 transition"
-          >
-            <LogOut size={16} /> Đăng xuất
-          </button>
-        )}
       </div>
 
       {/* Tabs: Chia đều 3 cột với thanh active tối giản */}
@@ -700,17 +689,6 @@ export default function Profile() {
           userId={currentUserId}
         />
       )}
-
-      {/* Logout Confirm Modal */}
-      <ConfirmModal
-        isOpen={isLogoutConfirmOpen}
-        title="Đăng xuất tài khoản"
-        message="Bạn có chắc chắn muốn đăng xuất khỏi BlogViet trên thiết bị này không?"
-        confirmText="Đăng xuất"
-        isDanger={true}
-        onConfirm={handleLogout}
-        onCancel={() => setIsLogoutConfirmOpen(false)}
-      />
     </div>
   );
 }

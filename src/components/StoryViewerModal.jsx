@@ -1,21 +1,42 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
+import {
+  X,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Send,
+  Loader2,
+  Smile,
+} from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import storyService from "../services/storyService";
 import chatService from "../services/chatService";
-import { ConfirmModal } from "./CustomModal";
+import ConfirmModal from "./ConfirmModal";
 import { isVideoUrl } from "../utils/mediaUtils";
 
 const STORY_REACTIONS = ["👍", "❤️", "😆", "😮", "😢", "😡"];
 
 function getInitials(name) {
   if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 }
 
-function timeAgo(dateStr) {
+function formatTimeAgo(dateStr) {
   if (!dateStr) return "";
-  const diff = Date.now() - new Date(dateStr).getTime();
+  let formatted = dateStr;
+  if (typeof dateStr === "string" && !dateStr.endsWith("Z") && !dateStr.includes("+")) {
+    formatted = dateStr + "Z";
+  }
+  const diff = Date.now() - new Date(formatted).getTime();
   const m = Math.floor(diff / 60000);
   if (m < 1) return "Vừa xong";
   if (m < 60) return `${m} phút trước`;
@@ -24,7 +45,12 @@ function timeAgo(dateStr) {
   return `${Math.floor(h / 24)} ngày trước`;
 }
 
-function StoryViewerModal({ groupedStories, initialUserIndex = 0, onClose, onStoryDeleted }) {
+export default function StoryViewerModal({
+  groupedStories = [],
+  initialUserIndex = 0,
+  onClose,
+  onStoryDeleted,
+}) {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const currentUserId = currentUser ? Number(currentUser.id || currentUser.userId) : null;
@@ -34,26 +60,25 @@ function StoryViewerModal({ groupedStories, initialUserIndex = 0, onClose, onSto
   const [progress, setProgress] = useState(0);
   const [viewers, setViewers] = useState([]);
   const [showViewers, setShowViewers] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // States cho thả cảm xúc & rep cmt
+  // Reaction & Reply States
   const [replyText, setReplyText] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [isSendingReply, setIsSendingReply] = useState(false);
   const [floatingEmojis, setFloatingEmojis] = useState([]);
-  const [toastMsg, setToastMsg] = useState("");
-
-  const [isHoveringControls, setIsHoveringControls] = useState(false);
 
   const progressIntervalRef = useRef(null);
+  const videoRef = useRef(null);
 
   const currentUserGroup = groupedStories[userIndex];
   const activeStories = currentUserGroup ? currentUserGroup.stories : [];
   const activeStory = activeStories[storyIndex];
 
   const author = currentUserGroup?.user;
-  const authorName = author?.fullName || author?.username || "Ẩn danh";
-  const isMyStory = currentUser && Number(author?.id) === currentUserId;
+  const authorName = author?.fullName || author?.username || "Người dùng";
+  const isOwner = Boolean(currentUser && Number(author?.id) === currentUserId);
 
-  // Chuyển sang Story tiếp theo
+  // Next Story Handler
   const handleNext = () => {
     if (storyIndex < activeStories.length - 1) {
       setStoryIndex((prev) => prev + 1);
@@ -67,7 +92,7 @@ function StoryViewerModal({ groupedStories, initialUserIndex = 0, onClose, onSto
     }
   };
 
-  // Quay lại Story trước đó
+  // Prev Story Handler
   const handlePrev = () => {
     if (storyIndex > 0) {
       setStoryIndex((prev) => prev - 1);
@@ -80,17 +105,18 @@ function StoryViewerModal({ groupedStories, initialUserIndex = 0, onClose, onSto
     }
   };
 
-  // 1. Ghi nhận lượt xem khi người khác xem tin
+  // 1. Record view
   useEffect(() => {
-    if (activeStory && currentUserId && !isMyStory) {
+    if (activeStory && currentUserId && !isOwner) {
       storyService.view(activeStory.id, currentUserId).catch(() => {});
     }
-  }, [activeStory, currentUserId, isMyStory]);
+  }, [activeStory, currentUserId, isOwner]);
 
-  // 2. Lấy danh sách người xem nếu là story của chính mình
+  // 2. Fetch Viewers for owner
   useEffect(() => {
-    if (activeStory && currentUserId && isMyStory) {
-      storyService.getViewers(activeStory.id)
+    if (activeStory && currentUserId && isOwner) {
+      storyService
+        .getViewers(activeStory.id)
         .then((res) => {
           setViewers(res.data || []);
         })
@@ -100,29 +126,25 @@ function StoryViewerModal({ groupedStories, initialUserIndex = 0, onClose, onSto
     }
     setShowViewers(false);
     setReplyText("");
-  }, [activeStory, currentUserId, isMyStory]);
+  }, [activeStory, currentUserId, isOwner]);
 
-  const videoRef = useRef(null);
-
-  // 3. Quản lý tự động chuyển Story (Tạm dừng khi tương tác/rơ chuột/gõ tin/xem người xem)
+  // 3. Auto-progress timer
   useEffect(() => {
-    if (!activeStory || showViewers || isTyping || replyText.trim().length > 0 || isHoveringControls) {
+    if (!activeStory || showViewers || showDeleteConfirm || replyText.trim().length > 0) {
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       if (videoRef.current) videoRef.current.pause();
       return;
     }
 
-    if (videoRef.current) videoRef.current.play().catch(() => {});
-
-    // NẾU LÀ VIDEO: Tiến trình được đồng bộ theo thời lượng thực tế của Video (onTimeUpdate)
-    if (isVideoUrl(activeStory.mediaUrl)) {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       return;
     }
 
     if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
 
-    const step = 1.25; // Ảnh / Tin chữ: 8 giây tự động chuyển
+    const step = 1.6; // ~6 seconds per story
     progressIntervalRef.current = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -136,21 +158,18 @@ function StoryViewerModal({ groupedStories, initialUserIndex = 0, onClose, onSto
     return () => {
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     };
-  }, [userIndex, storyIndex, activeStory, showViewers, isTyping, replyText, isHoveringControls]);
-
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  }, [userIndex, storyIndex, activeStory, showViewers, showDeleteConfirm, replyText]);
 
   if (!activeStory) return null;
+  if (typeof document === "undefined") return null;
 
-  const handleDelete = () => {
-    setShowDeleteConfirm(true);
-  };
-
-  const handleConfirmDeleteStory = async () => {
+  // Confirm delete story
+  const confirmDeleteStory = async () => {
     setShowDeleteConfirm(false);
     try {
       await storyService.delete(activeStory.id);
-      onStoryDeleted && onStoryDeleted(activeStory.id);
+      toast.success("Đã xóa tin 24h thành công!");
+      if (onStoryDeleted) onStoryDeleted(activeStory.id);
 
       if (activeStories.length === 1) {
         if (groupedStories.length === 1) {
@@ -162,540 +181,334 @@ function StoryViewerModal({ groupedStories, initialUserIndex = 0, onClose, onSto
         handleNext();
       }
     } catch {
-      setToastMsg("Không thể xóa Story!");
-      setTimeout(() => setToastMsg(""), 2000);
+      toast.error("Không thể xóa tin. Vui lòng thử lại!");
     }
   };
 
-  // Thả cảm xúc cho Story (Lưu vào DB + gửi qua Chat + Bong bóng emoji bay)
+  // Send reaction
   const handleSendReaction = async (e, emoji) => {
-    e && e.stopPropagation();
-    setProgress(0);
-
+    e?.stopPropagation();
     if (!currentUser || !author?.id) return;
 
-    // Hiệu ứng bong bóng emoji bay lên
-    const newEmoji = { id: Date.now() + Math.random(), emoji, left: 20 + Math.random() * 60 };
+    // Floating emoji effect
+    const newEmoji = {
+      id: Date.now() + Math.random(),
+      emoji,
+      left: 25 + Math.random() * 50,
+    };
     setFloatingEmojis((prev) => [...prev, newEmoji]);
     setTimeout(() => {
-      setFloatingEmojis((prev) => prev.filter((e) => e.id !== newEmoji.id));
+      setFloatingEmojis((prev) => prev.filter((item) => item.id !== newEmoji.id));
     }, 1200);
 
     try {
-      // 1. Lưu cảm xúc vào DB
       await storyService.react(activeStory.id, currentUserId, emoji);
-
-      // 2. Gửi tin nhắn qua Chat
-      await chatService.sendMessage(currentUserId, author.id, `Đã bày tỏ cảm xúc ${emoji} về tin của bạn`);
-      
-      setToastMsg(`Đã gửi ${emoji}`);
-      setTimeout(() => setToastMsg(""), 2000);
+      await chatService.sendMessage(
+        currentUserId,
+        author.id,
+        `Đã bày tỏ cảm xúc ${emoji} về tin của bạn`
+      );
+      toast.success(`Đã gửi ${emoji}`);
     } catch {
-      setToastMsg("Không thể gửi cảm xúc!");
-      setTimeout(() => setToastMsg(""), 2000);
+      toast.error("Không thể gửi cảm xúc!");
     }
   };
 
-  // Trả lời tin nhắn từ Story
+  // Send reply message
   const handleSendReply = async (e) => {
     e.preventDefault();
     if (!replyText.trim() || !currentUser || !author?.id) return;
     const text = replyText.trim();
     setReplyText("");
-    setIsTyping(false);
+    setIsSendingReply(true);
 
     try {
-      await chatService.sendMessage(currentUserId, author.id, `Đã trả lời tin của bạn: "${text}"`);
-      setToastMsg("Đã gửi tin nhắn!");
-      setTimeout(() => setToastMsg(""), 2000);
+      await chatService.sendMessage(
+        currentUserId,
+        author.id,
+        `Đã trả lời tin của bạn: "${text}"`
+      );
+      toast.success("Đã gửi tin nhắn phản hồi!");
     } catch {
-      setToastMsg("Không thể gửi tin nhắn!");
-      setTimeout(() => setToastMsg(""), 2000);
+      toast.error("Không thể gửi tin nhắn!");
+    } finally {
+      setIsSendingReply(false);
     }
   };
 
-  return (
-    <div
-      className="modal-overlay"
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        background: "rgba(0, 0, 0, 0.94)",
-        zIndex: 99999,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center"
-      }}
-    >
-      <style>{`
-        @keyframes floatUpAndFade {
-          0% { opacity: 1; transform: translateY(0) scale(1); }
-          50% { opacity: 0.9; transform: translateY(-140px) scale(1.4); }
-          100% { opacity: 0; transform: translateY(-260px) scale(1.8); }
-        }
-      `}</style>
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] bg-black flex items-center justify-center select-none overflow-hidden animate-in fade-in duration-150">
+      {/* Floating Emojis Animation */}
+      {floatingEmojis.map((item) => (
+        <div
+          key={item.id}
+          className="absolute z-50 text-4xl pointer-events-none transition-all"
+          style={{
+            left: `${item.left}%`,
+            bottom: "100px",
+            animation: "floatUpAndFade 1.2s ease-out forwards",
+          }}
+        >
+          {item.emoji}
+        </div>
+      ))}
 
-      {/* Nút lùi (Bên ngoài Story Card) */}
+      {/* Desktop Prev Button */}
       {(userIndex > 0 || storyIndex > 0) && (
         <button
-          onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-          style={{
-            position: "absolute", left: "calc(50% - 240px)",
-            zIndex: 16000, background: "rgba(255,255,255,0.15)",
-            border: "none", width: 44, height: 44, borderRadius: "50%",
-            color: "#fff", fontSize: 20, cursor: "pointer", display: "flex",
-            alignItems: "center", justifyContent: "center", transition: "background 0.2s"
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.3)"}
-          onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.15)"}
+          type="button"
+          onClick={handlePrev}
+          className="hidden md:flex absolute left-8 z-30 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
         >
-          ‹
+          <ChevronLeft className="w-6 h-6" />
         </button>
       )}
 
-      {/* Story Card Container */}
-      <div
-        style={{
-          width: 380,
-          height: 640,
-          background: activeStory.bgColor ? activeStory.bgColor : "#1c1e21",
-          borderRadius: 16,
-          position: "relative",
-          overflow: "hidden",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 12px 48px rgba(0,0,0,0.6)",
-          userSelect: "none"
-        }}
-      >
-        {/* VÙNG NHẬN CLICK TRÁI / PHẢI ĐỂ CHUYỂN STORY */}
-        <div
-          onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-          style={{
-            position: "absolute", left: 0, top: 80, bottom: 90, width: "35%",
-            zIndex: 9, cursor: "pointer"
-          }}
-        />
-        <div
-          onClick={(e) => { e.stopPropagation(); handleNext(); }}
-          style={{
-            position: "absolute", right: 0, top: 80, bottom: 90, width: "65%",
-            zIndex: 9, cursor: "pointer"
-          }}
-        />
+      {/* Desktop Next Button */}
+      {(userIndex < groupedStories.length - 1 || storyIndex < activeStories.length - 1) && (
+        <button
+          type="button"
+          onClick={handleNext}
+          className="hidden md:flex absolute right-8 z-30 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+      )}
 
-        {/* Progress Bar ở đỉnh */}
-        <div style={{
-          position: "absolute", top: 12, left: 12, right: 12,
-          display: "flex", gap: 6, zIndex: 10
-        }}>
-          {activeStories.map((s, idx) => {
-            let widthPct = 0;
-            if (idx < storyIndex) widthPct = 100;
-            else if (idx === storyIndex) widthPct = progress;
-            return (
+      {/* Container Story Tỉ lệ Chuẩn Fullscreen Mobile / 9:16 Desktop */}
+      <div className="relative w-full h-full md:max-w-md md:h-[92vh] md:rounded-3xl overflow-hidden bg-zinc-950 flex flex-col justify-between shadow-2xl">
+        {/* 1. THANH TIẾN TRÌNH (Progress Bars) */}
+        <div className="absolute top-0 inset-x-0 z-30 p-3 pt-4 flex gap-1.5 bg-gradient-to-b from-black/80 to-transparent">
+          {activeStories.map((_, i) => (
+            <div key={i} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
               <div
-                key={s.id || idx}
+                className="h-full bg-white transition-all duration-100 ease-linear rounded-full"
                 style={{
-                  flex: 1, height: 3.5, background: "rgba(255,255,255,0.35)",
-                  borderRadius: 2, overflow: "hidden"
+                  width:
+                    i < storyIndex
+                      ? "100%"
+                      : i === storyIndex
+                      ? `${progress}%`
+                      : "0%",
                 }}
-              >
-                <div style={{
-                  height: "100%", width: `${widthPct}%`,
-                  background: "#ffffff", borderRadius: 2,
-                  transition: idx === storyIndex ? "width 0.1s linear" : "none"
-                }} />
-              </div>
-            );
-          })}
+              />
+            </div>
+          ))}
         </div>
 
-        {/* Header thông tin tác giả */}
-        <div
-          style={{
-            position: "absolute", top: 24, left: 12, right: 12,
-            display: "flex", alignItems: "center",
-            zIndex: 10, justifyContent: "space-between"
-          }}
-        >
+        {/* 2. HEADER STORY: Avatar, Tên, Thời gian, Nút Xóa, Nút X đóng */}
+        <div className="absolute top-6 inset-x-0 z-30 px-4 py-2 flex items-center justify-between text-white bg-gradient-to-b from-black/60 to-transparent">
           <div
-            style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
-            onClick={(e) => {
-              e.stopPropagation();
-              author?.id && navigate(`/profile/${author.id}`);
+            className="flex items-center gap-2.5 cursor-pointer"
+            onClick={() => {
+              onClose();
+              if (author?.id) navigate(`/profile/${author.id}`);
             }}
-            title={`Xem trang cá nhân của ${authorName}`}
           >
             {author?.avatarUrl ? (
-              <img src={author.avatarUrl} alt={authorName} className="avatar avatar-sm" style={{ objectFit: "cover", border: "2px solid #fff" }} />
+              <img
+                src={author.avatarUrl}
+                alt=""
+                className="w-8 h-8 rounded-full border border-white/60 object-cover"
+              />
             ) : (
-              <div className="avatar avatar-sm" style={{ background: author?.avatarColor ? `linear-gradient(135deg, ${author.avatarColor}, ${author.avatarColor}bb)` : undefined, border: "2px solid #fff" }}>
+              <div className="w-8 h-8 rounded-full bg-zinc-800 text-white font-bold text-xs flex items-center justify-center border border-white/60">
                 {getInitials(authorName)}
               </div>
             )}
-            <div>
-              <div style={{ color: "#fff", fontWeight: 700, fontSize: 13, textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>{authorName}</div>
-              <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>{timeAgo(activeStory.createdAt)}</div>
+            <div className="flex flex-col drop-shadow">
+              <span className="text-xs font-bold leading-tight truncate max-w-[160px]">
+                {authorName}
+              </span>
+              <span className="text-[10px] text-zinc-300">
+                {formatTimeAgo(activeStory.createdAt)}
+              </span>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 8, zIndex: 12 }}>
-            {isMyStory && (
+          <div className="flex items-center gap-2">
+            {isOwner && (
               <button
-                onClick={(e) => { e.stopPropagation(); handleDelete(); }}
-                style={{
-                  background: "rgba(255,59,48,0.25)", color: "#ff453a",
-                  border: "none", padding: "4px 10px", borderRadius: 6,
-                  fontSize: 11, fontWeight: 700, cursor: "pointer",
-                  backdropFilter: "blur(4px)"
-                }}
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="p-2 rounded-full bg-black/40 hover:bg-rose-600/80 text-white transition text-xs cursor-pointer"
+                title="Xóa tin"
               >
-                Xóa
+                <Trash2 className="w-4 h-4" />
               </button>
             )}
             <button
-              onClick={(e) => { e.stopPropagation(); onClose(); }}
-              style={{
-                background: "rgba(0,0,0,0.3)", color: "#fff",
-                border: "none", width: 24, height: 24, borderRadius: "50%",
-                fontSize: 12, cursor: "pointer", display: "flex",
-                alignItems: "center", justifyContent: "center"
-              }}
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-full bg-black/40 hover:bg-white/20 text-white transition text-sm cursor-pointer"
+              title="Đóng"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Nội dung Story chính */}
-        {activeStory.bgColor ? (
-          <div style={{ padding: 24, width: "100%", textAlign: "center" }}>
-            <p style={{
-              color: "#ffffff",
-              fontSize: activeStory.textContent?.length < 80 ? 22 : 16,
-              fontWeight: 700,
-              lineHeight: 1.5,
-              textShadow: "0 2px 8px rgba(0,0,0,0.35)",
-              margin: 0,
-              wordBreak: "break-word"
-            }}>
-              {activeStory.textContent}
-            </p>
-          </div>
-        ) : (
-          isVideoUrl(activeStory.mediaUrl) ? (
-            <video
-              ref={videoRef}
-              src={activeStory.mediaUrl}
-              autoPlay
-              playsInline
-              onTimeUpdate={(e) => {
-                const v = e.target;
-                if (v.duration && !showViewers && !isTyping && !isHoveringControls) {
-                  const pct = (v.currentTime / v.duration) * 100;
-                  setProgress(pct);
-                }
-              }}
-              onEnded={() => {
-                handleNext();
-              }}
-              style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }}
-            />
-          ) : (
-            <img
-              src={activeStory.mediaUrl}
-              alt="Story content"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          )
-        )}
+        {/* TAP ZONES TRÁI / PHẢI ĐỂ CHUYỂN STORY */}
+        <div
+          onClick={handlePrev}
+          className="absolute left-0 top-16 bottom-24 w-1/3 z-20 cursor-pointer"
+        />
+        <div
+          onClick={handleNext}
+          className="absolute right-0 top-16 bottom-24 w-2/3 z-20 cursor-pointer"
+        />
 
-        {/* Hiệu ứng Emoji bay lên */}
-        {floatingEmojis.map((e) => (
-          <span
-            key={e.id}
-            style={{
-              position: "absolute",
-              bottom: 80,
-              left: `${e.left}%`,
-              fontSize: 32,
-              zIndex: 99,
-              pointerEvents: "none",
-              animation: "floatUpAndFade 1.2s ease-out forwards"
-            }}
-          >
-            {e.emoji}
-          </span>
-        ))}
-
-        {/* Toast thông báo nhanh trong Story */}
-        {toastMsg && (
-          <div
-            style={{
-              position: "absolute",
-              top: 70,
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: "rgba(0, 0, 0, 0.75)",
-              backdropFilter: "blur(6px)",
-              color: "#fff",
-              padding: "6px 14px",
-              borderRadius: 20,
-              fontSize: 12.5,
-              fontWeight: 600,
-              zIndex: 100,
-              animation: "fadeIn 0.2s ease"
-            }}
-          >
-            ✓ {toastMsg}
-          </div>
-        )}
-
-        {/* BOTTOM BAR: THẢ ICON VÀ REP MESSENGER (KHI XEM TIN NGƯỜI KHÁC) */}
-        {!isMyStory && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            onMouseEnter={() => setIsHoveringControls(true)}
-            onMouseLeave={() => setIsHoveringControls(false)}
-            style={{
-              position: "absolute",
-              bottom: 12,
-              left: 12,
-              right: 12,
-              zIndex: 15,
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-            }}
-          >
-            {/* Hàng nút thả icon cảm xúc */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "4px 8px",
-                background: "rgba(0, 0, 0, 0.4)",
-                backdropFilter: "blur(12px)",
-                borderRadius: 24,
-                border: "1px solid rgba(255, 255, 255, 0.2)"
-              }}
-            >
-              {STORY_REACTIONS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={(e) => handleSendReaction(e, emoji)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontSize: 22,
-                    cursor: "pointer",
-                    padding: "4px 6px",
-                    transition: "transform 0.15s ease",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.3) translateY(-4px)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1) translateY(0)")}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-
-            {/* Form nhập tin nhắn rep Story */}
-            <form onSubmit={handleSendReply} style={{ display: "flex", gap: 8 }}>
-              <input
-                type="text"
-                placeholder={`Gửi tin nhắn cho ${authorName}...`}
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                onFocus={() => setIsTyping(true)}
-                onBlur={() => setIsTyping(false)}
-                style={{
-                  flex: 1,
-                  background: "rgba(0, 0, 0, 0.5)",
-                  backdropFilter: "blur(12px)",
-                  border: "1px solid rgba(255, 255, 255, 0.3)",
-                  borderRadius: 20,
-                  padding: "10px 16px",
-                  color: "#fff",
-                  fontSize: 13,
-                  outline: "none",
+        {/* 3. NỘI DUNG MEDIA (ẢNH / VIDEO / CHỮ) */}
+        <div className="w-full h-full flex items-center justify-center bg-zinc-900 overflow-hidden">
+          {activeStory.mediaUrl ? (
+            isVideoUrl(activeStory.mediaUrl) ? (
+              <video
+                ref={videoRef}
+                src={activeStory.mediaUrl}
+                autoPlay
+                playsInline
+                loop
+                onTimeUpdate={(e) => {
+                  if (e.target.duration) {
+                    setProgress((e.target.currentTime / e.target.duration) * 100);
+                  }
                 }}
+                onEnded={handleNext}
+                className="w-full h-full object-cover md:object-contain"
               />
-              <button
-                type="submit"
-                disabled={!replyText.trim()}
-                style={{
-                  background: replyText.trim() ? "#1877f2" : "rgba(255, 255, 255, 0.2)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 20,
-                  padding: "0 16px",
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor: replyText.trim() ? "pointer" : "default",
-                  transition: "background 0.2s",
-                }}
-              >
-                Gửi
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* BOTTOM BAR: NÚT XEM NGƯỜI XEM (VỚI STORY CỦA TÔI) */}
-        {isMyStory && (
-          <div
-            style={{
-              position: "absolute",
-              bottom: 16,
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 15,
-            }}
-          >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowViewers((v) => !v);
-              }}
+            ) : (
+              <img
+                src={activeStory.mediaUrl}
+                alt=""
+                className="w-full h-full object-cover md:object-contain"
+              />
+            )
+          ) : (
+            <div
+              className="w-full h-full flex items-center justify-center p-8 text-center text-white font-bold text-lg leading-relaxed break-words"
               style={{
-                background: "rgba(0, 0, 0, 0.6)",
-                backdropFilter: "blur(12px)",
-                border: "1px solid rgba(255, 255, 255, 0.3)",
-                color: "#fff",
-                padding: "8px 20px",
-                borderRadius: 24,
-                fontSize: 13.5,
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
-                transition: "transform 0.15s, background 0.2s"
+                background: activeStory.bgColor || "linear-gradient(135deg, #18181b 0%, #27272a 100%)",
               }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = "translateX(-50%) scale(1.05)"}
-              onMouseLeave={(e) => e.currentTarget.style.transform = "translateX(-50%) scale(1)"}
             >
-              <span style={{ fontSize: 16 }}>👁️</span>
-              <span>{viewers.length} người xem</span>
-            </button>
-          </div>
-        )}
+              <p className="max-w-xs drop-shadow-md">
+                {activeStory.textContent || activeStory.content}
+              </p>
+            </div>
+          )}
+        </div>
 
-        {/* DRAWER DANH SÁCH NGƯỜI XEM STORY (SLIDE-UP DRAWER) */}
-        {isMyStory && showViewers && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: "55%",
-              background: "var(--bg-card)",
-              borderRadius: "16px 16px 0 0",
-              boxShadow: "0 -8px 32px rgba(0,0,0,0.4)",
-              zIndex: 25,
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-              animation: "slideUp 0.25s ease",
-            }}
-          >
-            {/* Header Drawer */}
-            <div style={{
-              padding: "14px 16px",
-              borderBottom: "1px solid var(--border-light)",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              background: "var(--bg-card)"
-            }}>
-              <strong style={{ fontSize: 14.5, color: "var(--text-primary)" }}>
-                👁️ Chi tiết lượt xem ({viewers.length})
-              </strong>
+        {/* 4. FOOTER: OWNER (XEM LƯỢT XEM) HOẶC VIEWER (REACTION & REPLY) */}
+        <div className="absolute bottom-0 inset-x-0 z-30 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col gap-3">
+          {isOwner ? (
+            <div className="flex justify-center">
               <button
-                onClick={() => setShowViewers(false)}
-                style={{
-                  background: "none", border: "none", color: "var(--text-muted)",
-                  fontSize: 18, cursor: "pointer", padding: "2px 6px"
-                }}
+                type="button"
+                onClick={() => setShowViewers(true)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-white text-xs font-semibold hover:bg-black/90 transition shadow-lg cursor-pointer"
               >
-                ✕
+                <Eye className="w-4 h-4" />
+                <span>{viewers.length} người xem</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2.5">
+              {/* Emojis Reaction Bar */}
+              <div className="flex items-center justify-around bg-black/50 backdrop-blur-md py-1.5 px-3 rounded-full border border-white/10">
+                {STORY_REACTIONS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={(e) => handleSendReaction(e, emoji)}
+                    className="text-xl hover:scale-125 active:scale-95 transition-transform cursor-pointer"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+
+              {/* Reply Input Form */}
+              <form onSubmit={handleSendReply} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder={`Gửi tin nhắn cho ${authorName}...`}
+                  className="flex-1 bg-white/15 backdrop-blur-md border border-white/20 rounded-full px-4 py-2 text-xs text-white placeholder-white/60 focus:outline-none focus:ring-1 focus:ring-white"
+                />
+                {replyText.trim() && (
+                  <button
+                    type="submit"
+                    disabled={isSendingReply}
+                    className="p-2 rounded-full bg-white text-black hover:bg-zinc-200 transition cursor-pointer"
+                  >
+                    {isSendingReply ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                )}
+              </form>
+            </div>
+          )}
+        </div>
+
+        {/* POPUP CHI TIẾT NGƯỜI XEM (BOTTOM SHEET CÓ NỀN TRẮNG/TỐI ĐẶC 100%) */}
+        {showViewers && (
+          <div className="absolute inset-x-0 bottom-0 z-40 max-h-[65%] bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl p-5 flex flex-col animate-in slide-in-from-bottom duration-200 border-t border-zinc-200 dark:border-zinc-800">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
+                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                  Chi tiết lượt xem ({viewers.length})
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowViewers(false)}
+                className="p-1 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Body Drawer List */}
-            <div style={{ flex: 1, overflowY: "auto", padding: 10 }}>
+            <div className="overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/50 py-2 flex-1 min-h-[160px]">
               {viewers.length === 0 ? (
-                <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 13, padding: "30px 0" }}>
+                <div className="py-8 text-center text-zinc-400 text-xs">
                   Chưa có ai xem tin này.
                 </div>
               ) : (
-                viewers.map((vItem, idx) => {
-                  const u = vItem.user || vItem;
-                  const vName = u.fullName || u.username || "Ẩn danh";
-                  const reactionEmoji = vItem.reaction;
-                  const time = vItem.viewedAt ? timeAgo(vItem.viewedAt) : "";
-
+                viewers.map((v) => {
+                  const userObj = v.user || v;
                   return (
                     <div
-                      key={vItem.id || u.id || idx}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "10px 8px",
-                        borderBottom: "1px solid var(--border-light)"
-                      }}
+                      key={v.id || userObj.id}
+                      className="flex items-center justify-between py-2.5"
                     >
-                      <div
-                        style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}
-                        onClick={() => u.id && navigate(`/profile/${u.id}`)}
-                        title={`Xem trang cá nhân của ${vName}`}
-                      >
-                        {u.avatarUrl ? (
-                          <img src={u.avatarUrl} alt={vName} className="avatar avatar-md" style={{ width: 36, height: 36, objectFit: "cover" }} />
+                      <div className="flex items-center gap-3">
+                        {userObj.avatarUrl ? (
+                          <img
+                            src={userObj.avatarUrl}
+                            alt=""
+                            className="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
+                          />
                         ) : (
-                          <div className="avatar avatar-md" style={{ width: 36, height: 36, fontSize: 13, background: u.avatarColor ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)` : undefined }}>
-                            {getInitials(vName)}
+                          <div className="w-8 h-8 rounded-full bg-zinc-800 text-white font-bold text-xs flex items-center justify-center">
+                            {getInitials(userObj.fullName || userObj.username)}
                           </div>
                         )}
-                        <div style={{ display: "flex", flexDirection: "column" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>{vName}</span>
-                          </div>
-                          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                            {reactionEmoji ? `Đã thả ${reactionEmoji} • ${time || "Vừa xong"}` : `Đã xem • ${time || "Vừa xong"}`}
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                            {userObj.fullName || userObj.username}
+                          </span>
+                          <span className="text-[10px] text-zinc-400">
+                            @{userObj.username}
                           </span>
                         </div>
                       </div>
-                      {reactionEmoji && (
-                        <div style={{
-                          background: "var(--bg-input)",
-                          padding: "4px 10px",
-                          borderRadius: 16,
-                          fontSize: 18,
-                          display: "flex",
-                          alignItems: "center",
-                          border: "1px solid var(--border-light)",
-                          boxShadow: "0 2px 6px rgba(0,0,0,0.08)"
-                        }}>
-                          {reactionEmoji}
-                        </div>
-                      )}
+                      <span className="text-xs drop-shadow-sm">
+                        {v.reaction || v.reactionIcon || "👁️"}
+                      </span>
                     </div>
                   );
                 })
@@ -705,36 +518,17 @@ function StoryViewerModal({ groupedStories, initialUserIndex = 0, onClose, onSto
         )}
       </div>
 
-      {/* Nút tiến (Bên ngoài Story Card) */}
-      {(userIndex < groupedStories.length - 1 || storyIndex < activeStories.length - 1) && (
-        <button
-          onClick={(e) => { e.stopPropagation(); handleNext(); }}
-          style={{
-            position: "absolute", right: "calc(50% - 240px)",
-            zIndex: 16000, background: "rgba(255,255,255,0.15)",
-            border: "none", width: 44, height: 44, borderRadius: "50%",
-            color: "#fff", fontSize: 20, cursor: "pointer", display: "flex",
-            alignItems: "center", justifyContent: "center", transition: "background 0.2s"
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.3)"}
-          onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.15)"}
-        >
-          ›
-        </button>
-      )}
-
-      {/* Modern Confirm Modal khi xóa Story */}
+      {/* Delete Story Confirm Modal */}
       <ConfirmModal
         isOpen={showDeleteConfirm}
-        title="Xóa tin này khỏi Story 24h?"
-        message="Tin này sẽ bị gỡ vĩnh viễn khỏi danh sách Story 24h của bạn."
+        title="Xóa tin 24h"
+        message="Bạn có chắc chắn muốn xóa tin này không? Tin sẽ bị xóa vĩnh viễn và không thể khôi phục."
         confirmText="Xóa tin"
-        confirmVariant="danger"
-        onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={handleConfirmDeleteStory}
+        isDanger={true}
+        onConfirm={confirmDeleteStory}
+        onCancel={() => setShowDeleteConfirm(false)}
       />
-    </div>
+    </div>,
+    document.body
   );
 }
-
-export default StoryViewerModal;
