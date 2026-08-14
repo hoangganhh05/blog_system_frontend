@@ -4,7 +4,14 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // Plugin @tailwindcss/vite xử lý Tailwind CSS trực tiếp trong pipeline của Vite (khuyến nghị chính thức cho Tailwind v4).
-  // PostCSS (postcss.config.js) vẫn được Vite tự động áp dụng thêm để chạy Autoprefixer cho các trình duyệt cũ.
   plugins: [react(), tailwindcss()],
+  server: {
+    proxy: {
+      '/api': {
+        target: process.env.VITE_BACKEND_TARGET || 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 })

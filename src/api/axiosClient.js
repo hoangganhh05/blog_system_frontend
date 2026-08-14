@@ -1,14 +1,13 @@
-﻿import axios from "axios";
+import axios from "axios";
 
-const isLocalDevHost =
-  typeof window !== "undefined" &&
-  ["localhost", "127.0.0.1"].includes(window.location.hostname);
-
+// Sử dụng đường dẫn tương đối qua biến môi trường hoặc mặc định '/api'
+// Mọi request sẽ đi qua Reverse Proxy (Vite dev proxy / Vercel rewrite / Netlify redirect)
 let apiBaseUrl =
+  import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_API_BASE_URL ||
-  (isLocalDevHost ? "http://localhost:8080" : "https://api.anhhoangg.id.vn");
+  "/api";
 
-// Tự động nâng cấp sang HTTPS bảo mật nếu gọi server sản xuất xa
+// Nếu biến môi trường truyền URL tuyệt đối từ xa, tự động nâng cấp sang HTTPS bảo mật
 if (
   apiBaseUrl.startsWith("http://") &&
   !apiBaseUrl.includes("localhost") &&
