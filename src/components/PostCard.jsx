@@ -20,6 +20,7 @@ import likeService from "../services/likeService";
 import bookmarkService from "../services/bookmarkService";
 import postService from "../services/postService";
 import aiService from "../services/aiService";
+import EditPostModal from "./EditPostModal";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -53,10 +54,17 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   const { currentUser } = useAuth();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
+  const [currentPost, setCurrentPost] = useState(post);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  useEffect(() => {
+    setCurrentPost(post);
+  }, [post]);
+
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(post?.likesCount || 0);
+  const [likeCount, setLikeCount] = useState(currentPost?.likesCount || 0);
   const [bookmarked, setBookmarked] = useState(false);
-  const [commentCount, setCommentCount] = useState(post?.commentsCount || 0);
+  const [commentCount, setCommentCount] = useState(currentPost?.commentsCount || 0);
   const [menuOpen, setUserMenuOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -64,11 +72,11 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
   const menuRef = useRef(null);
 
-  const author = post?.user || {};
+  const author = currentPost?.user || {};
   const authorName = author.fullName || author.username || "Người dùng";
   const isOwner = currentUserId && String(author.id) === String(currentUserId);
 
-  const originalPost = post?.originalPost || post?.sharedPost || post?.parentPost || post?.repostOf;
+  const originalPost = currentPost?.originalPost || currentPost?.sharedPost || currentPost?.parentPost || currentPost?.repostOf;
   const origAuthor = originalPost?.user || originalPost?.author || {};
   const origAuthorName = origAuthor.fullName || origAuthor.username || "Tác giả gốc";
   const origContent = originalPost?.content || originalPost?.body || originalPost?.text || originalPost?.title || "";
@@ -294,9 +302,9 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                       onClick={(e) => {
                         e.stopPropagation();
                         setUserMenuOpen(false);
-                        if (onEdit) onEdit(post);
+                        setIsEditModalOpen(true);
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left transition"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left transition cursor-pointer"
                     >
                       <Edit className="w-4 h-4" />
                       <span>Chỉnh sửa bài viết</span>
@@ -471,6 +479,19 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           </button>
         </div>
       </div>
+
+      {/* Edit Post Modal */}
+      {isOwner && (
+        <EditPostModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          post={currentPost}
+          onUpdated={(updated) => {
+            setCurrentPost(updated);
+            if (onEdit) onEdit(updated);
+          }}
+        />
+      )}
     </article>
   );
 }
