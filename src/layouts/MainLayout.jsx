@@ -75,7 +75,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#fafafa] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 flex flex-col">
+    <div className="w-full min-h-screen bg-[#F0F2F5] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 flex flex-col">
       {/* ======================================================================
           STICKY TOP HEADER (h-14, Max-w-5xl, Crisp border-b)
           ====================================================================== */}
