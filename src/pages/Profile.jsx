@@ -11,6 +11,7 @@ import {
   Archive,
   MoreHorizontal,
   Image as ImageIcon,
+  LogOut,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ import friendService from "../services/friendService";
 import uploadService from "../services/uploadService";
 import PostCard from "../components/PostCard";
 import StoryArchiveModal from "../components/StoryArchiveModal";
+import ConfirmModal from "../components/ConfirmModal";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -35,7 +37,7 @@ function getInitials(name) {
 export default function Profile() {
   const { userId } = useParams();
   const navigate = useNavigate();
-  const { currentUser, updateUser, login } = useAuth();
+  const { currentUser, updateUser, login, logout } = useAuth();
 
   const currentUserId = currentUser ? Number(currentUser.id || currentUser.userId) : null;
   const targetUserId = userId ? Number(userId) : currentUserId;
@@ -55,6 +57,7 @@ export default function Profile() {
   // Modals State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isStoryArchiveOpen, setIsStoryArchiveOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [editForm, setEditForm] = useState({ fullName: "", bio: "", avatarUrl: "", bannerUrl: "" });
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -228,6 +231,13 @@ export default function Profile() {
     setPosts((prev) =>
       prev.map((p) => (p.id === updatedPost.id ? { ...p, ...updatedPost } : p))
     );
+  };
+
+  const handleLogout = () => {
+    setIsLogoutConfirmOpen(false);
+    logout();
+    navigate("/login");
+    toast.info("Đã đăng xuất tài khoản");
   };
 
   if (loading) {
@@ -456,6 +466,17 @@ export default function Profile() {
             <strong className="text-zinc-900 dark:text-zinc-100 font-semibold">{posts.length}</strong> bài viết
           </span>
         </div>
+
+        {/* Mobile Logout Button (Visible only on mobile for own profile) */}
+        {isMe && (
+          <button
+            type="button"
+            onClick={() => setIsLogoutConfirmOpen(true)}
+            className="w-full mt-2 py-2.5 px-4 rounded-xl border border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-950/20 text-xs font-semibold flex items-center justify-center gap-2 md:hidden cursor-pointer active:scale-98 transition"
+          >
+            <LogOut size={16} /> Đăng xuất
+          </button>
+        )}
       </div>
 
       {/* Tabs: Chia đều 3 cột với thanh active tối giản */}
@@ -679,6 +700,17 @@ export default function Profile() {
           userId={currentUserId}
         />
       )}
+
+      {/* Logout Confirm Modal */}
+      <ConfirmModal
+        isOpen={isLogoutConfirmOpen}
+        title="Đăng xuất tài khoản"
+        message="Bạn có chắc chắn muốn đăng xuất khỏi BlogViet trên thiết bị này không?"
+        confirmText="Đăng xuất"
+        isDanger={true}
+        onConfirm={handleLogout}
+        onCancel={() => setIsLogoutConfirmOpen(false)}
+      />
     </div>
   );
 }
