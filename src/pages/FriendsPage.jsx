@@ -32,7 +32,7 @@ export default function FriendsPage() {
       const [friendsRes, pendingRes, suggestRes] = await Promise.all([
         friendService.getFriendsList(currentUserId).catch(() => ({ data: [] })),
         friendService.getPendingRequests(currentUserId).catch(() => ({ data: [] })),
-        userService.getUsers(0, 15).catch(() => ({ data: { content: [] } }))
+        userService.getAll("", 0, 15).catch(() => ({ data: { content: [] } }))
       ]);
 
       const rawFriends = friendsRes.data || [];

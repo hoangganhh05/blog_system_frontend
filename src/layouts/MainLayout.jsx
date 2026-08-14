@@ -89,7 +89,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   // Fetch suggestions for Who To Follow
   useEffect(() => {
     if (!currentUserId) return;
-    userService.getUsers(0, 4)
+    userService.getAll("", 0, 4)
       .then((res) => {
         const list = res.data?.content || res.data || [];
         const filtered = list.filter((u) => String(u.id) !== String(currentUserId));

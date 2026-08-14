@@ -64,7 +64,7 @@ export default function Profile() {
     if (!targetUserId) return;
     setLoading(true);
 
-    userService.getUserById(targetUserId)
+    userService.getById(targetUserId)
       .then((res) => {
         const userData = res.data;
         setUser(userData);
@@ -128,7 +128,7 @@ export default function Profile() {
 
     setIsUpdating(true);
     try {
-      const res = await userService.updateUser(currentUserId, editForm);
+      const res = await userService.update(currentUserId, editForm);
       setUser(res.data);
       if (updateUser) updateUser(res.data);
       setIsEditModalOpen(false);

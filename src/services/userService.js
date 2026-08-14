@@ -12,12 +12,20 @@ const userService = {
     return this.getAll(query, page, size);
   },
 
+  getUsers(page = 0, size = 20) {
+    return this.getAll("", page, size);
+  },
+
   search(query = "", page = 0, size = 20) {
     return axiosClient.get(`/users/search?q=${encodeURIComponent(query)}&page=${page}&size=${size}`);
   },
 
   getById(id) {
     return axiosClient.get(`/users/${id}`);
+  },
+
+  getUserById(id) {
+    return this.getById(id);
   },
 
   register(userData) {
@@ -36,6 +44,10 @@ const userService = {
   // Cập nhật thông tin cá nhân (fullName, email, bio, avatarColor)
   update(id, userData) {
     return axiosClient.put(`/users/${id}`, userData);
+  },
+
+  updateUser(id, userData) {
+    return this.update(id, userData);
   },
 
   // Đổi mật khẩu
