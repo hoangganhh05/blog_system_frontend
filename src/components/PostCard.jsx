@@ -189,7 +189,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   return (
     <article
       onClick={handleCardClick}
-      className={`px-4 py-3.5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transition hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30 flex gap-3 ${
+      className={`p-4 border-b border-zinc-100 dark:border-zinc-800/80 bg-white dark:bg-zinc-950 transition hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30 flex gap-3.5 ${
         !isDetailed ? "cursor-pointer" : ""
       }`}
     >
@@ -224,7 +224,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
       {/* Cột Nội Dung & Tương Tác */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Header Bài Viết */}
-        <div className="flex items-center justify-between gap-1 mb-1">
+        <div className="flex items-center justify-between gap-1 mb-1.5">
           <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
             <Link
               to={`/profile/${author.id}`}

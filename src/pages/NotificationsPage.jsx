@@ -35,15 +35,29 @@ export default function NotificationsPage() {
   const navigate = useNavigate();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const isMessageNotification = (n) => {
+    if (!n) return false;
+    const type = String(n.type || "").toLowerCase();
+    const content = String(n.content || n.message || "").toLowerCase();
+    return (
+      type.includes("chat") ||
+      type.includes("message") ||
+      type.includes("msg") ||
+      type.includes("inbox") ||
+      type.includes("tin_nhan") ||
+      content.includes("đã gửi tin nhắn") ||
+      content.includes("gửi tin nhắn") ||
+      content.includes("nhắn tin")
+    );
+  };
 
   const fetchNotifications = async () => {
     if (!currentUserId) return;
     try {
       const res = await notificationService.getUserNotifications(currentUserId);
       const raw = res.data?.content || res.data || [];
-      setNotifications(raw);
+      const interactionsOnly = raw.filter((n) => !isMessageNotification(n));
+      setNotifications(interactionsOnly);
     } catch {
       setNotifications([]);
     } finally {
