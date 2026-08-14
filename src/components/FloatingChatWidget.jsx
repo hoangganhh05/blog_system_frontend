@@ -631,9 +631,9 @@ export default function FloatingChatWidget() {
         </button>
       )}
 
-      {/* Chat Window: Comfortable top margin (72px/top-18) on Mobile / Floating card on Desktop */}
+      {/* Chat Window: Fixed bottom: 20px, max-height calc(100vh-100px) */}
       {isOpen && (
-        <div className="fixed top-18 bottom-4 left-3 right-3 md:top-auto md:left-auto md:bottom-20 md:right-6 md:w-88 md:h-[530px] md:max-h-[calc(100vh-100px)] z-[99999] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-3xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed bottom-5 md:bottom-6 right-3 md:right-6 left-3 sm:left-auto sm:w-96 md:w-88 h-[520px] max-h-[calc(100vh-100px)] z-[99999] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-3xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
           {/* Header */}
           <div className="px-4 py-3 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0 text-zinc-900 dark:text-zinc-100">
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
