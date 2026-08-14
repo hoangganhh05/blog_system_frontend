@@ -1,279 +1,93 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { TrendingUp, Sparkles, Loader2 } from "lucide-react";
 import postService from "../services/postService";
-import userService from "../services/userService";
-import categoryService from "../services/categoryService";
+import PostCard from "../components/PostCard";
 
-function getInitials(name) {
-  if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
-}
-
-function TrendingPage() {
-  const navigate = useNavigate();
+export default function TrendingPage() {
   const [posts, setPosts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [topUsers, setTopUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterPeriod, setFilterPeriod] = useState("week"); // week, month, all
+  const [filter, setFilter] = useState("trending"); // "trending" | "recent"
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
-      postService.getAll(),
-      categoryService.getAll(),
-    ])
-      .then(([postsRes, catRes]) => {
-        const pList = postsRes.data?.content || postsRes.data || [];
-        // Sắp xếp bài viết theo tổng lượt xem + tương tác
-        const sorted = [...pList].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
-        setPosts(sorted);
-
-        setCategories(catRes.data || []);
-
-        // Tính Top Tác Giả dựa trên các bài viết thịnh hành
-        const userMap = new Map();
-        pList.forEach((p) => {
-          if (p.user && p.user.id) {
-            const uid = String(p.user.id);
-            const existing = userMap.get(uid) || {
-              ...p.user,
-              postCount: 0,
-              totalViews: 0,
-            };
-            existing.postCount += 1;
-            existing.totalViews += (p.viewCount || 0);
-            userMap.set(uid, existing);
-          }
-        });
-
-        const sortedAuthors = Array.from(userMap.values())
-          .sort((a, b) => b.postCount - a.postCount || b.totalViews - a.totalViews);
-
-        setTopUsers(sortedAuthors.slice(0, 5));
+    postService.getAll(0, 30)
+      .then((res) => {
+        const list = res.data?.content || res.data || [];
+        if (filter === "trending") {
+          const sorted = [...list].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+          setPosts(sorted);
+        } else {
+          setPosts(list);
+        }
       })
-      .catch(() => {})
+      .catch(() => setPosts([]))
       .finally(() => setLoading(false));
-  }, []);
+  }, [filter]);
 
   return (
-    <div className="app-layout trending-page">
-      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "24px 16px" }}>
-      {/* Hero Header */}
-      <div
-        style={{
-          background: "linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)",
-          borderRadius: 24,
-          padding: "32px 28px",
-          color: "#fff",
-          marginBottom: 32,
-          boxShadow: "0 16px 36px rgba(245, 158, 11, 0.25)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 20
-        }}
-      >
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.9, marginBottom: 4 }}>
-            🔥 BlogViet Trends
+    <div className="w-full min-h-full flex flex-col">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-30 h-13 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 shrink-0">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-zinc-900 dark:text-white" />
+          <span className="font-extrabold text-base text-zinc-900 dark:text-white">
+            Khám phá & Thịnh hành
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-full text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => setFilter("trending")}
+            className={`px-3 py-1 rounded-full transition ${
+              filter === "trending"
+                ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
+                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+            }`}
+          >
+            Thịnh hành
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilter("recent")}
+            className={`px-3 py-1 rounded-full transition ${
+              filter === "recent"
+                ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
+                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+            }`}
+          >
+            Mới nhất
+          </button>
+        </div>
+      </header>
+
+      {/* Posts List */}
+      <div className="flex flex-col divide-y divide-zinc-200 dark:divide-zinc-800">
+        {loading ? (
+          <div className="p-12 text-center flex justify-center text-zinc-400">
+            <Loader2 className="w-6 h-6 animate-spin" />
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 8px 0" }}>
-            Xu Hướng & Bảng Xếp Hạng
-          </h1>
-          <p style={{ margin: 0, opacity: 0.95, fontSize: 14, maxWidth: 500 }}>
-            Khám phá những bài viết đang thu hút sự chú ý nhất và tôn vinh những tác giả xuất sắc trên BlogViet.
-          </p>
-        </div>
-
-        {/* Filter Period Tabs */}
-        <div style={{ display: "flex", gap: 8, background: "rgba(0,0,0,0.18)", padding: 6, borderRadius: 20 }}>
-          {[
-            { id: "week", label: "Tuần này ⚡" },
-            { id: "month", label: "Tháng này 📅" },
-            { id: "all", label: "Tất cả 🌟" }
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setFilterPeriod(item.id)}
-              style={{
-                background: filterPeriod === item.id ? "#ffffff" : "transparent",
-                color: filterPeriod === item.id ? "#d97706" : "#ffffff",
-                border: "none",
-                borderRadius: 14,
-                padding: "6px 14px",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all 0.2s"
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="trending-responsive-grid">
-        {/* Main Column: Top Bài Viết Hot */}
-        <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-            <span>🔥 Top Bài Viết Được Xem Nhiều Nhất</span>
-          </h2>
-
-          {loading ? (
-            <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>
-              Đang tải danh sách xu hướng...
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="card empty-state">
-              <div className="empty-state-icon">🔥</div>
-              <h3>Chưa có bài viết xu hướng</h3>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {posts.slice(0, 10).map((post, index) => {
-                const authorName = post.user?.fullName || post.user?.username || "Ẩn danh";
-                const rankColor = index === 0 ? "#f59e0b" : index === 1 ? "#94a3b8" : index === 2 ? "#b45309" : "var(--text-muted)";
-                const rankBadge = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`;
-
-                return (
-                  <div
-                    key={post.id}
-                    onClick={() => navigate(`/posts/${post.id}`)}
-                    style={{
-                      background: "var(--bg-card)",
-                      border: "1px solid var(--border-light)",
-                      borderRadius: 18,
-                      padding: 16,
-                      display: "flex",
-                      gap: 16,
-                      alignItems: "center",
-                      cursor: "pointer",
-                      transition: "transform 0.2s, boxShadow 0.2s"
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
-                  >
-                    {/* Rank Badge */}
-                    <div style={{ fontSize: 22, fontWeight: 800, width: 36, textAlign: "center", color: rankColor }}>
-                      {rankBadge}
-                    </div>
-
-                    {/* Thumbnail if any */}
-                    {post.thumbNail && !post.bgColor && (
-                      <img
-                        src={post.thumbNail}
-                        alt={post.title}
-                        style={{ width: 80, height: 80, borderRadius: 12, objectFit: "cover", flexShrink: 0 }}
-                      />
-                    )}
-
-                    {/* Details */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--primary)" }}>
-                          {post.category?.name || "Chung"}
-                        </span>
-                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>•</span>
-                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                          {authorName}
-                        </span>
-                      </div>
-                      <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 6px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {post.title || post.content}
-                      </h3>
-                      <div style={{ display: "flex", gap: 14, fontSize: 12, color: "var(--text-muted)" }}>
-                        <span>👁️ {post.viewCount || 0} lượt xem</span>
-                        <span>💬 {post.commentCount || 0} bình luận</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Sidebar Column: Top Tác Giả & Chủ Đề */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {/* Top Tác Giả xuất sắc */}
-          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 20, padding: 20 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-              <span>🏆 Top Tác Giả Nổi Bật</span>
-            </h3>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {topUsers.map((u, idx) => {
-                const uName = u.fullName || u.username;
-                const badge = idx === 0 ? "👑" : idx === 1 ? "🌟" : "✨";
-                return (
-                  <div
-                    key={u.id}
-                    onClick={() => navigate(`/profile/${u.id}`)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      cursor: "pointer",
-                      padding: "6px 0"
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      {u.avatarUrl ? (
-                        <img src={u.avatarUrl} alt={uName} className="avatar avatar-md" style={{ objectFit: "cover" }} />
-                      ) : (
-                        <div className="avatar avatar-md" style={{ background: u.avatarColor ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)` : undefined }}>
-                          {getInitials(uName)}
-                        </div>
-                      )}
-                      <div>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 4 }}>
-                          {uName} <span>{badge}</span>
-                        </div>
-                        <div style={{ fontSize: 11.5, color: "var(--text-muted)" }}>
-                          {u.postCount} bài viết • {u.totalViews} lượt xem
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+        ) : posts.length === 0 ? (
+          <div className="p-16 text-center text-zinc-400 text-xs">
+            Chưa có bài viết thịnh hành.
           </div>
-
-          {/* Trending Categories */}
-          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 20, padding: 20 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-              <span>🏷️ Danh Mục Hot</span>
-            </h3>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {categories.map((c) => (
-                <div
-                  key={c.id}
-                  style={{
-                    background: "var(--primary-light)",
-                    color: "var(--primary)",
-                    border: "1px solid var(--primary)",
-                    borderRadius: 16,
-                    padding: "6px 14px",
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                    cursor: "pointer"
-                  }}
-                  onClick={() => navigate(`/?category=${c.id}`)}
-                >
-                  📂 {c.name}
+        ) : (
+          posts.map((post, idx) => (
+            <div key={post.id} className="relative">
+              {filter === "trending" && idx < 3 && (
+                <div className="absolute top-3 right-4 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900 flex items-center gap-1 z-10">
+                  <Sparkles className="w-2.5 h-2.5" />
+                  <span>Top #{idx + 1}</span>
                 </div>
-              ))}
+              )}
+              <PostCard
+                post={post}
+                onDelete={(delId) => setPosts((prev) => prev.filter((p) => p.id !== delId))}
+              />
             </div>
-          </div>
-        </div>
-      </div>
+          ))
+        )}
       </div>
     </div>
   );
 }
-
-export default TrendingPage;

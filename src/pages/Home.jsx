@@ -1,388 +1,209 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Sparkles, RefreshCw, Loader2, MessageSquare } from "lucide-react";
 import postService from "../services/postService";
 import categoryService from "../services/categoryService";
 import PostCard from "../components/PostCard";
-import Sidebar, { SidebarRight } from "../components/Sidebar";
-import CreatePostModal from "../components/CreatePostModal";
+import QuickComposer from "../components/QuickComposer";
 
-import StoryBar from "../components/StoryBar";
-
-// Skeleton loader cho post
 function PostSkeleton() {
   return (
-    <div className="post-card" style={{ padding: 16 }}>
-      <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-        <div
-          className="skeleton"
-          style={{ width: 40, height: 40, borderRadius: "50%" }}
-        />
-        <div style={{ flex: 1 }}>
-          <div
-            className="skeleton"
-            style={{ height: 14, width: "40%", marginBottom: 6 }}
-          />
-          <div className="skeleton" style={{ height: 12, width: "25%" }} />
+    <div className="p-4 border-b border-zinc-100 dark:border-zinc-900 flex gap-3 animate-pulse">
+      <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+      <div className="flex-1 min-w-0 flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-28 bg-zinc-200 dark:bg-zinc-800 rounded" />
+          <div className="h-3 w-16 bg-zinc-100 dark:bg-zinc-900 rounded" />
         </div>
+        <div className="h-4 w-full bg-zinc-100 dark:bg-zinc-900 rounded" />
+        <div className="h-4 w-3/4 bg-zinc-100 dark:bg-zinc-900 rounded" />
+        <div className="h-44 w-full bg-zinc-100 dark:bg-zinc-900 rounded-2xl mt-1" />
       </div>
-      <div className="skeleton" style={{ height: 200, marginBottom: 12 }} />
-      <div
-        className="skeleton"
-        style={{ height: 16, width: "70%", marginBottom: 8 }}
-      />
-      <div
-        className="skeleton"
-        style={{ height: 14, width: "90%", marginBottom: 6 }}
-      />
-      <div className="skeleton" style={{ height: 14, width: "80%" }} />
     </div>
   );
 }
 
-function Home({ searchValue = "" }) {
-  const navigate = useNavigate();
-  const { currentUser } = useAuth();
+export default function Home({ searchValue = "" }) {
+  const [activeTab, setActiveTab] = useState("forYou"); // "forYou" | "following"
   const [posts, setPosts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const [activeCategoryId, setActiveCategoryId] = useState(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const search = searchValue;
-  const observerRef = useRef(null);
-  const loadMoreRef = useRef(null);
   const isFetchingRef = useRef(false);
-  const PAGE_SIZE = 6;
+
+  const PAGE_SIZE = 10;
 
   // Load categories
   useEffect(() => {
-    categoryService
-      .getAll()
-      .then((res) => setCategories(res.data))
+    categoryService.getAll()
+      .then((res) => setCategories(res.data || []))
       .catch(() => {});
   }, []);
 
-  // Load posts (reset khi đổi category hoặc tìm kiếm)
-  const loadPosts = useCallback(
-    async (pageNum = 0, categoryId = null, searchQuery = "", reset = false) => {
-      // Fetch guard: prevent duplicate requests
-      if (isFetchingRef.current) return;
-      isFetchingRef.current = true;
+  // Fetch posts
+  const fetchPosts = useCallback(async (pageNum = 0, isReset = false) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
 
-      if (pageNum === 0) setLoading(true);
-      else setLoadingMore(true);
+    if (pageNum === 0) setLoading(true);
+    else setLoadingMore(true);
 
-      try {
-        let res;
-        if (searchQuery.trim()) {
-          res = await postService.search(searchQuery.trim(), pageNum, 6);
-        } else if (categoryId) {
-          res = await postService.getByCategory(categoryId, pageNum, 6);
-        } else {
-          res = await postService.getAll(pageNum, 6);
-        }
-
-        const data = res.data;
-        console.log("Loaded posts:", data);
-
-        // Handle both array and paginated response
-        const newPosts = Array.isArray(data) ? data : (data.content || []);
-        const hasMoreData = Array.isArray(data)
-          ? newPosts.length > 0 && newPosts.length >= PAGE_SIZE
-          : !data.last && (data.number + 1 < data.totalPages);
-
-        if (reset || pageNum === 0) {
-          setPosts(newPosts);
-        } else {
-          // Deduplicate posts by id to avoid duplicates
-          setPosts((prev) => {
-            const existingIds = new Set(prev.map(p => p.id));
-            const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
-            return [...prev, ...uniqueNewPosts];
-          });
-        }
-
-        setHasMore(hasMoreData);
-        setPage(pageNum);
-      } catch {
-        // Nếu backend chưa bật, hiển thị empty state
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-        isFetchingRef.current = false;
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
-    loadPosts(0, activeCategoryId, search, true);
-  }, [activeCategoryId, search, loadPosts]);
-
-  // Infinite Scroll with IntersectionObserver
-  useEffect(() => {
-    if (!hasMore || loadingMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore) {
-          loadPosts(page + 1, activeCategoryId, search);
-        }
-      },
-      {
-        root: null,
-        rootMargin: '300px',
-        threshold: 0.1
-      }
-    );
-
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
-
-    return () => {
-      if (observer) observer.disconnect();
-    };
-  }, [hasMore, loadingMore, page, activeCategoryId, search, loadPosts]);
-
-  const handleSelectCategory = (catId) => {
-    setActiveCategoryId(catId);
-  };
-
-  const handleDeletePost = async (postId) => {
     try {
-      await postService.delete(postId);
-      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      let res;
+      if (searchValue && searchValue.trim()) {
+        res = await postService.search(searchValue.trim(), pageNum, PAGE_SIZE);
+      } else {
+        res = await postService.getAll(pageNum, PAGE_SIZE);
+      }
+
+      const data = res.data;
+      const newItems = Array.isArray(data) ? data : (data.content || []);
+      const moreAvailable = Array.isArray(data)
+        ? newItems.length >= PAGE_SIZE
+        : !data.last && (data.number + 1 < data.totalPages);
+
+      if (isReset || pageNum === 0) {
+        setPosts(newItems);
+      } else {
+        setPosts((prev) => {
+          const map = new Map();
+          prev.forEach((p) => map.set(p.id, p));
+          newItems.forEach((p) => map.set(p.id, p));
+          return Array.from(map.values());
+        });
+      }
+
+      setHasMore(moreAvailable);
+      setPage(pageNum);
     } catch {
-      alert("Không thể xóa bài viết!");
+      // Error handling
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+      isFetchingRef.current = false;
     }
-  };
+  }, [searchValue]);
+
+  // Initial load
+  useEffect(() => {
+    fetchPosts(0, true);
+  }, [fetchPosts, searchValue]);
+
+  // Listen for refresh feed event
+  useEffect(() => {
+    const handleRefresh = () => fetchPosts(0, true);
+    window.addEventListener("refresh_feed_posts", handleRefresh);
+    return () => window.removeEventListener("refresh_feed_posts", handleRefresh);
+  }, [fetchPosts]);
 
   const handlePostCreated = (newPost) => {
-    setPosts((prev) => [newPost, ...prev]);
+    if (newPost) {
+      setPosts((prev) => [newPost, ...prev]);
+    }
   };
 
-  // Không cần filter lại bằng JS — API search đã trả về đúng kết quả
-  const filteredPosts = posts;
+  const handleDeletePost = (deletedId) => {
+    setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+  };
 
   return (
-    <div className="app-layout">
-      <div className="page-container">
-        {/* Left Sidebar */}
-        <div className="sidebar-left">
-          <Sidebar
-            categories={categories}
-            activeCategoryId={activeCategoryId}
-            onSelectCategory={handleSelectCategory}
-          />
+    <div className="w-full min-h-full flex flex-col">
+      {/* Sticky Top Header with 2 Tabs (Threads / X Style) */}
+      <header className="sticky top-0 z-30 h-13 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0 px-2">
+        <div className="flex flex-1 h-full">
+          <button
+            type="button"
+            onClick={() => setActiveTab("forYou")}
+            className="flex-1 flex flex-col items-center justify-center relative hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50 transition cursor-pointer"
+          >
+            <span
+              className={`text-sm font-bold tracking-tight transition ${
+                activeTab === "forYou"
+                  ? "text-zinc-950 dark:text-white"
+                  : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+              }`}
+            >
+              Dành cho bạn
+            </span>
+            {activeTab === "forYou" && (
+              <div className="absolute bottom-0 w-16 h-1 bg-zinc-950 dark:bg-white rounded-full" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("following")}
+            className="flex-1 flex flex-col items-center justify-center relative hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50 transition cursor-pointer"
+          >
+            <span
+              className={`text-sm font-bold tracking-tight transition ${
+                activeTab === "following"
+                  ? "text-zinc-950 dark:text-white"
+                  : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+              }`}
+            >
+              Đang theo dõi
+            </span>
+            {activeTab === "following" && (
+              <div className="absolute bottom-0 w-16 h-1 bg-zinc-950 dark:bg-white rounded-full" />
+            )}
+          </button>
         </div>
+      </header>
 
-        {/* Feed */}
-        <main className="feed-column max-w-[640px] mx-auto">
-          {/* Story Bar đầu trang */}
-          <StoryBar />
+      {/* Quick Composer ở đầu bảng tin */}
+      <QuickComposer onPostCreated={handlePostCreated} categories={categories} />
 
-          {/* Create post box */}
-          {currentUser && (
-            <div className="create-post-box">
-              <div className="create-post-top">
-                <Link
-                  to={`/profile/${currentUser.id || currentUser.userId}`}
-                  style={{ textDecoration: "none" }}
-                >
-                  {currentUser.avatarUrl ? (
-                    <img
-                      src={currentUser.avatarUrl}
-                      alt={currentUser.fullName || currentUser.username}
-                      className="avatar avatar-md"
-                      style={{ cursor: "pointer", objectFit: "cover" }}
-                      title="Vào trang cá nhân"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <div
-                      className="avatar avatar-md"
-                      style={{
-                        cursor: "pointer",
-                        ...(currentUser.avatarColor
-                          ? {
-                              background: `linear-gradient(135deg, ${currentUser.avatarColor}, ${currentUser.avatarColor}bb)`,
-                            }
-                          : {}),
-                      }}
-                      title="Vào trang cá nhân"
-                    >
-                      {(currentUser.fullName ||
-                        currentUser.username ||
-                        "?")[0].toUpperCase()}
-                    </div>
-                  )}
-                </Link>
-                <button
-                  className="create-post-btn"
-                  onClick={() => setShowCreateModal(true)}
-                >
-                  {currentUser.fullName || currentUser.username}, bạn đang nghĩ
-                  gì thế?
-                </button>
-              </div>
-              <div className="create-post-divider" />
-              <div className="create-post-actions">
-                <button
-                  className="create-post-action"
-                  onClick={() => setShowCreateModal(true)}
-                >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#45bd62"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <polyline points="21 15 16 10 5 21" />
-                  </svg>
-                  <span>Ảnh/Video</span>
-                </button>
-                <button
-                  className="create-post-action"
-                  onClick={() => setShowCreateModal(true)}
-                >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#1877f2"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                  </svg>
-                  <span>Viết bài</span>
-                </button>
-                <button
-                  className="create-post-action"
-                  onClick={() => setShowCreateModal(true)}
-                >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#f7b928"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                    <line x1="9" y1="9" x2="9.01" y2="9" />
-                    <line x1="15" y1="9" x2="15.01" y2="9" />
-                  </svg>
-                  <span>Cảm xúc</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Posts */}
-          {loading ? (
-            <>
-              <PostSkeleton />
-              <PostSkeleton />
-              <PostSkeleton />
-            </>
-          ) : filteredPosts.length === 0 ? (
-            <div className="card empty-state">
-              <div className="empty-state-icon">{search ? "🔍" : "📝"}</div>
-              <h3>
-                {search
-                  ? `Không tìm thấy kết quả cho "${search}"`
-                  : activeCategoryId
-                    ? "Danh mục này chưa có bài viết nào"
-                    : "Chưa có bài viết nào"}
-              </h3>
-              <p>
-                {currentUser
-                  ? "Hãy là người đầu tiên đăng bài!"
-                  : "Đăng nhập để bắt đầu chia sẻ bài viết"}
-              </p>
-              {currentUser && (
-                <button
-                  className="btn btn-primary"
-                  style={{ marginTop: 16 }}
-                  onClick={() => setShowCreateModal(true)}
-                >
-                  ✍️ Đăng bài đầu tiên
-                </button>
-              )}
-            </div>
-          ) : (
-            <>
-              {filteredPosts.map((post, i) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onDelete={handleDeletePost}
-                  style={{ animationDelay: `${i * 0.05}s` }}
-                />
-              ))}
-
-              {/* Infinite Scroll Loader */}
-              {hasMore && !search && (
-                <div
-                  ref={loadMoreRef}
-                  className="h-12 w-full flex justify-center items-center my-4"
-                  style={{ textAlign: "center", padding: "20px 0" }}
-                >
-                  {loadingMore && (
-                    <span className="text-muted">
-                      ⏳ Đang tải thêm bài viết...
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* End of posts message */}
-              {!hasMore && posts.length > 0 && (
-                <div style={{ textAlign: "center", padding: "20px 0" }}>
-                  <p className="text-gray-400 text-sm">Bạn đã xem hết bài viết!</p>
-                </div>
-              )}
-            </>
-          )}
-        </main>
-
-        {/* Right Sidebar */}
-        <div className="sidebar-right">
-          <SidebarRight trendingPosts={posts.slice(0, 5)} />
-        </div>
+      {/* Feed Posts List */}
+      <div className="flex flex-col divide-y divide-zinc-200 dark:divide-zinc-800">
+        {loading ? (
+          <>
+            <PostSkeleton />
+            <PostSkeleton />
+            <PostSkeleton />
+          </>
+        ) : posts.length === 0 ? (
+          <div className="p-12 text-center flex flex-col items-center justify-center gap-3 text-zinc-400">
+            <MessageSquare className="w-12 h-12 stroke-[1.25] text-zinc-300 dark:text-zinc-700" />
+            <p className="font-semibold text-sm text-zinc-600 dark:text-zinc-400">
+              Chưa có bài viết nào
+            </p>
+            <p className="text-xs text-zinc-500 max-w-xs leading-relaxed">
+              Hãy là người đầu tiên chia sẻ suy nghĩ, kinh nghiệm hoặc bắt đầu một chủ đề thảo luận!
+            </p>
+          </div>
+        ) : (
+          posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onDelete={handleDeletePost}
+            />
+          ))
+        )}
       </div>
 
-      {/* Create post modal */}
-      {showCreateModal && (
-        <CreatePostModal
-          onClose={() => setShowCreateModal(false)}
-          onCreated={handlePostCreated}
-        />
+      {/* Load More Trigger */}
+      {hasMore && !loading && (
+        <div className="p-6 text-center">
+          <button
+            type="button"
+            onClick={() => fetchPosts(page + 1)}
+            disabled={loadingMore}
+            className="px-6 py-2 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition disabled:opacity-50 inline-flex items-center gap-2"
+          >
+            {loadingMore ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Đang tải thêm...</span>
+              </>
+            ) : (
+              <span>Xem thêm bài viết</span>
+            )}
+          </button>
+        </div>
       )}
     </div>
   );
 }
-
-// Export search handler for Navbar
-export let homeSearchSetter = null;
-
-export default Home;

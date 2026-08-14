@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation, Link } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Navbar from "./components/Navbar";
+import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -21,13 +21,10 @@ import FriendsPage from "./pages/FriendsPage";
 import SearchPage from "./pages/SearchPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import PostCardDemoPage from "./pages/PostCardDemoPage";
 import FloatingChatWidget from "./components/FloatingChatWidget";
-import MobileBottomNav from "./components/MobileBottomNav";
 import "./index.css";
 import "./App.css";
 
-// Wrapper để ẩn Navbar trên trang auth
 function AppContent() {
   const location = useLocation();
   const isAuthPage = ["/login", "/register", "/verify-email", "/forgot-password"].includes(location.pathname);
@@ -35,45 +32,34 @@ function AppContent() {
   const [isDark, setIsDark] = useState(() => {
     return localStorage.getItem("blog_theme") === "dark";
   });
-  const [search, setSearch] = useState("");
 
-  // Áp dụng theme & màu chủ đề
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-    localStorage.setItem("blog_theme", isDark ? "dark" : "light");
-
-    let savedAccent = localStorage.getItem("blog_accent_color") || "#4f46e5";
-    if (["#f7971e", "#f39c12", "#ff9800", "#1877f2"].includes(savedAccent)) {
-      savedAccent = "#4f46e5";
-      localStorage.setItem("blog_accent_color", "#4f46e5");
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
     }
-    document.documentElement.style.setProperty("--primary", savedAccent);
-    document.documentElement.style.setProperty("--primary-light", `${savedAccent}1a`);
-    document.documentElement.style.setProperty("--primary-hover", `${savedAccent}dd`);
-    document.documentElement.style.setProperty("--text-link", savedAccent);
+    localStorage.setItem("blog_theme", isDark ? "dark" : "light");
   }, [isDark]);
 
   const toggleTheme = () => setIsDark((v) => !v);
 
-  return (
-    <>
-      {!isAuthPage && (
-        <Navbar
-          isDark={isDark}
-          onToggleTheme={toggleTheme}
-          searchValue={search}
-          onSearchChange={setSearch}
-        />
-      )}
-
+  if (isAuthPage) {
+    return (
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      </Routes>
+    );
+  }
 
-        {/* BẮT BUỘC ĐĂNG NHẬP (PROTECTED ROUTES) DÀNH CHO KHÁCH VẮNG LAI */}
-        <Route path="/" element={<ProtectedRoute><Home searchValue={search} /></ProtectedRoute>} />
+  return (
+    <MainLayout isDark={isDark} onToggleTheme={toggleTheme}>
+      <Routes>
+        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/posts/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
         <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
@@ -87,33 +73,29 @@ function AppContent() {
         <Route path="/saved" element={<ProtectedRoute><SavedPosts /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-        <Route path="/demo-posts" element={<ProtectedRoute><PostCardDemoPage /></ProtectedRoute>} />
         {/* 404 */}
         <Route
           path="*"
           element={
-            <div className="app-layout" style={{ display: "flex", justifyContent: "center", padding: "60px 16px" }}>
-              <div className="card empty-state" style={{ maxWidth: 400 }}>
-                <div className="empty-state-icon">🤔</div>
-                <h3>404 - Trang không tồn tại</h3>
-                <p>Trang bạn đang tìm không có ở đây.</p>
-                <Link to="/" style={{ marginTop: 16, display: "block" }}>
-                  <button className="btn btn-primary btn-full">← Về trang chủ</button>
-                </Link>
-              </div>
+            <div className="p-12 text-center text-zinc-500 flex flex-col items-center gap-3">
+              <span className="text-4xl">🤔</span>
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-white">404 - Trang không tồn tại</h3>
+              <p className="text-xs text-zinc-400">Trang bạn đang tìm không có ở đây.</p>
+              <Link to="/" className="px-5 py-2 rounded-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold mt-2">
+                ← Về trang chủ
+              </Link>
             </div>
           }
         />
       </Routes>
 
-      {/* Floating Messenger Chat Window ở góc phải màn hình */}
-      {!isAuthPage && <FloatingChatWidget />}
-      {!isAuthPage && <MobileBottomNav />}
-    </>
+      {/* Floating Messenger Widget */}
+      <FloatingChatWidget />
+    </MainLayout>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
@@ -122,5 +104,3 @@ function App() {
     </BrowserRouter>
   );
 }
-
-export default App;

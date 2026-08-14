@@ -790,3 +790,37 @@ select {
     opacity: 1;
   }
 }
+
+/* ============================================
+   MINIMALIST SOCIAL NETWORK (THREADS / X / BLUESKY) UTILITIES
+   ============================================ */
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none,
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Thread connective vertical guide line */
+.thread-line {
+  position: relative;
+}
+.thread-line::before {
+  content: "";
+  position: absolute;
+  top: 44px;
+  bottom: -12px;
+  left: 20px;
+  width: 2px;
+  background-color: var(--border-light);
+  border-radius: 9999px;
+  z-index: 1;
+}
+
+[data-theme="dark"] .thread-line::before {
+  background-color: #27272a;
+}
+
