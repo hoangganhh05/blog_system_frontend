@@ -306,7 +306,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       {/* ======================================================================
           MAIN CONTENT — centered single column
           ====================================================================== */}
-      <main className="w-full max-w-2xl mx-auto px-4 py-6 min-h-screen">
+      <main className="w-full max-w-[680px] mx-auto px-4 py-6 min-h-screen">
         {children}
       </main>
 
