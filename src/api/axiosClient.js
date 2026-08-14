@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Sử dụng đường dẫn tương đối qua biến môi trường hoặc mặc định '/api/v1'
 // Tất cả API request sẽ đi qua Reverse Proxy để ẩn domain backend thật trên F12 Network
-const apiBaseUrl = import.meta.env.VITE_API_URL || "/api/v1";
+const apiBaseUrl = import.meta.env.VITE_API_URL || "/api";
 
 const axiosClient = axios.create({
   baseURL: apiBaseUrl,
