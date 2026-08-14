@@ -295,21 +295,15 @@ function ChatBox() {
                     }}
                   >
                     <div
-                      style={{
-                        maxWidth: "80%",
-                        padding: "9px 14px",
-                        borderRadius: isMeMsg ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                        background: isMeMsg ? "#1877f2" : "var(--bg-secondary)",
-                        color: isMeMsg ? "#ffffff" : "var(--text-primary)",
-                        fontSize: 14,
-                        lineHeight: 1.45,
-                        wordBreak: "break-word",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                      }}
+                      className={`max-w-[80%] px-4 py-2 text-sm leading-relaxed break-words shadow-xs ${
+                        isMeMsg
+                          ? "bg-black dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl rounded-tr-sm"
+                          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-2xl rounded-tl-sm"
+                      }`}
                     >
                       {msg.content}
                     </div>
-                    <span style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2, padding: "0 4px" }}>
+                    <span className="text-[10px] text-zinc-400 mt-1 px-1">
                       {timeShort(msg.createdAt)}
                     </span>
                   </div>

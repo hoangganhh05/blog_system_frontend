@@ -68,6 +68,12 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   const authorName = author.fullName || author.username || "Người dùng";
   const isOwner = currentUserId && String(author.id) === String(currentUserId);
 
+  const originalPost = post?.originalPost || post?.sharedPost || post?.parentPost || post?.repostOf;
+  const origAuthor = originalPost?.user || originalPost?.author || {};
+  const origAuthorName = origAuthor.fullName || origAuthor.username || "Tác giả gốc";
+  const origContent = originalPost?.content || originalPost?.body || originalPost?.text || originalPost?.title || "";
+  const origMedia = originalPost?.thumbNail || originalPost?.mediaUrl || originalPost?.imageUrl;
+
   // Check initial liked & bookmarked state
   useEffect(() => {
     if (!currentUserId || !post?.id) return;
@@ -329,8 +335,61 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           {post?.content || post?.body || post?.title || post?.text}
         </p>
 
-        {/* Adaptive Image Grid */}
-        {post.thumbNail && (
+        {/* Khung bài viết gốc khi được chia sẻ (Embedded Original Shared Post) */}
+        {originalPost && (
+          <div
+            onClick={(e) => {
+              if (originalPost.id) {
+                e.stopPropagation();
+                navigate(`/posts/${originalPost.id}`);
+              }
+            }}
+            className="mt-3 p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 flex flex-col gap-2 cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-700 transition"
+          >
+            {/* Tác giả bài gốc */}
+            <div className="flex items-center gap-2">
+              {origAuthor.avatarUrl ? (
+                <img src={origAuthor.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-zinc-800 dark:bg-zinc-700 text-[10px] font-bold text-white flex items-center justify-center shrink-0">
+                  {getInitials(origAuthorName)}
+                </div>
+              )}
+              <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 truncate">
+                {origAuthorName}
+              </span>
+              {origAuthor.username && (
+                <span className="text-xs text-zinc-400 truncate">
+                  @{origAuthor.username}
+                </span>
+              )}
+            </div>
+
+            {/* Tiêu đề bài gốc (nếu có) */}
+            {originalPost.title && originalPost.title !== origContent && (
+              <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                {originalPost.title}
+              </h3>
+            )}
+
+            {/* Nội dung bài gốc */}
+            {origContent && (
+              <p className="text-xs leading-relaxed text-zinc-700 dark:text-zinc-300 whitespace-pre-line break-words">
+                {origContent}
+              </p>
+            )}
+
+            {/* Ảnh bài gốc (nếu có) */}
+            {origMedia && (
+              <div className="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 mt-1 max-h-60">
+                <img src={origMedia} alt="" className="max-h-60 w-full object-cover" loading="lazy" />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Adaptive Image Grid (Bài viết thường không phải share) */}
+        {!originalPost && post.thumbNail && (
           <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 my-2 max-h-[480px]">
             <img
               src={post.thumbNail}

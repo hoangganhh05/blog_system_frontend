@@ -1058,23 +1058,11 @@ function playNotificationSound() {
                             onTouchEnd={handleTouchEndMsg}
                             onTouchCancel={handleTouchEndMsg}
                             onContextMenu={(e) => { e.preventDefault(); setActiveMsgMenuId(msg.id); }}
-                            style={{
-                              maxWidth: "76%",
-                              padding: "9px 14px",
-                              borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                              background: isMe
-                                ? "linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)"
-                                : activeFriend?.isAi
-                                ? "var(--primary-light)"
-                                : "var(--bg-input)",
-                              color: isMe ? "#fff" : "var(--text-primary)",
-                              border: !isMe && activeFriend?.isAi ? "1px solid var(--primary)" : "1px solid var(--border-light)",
-                              fontSize: 13.5,
-                              lineHeight: 1.45,
-                              whiteSpace: "pre-line",
-                              boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                              position: "relative",
-                            }}
+                            className={`max-w-[78%] px-4 py-2 text-[13.5px] leading-relaxed break-words whitespace-pre-line shadow-xs relative ${
+                              isMe
+                                ? "bg-black dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl rounded-tr-sm"
+                                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-2xl rounded-tl-sm"
+                            }`}
                           >
                             {isEditingThis ? (
                               <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
