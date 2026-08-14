@@ -88,60 +88,61 @@ export default function FriendsPage() {
 
   return (
     <div className="w-full min-h-full flex flex-col">
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-30 h-13 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 shrink-0">
-        <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-zinc-900 dark:text-white" />
-          <span className="font-extrabold text-base text-zinc-900 dark:text-white">
-            Bạn bè & Kết nối
-          </span>
-        </div>
-      </header>
+      {/* Page Header */}
+      <div className="flex items-center gap-2 pb-3 mb-3 border-b border-stone-200 dark:border-stone-800 shrink-0">
+        <Users className="w-5 h-5" style={{ color: "#E8650A" }} />
+        <span className="font-extrabold text-lg text-stone-900 dark:text-stone-100">
+          Bạn bè & Kết nối
+        </span>
+      </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+      <div className="flex border-b border-stone-200 dark:border-stone-800 mb-4 shrink-0 bg-white dark:bg-[#181818] rounded-xl overflow-hidden shadow-xs">
         <button
           type="button"
           onClick={() => setActiveTab("friends")}
-          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition ${
+          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition cursor-pointer ${
             activeTab === "friends"
-              ? "text-zinc-950 dark:text-white"
-              : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              ? "text-stone-900 dark:text-stone-100"
+              : "text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
           }`}
+          style={activeTab === "friends" ? { color: "#E8650A" } : {}}
         >
           Bạn bè ({friends.length})
           {activeTab === "friends" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-950 dark:bg-white" />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
           )}
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("requests")}
-          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition ${
+          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition cursor-pointer ${
             activeTab === "requests"
-              ? "text-zinc-950 dark:text-white"
-              : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              ? "text-stone-900 dark:text-stone-100"
+              : "text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
           }`}
+          style={activeTab === "requests" ? { color: "#E8650A" } : {}}
         >
           Lời mời ({pendingRequests.length})
           {activeTab === "requests" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-950 dark:bg-white" />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
           )}
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("suggestions")}
-          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition ${
+          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition cursor-pointer ${
             activeTab === "suggestions"
-              ? "text-zinc-950 dark:text-white"
-              : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              ? "text-stone-900 dark:text-stone-100"
+              : "text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
           }`}
+          style={activeTab === "suggestions" ? { color: "#E8650A" } : {}}
         >
           Gợi ý ({suggestions.length})
           {activeTab === "suggestions" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-950 dark:bg-white" />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
           )}
         </button>
       </div>

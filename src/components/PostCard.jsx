@@ -189,7 +189,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   return (
     <article
       onClick={handleCardClick}
-      className={`mx-3 my-2.5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1e1e1e] p-5 shadow-sm hover:shadow-md transition flex gap-3.5 ${
+      className={`rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1e1e1e] p-5 mb-4 shadow-sm hover:shadow-md transition flex gap-3.5 ${
         !isDetailed ? "cursor-pointer" : ""
       }`}
     >

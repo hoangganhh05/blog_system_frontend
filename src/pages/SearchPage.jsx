@@ -55,57 +55,60 @@ export default function SearchPage() {
 
   return (
     <div className="w-full min-h-full flex flex-col">
-      {/* Sticky Header with Search Input */}
-      <header className="sticky top-0 z-30 h-14 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3 px-3 shrink-0">
+      {/* Page Header with Search Input */}
+      <div className="flex items-center gap-3 pb-3 mb-4 border-b border-stone-200 dark:border-stone-800 shrink-0">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900 transition text-zinc-700 dark:text-zinc-300 shrink-0"
+          className="p-1.5 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition text-stone-700 dark:text-stone-300 shrink-0 cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
 
         <form onSubmit={handleSubmit} className="flex-1 relative">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Tìm kiếm bài viết, tác giả..."
+            placeholder="Tìm bài viết, tác giả..."
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
-            className="w-full bg-zinc-100 dark:bg-zinc-900 rounded-full py-2 pl-10 pr-4 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+            className="w-full bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-full py-2 pl-10 pr-4 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2"
+            style={{ "--tw-ring-color": "#E8650A55" }}
           />
         </form>
-      </header>
+      </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+      <div className="flex border-b border-stone-200 dark:border-stone-800 mb-4 shrink-0 bg-white dark:bg-[#181818] rounded-xl overflow-hidden shadow-xs">
         <button
           type="button"
           onClick={() => setActiveTab("posts")}
-          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition ${
+          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition cursor-pointer ${
             activeTab === "posts"
-              ? "text-zinc-950 dark:text-white"
-              : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              ? "text-stone-900 dark:text-stone-100"
+              : "text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
           }`}
+          style={activeTab === "posts" ? { color: "#E8650A" } : {}}
         >
           Bài viết ({posts.length})
           {activeTab === "posts" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-950 dark:bg-white" />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
           )}
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("people")}
-          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition ${
+          className={`flex-1 py-3 text-xs font-bold tracking-tight text-center relative transition cursor-pointer ${
             activeTab === "people"
-              ? "text-zinc-950 dark:text-white"
-              : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              ? "text-stone-900 dark:text-stone-100"
+              : "text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
           }`}
+          style={activeTab === "people" ? { color: "#E8650A" } : {}}
         >
           Mọi người ({users.length})
           {activeTab === "people" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-950 dark:bg-white" />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
           )}
         </button>
       </div>

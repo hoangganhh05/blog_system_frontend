@@ -110,47 +110,40 @@ export default function Home({ searchValue = "" }) {
   return (
     <div className="w-full min-h-full flex flex-col">
       {/* Sticky Top Header with 2 Tabs (Threads / X Style) */}
-      <header className="sticky top-0 z-30 h-13 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0 px-2">
-        <div className="flex flex-1 h-full">
-          <button
-            type="button"
-            onClick={() => setActiveTab("forYou")}
-            className="flex-1 flex flex-col items-center justify-center relative hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50 transition cursor-pointer"
-          >
-            <span
-              className={`text-sm font-bold tracking-tight transition ${
-                activeTab === "forYou"
-                  ? "text-zinc-950 dark:text-white"
-                  : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-              }`}
-            >
-              Dành cho bạn
-            </span>
-            {activeTab === "forYou" && (
-              <div className="absolute bottom-0 w-16 h-1 bg-zinc-950 dark:bg-white rounded-full" />
-            )}
-          </button>
+      {/* Feed Tabs */}
+      <div className="flex border-b border-stone-200 dark:border-stone-800 mb-4 shrink-0 bg-white dark:bg-[#181818] rounded-xl overflow-hidden shadow-xs">
+        <button
+          type="button"
+          onClick={() => setActiveTab("forYou")}
+          className={`flex-1 py-3 text-center text-sm font-semibold transition relative cursor-pointer ${
+            activeTab === "forYou"
+              ? "text-stone-900 dark:text-stone-100"
+              : "text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
+          }`}
+          style={activeTab === "forYou" ? { color: "#E8650A" } : {}}
+        >
+          Dành cho bạn
+          {activeTab === "forYou" && (
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
+          )}
+        </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("following")}
-            className="flex-1 flex flex-col items-center justify-center relative hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50 transition cursor-pointer"
-          >
-            <span
-              className={`text-sm font-bold tracking-tight transition ${
-                activeTab === "following"
-                  ? "text-zinc-950 dark:text-white"
-                  : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-              }`}
-            >
-              Đang theo dõi
-            </span>
-            {activeTab === "following" && (
-              <div className="absolute bottom-0 w-16 h-1 bg-zinc-950 dark:bg-white rounded-full" />
-            )}
-          </button>
-        </div>
-      </header>
+        <button
+          type="button"
+          onClick={() => setActiveTab("following")}
+          className={`flex-1 py-3 text-center text-sm font-semibold transition relative cursor-pointer ${
+            activeTab === "following"
+              ? "text-stone-900 dark:text-stone-100"
+              : "text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
+          }`}
+          style={activeTab === "following" ? { color: "#E8650A" } : {}}
+        >
+          Đang theo dõi
+          {activeTab === "following" && (
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: "#E8650A" }} />
+          )}
+        </button>
+      </div>
 
       {/* Quick Composer ở đầu bảng tin */}
       <QuickComposer onPostCreated={handlePostCreated} categories={categories} />

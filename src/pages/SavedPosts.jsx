@@ -30,19 +30,19 @@ export default function SavedPosts() {
 
   return (
     <div className="w-full min-h-full flex flex-col">
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-30 h-13 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-6 px-4 shrink-0">
+      {/* Page Header */}
+      <div className="flex items-center gap-3 pb-3 mb-4 border-b border-stone-200 dark:border-stone-800 shrink-0">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900 transition text-zinc-700 dark:text-zinc-300"
+          className="p-1.5 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition text-stone-700 dark:text-stone-300 cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <span className="font-extrabold text-base text-zinc-900 dark:text-white">
+        <span className="font-extrabold text-lg text-stone-900 dark:text-stone-100">
           Đã lưu
         </span>
-      </header>
+      </div>
 
       {/* Saved Posts List */}
       <div className="flex flex-col divide-y divide-zinc-200 dark:divide-zinc-800">

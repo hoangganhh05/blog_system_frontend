@@ -180,24 +180,24 @@ export default function Profile() {
 
   return (
     <div className="w-full min-h-full flex flex-col">
-      {/* Top Sticky Header */}
-      <header className="sticky top-0 z-30 h-13 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-6 px-4 shrink-0">
+      {/* Page Header */}
+      <div className="flex items-center gap-3 pb-3 mb-4 border-b border-stone-200 dark:border-stone-800 shrink-0">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900 transition text-zinc-700 dark:text-zinc-300"
+          className="p-1.5 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition text-stone-700 dark:text-stone-300 cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex flex-col min-w-0">
-          <span className="font-bold text-base text-zinc-900 dark:text-white truncate">
+          <span className="font-bold text-lg text-stone-900 dark:text-stone-100 truncate">
             {user.fullName || user.username}
           </span>
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-stone-400">
             {posts.length} bài viết
           </span>
         </div>
-      </header>
+      </div>
 
       {/* 1. Cover Banner — warm amber/stone gradient */}
       <div className="h-32 md:h-36 w-full shrink-0" style={{ background: "linear-gradient(135deg, #E8650A22 0%, #f5f0eb 50%, #e5e2dd 100%)" }} />

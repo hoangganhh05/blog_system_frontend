@@ -98,22 +98,23 @@ export default function NotificationsPage() {
 
   return (
     <div className="w-full min-h-full flex flex-col">
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-30 h-13 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 shrink-0">
-        <span className="font-extrabold text-base text-zinc-900 dark:text-white">
+      {/* Page Header */}
+      <div className="flex items-center justify-between pb-3 mb-4 border-b border-stone-200 dark:border-stone-800 shrink-0">
+        <span className="font-extrabold text-lg text-stone-900 dark:text-stone-100">
           Thông báo
         </span>
         {notifications.some((n) => !n.read) && (
           <button
             type="button"
             onClick={markAllRead}
-            className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+            className="text-xs font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+            style={{ color: "#E8650A" }}
           >
             <CheckCheck className="w-3.5 h-3.5" />
             <span>Đọc tất cả</span>
           </button>
         )}
-      </header>
+      </div>
 
       {/* Notifications List */}
       <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900">

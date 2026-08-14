@@ -95,20 +95,13 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
   if (!currentUser) return null;
 
   return (
-    <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex gap-3">
+    <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1e1e1e] p-4 mb-4 shadow-sm flex gap-3">
       {/* Cột Avatar bên trái */}
       <div className="shrink-0">
         {currentUser.avatarUrl ? (
-          <img
-            src={currentUser.avatarUrl}
-            alt=""
-            className="w-10 h-10 rounded-full object-cover"
-          />
+          <img src={currentUser.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover ring-2" style={{ outline: "2px solid #E8650A30" }} />
         ) : (
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm"
-            style={{ backgroundColor: currentUser.avatarColor || "#4f46e5" }}
-          >
+          <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style={{ backgroundColor: currentUser.avatarColor || "#E8650A" }}>
             {getInitials(currentUser.fullName || currentUser.username)}
           </div>
         )}
@@ -120,9 +113,9 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
           ref={textareaRef}
           value={content}
           onChange={handleInput}
-          placeholder="Bắt đầu bài viết..."
+          placeholder="Chia sẻ suy nghĩ hoặc câu chuyện của bạn..."
           rows={2}
-          className="w-full bg-transparent border-none resize-none text-[15px] leading-relaxed text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none scrollbar-none"
+          className="w-full bg-transparent border-none resize-none text-[15px] leading-relaxed text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none scrollbar-none"
         />
 
         {/* Preview ảnh đính kèm (Adaptive Grid) */}
@@ -168,79 +161,40 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
           </div>
         )}
 
-        {/* Thanh Công Cụ Nhỏ Gọn & Nút Đăng */}
-        <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-900">
-          <div className="flex items-center gap-1 text-zinc-500">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition"
-              title="Đính kèm ảnh"
-            >
-              <Image className="w-4 h-4" />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileChange}
-              className="hidden"
-            />
+          {/* Divider */}
+          <div className="border-t border-stone-100 dark:border-stone-800 my-2" />
 
-            {categories.length > 0 && (
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="text-xs bg-zinc-100 dark:bg-zinc-900 border-none rounded-full px-3 py-1.5 text-zinc-700 dark:text-zinc-300 focus:outline-none"
-              >
-                <option value="">Chủ đề...</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            )}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1 text-stone-500">
+              <button type="button" onClick={() => fileInputRef.current?.click()}
+                className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-white transition" title="Đính kèm ảnh">
+                <Image className="w-4 h-4" />
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
 
-            <button
-              type="button"
-              onClick={() => setPrivacy(privacy === "PUBLIC" ? "FRIENDS" : "PUBLIC")}
-              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-500 transition"
-              title="Quyền riêng tư"
-            >
-              {privacy === "PUBLIC" ? (
-                <>
-                  <Globe className="w-3.5 h-3.5" />
-                  <span>Công khai</span>
-                </>
-              ) : (
-                <>
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>Bạn bè</span>
-                </>
+              {categories.length > 0 && (
+                <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="text-xs bg-stone-100 dark:bg-stone-800 border-none rounded-full px-3 py-1.5 text-stone-700 dark:text-stone-300 focus:outline-none">
+                  <option value="">Chủ đề...</option>
+                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
               )}
+
+              <button type="button" onClick={() => setPrivacy(privacy === "PUBLIC" ? "FRIENDS" : "PUBLIC")}
+                className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 transition" title="Quyền riêng tư">
+                {privacy === "PUBLIC" ? (<><Globe className="w-3.5 h-3.5" /><span>Công khai</span></>) : (<><Lock className="w-3.5 h-3.5" /><span>Bạn bè</span></>)}
+              </button>
+            </div>
+
+            <button type="button" onClick={handleSubmit}
+              disabled={(!content.trim() && images.length === 0) || isSubmitting || isUploading}
+              className="px-5 py-1.5 rounded-full text-xs font-bold text-white transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: (content.trim() || images.length > 0) ? "#E8650A" : "#d1cdc9" }}
+            >
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Đăng"}
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={(!content.trim() && images.length === 0) || isSubmitting || isUploading}
-            className={`px-5 py-1.5 rounded-full text-xs font-bold transition ${
-              content.trim() || images.length > 0
-                ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:opacity-90 active:scale-95"
-                : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed"
-            }`}
-          >
-            {isSubmitting ? (
-              <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-            ) : (
-              "Đăng"
-            )}
-          </button>
         </div>
       </div>
-    </div>
   );
 }
