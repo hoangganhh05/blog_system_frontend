@@ -12,6 +12,17 @@ const storyService = {
     return axiosClient.get("/stories/active");
   },
 
+  // Lấy kho lưu trữ tin (Story Archive)
+  getArchivedStories(userId) {
+    return userId
+      ? axiosClient.get(`/stories/archive/${userId}`)
+      : axiosClient.get("/stories/archive");
+  },
+
+  getArchive(userId) {
+    return this.getArchivedStories(userId);
+  },
+
   // Xóa story
   delete(storyId) {
     return axiosClient.delete(`/stories/${storyId}`);
@@ -36,6 +47,8 @@ const storyService = {
 
 export const create = storyService.create.bind(storyService);
 export const getActiveStories = storyService.getActiveStories.bind(storyService);
+export const getArchivedStories = storyService.getArchivedStories.bind(storyService);
+export const getArchive = storyService.getArchive.bind(storyService);
 export const deleteStory = storyService.delete.bind(storyService);
 export const view = storyService.view.bind(storyService);
 export const react = storyService.react.bind(storyService);

@@ -113,6 +113,7 @@ export default function PostDetail() {
         post={post}
         isDetailed={true}
         onDelete={() => navigate("/")}
+        onEdit={(updated) => setPost(updated)}
       />
 
       {/* Reply Composer Box */}

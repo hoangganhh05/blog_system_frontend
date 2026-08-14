@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Plus } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import storyService from "../services/storyService";
 import CreateStoryModal from "./CreateStoryModal";
@@ -14,19 +15,15 @@ function StoryBar() {
   const { currentUser } = useAuth();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
-  const [activeStories, setActiveStories] = useState([]);
   const [groupedStories, setGroupedStories] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [viewerIndex, setViewerIndex] = useState(null); // index in groupedStories to play
+  const [viewerIndex, setViewerIndex] = useState(null);
 
-  // Load và nhóm các Story
   const loadStories = async () => {
     try {
       const res = await storyService.getActiveStories();
       const list = res.data || [];
-      setActiveStories(list);
 
-      // Nhóm theo userId
       const groupsMap = new Map();
       list.forEach((story) => {
         const userId = story.user?.id;
@@ -42,7 +39,6 @@ function StoryBar() {
 
       const groupedArray = Array.from(groupsMap.values());
 
-      // Sắp xếp: Story của chính mình (nếu có) lên đầu tiên
       groupedArray.sort((a, b) => {
         if (currentUserId) {
           if (a.user.id === currentUserId) return -1;
@@ -70,212 +66,110 @@ function StoryBar() {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 10,
-        overflowX: "auto",
-        padding: "4px 0 16px 0",
-        scrollbarWidth: "none", // ẩn scrollbar cho firefox
-        msOverflowStyle: "none", // ẩn scrollbar cho IE/Edge
-      }}
-      className="story-bar-scrollable"
-    >
-      {/* Ẩn scrollbar trong chrome */}
-      <style>{`
-        .story-bar-scrollable::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-
-      {/* Card 1: Tạo Tin mới (Luôn hiển thị nếu đã đăng nhập) */}
-      {currentUser && (
-        <div
-          onClick={() => setShowCreateModal(true)}
-          style={{
-            flex: "0 0 110px",
-            height: 175,
-            borderRadius: 12,
-            background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            position: "relative",
-            cursor: "pointer",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            transition: "transform 0.2s",
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.03)"}
-          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-        >
-          {/* Nửa trên: Avatar của tôi */}
-          <div style={{ flex: 1.2, background: "var(--bg-secondary)", position: "relative", overflow: "hidden" }}>
-            {currentUser.avatarUrl ? (
-              <img
-                src={currentUser.avatarUrl}
-                alt="My Avatar"
-                style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.3s" }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.08)"}
-                onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-              />
-            ) : (
-              <div style={{
-                width: "100%", height: "100%",
-                background: currentUser.avatarColor ? `linear-gradient(135deg, ${currentUser.avatarColor}, ${currentUser.avatarColor}bb)` : "var(--primary)",
-                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 22, fontWeight: 700
-              }}>
-                {getInitials(currentUser.fullName || currentUser.username)}
-              </div>
-            )}
-          </div>
-          {/* Nút cộng + Nhãn Tạo tin ở dưới */}
-          <div style={{
-            flex: 0.8,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            padding: "8px 4px",
-            position: "relative",
-            background: "var(--bg-card)",
-          }}>
-            {/* Nút tròn dấu cộng màu xanh */}
-            <div style={{
-              position: "absolute",
-              top: -16,
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "#1877f2",
-              border: "4px solid var(--bg-card)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#ffffff",
-              fontSize: 18,
-              fontWeight: 800,
-            }}>
-              +
-            </div>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", textAlign: "center" }}>Tạo tin</span>
-          </div>
-        </div>
-      )}
-
-      {/* Danh sách Story các nhóm người dùng */}
-      {groupedStories.map((group, idx) => {
-        const user = group.user;
-        const name = user.fullName || user.username;
-        const firstStory = group.stories[0];
-
-        // Nếu là story của mình, mà mình chỉ xem chứ không muốn click Tạo tin thì hiển thị bình thường
-        // Không hiển thị trùng lặp Tạo tin
-        const isMyGroup = currentUserId && user.id === currentUserId;
-
-        return (
+    <div className="w-full mb-3 overflow-hidden">
+      <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none snap-x select-none">
+        {/* Card 1: Tạo Tin mới (Luôn hiển thị nếu đã đăng nhập) */}
+        {currentUser && (
           <div
-            key={user.id}
-            onClick={() => setViewerIndex(idx)}
-            style={{
-              flex: "0 0 110px",
-              height: 175,
-              borderRadius: 12,
-              background: firstStory.bgColor ? firstStory.bgColor : "#f0f2f5",
-              position: "relative",
-              overflow: "hidden",
-              cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              border: "1px solid var(--border)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 8,
-              transition: "transform 0.2s",
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.03)"}
-            onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+            onClick={() => setShowCreateModal(true)}
+            className="flex-shrink-0 w-28 h-44 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col relative cursor-pointer shadow-xs hover:shadow-md transition-all duration-200 group snap-start"
           >
-            {/* Nền ảnh hoặc video (nếu là story media) */}
-            {!firstStory.bgColor && firstStory.mediaUrl && (
-              isVideoUrl(firstStory.mediaUrl) ? (
-                <video
-                  src={firstStory.mediaUrl}
-                  muted
-                  playsInline
-                  style={{
-                    position: "absolute", top: 0, left: 0,
-                    width: "100%", height: "100%", objectFit: "cover"
-                  }}
-                />
-              ) : (
+            {/* Nửa trên: Avatar */}
+            <div className="flex-[1.3] bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
+              {currentUser.avatarUrl ? (
                 <img
-                  src={firstStory.mediaUrl}
-                  alt="Story background"
-                  style={{
-                    position: "absolute", top: 0, left: 0,
-                    width: "100%", height: "100%", objectFit: "cover"
-                  }}
+                  src={currentUser.avatarUrl}
+                  alt=""
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-              )
-            )}
-
-            {/* Bóng đổ tối mờ phủ lên nền (để dễ đọc chữ trắng) */}
-            <div style={{
-              position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-              background: "linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.45) 100%)",
-              zIndex: 1
-            }} />
-
-            {/* Badge Avatar góc trái bên trên có viền tròn màu xanh */}
-            <div style={{
-              position: "absolute", top: 8, left: 8,
-              width: 32, height: 32, borderRadius: "50%",
-              border: isMyGroup ? "2px solid #ccc" : "2.5px solid #1877f2",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
-              background: user.avatarColor ? `linear-gradient(135deg, ${user.avatarColor}, ${user.avatarColor}bb)` : "#1877f2",
-              color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 700, zIndex: 2, overflow: "hidden"
-            }}>
-              {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
-                getInitials(name)
+                <div className="w-full h-full flex items-center justify-center font-bold text-white text-lg bg-zinc-800 dark:bg-zinc-700">
+                  {getInitials(currentUser.fullName || currentUser.username)}
+                </div>
               )}
             </div>
 
-            {/* Preview Text nhỏ ở giữa (nếu là story chữ) */}
-            {firstStory.bgColor && (
-              <span style={{
-                color: "#ffffff",
-                fontSize: 10,
-                fontWeight: 700,
-                textAlign: "center",
-                lineHeight: 1.3,
-                zIndex: 2,
-                wordBreak: "break-word",
-                display: "-webkit-box",
-                WebkitLineClamp: 4,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden"
-              }}>
-                {firstStory.textContent}
+            {/* Nút cộng + Nhãn Tạo tin ở dưới */}
+            <div className="flex-[0.7] flex flex-col items-center justify-end pb-2.5 px-2 relative bg-white dark:bg-zinc-900">
+              <div className="absolute -top-4.5 w-8 h-8 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center border-3 border-white dark:border-zinc-900 shadow-md group-hover:scale-110 transition-transform">
+                <Plus className="w-4 h-4 stroke-[3]" />
+              </div>
+              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 text-center tracking-tight">
+                Tạo tin
               </span>
-            )}
-
-            {/* Tên hiển thị ở góc dưới bên trái */}
-            <span style={{
-              position: "absolute", bottom: 8, left: 8, right: 8,
-              color: "#ffffff", fontSize: 11, fontWeight: 700,
-              zIndex: 2, textShadow: "0 1px 3px rgba(0,0,0,0.6)",
-              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"
-            }}>
-              {isMyGroup ? "Tin của bạn" : name}
-            </span>
+            </div>
           </div>
-        );
-      })}
+        )}
+
+        {/* Danh sách Story các nhóm người dùng */}
+        {groupedStories.map((group, idx) => {
+          const user = group.user;
+          const name = user.fullName || user.username;
+          const firstStory = group.stories[0];
+          const isMyGroup = currentUserId && user.id === currentUserId;
+
+          return (
+            <div
+              key={user.id}
+              onClick={() => setViewerIndex(idx)}
+              className="flex-shrink-0 w-28 h-44 rounded-2xl relative overflow-hidden cursor-pointer shadow-xs hover:shadow-md transition-all duration-200 hover:scale-[1.02] border border-zinc-200 dark:border-zinc-800 p-2.5 flex flex-col justify-between group snap-start"
+              style={{
+                backgroundColor: firstStory.bgColor ? firstStory.bgColor : "#18181b",
+              }}
+            >
+              {/* Nền ảnh hoặc video */}
+              {!firstStory.bgColor && firstStory.mediaUrl && (
+                isVideoUrl(firstStory.mediaUrl) ? (
+                  <video
+                    src={firstStory.mediaUrl}
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <img
+                    src={firstStory.mediaUrl}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                )
+              )}
+
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70 pointer-events-none" />
+
+              {/* Avatar với viền gradient */}
+              <div className="relative z-10 p-0.5 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-500 w-9 h-9 shadow-md flex items-center justify-center shrink-0">
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={name}
+                    className="w-full h-full rounded-full object-cover border-1.5 border-white dark:border-zinc-900"
+                  />
+                ) : (
+                  <div className="w-full h-full rounded-full bg-zinc-900 text-white font-bold text-[10px] flex items-center justify-center border-1.5 border-white dark:border-zinc-900">
+                    {getInitials(name)}
+                  </div>
+                )}
+              </div>
+
+              {/* Text content preview (nếu là story chữ) */}
+              {firstStory.bgColor && firstStory.textContent && (
+                <div className="relative z-10 my-auto text-center px-1">
+                  <p className="text-[11px] font-bold text-white leading-tight line-clamp-3 drop-shadow-sm">
+                    {firstStory.textContent}
+                  </p>
+                </div>
+              )}
+
+              {/* Tên hiển thị */}
+              <span className="relative z-10 text-[11px] font-bold text-white truncate drop-shadow-md">
+                {isMyGroup ? "Tin của bạn" : name}
+              </span>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Modal Tạo Tin */}
       {showCreateModal && (

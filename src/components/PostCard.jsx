@@ -21,6 +21,7 @@ import bookmarkService from "../services/bookmarkService";
 import postService from "../services/postService";
 import aiService from "../services/aiService";
 import EditPostModal from "./EditPostModal";
+import ReactionsModal from "./ReactionsModal";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -56,6 +57,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
   const [currentPost, setCurrentPost] = useState(post);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isReactionsModalOpen, setIsReactionsModalOpen] = useState(false);
 
   useEffect(() => {
     setCurrentPost(post);
@@ -425,19 +427,33 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
         {/* Action Buttons */}
         <div className="flex items-center justify-between text-zinc-500 pt-2 mt-1 max-w-[380px]">
           {/* Like */}
-          <button
-            type="button"
-            onClick={handleToggleLike}
-            className={`flex items-center gap-1.5 text-xs font-medium group transition cursor-pointer ${
-              liked ? "text-rose-500" : "hover:text-rose-500"
-            }`}
-            title="Thích"
-          >
-            <div className="p-1.5 rounded-full group-hover:bg-rose-50 dark:group-hover:bg-rose-950/30 transition">
-              <Heart strokeWidth={1.8} className={`w-4 h-4 transition ${liked ? "fill-rose-500 scale-110" : ""}`} />
-            </div>
-            <span>{likeCount > 0 ? likeCount : ""}</span>
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={handleToggleLike}
+              className={`flex items-center gap-1.5 text-xs font-medium group transition cursor-pointer ${
+                liked ? "text-rose-500" : "hover:text-rose-500"
+              }`}
+              title="Thích"
+            >
+              <div className="p-1.5 rounded-full group-hover:bg-rose-50 dark:group-hover:bg-rose-950/30 transition">
+                <Heart strokeWidth={1.8} className={`w-4 h-4 transition ${liked ? "fill-rose-500 scale-110" : ""}`} />
+              </div>
+            </button>
+            {likeCount > 0 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsReactionsModalOpen(true);
+                }}
+                className="text-xs text-zinc-500 dark:text-zinc-400 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer font-medium px-0.5"
+                title="Xem danh sách người thả tim"
+              >
+                {likeCount}
+              </button>
+            )}
+          </div>
 
           {/* Comment */}
           <button
@@ -490,6 +506,16 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
             setCurrentPost(updated);
             if (onEdit) onEdit(updated);
           }}
+        />
+      )}
+
+      {/* Reactions / Likes List Modal */}
+      {isReactionsModalOpen && (
+        <ReactionsModal
+          postId={currentPost?.id}
+          isOpen={isReactionsModalOpen}
+          onClose={() => setIsReactionsModalOpen(false)}
+          totalLikeCount={likeCount}
         />
       )}
     </article>

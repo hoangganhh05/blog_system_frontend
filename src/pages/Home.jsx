@@ -4,6 +4,7 @@ import postService from "../services/postService";
 import categoryService from "../services/categoryService";
 import PostCard from "../components/PostCard";
 import QuickComposer from "../components/QuickComposer";
+import StoryBar from "../components/StoryBar";
 
 function PostSkeleton() {
   return (
@@ -107,11 +108,18 @@ export default function Home({ searchValue = "" }) {
     setPosts((prev) => prev.filter((p) => p.id !== deletedId));
   };
 
+  const handleEditPost = (updatedPost) => {
+    if (!updatedPost?.id) return;
+    setPosts((prev) =>
+      prev.map((p) => (p.id === updatedPost.id ? { ...p, ...updatedPost } : p))
+    );
+  };
+
   return (
     <div className="w-full min-h-full flex flex-col">
       {/* Sticky Top Header with 2 Tabs (Threads / X Style) */}
       {/* Feed Tabs */}
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800 mb-4 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
+      <div className="flex border-b border-zinc-200 dark:border-zinc-800 mb-3 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
         <button
           type="button"
           onClick={() => setActiveTab("forYou")}
@@ -143,6 +151,9 @@ export default function Home({ searchValue = "" }) {
         </button>
       </div>
 
+      {/* Story Bar ở đầu Bảng tin */}
+      <StoryBar />
+
       {/* Quick Composer ở đầu bảng tin */}
       <QuickComposer onPostCreated={handlePostCreated} categories={categories} />
 
@@ -170,6 +181,7 @@ export default function Home({ searchValue = "" }) {
               key={post.id}
               post={post}
               onDelete={handleDeletePost}
+              onEdit={handleEditPost}
             />
           ))
         )}

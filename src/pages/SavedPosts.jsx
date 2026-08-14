@@ -66,6 +66,11 @@ export default function SavedPosts() {
               key={post.id}
               post={post}
               onDelete={(delId) => setSavedPosts((prev) => prev.filter((p) => p.id !== delId))}
+              onEdit={(updated) =>
+                setSavedPosts((prev) =>
+                  prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
+                )
+              }
             />
           ))
         )}

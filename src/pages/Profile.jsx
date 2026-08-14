@@ -8,6 +8,9 @@ import {
   X,
   Camera,
   Loader2,
+  Archive,
+  MoreHorizontal,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
@@ -16,6 +19,7 @@ import bookmarkService from "../services/bookmarkService";
 import friendService from "../services/friendService";
 import uploadService from "../services/uploadService";
 import PostCard from "../components/PostCard";
+import StoryArchiveModal from "../components/StoryArchiveModal";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -30,7 +34,7 @@ function getInitials(name) {
 export default function Profile() {
   const { userId } = useParams();
   const navigate = useNavigate();
-  const { currentUser, updateUser } = useAuth();
+  const { currentUser, updateUser, login } = useAuth();
 
   const currentUserId = currentUser ? Number(currentUser.id || currentUser.userId) : null;
   const targetUserId = userId ? Number(userId) : currentUserId;
@@ -47,11 +51,17 @@ export default function Profile() {
   const [friendCount, setFriendCount] = useState(0);
   const [friendLoading, setFriendLoading] = useState(false);
 
-  // Edit Modal State
+  // Modals State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ fullName: "", bio: "", avatarUrl: "" });
+  const [isStoryArchiveOpen, setIsStoryArchiveOpen] = useState(false);
+  const [editForm, setEditForm] = useState({ fullName: "", bio: "", avatarUrl: "", bannerUrl: "" });
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+
   const avatarInputRef = useRef(null);
+  const bannerInputRef = useRef(null);
+  const modalAvatarInputRef = useRef(null);
 
   // Load User Data
   useEffect(() => {
@@ -65,7 +75,8 @@ export default function Profile() {
         setEditForm({
           fullName: userData.fullName || "",
           bio: userData.bio || "",
-          avatarUrl: userData.avatarUrl || ""
+          avatarUrl: userData.avatarUrl || "",
+          bannerUrl: userData.bannerUrl || ""
         });
       })
       .catch(() => {})
@@ -102,17 +113,50 @@ export default function Profile() {
     }
   }, [targetUserId, currentUserId, isMe]);
 
-  const handleAvatarFileChange = async (e) => {
+  // Handle direct Avatar upload
+  const handleDirectAvatarUpload = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !isMe || !currentUserId) return;
 
+    setIsUploadingAvatar(true);
     try {
       const res = await uploadService.uploadFile(file);
       if (res.data?.url) {
-        setEditForm((prev) => ({ ...prev, avatarUrl: res.data.url }));
+        const newAvatarUrl = res.data.url;
+        const updated = await userService.update(currentUserId, { avatarUrl: newAvatarUrl });
+        setUser((prev) => ({ ...prev, avatarUrl: newAvatarUrl }));
+        setEditForm((prev) => ({ ...prev, avatarUrl: newAvatarUrl }));
+        if (updateUser) updateUser(updated.data || { ...user, avatarUrl: newAvatarUrl });
       }
     } catch {
-      alert("Lỗi tải ảnh lên. Vui lòng thử lại!");
+      alert("Lỗi tải ảnh đại diện lên. Vui lòng thử lại!");
+    } finally {
+      setIsUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+      if (modalAvatarInputRef.current) modalAvatarInputRef.current.value = "";
+    }
+  };
+
+  // Handle direct Banner/Cover upload
+  const handleDirectBannerUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !isMe || !currentUserId) return;
+
+    setIsUploadingBanner(true);
+    try {
+      const res = await uploadService.uploadFile(file);
+      if (res.data?.url) {
+        const newBannerUrl = res.data.url;
+        const updated = await userService.update(currentUserId, { bannerUrl: newBannerUrl });
+        setUser((prev) => ({ ...prev, bannerUrl: newBannerUrl }));
+        setEditForm((prev) => ({ ...prev, bannerUrl: newBannerUrl }));
+        if (updateUser) updateUser(updated.data || { ...user, bannerUrl: newBannerUrl });
+      }
+    } catch {
+      alert("Lỗi tải ảnh bìa lên. Vui lòng thử lại!");
+    } finally {
+      setIsUploadingBanner(false);
+      if (bannerInputRef.current) bannerInputRef.current.value = "";
     }
   };
 
@@ -133,28 +177,49 @@ export default function Profile() {
     }
   };
 
+  // Optimistic Friend / Follow Toggle
   const handleToggleFriend = async () => {
     if (!currentUserId) {
       navigate("/login");
       return;
     }
+    if (friendLoading) return;
+
+    const prevStatus = friendshipStatus;
+    const prevCount = friendCount;
+
+    // Optimistic UI state update
+    if (prevStatus === "NONE") {
+      setFriendshipStatus("PENDING");
+    } else if (prevStatus === "PENDING" || prevStatus === "ACCEPTED") {
+      setFriendshipStatus("NONE");
+      if (prevStatus === "ACCEPTED") {
+        setFriendCount((prev) => Math.max(0, prev - 1));
+      }
+    }
+
     setFriendLoading(true);
     try {
-      if (friendshipStatus === "NONE") {
+      if (prevStatus === "NONE") {
         await friendService.sendFriendRequest(currentUserId, targetUserId);
-        setFriendshipStatus("PENDING");
-      } else if (friendshipStatus === "PENDING" || friendshipStatus === "ACCEPTED") {
+      } else {
         await friendService.removeFriendship(currentUserId, targetUserId);
-        setFriendshipStatus("NONE");
-        if (friendshipStatus === "ACCEPTED") {
-          setFriendCount((prev) => Math.max(0, prev - 1));
-        }
       }
     } catch {
+      // Revert state on error
+      setFriendshipStatus(prevStatus);
+      setFriendCount(prevCount);
       alert("Thao tác thất bại. Vui lòng thử lại!");
     } finally {
       setFriendLoading(false);
     }
+  };
+
+  const handleEditPost = (updatedPost) => {
+    if (!updatedPost?.id) return;
+    setPosts((prev) =>
+      prev.map((p) => (p.id === updatedPost.id ? { ...p, ...updatedPost } : p))
+    );
   };
 
   if (loading) {
@@ -199,39 +264,112 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* 1. Cover Banner */}
-      <div className="h-32 md:h-36 w-full rounded-2xl bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-800 shrink-0 border border-zinc-200 dark:border-zinc-800" />
+      {/* 1. Cover Banner với nút đổi ảnh bìa */}
+      <div className="h-32 md:h-40 w-full rounded-2xl relative overflow-hidden bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-800 shrink-0 border border-zinc-200 dark:border-zinc-800 group">
+        {user.bannerUrl ? (
+          <img
+            src={user.bannerUrl}
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        ) : null}
+
+        {/* Nút Đổi ảnh bìa (chính chủ) */}
+        {isMe && (
+          <>
+            <button
+              type="button"
+              onClick={() => bannerInputRef.current?.click()}
+              disabled={isUploadingBanner}
+              className="absolute top-3 right-3 px-3 py-1.5 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer"
+            >
+              {isUploadingBanner ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Camera className="w-3.5 h-3.5" />
+              )}
+              <span>{isUploadingBanner ? "Đang tải..." : "Đổi ảnh bìa"}</span>
+            </button>
+            <input
+              ref={bannerInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleDirectBannerUpload}
+              className="hidden"
+            />
+          </>
+        )}
+      </div>
 
       {/* 2. Header Info (Avatar + Action Buttons) */}
       <div className="px-3 -mt-10 md:-mt-12 mb-2 flex flex-col">
         <div className="flex justify-between items-end gap-3 mb-2">
-          {/* Avatar */}
-          <div className="shrink-0">
+          {/* Avatar với nút camera tải ảnh */}
+          <div className="relative shrink-0 group">
             {user.avatarUrl ? (
               <img
                 src={user.avatarUrl}
                 alt=""
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-900 shadow-sm object-cover"
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-900 shadow-md object-cover"
               />
             ) : (
               <div
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-900 shadow-sm flex items-center justify-center font-bold text-white text-xl md:text-2xl bg-zinc-800 dark:bg-zinc-700"
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-900 shadow-md flex items-center justify-center font-bold text-white text-xl md:text-2xl bg-zinc-800 dark:bg-zinc-700"
               >
                 {getInitials(user.fullName || user.username)}
               </div>
+            )}
+
+            {/* Nút Camera trên avatar chính chủ */}
+            {isMe && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                  className="absolute bottom-0 right-0 p-1.5 rounded-full bg-black dark:bg-white text-white dark:text-black border-2 border-white dark:border-zinc-900 shadow-md hover:scale-110 transition cursor-pointer"
+                  title="Đổi ảnh đại diện"
+                >
+                  {isUploadingAvatar ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Camera className="w-3.5 h-3.5" />
+                  )}
+                </button>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleDirectAvatarUpload}
+                  className="hidden"
+                />
+              </>
             )}
           </div>
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 shrink-0 pb-1">
             {isMe ? (
-              <button
-                type="button"
-                onClick={() => setIsEditModalOpen(true)}
-                className="px-4 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition cursor-pointer"
-              >
-                Chỉnh sửa hồ sơ
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="px-4 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition cursor-pointer"
+                >
+                  Chỉnh sửa hồ sơ
+                </button>
+
+                {/* Nút Kho lưu trữ tin */}
+                <button
+                  type="button"
+                  onClick={() => setIsStoryArchiveOpen(true)}
+                  className="px-3.5 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition flex items-center gap-1.5 cursor-pointer"
+                  title="Kho lưu trữ tin 24h"
+                >
+                  <Archive className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Kho lưu trữ</span>
+                </button>
+              </>
             ) : (
               <>
                 <button
@@ -359,7 +497,7 @@ export default function Profile() {
       </div>
 
       {/* Tab Content List */}
-      <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900">
+      <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900 mt-2">
         {activeTab === "posts" ? (
           posts.length === 0 ? (
             <div className="p-12 text-center text-zinc-400 text-xs">
@@ -371,6 +509,7 @@ export default function Profile() {
                 key={post.id}
                 post={post}
                 onDelete={(delId) => setPosts((prev) => prev.filter((p) => p.id !== delId))}
+                onEdit={handleEditPost}
               />
             ))
           )
@@ -385,7 +524,7 @@ export default function Profile() {
                 <Link
                   key={post.id}
                   to={`/posts/${post.id}`}
-                  className="aspect-square relative overflow-hidden bg-zinc-100 dark:bg-zinc-900 group"
+                  className="aspect-square relative overflow-hidden bg-zinc-100 dark:bg-zinc-900 group rounded-xl"
                 >
                   <img
                     src={post.thumbNail}
@@ -396,24 +535,27 @@ export default function Profile() {
               ))}
             </div>
           )
+        ) : savedPosts.length === 0 ? (
+          <div className="p-12 text-center text-zinc-400 text-xs">
+            Chưa có bài viết nào được lưu.
+          </div>
         ) : (
-          savedPosts.length === 0 ? (
-            <div className="p-12 text-center text-zinc-400 text-xs">
-              Chưa có bài viết nào được lưu.
-            </div>
-          ) : (
-            savedPosts.map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))
-          )
+          savedPosts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onDelete={(delId) => setSavedPosts((prev) => prev.filter((p) => p.id !== delId))}
+              onEdit={handleEditPost}
+            />
+          ))
         )}
       </div>
 
-      {/* Minimalist Edit Profile Modal */}
+      {/* Edit Profile Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150" onClick={() => setIsEditModalOpen(false)}>
           <div
-            className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95"
+            className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
             <form onSubmit={handleSaveProfile} className="p-5 flex flex-col gap-4">
@@ -431,7 +573,7 @@ export default function Profile() {
                 </button>
               </div>
 
-              {/* Avatar picker */}
+              {/* Avatar picker in modal */}
               <div className="flex items-center gap-4">
                 <div className="relative">
                   {editForm.avatarUrl ? (
@@ -449,16 +591,16 @@ export default function Profile() {
                   )}
                   <button
                     type="button"
-                    onClick={() => avatarInputRef.current?.click()}
-                    className="absolute bottom-0 right-0 p-1.5 rounded-full bg-black dark:bg-white text-white dark:text-black shadow-xs cursor-pointer"
+                    onClick={() => modalAvatarInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 p-1.5 rounded-full bg-black dark:bg-white text-white dark:text-black shadow-xs cursor-pointer hover:scale-110 transition"
                   >
                     <Camera className="w-3.5 h-3.5" />
                   </button>
                   <input
-                    ref={avatarInputRef}
+                    ref={modalAvatarInputRef}
                     type="file"
                     accept="image/*"
-                    onChange={handleAvatarFileChange}
+                    onChange={handleDirectAvatarUpload}
                     className="hidden"
                   />
                 </div>
@@ -472,54 +614,63 @@ export default function Profile() {
                 </div>
               </div>
 
-            {/* Full name input */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                Tên hiển thị
-              </label>
-              <input
-                type="text"
-                value={editForm.fullName}
-                onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-900 dark:text-white border-none focus:outline-none"
-              />
-            </div>
+              {/* Full name input */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  Tên hiển thị
+                </label>
+                <input
+                  type="text"
+                  value={editForm.fullName}
+                  onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                  className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                />
+              </div>
 
-            {/* Bio input */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                Tiểu sử
-              </label>
-              <textarea
-                value={editForm.bio}
-                onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                rows={3}
-                placeholder="Viết một vài dòng giới thiệu về bạn..."
-                className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-900 dark:text-white border-none resize-none focus:outline-none"
-              />
-            </div>
+              {/* Bio input */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  Tiểu sử
+                </label>
+                <textarea
+                  value={editForm.bio}
+                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                  rows={3}
+                  placeholder="Viết một vài dòng giới thiệu về bạn..."
+                  className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 resize-none focus:outline-none"
+                />
+              </div>
 
-            {/* Action buttons */}
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setIsEditModalOpen(false)}
-                className="px-4 py-2 rounded-full text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                disabled={isUpdating}
-                className="px-6 py-2 rounded-full text-xs font-bold bg-black dark:bg-white text-white dark:text-black hover:opacity-90 transition"
-              >
-                {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Lưu thay đổi"}
-              </button>
-            </div>
-          </form>
+              {/* Action buttons */}
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="px-6 py-2 rounded-xl text-xs font-bold bg-black dark:bg-white text-white dark:text-black hover:opacity-90 transition cursor-pointer"
+                >
+                  {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Lưu thay đổi"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
-    )}
-  </div>
-);
+      )}
+
+      {/* Story Archive Modal */}
+      {isStoryArchiveOpen && (
+        <StoryArchiveModal
+          isOpen={isStoryArchiveOpen}
+          onClose={() => setIsStoryArchiveOpen(false)}
+          userId={currentUserId}
+        />
+      )}
+    </div>
+  );
 }
