@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Loader2, KeyRound, Mail, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
 
@@ -13,6 +14,7 @@ export default function ForgotPasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const inputRefs = useRef([]);
@@ -46,20 +48,21 @@ export default function ForgotPasswordPage() {
 
   // Bước 1: Gửi mã OTP khôi phục mật khẩu
   const handleSendOTP = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (!email.trim()) {
-      showToast("Vui lòng nhập Email của bạn!", "error");
+      setError("Vui lòng nhập Email của bạn!");
       return;
     }
+    setError("");
     setLoading(true);
     try {
       await userService.requestResetOtp(email.trim());
-      showToast(`Mã OTP khôi phục mật khẩu đã được gửi tới ${email}!`, "success");
+      showToast?.(`Mã OTP khôi phục mật khẩu đã được gửi tới ${email}!`, "success");
       setStep(2);
       setResendTimer(60);
       setCanResend(false);
     } catch {
-      showToast("Không thể gửi mã OTP tới Email này!", "error");
+      setError("Không thể gửi mã OTP tới Email này!");
     } finally {
       setLoading(false);
     }
@@ -70,108 +73,102 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     const otpCode = otp.join("");
     if (otpCode.length < 6) {
-      showToast("Vui lòng nhập đủ 6 chữ số mã OTP!", "error");
+      setError("Vui lòng nhập đủ 6 chữ số mã OTP!");
       return;
     }
-    setLoading(true);
-    try {
-      showToast("Mã OTP hợp lệ! Hãy nhập mật khẩu mới của bạn.", "success");
-      setStep(3);
-    } catch {
-      showToast("Mã OTP không chính xác!", "error");
-    } finally {
-      setLoading(false);
-    }
+    setError("");
+    setStep(3);
   };
 
   // Bước 3: Đặt mật khẩu mới
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (!newPassword || newPassword.length < 6) {
-      showToast("Mật khẩu mới phải có ít nhất 6 ký tự!", "error");
+      setError("Mật khẩu mới phải có ít nhất 6 ký tự!");
       return;
     }
     if (newPassword !== confirmPassword) {
-      showToast("Mật khẩu xác nhận không khớp!", "error");
+      setError("Mật khẩu xác nhận không khớp!");
       return;
     }
+    setError("");
     setLoading(true);
     try {
       const otpCode = otp.join("");
       await userService.resetPasswordWithOtp(email.trim(), otpCode, newPassword);
-      showToast("Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay.", "success");
+      showToast?.("Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay.", "success");
       navigate("/login");
     } catch (err) {
-      showToast(err.message || "Không thể đặt lại mật khẩu!", "error");
+      setError(err.message || "Mã OTP không chính xác hoặc không thể đặt lại mật khẩu!");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card" style={{ maxWidth: 460, padding: "36px 28px", textAlign: "center" }}>
-        <div
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: "50%",
-            background: "var(--primary-light)",
-            color: "var(--primary)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 28,
-            margin: "0 auto 16px",
-          }}
-        >
-          {step === 1 ? "🔑" : step === 2 ? "✉️" : "🛡️"}
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#F0F2F5] dark:bg-[#121212] px-4 py-12 transition-colors">
+      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-8 shadow-sm">
+        {/* Header Form */}
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center mb-3">
+            {step === 1 ? <KeyRound className="w-6 h-6" /> : step === 2 ? <Mail className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
+          </div>
+          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+            {step === 1 ? "Quên mật khẩu" : step === 2 ? "Xác minh mã OTP" : "Đặt lại mật khẩu mới"}
+          </h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-xs">
+            {step === 1 && "Nhập Email tài khoản của bạn để nhận mã xác minh OTP 6 chữ số."}
+            {step === 2 && `Mã xác minh đã được gửi về email ${email}`}
+            {step === 3 && "Tạo mật khẩu mới an toàn cho tài khoản của bạn."}
+          </p>
         </div>
 
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8 }}>
-          {step === 1 ? "Quên mật khẩu?" : step === 2 ? "Nhập mã OTP xác minh" : "Đặt mật khẩu mới"}
-        </h2>
-        <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 24 }}>
-          {step === 1 && "Nhập Email tài khoản của bạn để nhận mã xác minh OTP 6 chữ số."}
-          {step === 2 && `Mã OTP xác minh đã được gửi tới email ${email}`}
-          {step === 3 && "Tạo mật khẩu mới an toàn cho tài khoản của bạn."}
-        </p>
+        {/* Error Alert */}
+        {error && (
+          <div className="bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs p-3 rounded-lg border border-red-200 dark:border-red-900/50 mb-4 animate-in fade-in duration-150">
+            {error}
+          </div>
+        )}
 
-        {/* BƯỚC 1: NHẬP EMAIL */}
+        {/* Bước 1: Nhập Email */}
         {step === 1 && (
-          <form onSubmit={handleSendOTP}>
-            <div style={{ marginBottom: 20, textAlign: "left" }}>
-              <label style={{ fontSize: 13, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>
+          <form onSubmit={handleSendOTP} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 Địa chỉ Email
               </label>
               <input
                 type="email"
-                placeholder="nhapemail@gmail.com"
+                placeholder="name@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setError(""); }}
                 required
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  borderRadius: 10,
-                  border: "1px solid var(--border-light)",
-                  background: "var(--bg-input)",
-                  color: "var(--text-primary)",
-                  fontSize: 14,
-                  outline: "none",
-                }}
+                autoFocus
+                className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
               />
             </div>
-            <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ padding: "12px 0", borderRadius: 10, fontWeight: 700 }}>
-              {loading ? "⏳ Đang gửi mã OTP..." : "📩 Gửi mã OTP về Email"}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 mt-2 bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-semibold text-sm rounded-xl transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Đang gửi mã OTP...</span>
+                </>
+              ) : (
+                "Gửi mã OTP về Email"
+              )}
             </button>
           </form>
         )}
 
-        {/* BƯỚC 2: NHẬP OTP 6 CHỮ SỐ */}
+        {/* Bước 2: Nhập OTP */}
         {step === 2 && (
-          <form onSubmit={handleVerifyOTP}>
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 24 }}>
+          <form onSubmit={handleVerifyOTP} className="space-y-5">
+            <div className="flex gap-2 justify-center my-2">
               {otp.map((digit, i) => (
                 <input
                   key={i}
@@ -182,28 +179,36 @@ export default function ForgotPasswordPage() {
                   value={digit}
                   onChange={(e) => handleOtpChange(i, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                  style={{
-                    width: 48,
-                    height: 56,
-                    borderRadius: 12,
-                    border: digit ? "2px solid var(--primary)" : "1.5px solid var(--border-light)",
-                    background: "var(--bg-input)",
-                    color: "var(--text-primary)",
-                    fontSize: 22,
-                    fontWeight: 800,
-                    textAlign: "center",
-                    outline: "none",
-                  }}
+                  className="w-11 h-13 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xl font-bold text-center focus:bg-white dark:focus:bg-zinc-800 focus:ring-2 focus:ring-black dark:focus:ring-white focus:outline-none transition"
                 />
               ))}
             </div>
-            <button type="submit" className="btn btn-primary btn-full" disabled={loading || otp.join("").length < 6} style={{ padding: "12px 0", borderRadius: 10, fontWeight: 700 }}>
-              {loading ? "⏳ Đang xác minh..." : "✓ Xác minh OTP"}
+
+            <button
+              type="submit"
+              disabled={loading || otp.join("").length < 6}
+              className="w-full py-2.5 bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-semibold text-sm rounded-xl transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Đang kiểm tra...</span>
+                </>
+              ) : (
+                "Xác minh mã OTP"
+              )}
             </button>
-            <div style={{ marginTop: 20, fontSize: 14, color: "var(--text-muted)" }}>
+
+            <div className="text-center text-xs text-zinc-500">
               Chưa nhận được mã?{" "}
               {canResend ? (
-                <span onClick={handleSendOTP} style={{ color: "var(--primary)", fontWeight: 700, cursor: "pointer" }}>Gửi lại ngay</span>
+                <button
+                  type="button"
+                  onClick={handleSendOTP}
+                  className="font-bold text-black dark:text-white underline cursor-pointer"
+                >
+                  Gửi lại ngay
+                </button>
               ) : (
                 <span>Gửi lại sau {resendTimer}s</span>
               )}
@@ -211,61 +216,60 @@ export default function ForgotPasswordPage() {
           </form>
         )}
 
-        {/* BƯỚC 3: ĐẶT MẬT KHẨU MỚI */}
+        {/* Bước 3: Đặt mật khẩu mới */}
         {step === 3 && (
-          <form onSubmit={handleResetPassword}>
-            <div style={{ marginBottom: 16, textAlign: "left" }}>
-              <label style={{ fontSize: 13, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>
+          <form onSubmit={handleResetPassword} className="space-y-3.5">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 Mật khẩu mới
               </label>
               <input
                 type="password"
                 placeholder="Ít nhất 6 ký tự..."
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={(e) => { setNewPassword(e.target.value); setError(""); }}
                 required
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  borderRadius: 10,
-                  border: "1px solid var(--border-light)",
-                  background: "var(--bg-input)",
-                  color: "var(--text-primary)",
-                  fontSize: 14,
-                  outline: "none",
-                }}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
               />
             </div>
-            <div style={{ marginBottom: 20, textAlign: "left" }}>
-              <label style={{ fontSize: 13, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>
+
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 Xác nhận mật khẩu mới
               </label>
               <input
                 type="password"
                 placeholder="Nhập lại mật khẩu mới..."
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
                 required
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  borderRadius: 10,
-                  border: "1px solid var(--border-light)",
-                  background: "var(--bg-input)",
-                  color: "var(--text-primary)",
-                  fontSize: 14,
-                  outline: "none",
-                }}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
               />
             </div>
-            <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ padding: "12px 0", borderRadius: 10, fontWeight: 700 }}>
-              {loading ? "⏳ Đang lưu..." : "💾 Lưu mật khẩu mới"}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 mt-2 bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-semibold text-sm rounded-xl transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Đang lưu mật khẩu...</span>
+                </>
+              ) : (
+                "Lưu mật khẩu mới"
+              )}
             </button>
           </form>
         )}
 
-        <div style={{ marginTop: 24 }}>
-          <Link to="/login" style={{ fontSize: 13.5, color: "var(--text-muted)", textDecoration: "none" }}>
+        {/* Footer Navigation */}
+        <div className="text-center mt-6">
+          <Link
+            to="/login"
+            className="text-xs text-zinc-500 hover:text-black dark:hover:text-white transition"
+          >
             ← Quay lại Đăng nhập
           </Link>
         </div>
