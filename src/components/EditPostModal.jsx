@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Loader2, Globe, Lock, Users, Tag } from "lucide-react";
+import { toast } from "sonner";
 import postService from "../services/postService";
 import categoryService from "../services/categoryService";
 import { useAuth } from "../context/AuthContext";
@@ -74,6 +75,7 @@ export default function EditPostModal({ isOpen = true, onClose, post, onUpdated 
 
       const res = await postService.update(post.id, payload);
       const updatedData = res.data || { ...post, ...payload };
+      toast.success("Đã cập nhật bài viết thành công!");
       if (onUpdated) {
         onUpdated(updatedData);
       }
@@ -84,7 +86,7 @@ export default function EditPostModal({ isOpen = true, onClose, post, onUpdated 
         typeof err.response?.data === "string"
           ? err.response.data
           : err.response?.data?.message || err.message;
-      alert(msg || "Không thể cập nhật bài viết. Vui lòng thử lại!");
+      toast.error(msg || "Không thể cập nhật bài viết. Vui lòng thử lại!");
     } finally {
       setIsSubmitting(false);
     }

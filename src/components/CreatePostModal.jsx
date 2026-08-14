@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Image, Globe, Lock, Sparkles, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import postService from "../services/postService";
 import categoryService from "../services/categoryService";
@@ -74,7 +75,7 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
         }
       }
     } catch {
-      alert("Lỗi tải ảnh lên. Vui lòng thử lại!");
+      toast.error("Lỗi tải ảnh lên. Vui lòng thử lại!");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -92,9 +93,10 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
       const refined = await aiService.generatePostContent(`Hãy viết lại nội dung sau đây cho hay hơn, cuốn hút hơn, kèm emoji hợp lý trên mạng xã hội:\n\n${content}`);
       if (refined) {
         setContent(refined);
+        toast.success("AI đã tối ưu nội dung bài viết!");
       }
     } catch {
-      alert("AI đang bận. Vui lòng thử lại sau!");
+      toast.error("AI đang bận. Vui lòng thử lại sau!");
     } finally {
       setIsAiGenerating(false);
     }
@@ -127,8 +129,10 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
       let result;
       if (editPost?.id) {
         result = await postService.update(editPost.id, payload);
+        toast.success("Đã cập nhật bài viết thành công!");
       } else {
         result = await postService.create(payload);
+        toast.success("Đã đăng bài viết mới thành công!");
       }
 
       if (onPostCreated) onPostCreated(result.data);
@@ -140,7 +144,7 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
         typeof err.response?.data === "string"
           ? err.response.data
           : err.response?.data?.message || err.message;
-      alert(serverMsg || "Lỗi đăng bài viết. Vui lòng kiểm tra lại thông tin!");
+      toast.error(serverMsg || "Lỗi đăng bài viết. Vui lòng kiểm tra lại thông tin!");
     } finally {
       setIsSubmitting(false);
     }

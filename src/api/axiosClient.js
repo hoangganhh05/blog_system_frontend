@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "sonner";
 
 // Sử dụng đường dẫn tương đối qua biến môi trường hoặc mặc định '/api/v1'
 // Tất cả API request sẽ đi qua Reverse Proxy để ẩn domain backend thật trên F12 Network
@@ -78,7 +79,7 @@ axiosClient.interceptors.response.use(
       sessionStorage.clear();
 
       if (typeof window !== "undefined") {
-        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
       }
 
       if (

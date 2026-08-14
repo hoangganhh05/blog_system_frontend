@@ -13,6 +13,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "sonner";
 import userService from "../services/userService";
 import postService from "../services/postService";
 import bookmarkService from "../services/bookmarkService";
@@ -127,9 +128,10 @@ export default function Profile() {
         setUser((prev) => ({ ...prev, avatarUrl: newAvatarUrl }));
         setEditForm((prev) => ({ ...prev, avatarUrl: newAvatarUrl }));
         if (updateUser) updateUser(updated.data || { ...user, avatarUrl: newAvatarUrl });
+        toast.success("Đã cập nhật ảnh đại diện thành công!");
       }
     } catch {
-      alert("Lỗi tải ảnh đại diện lên. Vui lòng thử lại!");
+      toast.error("Lỗi tải ảnh đại diện lên. Vui lòng thử lại!");
     } finally {
       setIsUploadingAvatar(false);
       if (avatarInputRef.current) avatarInputRef.current.value = "";
@@ -151,9 +153,10 @@ export default function Profile() {
         setUser((prev) => ({ ...prev, bannerUrl: newBannerUrl }));
         setEditForm((prev) => ({ ...prev, bannerUrl: newBannerUrl }));
         if (updateUser) updateUser(updated.data || { ...user, bannerUrl: newBannerUrl });
+        toast.success("Đã cập nhật ảnh bìa thành công!");
       }
     } catch {
-      alert("Lỗi tải ảnh bìa lên. Vui lòng thử lại!");
+      toast.error("Lỗi tải ảnh bìa lên. Vui lòng thử lại!");
     } finally {
       setIsUploadingBanner(false);
       if (bannerInputRef.current) bannerInputRef.current.value = "";
@@ -170,8 +173,9 @@ export default function Profile() {
       setUser(res.data);
       if (updateUser) updateUser(res.data);
       setIsEditModalOpen(false);
+      toast.success("Đã lưu thông tin hồ sơ thành công!");
     } catch {
-      alert("Không thể lưu thông tin hồ sơ!");
+      toast.error("Không thể lưu thông tin hồ sơ!");
     } finally {
       setIsUpdating(false);
     }
@@ -191,10 +195,14 @@ export default function Profile() {
     // Optimistic UI state update
     if (prevStatus === "NONE") {
       setFriendshipStatus("PENDING");
+      toast.success("Đã gửi lời mời kết bạn");
     } else if (prevStatus === "PENDING" || prevStatus === "ACCEPTED") {
       setFriendshipStatus("NONE");
       if (prevStatus === "ACCEPTED") {
         setFriendCount((prev) => Math.max(0, prev - 1));
+        toast.info("Đã hủy kết bạn");
+      } else {
+        toast.info("Đã hủy lời mời kết bạn");
       }
     }
 
@@ -209,7 +217,7 @@ export default function Profile() {
       // Revert state on error
       setFriendshipStatus(prevStatus);
       setFriendCount(prevCount);
-      alert("Thao tác thất bại. Vui lòng thử lại!");
+      toast.error("Thao tác thất bại. Vui lòng thử lại!");
     } finally {
       setFriendLoading(false);
     }

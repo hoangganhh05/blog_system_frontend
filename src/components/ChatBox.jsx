@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "sonner";
 import friendService from "../services/friendService";
 import chatService from "../services/chatService";
 
@@ -92,7 +93,7 @@ function ChatBox() {
       setMessages((prev) => [...prev, res.data]);
       setTimeout(scrollToBottom, 50);
     } catch {
-      alert("Không thể gửi tin nhắn!");
+      toast.error("Không thể gửi tin nhắn!");
     } finally {
       setSending(false);
     }

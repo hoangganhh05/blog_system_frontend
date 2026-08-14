@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Image, Smile, Tag, Globe, Lock, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import postService from "../services/postService";
 import uploadService from "../services/uploadService";
@@ -24,6 +25,7 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
   const [privacy, setPrivacy] = useState("PUBLIC");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showCategorySelect, setShowCategorySelect] = useState(false);
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -51,7 +53,7 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
         }
       }
     } catch {
-      alert("Lỗi tải ảnh lên. Vui lòng thử lại!");
+      toast.error("Lỗi tải ảnh lên. Vui lòng thử lại!");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -90,9 +92,11 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
       setContent("");
       setImages([]);
       setSelectedCategory("");
+      setShowCategorySelect(false);
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
       }
+      toast.success("Đã đăng bài viết mới thành công!");
       if (onPostCreated) {
         onPostCreated(res.data);
       }
@@ -102,7 +106,7 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
         typeof err.response?.data === "string"
           ? err.response.data
           : err.response?.data?.message || err.message;
-      alert(serverMsg || "Không thể đăng bài viết. Vui lòng kiểm tra lại!");
+      toast.error(serverMsg || "Không thể đăng bài viết. Vui lòng kiểm tra lại!");
     } finally {
       setIsSubmitting(false);
     }

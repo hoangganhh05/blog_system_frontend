@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Loader2, Send, MessageSquare } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import postService from "../services/postService";
 import commentService from "../services/commentService";
@@ -58,8 +59,9 @@ export default function PostDetail() {
       const res = await commentService.create(payload);
       setComments((prev) => [...prev, res.data]);
       setReplyText("");
+      toast.success("Đã đăng bình luận!");
     } catch {
-      alert("Không thể gửi bình luận. Vui lòng thử lại!");
+      toast.error("Không thể gửi bình luận. Vui lòng thử lại!");
     } finally {
       setIsSubmitting(false);
     }

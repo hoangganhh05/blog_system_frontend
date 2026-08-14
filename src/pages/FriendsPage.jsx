@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Users, UserCheck, UserPlus, X, Check, Loader2, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import friendService from "../services/friendService";
 import userService from "../services/userService";
@@ -61,9 +62,10 @@ export default function FriendsPage() {
   const handleAcceptRequest = async (requesterId) => {
     try {
       await friendService.acceptRequest(currentUserId, requesterId);
+      toast.success("Đã chấp nhận lời mời kết bạn!");
       fetchData();
     } catch {
-      alert("Lỗi chấp nhận kết bạn!");
+      toast.error("Lỗi chấp nhận kết bạn!");
     }
   };
 
@@ -71,8 +73,9 @@ export default function FriendsPage() {
     try {
       await friendService.removeFriendship(currentUserId, requesterId);
       setPendingRequests((prev) => prev.filter((r) => r.requester?.id !== requesterId));
+      toast.info("Đã xóa lời mời kết bạn");
     } catch {
-      alert("Lỗi từ chối kết bạn!");
+      toast.error("Lỗi từ chối kết bạn!");
     }
   };
 
@@ -80,9 +83,9 @@ export default function FriendsPage() {
     try {
       await friendService.sendFriendRequest(currentUserId, targetId);
       setSuggestions((prev) => prev.filter((s) => s.id !== targetId));
-      alert("Đã gửi lời mời kết bạn!");
+      toast.success("Đã gửi lời mời kết bạn!");
     } catch {
-      alert("Không thể gửi lời mời!");
+      toast.error("Không thể gửi lời mời kết bạn!");
     }
   };
 

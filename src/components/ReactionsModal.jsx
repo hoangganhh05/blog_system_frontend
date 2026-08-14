@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { X, Loader2, UserPlus, UserCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import likeService from "../services/likeService";
+import friendService from "../services/friendService";
 
 const REACTIONS_MAP = [
   { type: "LIKE", label: "Thích", emoji: "👍" },
@@ -25,16 +26,18 @@ function getInitials(name) {
 
 export default function ReactionsModal({
   postId,
-  isOpen,
+  isOpen = true,
   onClose,
-  totalLikeCount,
-  reactionsSummary,
+  totalLikeCount = 0,
 }) {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
+
   const [activeTab, setActiveTab] = useState("ALL");
   const [reactionsList, setReactionsList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [followingMap, setFollowingMap] = useState({});
 
   useEffect(() => {
     if (!isOpen || !postId) return;
@@ -47,9 +50,6 @@ export default function ReactionsModal({
       .then((resLikes) => {
         if (cancelled) return;
 
-        console.log("🔥 Dữ liệu cảm xúc từ Backend:", resLikes);
-
-        // Handle new UserReactionDTO format (flat structure) or legacy nested format
         let rawLikes = [];
         if (Array.isArray(resLikes.data)) {
           rawLikes = resLikes.data;
@@ -62,7 +62,7 @@ export default function ReactionsModal({
         setReactionsList(rawLikes);
       })
       .catch((err) => {
-        console.error("Lỗi gọi API lấy cảm xúc:", err);
+        console.error("Lỗi lấy danh sách cảm xúc:", err);
         if (!cancelled) setReactionsList([]);
       })
       .finally(() => {
@@ -75,25 +75,8 @@ export default function ReactionsModal({
   }, [isOpen, postId]);
 
   if (!isOpen) return null;
-  if (typeof document === "undefined") return null;
 
-  const filteredUsers =
-    activeTab === "ALL"
-      ? reactionsList
-      : reactionsList.filter((item) => {
-          const itemType = (
-            item.type ||
-            item.reactionType ||
-            item.userReaction ||
-            item.reaction ||
-            ""
-          ).toUpperCase();
-          return itemType === activeTab.toUpperCase();
-        });
-
-  // Helper to extract user data from both new flat DTO and legacy nested formats
   const getUserData = (item) => {
-    // New UserReactionDTO format (flat structure)
     if (item.userId && item.username) {
       return {
         id: item.userId,
@@ -101,311 +84,209 @@ export default function ReactionsModal({
         fullName: item.fullName,
         avatarUrl: item.avatarUrl,
         avatarColor: item.avatarColor,
+        type: item.type || "LIKE",
       };
     }
-    // Legacy nested format
-    return item.user || item;
+    const user = item.user || item.author || {};
+    return {
+      id: user.id || item.id,
+      username: user.username || item.username,
+      fullName: user.fullName || item.fullName,
+      avatarUrl: user.avatarUrl || item.avatarUrl,
+      avatarColor: user.avatarColor || item.avatarColor,
+      type: item.type || item.reactionType || "LIKE",
+    };
   };
 
-  const getTabCount = (type) => {
-    if (type === "ALL") return totalLikeCount || reactionsList.length;
-    if (reactionsSummary && reactionsSummary[type] !== undefined)
-      return reactionsSummary[type];
-    return reactionsList.filter((item) => {
-      const itemType = (
-        item.type ||
-        item.reactionType ||
-        item.userReaction ||
-        item.reaction ||
-        ""
-      ).toUpperCase();
-      return itemType === type.toUpperCase();
-    }).length;
+  const normalizedList = reactionsList.map(getUserData);
+
+  // Group reaction counts for tabs
+  const tabCounts = { ALL: normalizedList.length };
+  REACTIONS_MAP.forEach((r) => {
+    tabCounts[r.type] = normalizedList.filter(
+      (u) => (u.type || "LIKE").toUpperCase() === r.type
+    ).length;
+  });
+
+  const availableTabs = [
+    { type: "ALL", label: "Tất cả", icon: "✨", count: tabCounts.ALL },
+    ...REACTIONS_MAP.filter((r) => tabCounts[r.type] > 0).map((r) => ({
+      type: r.type,
+      label: r.label,
+      icon: r.emoji,
+      count: tabCounts[r.type],
+    })),
+  ];
+
+  const filteredUsers =
+    activeTab === "ALL"
+      ? normalizedList
+      : normalizedList.filter(
+          (u) => (u.type || "LIKE").toUpperCase() === activeTab.toUpperCase()
+        );
+
+  const getReactionEmoji = (type) => {
+    const found = REACTIONS_MAP.find(
+      (r) => r.type === (type || "LIKE").toUpperCase()
+    );
+    return found ? found.emoji : "👍";
   };
 
-  return createPortal(
+  const handleToggleFollow = async (userId) => {
+    if (!currentUserId) {
+      navigate("/login");
+      return;
+    }
+    const currentFollowState = followingMap[userId];
+    // Optimistic toggle
+    setFollowingMap((prev) => ({ ...prev, [userId]: !currentFollowState }));
+
+    try {
+      if (!currentFollowState) {
+        await friendService.sendFriendRequest(currentUserId, userId);
+      } else {
+        await friendService.removeFriendship(currentUserId, userId);
+      }
+    } catch {
+      // Revert on error
+      setFollowingMap((prev) => ({ ...prev, [userId]: currentFollowState }));
+    }
+  };
+
+  return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 999999,
-        padding: 16,
-        backdropFilter: "blur(4px)",
-      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
       onClick={onClose}
     >
+      {/* Khung Modal chính (Nền đặc 100%, không trong suốt) */}
       <div
-        className="card"
-        style={{
-          width: "100%",
-          maxWidth: 480,
-          maxHeight: "85vh",
-          display: "flex",
-          flexDirection: "column",
-          borderRadius: 20,
-          overflow: "hidden",
-          boxShadow: "0 20px 50px rgba(0, 0, 0, 0.3)",
-          animation: "slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-          background: "var(--bg-card)",
-        }}
+        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "14px 20px",
-            borderBottom: "1px solid var(--border-light)",
-          }}
-        >
-          <h3
-            style={{
-              fontSize: 17,
-              fontWeight: 700,
-              margin: 0,
-              color: "var(--text-primary)",
-            }}
-          >
-            Bảng cảm xúc bài viết ({totalLikeCount || reactionsList.length})
+        {/* Header Modal */}
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800">
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+            Bảng cảm xúc bài viết ({totalLikeCount || normalizedList.length})
           </h3>
           <button
+            type="button"
             onClick={onClose}
-            style={{
-              background: "var(--bg-hover)",
-              border: "none",
-              borderRadius: "50%",
-              width: 32,
-              height: 32,
-              fontSize: 16,
-              cursor: "pointer",
-              color: "var(--text-secondary)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Reaction Tabs */}
-        <div
-          style={{
-            display: "flex",
-            gap: 6,
-            padding: "8px 16px",
-            borderBottom: "1px solid var(--border-light)",
-            overflowX: "auto",
-            scrollbarWidth: "none",
-          }}
-        >
-          <button
-            onClick={() => setActiveTab("ALL")}
-            style={{
-              background: activeTab === "ALL" ? "var(--primary-light)" : "none",
-              border: "none",
-              borderBottom:
-                activeTab === "ALL"
-                  ? "3px solid var(--primary)"
-                  : "3px solid transparent",
-              color:
-                activeTab === "ALL"
-                  ? "var(--primary)"
-                  : "var(--text-secondary)",
-              padding: "8px 14px",
-              borderRadius: "8px 8px 0 0",
-              fontWeight: activeTab === "ALL" ? 700 : 600,
-              fontSize: 13.5,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Tất cả ({getTabCount("ALL")})
-          </button>
-
-          {REACTIONS_MAP.map((r) => {
-            const count = getTabCount(r.type);
-            if (count === 0 && activeTab !== r.type) return null;
-            return (
+        {/* Tabs phân loại cảm xúc */}
+        {availableTabs.length > 1 && (
+          <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 overflow-x-auto no-scrollbar">
+            {availableTabs.map((tab) => (
               <button
-                key={r.type}
-                onClick={() => setActiveTab(r.type)}
-                style={{
-                  background:
-                    activeTab === r.type ? "var(--primary-light)" : "none",
-                  border: "none",
-                  borderBottom:
-                    activeTab === r.type
-                      ? "3px solid var(--primary)"
-                      : "3px solid transparent",
-                  color:
-                    activeTab === r.type
-                      ? "var(--primary)"
-                      : "var(--text-secondary)",
-                  padding: "8px 14px",
-                  borderRadius: "8px 8px 0 0",
-                  fontWeight: activeTab === r.type ? 700 : 600,
-                  fontSize: 13.5,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  whiteSpace: "nowrap",
-                }}
+                key={tab.type}
+                type="button"
+                onClick={() => setActiveTab(tab.type)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition cursor-pointer whitespace-nowrap ${
+                  activeTab === tab.type
+                    ? "bg-black text-white dark:bg-white dark:text-black shadow-sm"
+                    : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-800"
+                }`}
               >
-                <span>{r.emoji}</span>
-                <span>{count}</span>
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
+                <span className="opacity-80 text-[10px]">({tab.count})</span>
               </button>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* Users List */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
+        {/* Danh sách người dùng */}
+        <div className="p-3 overflow-y-auto flex flex-col gap-1 divide-y divide-zinc-100 dark:divide-zinc-800/50 flex-1 min-h-[220px]">
           {loading ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "30px 0",
-                color: "var(--text-muted)",
-                fontSize: 14,
-              }}
-            >
-              ⏳ Đang tải danh sách người dùng...
+            <div className="flex-1 flex flex-col items-center justify-center gap-2 py-12 text-zinc-400">
+              <Loader2 className="w-6 h-6 animate-spin" />
+              <span className="text-xs">Đang tải danh sách...</span>
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "30px 0",
-                color: "var(--text-muted)",
-                fontSize: 14,
-              }}
-            >
-              Chưa có ai thả cảm xúc ở mục này.
+            <div className="flex-1 flex flex-col items-center justify-center gap-2 py-12 text-zinc-400 text-xs">
+              <span>Chưa có ai bày tỏ cảm xúc này.</span>
             </div>
           ) : (
-            filteredUsers.map((item, idx) => {
-              const u = getUserData(item);
-              const name = u.fullName || u.username || "Người dùng";
-              const rObj =
-                REACTIONS_MAP.find(
-                  (r) => r.type === (item.type || item.reactionType),
-                ) || REACTIONS_MAP[0];
+            filteredUsers.map((user) => {
+              const isSelf = currentUserId && String(user.id) === String(currentUserId);
+              const isFollowing = Boolean(followingMap[user.id]);
 
               return (
                 <div
-                  key={item.id || idx}
-                  onClick={() => {
-                    if (u.id) {
-                      onClose();
-                      navigate(`/profile/${u.id}`);
-                    }
-                  }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 14,
-                    padding: "10px 12px",
-                    borderRadius: 12,
-                    cursor: "pointer",
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "var(--bg-hover)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
+                  key={`${user.id}-${user.type}`}
+                  className="flex items-center justify-between p-2 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition pt-2.5"
                 >
-                  <div style={{ position: "relative" }}>
-                    {u.avatarUrl ? (
-                      <img
-                        src={u.avatarUrl}
-                        alt={name}
-                        style={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      <div
-                        className="avatar"
-                        style={{
-                          width: 44,
-                          height: 44,
-                          fontSize: 15,
-                          background: u.avatarColor
-                            ? u.avatarColor.startsWith("#")
-                              ? u.avatarColor
-                              : `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)`
-                            : "#3b82f6",
-                          color: "#fff",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          borderRadius: "50%",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {getInitials(name)}
-                      </div>
-                    )}
-                    <span
-                      style={{
-                        position: "absolute",
-                        bottom: -2,
-                        right: -4,
-                        fontSize: 14,
-                        background: "var(--bg-card)",
-                        borderRadius: "50%",
-                        padding: "1px 2px",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                      }}
-                    >
-                      {rObj.emoji}
-                    </span>
-                  </div>
-
                   <div
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
+                    className="flex items-center gap-3 cursor-pointer min-w-0"
+                    onClick={() => {
+                      onClose();
+                      navigate(`/profile/${user.id}`);
                     }}
                   >
-                    <span
-                      style={{
-                        fontSize: 15,
-                        fontWeight: 700,
-                        color: "var(--text-primary)",
-                      }}
-                    >
-                      {name}
-                    </span>
-                    {u.username && (
-                      <span
-                        style={{ fontSize: 12, color: "var(--text-muted)" }}
-                      >
-                        @{u.username}
+                    {/* Avatar kèm badge icon cảm xúc nhỏ ở góc */}
+                    <div className="relative shrink-0">
+                      {user.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt=""
+                          className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-zinc-800 dark:bg-zinc-700 text-white font-bold text-xs flex items-center justify-center border border-zinc-200 dark:border-zinc-700">
+                          {getInitials(user.fullName || user.username)}
+                        </div>
+                      )}
+                      <span className="absolute -bottom-1 -right-1 text-xs drop-shadow-sm">
+                        {getReactionEmoji(user.type)}
                       </span>
-                    )}
+                    </div>
+
+                    {/* Tên và Username */}
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 hover:underline truncate">
+                        {user.fullName || user.username}
+                      </span>
+                      <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                        @{user.username}
+                      </span>
+                    </div>
                   </div>
+
+                  {/* Nút Theo dõi / Kết bạn (nếu không phải chính mình) */}
+                  {!isSelf && (
+                    <button
+                      type="button"
+                      onClick={() => handleToggleFollow(user.id)}
+                      className={`px-3 py-1 text-xs font-semibold rounded-full border transition cursor-pointer shrink-0 ${
+                        isFollowing
+                          ? "border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200"
+                          : "border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      }`}
+                    >
+                      {isFollowing ? "Đang theo dõi" : "Theo dõi"}
+                    </button>
+                  )}
                 </div>
               );
             })
           )}
         </div>
+
+        {/* Footer */}
+        <div className="p-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-end bg-zinc-50/50 dark:bg-zinc-900/50">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-1.5 text-xs font-bold rounded-xl bg-zinc-200 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition cursor-pointer"
+          >
+            Đóng
+          </button>
+        </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

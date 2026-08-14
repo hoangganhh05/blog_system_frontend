@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import aiService from "../services/aiService";
 
 const POEM_TOPICS = ["Tình Yêu", "Cà Phê", "Cơn Mưa", "Chiều Thu", "Cuộc Sống", "Công Việc"];
@@ -18,10 +19,10 @@ function AiCreatorPage() {
     setSelectedTopic(topic);
     setPoemLoading(true);
     try {
-      const generatedPoem = await aiService.generatePoem(topic);
-      setPoem(generatedPoem);
+      const res = await aiService.generatePoem(topic);
+      setPoem(res);
     } catch {
-      setPoem("Nắng dịu dàng nghiêng qua góc nhỏ\nTách cà phê tỏa hương nhẹ nhàng\nGiữa nhịp đời xô xát vội vã\nGiữ cho tâm một phút bình an.");
+      toast.error("Không thể tạo thơ lúc này. Vui lòng thử lại sau!");
     } finally {
       setPoemLoading(false);
     }
@@ -29,14 +30,16 @@ function AiCreatorPage() {
 
   const handleGenerateQuote = () => {
     const quotesList = [
-      { text: "Cuộc sống không phải là chờ đợi cơn bão qua đi, mà là học cách nhảy múa dưới mưa.", author: "Khuyết danh" },
-      { text: "Người duy nhất bạn nên cố gắng để giỏi hơn chính là bản thân bạn của ngày hôm qua.", author: "Matty Mullins" },
-      { text: "Ước mơ không có thời hạn sử dụng. Hãy hít một hơi thật sâu và thử lại lần nữa.", author: "Bình An" },
-      { text: "Thành công là kết quả của sự chuẩn bị, làm việc chăm chỉ và học hỏi từ thất bại.", author: "Colin Powell" }
+      { text: "Cuộc sống không phải là chờ đợi cơn bão qua đi, mà là học cách khiêu vũ dưới cơn mưa.", author: "Vivian Greene" },
+      { text: "Đừng đếm những gì bạn đã mất, hãy quý trọng những gì bạn đang có.", author: "Khuyết danh" },
+      { text: "Mỗi ngày là một cơ hội mới để bạn trở thành phiên bản tốt hơn của chính mình.", author: "Triết Lý Đời Sống" },
+      { text: "Thành công không phải là đích đến, mà là hành trình kiên trì không ngừng nghỉ.", author: "Albert Einstein" },
+      { text: "Hạnh phúc không nằm ở đích đến mà ở trên từng chặng đường ta đi.", author: "Khuyết danh" },
     ];
     const gradients = [
       "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)",
-      "linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)",
+      "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)",
+      "linear-gradient(135deg, #10b981 0%, #059669 100%)",
       "linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)",
       "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)"
     ];
@@ -51,7 +54,7 @@ function AiCreatorPage() {
 
   const handleCopyText = (text) => {
     navigator.clipboard.writeText(text);
-    alert("Đã sao chép vào khay nhớ tạm!");
+    toast.success("Đã sao chép vào khay nhớ tạm!");
   };
 
   return (

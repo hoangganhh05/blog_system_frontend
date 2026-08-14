@@ -1,8 +1,10 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { MoreHorizontal, Trash2, Edit2, Reply, Send, Loader2, X } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import commentService from "../services/commentService";
+import ConfirmModal from "./ConfirmModal";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -40,6 +42,7 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
   const [editText, setEditText] = useState(comment?.content || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const author = comment?.user || {};
   const authorName = author.fullName || author.username || "Người dùng";
@@ -52,21 +55,22 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
       await commentService.update(comment.id, { content: editText.trim() });
       comment.content = editText.trim();
       setIsEditing(false);
+      toast.success("Đã cập nhật bình luận!");
     } catch {
-      alert("Không thể cập nhật bình luận!");
+      toast.error("Không thể cập nhật bình luận!");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (window.confirm("Bạn có chắc muốn xóa bình luận này?")) {
-      try {
-        await commentService.delete(comment.id);
-        if (onDelete) onDelete(comment.id);
-      } catch {
-        alert("Lỗi khi xóa bình luận!");
-      }
+  const confirmDeleteComment = async () => {
+    setIsDeleteModalOpen(false);
+    try {
+      await commentService.delete(comment.id);
+      toast.success("Đã xóa bình luận!");
+      if (onDelete) onDelete(comment.id);
+    } catch {
+      toast.error("Lỗi khi xóa bình luận!");
     }
   };
 
@@ -83,9 +87,10 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
       const res = await commentService.create(payload);
       setReplyText("");
       setIsReplying(false);
+      toast.success("Đã gửi phản hồi!");
       if (onReplyCreated) onReplyCreated(res.data);
     } catch {
-      alert("Không thể gửi phản hồi!");
+      toast.error("Không thể gửi phản hồi!");
     } finally {
       setIsSubmitting(false);
     }
@@ -138,7 +143,7 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
               <button
                 type="button"
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition opacity-0 group-hover:opacity-100"
+                className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition opacity-0 group-hover:opacity-100 cursor-pointer"
               >
                 <MoreHorizontal className="w-3.5 h-3.5" />
               </button>
@@ -151,15 +156,18 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
                       setIsEditing(true);
                       setMenuOpen(false);
                     }}
-                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left"
+                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left cursor-pointer"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                     <span>Sửa</span>
                   </button>
                   <button
                     type="button"
-                    onClick={handleDelete}
-                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 w-full text-left"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setIsDeleteModalOpen(true);
+                    }}
+                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 w-full text-left cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Xóa</span>
@@ -183,7 +191,7 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="px-3 py-1 rounded-full text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                className="px-3 py-1 rounded-full text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 cursor-pointer"
               >
                 Hủy
               </button>
@@ -191,7 +199,7 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
                 type="button"
                 onClick={handleEdit}
                 disabled={isSubmitting}
-                className="px-4 py-1 rounded-full text-xs font-bold bg-zinc-950 dark:bg-white text-white dark:text-zinc-950"
+                className="px-4 py-1 rounded-full text-xs font-bold bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 cursor-pointer"
               >
                 {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : "Lưu"}
               </button>
@@ -203,12 +211,12 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
           </div>
         )}
 
-        {/* Nút Phản Hồi Nhỏ Gọn */}
+        {/* Nút Phản Hồi */}
         <div className="flex items-center gap-4 mt-1">
           <button
             type="button"
             onClick={() => setIsReplying(!isReplying)}
-            className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition"
+            className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition cursor-pointer"
           >
             <Reply className="w-3.5 h-3.5" />
             <span>Phản hồi</span>
@@ -229,13 +237,24 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
             <button
               type="submit"
               disabled={!replyText.trim() || isSubmitting}
-              className="p-1.5 rounded-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 disabled:opacity-40"
+              className="p-1.5 rounded-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 disabled:opacity-40 cursor-pointer"
             >
               {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
             </button>
           </form>
         )}
       </div>
+
+      {/* Delete Comment Confirm Modal */}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        title="Xóa bình luận"
+        message="Bạn có chắc muốn xóa bình luận này không?"
+        confirmText="Xóa"
+        isDanger={true}
+        onConfirm={confirmDeleteComment}
+        onCancel={() => setIsDeleteModalOpen(false)}
+      />
     </div>
   );
 }

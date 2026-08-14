@@ -20,8 +20,10 @@ import likeService from "../services/likeService";
 import bookmarkService from "../services/bookmarkService";
 import postService from "../services/postService";
 import aiService from "../services/aiService";
+import { toast } from "sonner";
 import EditPostModal from "./EditPostModal";
 import ReactionsModal from "./ReactionsModal";
+import ConfirmModal from "./ConfirmModal";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -58,6 +60,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   const [currentPost, setCurrentPost] = useState(post);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isReactionsModalOpen, setIsReactionsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     setCurrentPost(post);
@@ -156,26 +159,32 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
     const link = `${window.location.origin}/posts/${post.id}`;
     navigator.clipboard.writeText(link);
     setIsCopied(true);
+    toast.info("Đã sao chép liên kết vào bộ nhớ tạm");
     setTimeout(() => {
       setIsCopied(false);
       setUserMenuOpen(false);
     }, 1500);
   };
 
-  const handleDelete = async (e) => {
+  const handleDelete = (e) => {
     e.stopPropagation();
-    if (window.confirm("Bạn có chắc muốn xóa bài viết này?")) {
-      try {
-        await postService.delete(post.id);
-        if (onDelete) onDelete(post.id);
-      } catch (err) {
-        console.error("Lỗi xóa bài viết:", err.response?.data || err);
-        const msg =
-          typeof err.response?.data === "string"
-            ? err.response.data
-            : err.response?.data?.message || err.message;
-        alert(msg || "Không thể xóa bài viết!");
-      }
+    setUserMenuOpen(false);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeletePost = async () => {
+    setIsDeleteModalOpen(false);
+    try {
+      await postService.delete(post.id);
+      toast.success("Đã xóa bài viết thành công!");
+      if (onDelete) onDelete(post.id);
+    } catch (err) {
+      console.error("Lỗi xóa bài viết:", err.response?.data || err);
+      const msg =
+        typeof err.response?.data === "string"
+          ? err.response.data
+          : err.response?.data?.message || err.message;
+      toast.error(msg || "Không thể xóa bài viết!");
     }
   };
 
@@ -190,7 +199,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
       const res = await aiService.summarizePost(post.content);
       setSummary(res);
     } catch {
-      alert("AI đang bận, vui lòng thử lại sau!");
+      toast.error("AI đang bận, vui lòng thử lại sau!");
     } finally {
       setIsSummarizing(false);
       setUserMenuOpen(false);
@@ -518,6 +527,17 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           totalLikeCount={likeCount}
         />
       )}
+
+      {/* Delete Post Confirm Modal */}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        title="Xóa bài viết"
+        message="Bạn có chắc chắn muốn xóa vĩnh viễn bài viết này không? Hành động này không thể hoàn tác."
+        confirmText="Xóa bài viết"
+        isDanger={true}
+        onConfirm={confirmDeletePost}
+        onCancel={() => setIsDeleteModalOpen(false)}
+      />
     </article>
   );
 }

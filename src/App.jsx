@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation, Link } from "react-router-dom";
+import { Toaster } from "sonner";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./layouts/MainLayout";
@@ -61,6 +62,15 @@ function AppContent() {
 
   return (
     <>
+      <Toaster
+        position="top-center"
+        richColors={false}
+        theme={isDark ? "dark" : "light"}
+        toastOptions={{
+          className:
+            "border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-2xl shadow-xl text-xs font-medium px-4 py-3",
+        }}
+      />
       <MainLayout isDark={isDark} onToggleTheme={toggleTheme}>
         <Routes>
           <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
