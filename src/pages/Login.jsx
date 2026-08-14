@@ -46,7 +46,7 @@ export default function Login() {
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-8 shadow-sm">
         {/* Header Form */}
         <div className="flex flex-col items-center text-center mb-6">
-          <Link to="/" className="w-10 h-10 rounded-xl bg-black dark:bg-white flex items-center justify-center font-black text-white dark:text-black text-base tracking-tighter shadow-xs hover:opacity-90 transition">
+          <Link to="/" className="w-12 h-12 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-black text-xl tracking-tighter mx-auto shadow-sm hover:opacity-90 transition select-none">
             BV
           </Link>
           <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-3 tracking-tight">
