@@ -67,12 +67,23 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
 
     setIsSubmitting(true);
     try {
+      const categoryIdNum = selectedCategory ? Number(selectedCategory) : null;
+      const trimmedContent = content.trim();
       const payload = {
-        title: content.trim().slice(0, 60) || "Bài viết mới",
-        content: content.trim(),
+        title: trimmedContent.slice(0, 100) || "Bài viết",
+        content: trimmedContent,
+        body: trimmedContent,
         thumbNail: images[0] || null,
+        thumbnail: images[0] || null,
+        mediaUrl: images[0] || null,
+        mediaUrls: images.length > 0 ? images : null,
         status: "PUBLISHED",
-        category: selectedCategory ? { id: Number(selectedCategory) } : null
+        ...(categoryIdNum
+          ? {
+              categoryId: categoryIdNum,
+              category: { id: categoryIdNum },
+            }
+          : {}),
       };
 
       const res = await postService.create(payload);
@@ -85,8 +96,13 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
       if (onPostCreated) {
         onPostCreated(res.data);
       }
-    } catch {
-      alert("Không thể đăng bài viết. Vui lòng thử lại!");
+    } catch (err) {
+      console.error("Lỗi đăng bài nhanh:", err.response?.data || err);
+      const serverMsg =
+        typeof err.response?.data === "string"
+          ? err.response.data
+          : err.response?.data?.message || err.message;
+      alert(serverMsg || "Không thể đăng bài viết. Vui lòng kiểm tra lại!");
     } finally {
       setIsSubmitting(false);
     }

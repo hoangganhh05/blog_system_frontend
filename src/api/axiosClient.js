@@ -65,20 +65,22 @@ axiosClient.interceptors.response.use(
       error.response.data = { message: errorMessage };
     }
 
-    // Chỉ xử lý 401 (token hết hạn/không hợp lệ) - tự động logout
+    // 400 (Bad Request) - In chi tiết dữ liệu validation từ Backend
+    if (status === 400) {
+      console.error("400 Backend Response:", error.response?.data);
+    }
+
+    // 401 (Unauthorized) - tự động logout
     if (status === 401 && !isPublicAuthRequest(requestUrl)) {
-      // Token hết hạn, không hợp lệ
       localStorage.removeItem("blog_token");
       localStorage.removeItem("blog_user");
       localStorage.removeItem("blog_session_id");
       sessionStorage.clear();
 
-      // Hiển thị thông báo
       if (typeof window !== "undefined") {
         alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
       }
 
-      // Chuyển hướng về trang login
       if (
         typeof window !== "undefined" &&
         !window.location.pathname.includes("/login")
@@ -86,7 +88,7 @@ axiosClient.interceptors.response.use(
         window.location.href = "/login";
       }
     }
-    // 403 (Forbidden) - chỉ log error, không tự động logout
+    // 403 (Forbidden)
     else if (status === 403 && !isPublicAuthRequest(requestUrl)) {
       console.warn(
         "Forbidden API request (permission denied):",

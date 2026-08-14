@@ -158,8 +158,13 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
       try {
         await postService.delete(post.id);
         if (onDelete) onDelete(post.id);
-      } catch {
-        alert("Không thể xóa bài viết!");
+      } catch (err) {
+        console.error("Lỗi xóa bài viết:", err.response?.data || err);
+        const msg =
+          typeof err.response?.data === "string"
+            ? err.response.data
+            : err.response?.data?.message || err.message;
+        alert(msg || "Không thể xóa bài viết!");
       }
     }
   };

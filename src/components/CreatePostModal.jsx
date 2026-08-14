@@ -105,12 +105,23 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
 
     setIsSubmitting(true);
     try {
+      const categoryIdNum = selectedCategory ? Number(selectedCategory) : null;
+      const trimmedContent = content.trim();
       const payload = {
-        title: content.trim().slice(0, 60) || "Bài viết mới",
-        content: content.trim(),
+        title: trimmedContent.slice(0, 100) || "Bài viết",
+        content: trimmedContent,
+        body: trimmedContent,
         thumbNail: images[0] || null,
+        thumbnail: images[0] || null,
+        mediaUrl: images[0] || null,
+        mediaUrls: images.length > 0 ? images : null,
         status: "PUBLISHED",
-        category: selectedCategory ? { id: Number(selectedCategory) } : null
+        ...(categoryIdNum
+          ? {
+              categoryId: categoryIdNum,
+              category: { id: categoryIdNum },
+            }
+          : {}),
       };
 
       let result;
@@ -123,8 +134,13 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
       if (onPostCreated) onPostCreated(result.data);
       if (onCreated) onCreated(result.data);
       onClose();
-    } catch {
-      alert("Lỗi đăng bài viết. Vui lòng thử lại!");
+    } catch (err) {
+      console.error("Lỗi đăng bài:", err.response?.data || err);
+      const serverMsg =
+        typeof err.response?.data === "string"
+          ? err.response.data
+          : err.response?.data?.message || err.message;
+      alert(serverMsg || "Lỗi đăng bài viết. Vui lòng kiểm tra lại thông tin!");
     } finally {
       setIsSubmitting(false);
     }
