@@ -65,7 +65,7 @@ export default function LeftSidebar() {
   }, [currentUserId]);
 
   return (
-    <div className="w-full flex flex-col gap-4">
+    <div className="w-full flex flex-col gap-2">
       {/* 1. Profile Shortcut Card hoặc Guest Login Card */}
       {currentUser ? (
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 shadow-sm flex flex-col gap-3">

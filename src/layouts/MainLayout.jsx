@@ -222,7 +222,8 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
             </form>
 
             {/* RIGHT: Actions */}
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            {/* RIGHT: Actions */}
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
               {/* Mobile Search Button (Visible only on small screens) */}
               <button
                 type="button"
@@ -230,7 +231,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                   setMobileSearchOpen(true);
                   setTimeout(() => mobileSearchInputRef.current?.focus(), 50);
                 }}
-                className="sm:hidden p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-150 cursor-pointer"
+                className="sm:hidden p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-150 cursor-pointer"
                 title="Tìm kiếm bài viết, tác giả"
               >
                 <Search strokeWidth={2} className="w-4 h-4" />
@@ -253,17 +254,17 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                   window.dispatchEvent(new CustomEvent("close_chat_widget"));
                   setIsAiModalOpen(true);
                 }}
-                className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 active:scale-95 hover:scale-105 transition-all duration-150 cursor-pointer"
+                className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 active:scale-95 hover:scale-105 transition-all duration-150 cursor-pointer"
                 title="Trợ lý AI BlogViet (Gemini 3.7 Flash)"
               >
                 <Sparkles strokeWidth={2} className="w-4 h-4" />
               </button>
 
-              {/* Notifications (Desktop only - Mobile uses bottom nav bell icon) */}
+              {/* Chuông thông báo (Hiển thị đầy đủ cả Mobile & Desktop) */}
               <NavLink
                 to="/notifications"
                 className={({ isActive }) =>
-                  `hidden md:flex relative p-2 min-w-[40px] min-h-[40px] items-center justify-center rounded-full active:scale-95 hover:scale-105 transition-all duration-150 ${
+                  `relative p-1.5 sm:p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full active:scale-95 hover:scale-105 transition-all duration-150 ${
                     isActive
                       ? "text-black dark:text-white bg-zinc-100 dark:bg-zinc-800"
                       : "text-zinc-500 hover:text-black dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -277,110 +278,130 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 )}
               </NavLink>
 
-              {/* Profile Dropdown (Desktop only - Mobile accesses profile & settings via ☰ menu) */}
-              <div className="relative hidden md:block" ref={profileMenuRef}>
-              <button
-                type="button"
-                onClick={() => setProfileMenuOpen((v) => !v)}
-                className="flex items-center gap-1 p-1 min-w-[36px] min-h-[36px] sm:min-w-[40px] sm:min-h-[40px] justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-150 cursor-pointer"
-                title="Tài khoản cá nhân"
-              >
-                <Avatar
-                  userId={currentUserId}
-                  src={currentUser?.avatarUrl}
-                  name={currentUser?.fullName || currentUser?.username}
-                  username={currentUser?.username}
-                  avatarColor={currentUser?.avatarColor}
-                  size="sm"
-                  hideStatus={true}
-                  className="border border-zinc-200 dark:border-zinc-700"
-                />
-                <ChevronDown className="w-3 h-3 text-zinc-400 hidden sm:inline" />
-              </button>
-
-              {profileMenuOpen && (
-                <div className="absolute right-0 top-12 w-56 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-1.5 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-150">
-                  {/* User Profile header */}
-                  <Link
-                    to={`/profile/${currentUserId}`}
-                    onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
-                  >
-                    <Avatar
-                      userId={currentUserId}
-                      src={currentUser?.avatarUrl}
-                      name={currentUser?.fullName || currentUser?.username}
-                      username={currentUser?.username}
-                      avatarColor={currentUser?.avatarColor}
-                      size="sm"
-                      hideStatus={true}
-                      onClick={() => setProfileMenuOpen(false)}
-                      className="shrink-0"
-                    />
-                    <div className="flex flex-col min-w-0 leading-tight">
-                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                        {currentUser?.fullName || currentUser?.username}
-                      </span>
-                      <span className="text-[11px] text-zinc-500 truncate">@{currentUser?.username}</span>
-                    </div>
-                  </Link>
-
-                  <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1" />
-
-                  <Link
-                    to={`/profile/${currentUserId}`}
-                    onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-98 transition"
-                  >
-                    <User className="w-4 h-4 text-zinc-500" /> Hồ sơ cá nhân
-                  </Link>
-
-                  <Link
-                    to="/security"
-                    onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-98 transition"
-                  >
-                    <Settings className="w-4 h-4 text-zinc-500" /> Cài đặt & Bảo mật
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => { onToggleTheme?.(); setProfileMenuOpen(false); }}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-98 transition w-full text-left cursor-pointer"
-                  >
-                    {isDark ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-zinc-500" />}
-                    {isDark ? "Chế độ Sáng" : "Chế độ Tối"}
-                  </button>
-
-                  <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1" />
-
-                  <button
-                    type="button"
-                    onClick={() => { logout(); navigate("/login"); }}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-98 transition w-full text-left cursor-pointer"
-                  >
-                    <LogOut className="w-4 h-4" /> Đăng xuất
-                  </button>
-                </div>
+              {/* Avatar Trang cá nhân trên Mobile (Click chuyển thẳng sang profile cá nhân) */}
+              {currentUser && (
+                <Link
+                  to={`/profile/${currentUserId}`}
+                  className="md:hidden flex items-center justify-center p-0.5 rounded-full hover:opacity-90 active:scale-95 transition"
+                  title="Trang cá nhân của bạn"
+                >
+                  <Avatar
+                    userId={currentUserId}
+                    src={currentUser?.avatarUrl}
+                    name={currentUser?.fullName || currentUser?.username}
+                    username={currentUser?.username}
+                    avatarColor={currentUser?.avatarColor}
+                    size="xs"
+                    hideStatus={true}
+                    className="w-7 h-7 min-w-7 min-h-7 border border-zinc-200 dark:border-zinc-700 shadow-xs"
+                  />
+                </Link>
               )}
-            </div>
 
-            {/* Mobile Hamburger */}
-            <div className="relative md:hidden">
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(true)}
-                className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-150 cursor-pointer"
-                title="Mở menu đầy đủ"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
+              {/* Profile Dropdown (Desktop only) */}
+              <div className="relative hidden md:block" ref={profileMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setProfileMenuOpen((v) => !v)}
+                  className="flex items-center gap-1 p-1 min-w-[36px] min-h-[36px] sm:min-w-[40px] sm:min-h-[40px] justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-150 cursor-pointer"
+                  title="Tài khoản cá nhân"
+                >
+                  <Avatar
+                    userId={currentUserId}
+                    src={currentUser?.avatarUrl}
+                    name={currentUser?.fullName || currentUser?.username}
+                    username={currentUser?.username}
+                    avatarColor={currentUser?.avatarColor}
+                    size="sm"
+                    hideStatus={true}
+                    className="border border-zinc-200 dark:border-zinc-700"
+                  />
+                  <ChevronDown className="w-3 h-3 text-zinc-400 hidden sm:inline" />
+                </button>
+
+                {profileMenuOpen && (
+                  <div className="absolute right-0 top-12 w-56 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-1.5 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-150">
+                    {/* User Profile header */}
+                    <Link
+                      to={`/profile/${currentUserId}`}
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+                    >
+                      <Avatar
+                        userId={currentUserId}
+                        src={currentUser?.avatarUrl}
+                        name={currentUser?.fullName || currentUser?.username}
+                        username={currentUser?.username}
+                        avatarColor={currentUser?.avatarColor}
+                        size="sm"
+                        hideStatus={true}
+                        onClick={() => setProfileMenuOpen(false)}
+                        className="shrink-0"
+                      />
+                      <div className="flex flex-col min-w-0 leading-tight">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                          {currentUser?.fullName || currentUser?.username}
+                        </span>
+                        <span className="text-[11px] text-zinc-500 truncate">@{currentUser?.username}</span>
+                      </div>
+                    </Link>
+
+                    <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1" />
+
+                    <Link
+                      to={`/profile/${currentUserId}`}
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-98 transition"
+                    >
+                      <User className="w-4 h-4 text-zinc-500" /> Hồ sơ cá nhân
+                    </Link>
+
+                    <Link
+                      to="/security"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-98 transition"
+                    >
+                      <Settings className="w-4 h-4 text-zinc-500" /> Cài đặt & Bảo mật
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => { onToggleTheme?.(); setProfileMenuOpen(false); }}
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-98 transition w-full text-left cursor-pointer"
+                    >
+                      {isDark ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-zinc-500" />}
+                      {isDark ? "Chế độ Sáng" : "Chế độ Tối"}
+                    </button>
+
+                    <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1" />
+
+                    <button
+                      type="button"
+                      onClick={() => { logout(); navigate("/login"); }}
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-98 transition w-full text-left cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" /> Đăng xuất
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Hamburger */}
+              <div className="relative md:hidden">
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(true)}
+                  className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-150 cursor-pointer"
+                  title="Mở menu đầy đủ"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
         {/* Full Feature Synchronized Mobile Nav Drawer */}
         <MobileNavDrawer
@@ -397,9 +418,9 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           - Profile / Posts / Tools: Balanced Centered Layout (max-w-5xl mx-auto)
           ====================================================================== */}
       {is3ColumnFeedPage ? (
-        <div className="w-full px-2 md:px-3 min-h-screen grid grid-cols-12 gap-4 items-start">
+        <div className="w-full px-1 sm:px-1.5 md:px-2 min-h-screen grid grid-cols-12 gap-2 sm:gap-2.5 items-start">
           {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-2, sticky independent) */}
-          <aside className="hidden lg:block lg:col-span-2 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain no-scrollbar pt-3 pb-8 select-none">
+          <aside className="hidden lg:block lg:col-span-2 sticky top-14 sm:top-15 h-[calc(100vh-3.75rem)] overflow-y-auto overscroll-contain no-scrollbar pt-1 pb-6 select-none">
             <LeftSidebar />
           </aside>
 
@@ -407,13 +428,13 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           <main
             ref={mainRef}
             onScroll={handleMainScroll}
-            className="col-span-12 lg:col-span-7 min-w-0 w-full pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y animate-fade-in-up"
+            className="col-span-12 lg:col-span-7 min-w-0 w-full pt-1 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-2 touch-pan-y animate-fade-in-up"
           >
             {children}
           </main>
 
           {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, sticky independent) */}
-          <aside className="hidden lg:block lg:col-span-3 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain no-scrollbar pt-3 pb-8 select-none">
+          <aside className="hidden lg:block lg:col-span-3 sticky top-14 sm:top-15 h-[calc(100vh-3.75rem)] overflow-y-auto overscroll-contain no-scrollbar pt-1 pb-6 select-none">
             <RightSidebar />
           </aside>
         </div>
@@ -421,7 +442,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className={`w-full flex-1 px-2 sm:px-4 pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y animate-fade-in-up ${
+          className={`w-full flex-1 px-1 sm:px-3 pt-1 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-2 touch-pan-y animate-fade-in-up ${
             isProfilePage
               ? "max-w-5xl mx-auto"
               : isPostDetailPage

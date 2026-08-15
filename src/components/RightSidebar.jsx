@@ -120,7 +120,7 @@ export default function RightSidebar() {
   };
 
   return (
-    <div className="w-full flex flex-col gap-4">
+    <div className="w-full flex flex-col gap-2">
       {/* 1. Mini Music Player (Vinahouse / Lofi Focus) */}
       <MiniMusicPlayer />
 

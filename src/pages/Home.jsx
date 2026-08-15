@@ -313,7 +313,7 @@ export default function Home() {
   }, [posts, activeTab, followingIds, currentUserId]);
 
   return (
-    <div className="w-full flex flex-col gap-4">
+    <div className="w-full flex flex-col gap-2">
       {/* Top Header with 2 Tabs (Segmented Pill Style) */}
       <div className="flex bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 p-1 rounded-2xl shrink-0 shadow-xs gap-1">
         <button
@@ -423,7 +423,7 @@ export default function Home() {
       )}
 
       {/* 3. POSTS FEED LIST WITH SMOOTH STAGGERED TRANSITION */}
-      <div key={activeTab} className="flex flex-col gap-3.5 animate-tab-fade">
+      <div key={activeTab} className="flex flex-col gap-2 animate-tab-fade">
         {loading && posts.length === 0 ? (
           <>
             <PostSkeleton />

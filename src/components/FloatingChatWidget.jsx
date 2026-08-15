@@ -2762,36 +2762,61 @@ export default function FloatingChatWidget() {
               </p>
             </div>
 
-            {/* Bottom Actions: Reply to Messenger */}
-            <div className="relative z-10 flex items-center gap-2 pt-2">
-              <input
-                type="text"
-                placeholder={`Gửi phản hồi cho ${activeViewingStory.user?.fullName?.split(" ")?.[0] || "bạn bè"}...`}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && e.target.value.trim()) {
-                    const text = `💬 Phản hồi tin: "${activeViewingStory.textContent || activeViewingStory.text || "Hình ảnh"}" - ${e.target.value.trim()}`;
-                    if (activeViewingStory.user?.id && Number(activeViewingStory.user.id) !== Number(currentUserId)) {
-                      chatService.sendMessage(currentUserId, activeViewingStory.user.id, text).catch(() => {});
-                      toast.success("Đã gửi phản hồi vào tin nhắn!");
-                    } else {
-                      toast.info("Đã ghi nhận phản hồi!");
+            {/* Bottom Actions: Emoji Reactions & Reply to Messenger */}
+            <div className="relative z-10 flex flex-col gap-2 pt-2">
+              {/* Emojis Reaction Bar (6 biểu tượng cảm xúc chuẩn mực) */}
+              <div className="flex items-center justify-around bg-black/40 backdrop-blur-md py-1.5 px-3 rounded-full border border-white/20">
+                {[
+                  { emoji: "❤️", label: "Thả tim" },
+                  { emoji: "👍", label: "Thích" },
+                  { emoji: "😂", label: "Haha" },
+                  { emoji: "😮", label: "Wow" },
+                  { emoji: "😢", label: "Buồn" },
+                  { emoji: "😡", label: "Phẫn nộ" },
+                ].map(({ emoji, label }) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => {
+                      if (activeViewingStory.user?.id && Number(activeViewingStory.user.id) !== Number(currentUserId)) {
+                        storyService.react(activeViewingStory.id, currentUserId, emoji).catch(() => {});
+                        chatService.sendMessage(
+                          currentUserId,
+                          activeViewingStory.user.id,
+                          `Đã bày tỏ cảm xúc ${emoji} về tin của bạn`
+                        ).catch(() => {});
+                      }
+                      toast.success(`${emoji} ${label}!`);
+                      setActiveViewingStory(null);
+                    }}
+                    className="text-xl hover:scale-125 active:scale-95 transition-transform cursor-pointer p-0.5"
+                    title={label}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+
+              {/* Reply Input Form */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder={`Gửi phản hồi cho ${activeViewingStory.user?.fullName?.split(" ")?.[0] || "bạn bè"}...`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && e.target.value.trim()) {
+                      const text = `💬 Phản hồi tin: "${activeViewingStory.textContent || activeViewingStory.text || "Hình ảnh"}" - ${e.target.value.trim()}`;
+                      if (activeViewingStory.user?.id && Number(activeViewingStory.user.id) !== Number(currentUserId)) {
+                        chatService.sendMessage(currentUserId, activeViewingStory.user.id, text).catch(() => {});
+                        toast.success("Đã gửi phản hồi vào tin nhắn!");
+                      } else {
+                        toast.info("Đã ghi nhận phản hồi!");
+                      }
+                      setActiveViewingStory(null);
                     }
-                    setActiveViewingStory(null);
-                  }
-                }}
-                className="flex-1 bg-white/20 hover:bg-white/30 focus:bg-white/30 backdrop-blur-md rounded-full px-4 py-2 text-xs text-white placeholder-white/70 outline-none border border-white/30 transition"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  toast.success("❤️ Đã thả tim vào tin!");
-                  setActiveViewingStory(null);
-                }}
-                className="p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-rose-400 hover:text-rose-300 transition cursor-pointer border border-white/30"
-                title="Thả tim tin"
-              >
-                <Heart className="w-5 h-5 fill-rose-500 text-rose-500" />
-              </button>
+                  }}
+                  className="flex-1 bg-white/20 hover:bg-white/30 focus:bg-white/30 backdrop-blur-md rounded-full px-4 py-2 text-xs text-white placeholder-white/70 outline-none border border-white/30 transition"
+                />
+              </div>
             </div>
           </div>
         </div>
