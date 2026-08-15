@@ -120,20 +120,23 @@ export default function RightSidebar() {
   };
 
   return (
-    <div className="w-full flex flex-col space-y-4 px-1">
+    <div className="w-full flex flex-col space-y-3 px-1">
       {/* 1. Mini Music Player (Vinahouse / Lofi Focus) */}
       <MiniMusicPlayer />
+
+      {/* Đường gạch ngang phân cách dài */}
+      <div className="border-t border-slate-200 dark:border-zinc-800 my-1" />
 
       {/* 2. Gợi ý kết bạn & Theo dõi (Suggestions for You - Dạng phẳng không viền hộp) */}
       <div className="flex flex-col gap-3 px-1">
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+          <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
             Gợi ý cho bạn
           </span>
           <Link
             to="/friends"
-            className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
           >
             Xem tất cả
           </Link>
@@ -146,11 +149,11 @@ export default function RightSidebar() {
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-zinc-800" />
                   <div className="flex flex-col gap-1.5">
-                    <div className="h-3 w-20 bg-slate-200 dark:bg-zinc-800 rounded" />
+                    <div className="h-3.5 w-20 bg-slate-200 dark:bg-zinc-800 rounded" />
                     <div className="h-2.5 w-14 bg-slate-100 dark:bg-zinc-900 rounded" />
                   </div>
                 </div>
-                <div className="w-14 h-6 rounded-full bg-slate-200 dark:bg-zinc-800" />
+                <div className="w-16 h-7 rounded-full bg-slate-200 dark:bg-zinc-800" />
               </div>
             ))}
           </div>
@@ -185,10 +188,10 @@ export default function RightSidebar() {
                     />
 
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:underline">
+                      <span className="text-[13.5px] font-semibold text-zinc-900 dark:text-zinc-100 truncate group-hover:underline">
                         {displayName}
                       </span>
-                      <span className="text-[10px] text-zinc-500 truncate">
+                      <span className="text-xs text-zinc-500 truncate">
                         @{user.username}
                       </span>
                     </div>
@@ -197,7 +200,7 @@ export default function RightSidebar() {
                   <button
                     type="button"
                     onClick={() => handleToggleFollow(user)}
-                    className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all duration-150 active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer ${
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer ${
                       isFollowing
                         ? "bg-slate-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
                         : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-2xs"
@@ -205,12 +208,12 @@ export default function RightSidebar() {
                   >
                     {isFollowing ? (
                       <>
-                        <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                         <span>Đang theo dõi</span>
                       </>
                     ) : (
                       <>
-                        <UserPlus className="w-3 h-3" />
+                        <UserPlus className="w-3.5 h-3.5" />
                         <span>Theo dõi</span>
                       </>
                     )}
@@ -222,9 +225,12 @@ export default function RightSidebar() {
         )}
       </div>
 
+      {/* Đường gạch ngang phân cách dài */}
+      <div className="border-t border-slate-200 dark:border-zinc-800 my-1" />
+
       {/* 3. Footer Bản quyền & Thông tin */}
-      <div className="px-2 text-[11px] text-zinc-400 dark:text-zinc-500 leading-relaxed flex flex-col gap-1">
-        <div className="flex flex-wrap gap-x-2 gap-y-1">
+      <div className="px-2 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed flex flex-col gap-1.5">
+        <div className="flex flex-wrap gap-x-2.5 gap-y-1">
           <Link to="/about" className="hover:underline">
             Giới thiệu
           </Link>
@@ -246,7 +252,7 @@ export default function RightSidebar() {
             Tác giả Hoàng Anh
           </a>
         </div>
-        <span>© 2026 BlogViet Platform. All rights reserved.</span>
+        <span className="text-[11px] text-zinc-400">© 2026 BlogViet Platform. All rights reserved.</span>
       </div>
     </div>
   );
