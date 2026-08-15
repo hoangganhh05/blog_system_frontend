@@ -494,7 +494,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           to="/notifications"
           className={({ isActive }) =>
             `relative flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition-all duration-150 active:scale-90 ${
-              isActive ? "text-black dark:text-white font-bold" : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
             }`
           }
           title="Thông báo"
@@ -507,27 +507,6 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               )}
             </>
           )}
-        </NavLink>
-
-        {/* 5. Trang cá nhân */}
-        <NavLink
-          to={currentUserId ? `/profile/${currentUserId}` : "/login"}
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1 rounded-full transition-all duration-150 active:scale-90 ${
-              isActive ? "ring-2 ring-[#0866ff]" : ""
-            }`
-          }
-          title="Trang cá nhân"
-        >
-          <Avatar
-            userId={currentUserId}
-            src={currentUser?.avatarUrl}
-            name={currentUser?.fullName || currentUser?.username}
-            username={currentUser?.username}
-            avatarColor={currentUser?.avatarColor}
-            size="xs"
-            hideStatus={true}
-          />
         </NavLink>
       </nav>
 

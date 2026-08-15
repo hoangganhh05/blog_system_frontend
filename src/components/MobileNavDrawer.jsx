@@ -210,6 +210,7 @@ export default function MobileNavDrawer({
     { to: "/friends", label: "Bạn bè & Kết nối", icon: Users },
     { to: "/saved", label: "Bài viết đã lưu", icon: Bookmark },
     { to: "/dashboard", label: "Bảng điều khiển", icon: BarChart2 },
+    { to: "/settings", label: "Cài đặt & Bảo mật", icon: Settings },
   ];
 
   const drawerContent = (
