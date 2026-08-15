@@ -189,6 +189,26 @@ export default function Home() {
     [searchValue]
   );
 
+  // Infinite scroll bottom observer ref
+  const bottomObserverRef = useRef(null);
+
+  // Setup IntersectionObserver for smooth Infinite Scroll
+  useEffect(() => {
+    if (!bottomObserverRef.current || !hasMore || loading || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isFetchingRef.current) {
+          fetchPosts(page + 1);
+        }
+      },
+      { rootMargin: "400px" }
+    );
+
+    observer.observe(bottomObserverRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loading, loadingMore, page, fetchPosts]);
+
   // Initial load
   useEffect(() => {
     fetchPosts(0, true);
@@ -199,7 +219,7 @@ export default function Home() {
     setActiveTab(tab);
     if (tab === "following") {
       loadFollowingList();
-      if (posts.length < 40 && hasMore) {
+      if (hasMore && !isFetchingRef.current) {
         fetchPosts(page + 1);
       }
     }
@@ -447,38 +467,30 @@ export default function Home() {
         )}
       </div>
 
-      {/* Load More Trigger */}
-      {hasMore && !loading && activeTab === "forYou" && (
-        <div className="p-6 text-center">
-          <button
-            type="button"
-            onClick={() => fetchPosts(page + 1)}
-            disabled={loadingMore}
-            className="px-6 py-2 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition disabled:opacity-50 inline-flex items-center gap-2 cursor-pointer"
-          >
-            {loadingMore ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Đang tải thêm...</span>
-              </>
-            ) : (
-              <span>Xem thêm bài viết</span>
-            )}
-          </button>
+      {/* Infinite Scroll Observer Target & Smooth Loading Spinner */}
+      {hasMore && !loading && (
+        <div
+          ref={bottomObserverRef}
+          className="py-6 flex flex-col items-center justify-center gap-2 text-zinc-400"
+        >
+          <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+            <Loader2 className="w-4 h-4 animate-spin text-[#0866ff]" />
+            <span>Đang tự động tải thêm bài viết...</span>
+          </div>
         </div>
       )}
 
-      {/* Feed End Marker (Đã xem hết tất cả bài viết mới) */}
+      {/* Feed End Marker (Khi đã cuộn tải hết toàn bộ bài viết trong Database) */}
       {!hasMore && !loading && displayedPosts.length > 0 && (
         <div className="py-8 flex flex-col items-center justify-center gap-2 text-zinc-400 dark:text-zinc-500 animate-in fade-in duration-300">
-          <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-indigo-500 shadow-xs">
+          <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[#0866ff] shadow-xs">
             <Sparkles className="w-4 h-4" />
           </div>
           <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-            Bạn đã xem hết các bài viết mới ✨
+            Bạn đã xem hết toàn bộ bài viết trong hệ thống ✨
           </span>
           <span className="text-[11px] text-zinc-500 dark:text-zinc-400 text-center max-w-xs leading-relaxed">
-            Hãy khám phá thêm chủ đề hoặc kết nối thêm bạn bè để nhận thêm nội dung hấp dẫn.
+            Hãy khám phá thêm bài viết mới hoặc tạo bài viết đầu tiên của bạn!
           </span>
         </div>
       )}

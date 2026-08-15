@@ -416,21 +416,31 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           >
             {/* Tác giả bài gốc */}
             <div className="flex items-center gap-2">
-              {origAuthor.avatarUrl ? (
-                <img src={origAuthor.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
-              ) : (
-                <div className="w-6 h-6 rounded-full bg-zinc-800 dark:bg-zinc-700 text-[10px] font-bold text-white flex items-center justify-center shrink-0">
-                  {getInitials(origAuthorName)}
-                </div>
-              )}
-              <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 truncate">
-                {origAuthorName}
-              </span>
-              {origAuthor.username && (
-                <span className="text-xs text-zinc-400 truncate">
-                  @{origAuthor.username}
+              <Link
+                to={origAuthor.id ? `/profile/${origAuthor.id}` : "#"}
+                onClick={(e) => {
+                  if (origAuthor.id) {
+                    e.stopPropagation();
+                  }
+                }}
+                className="flex items-center gap-2 group hover:underline"
+              >
+                {origAuthor.avatarUrl ? (
+                  <img src={origAuthor.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-zinc-800 dark:bg-zinc-700 text-[10px] font-bold text-white flex items-center justify-center shrink-0">
+                    {getInitials(origAuthorName)}
+                  </div>
+                )}
+                <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 truncate">
+                  {origAuthorName}
                 </span>
-              )}
+                {origAuthor.username && (
+                  <span className="text-xs text-zinc-400 truncate">
+                    @{origAuthor.username}
+                  </span>
+                )}
+              </Link>
             </div>
 
             {/* Tiêu đề bài gốc (nếu có) */}
