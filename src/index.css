@@ -69,7 +69,7 @@ img {
 }
 
 /* ============================================
-   NO SCROLLBAR UTILITY
+   NO SCROLLBAR & CUSTOM SCROLLBAR UTILITY
    ============================================ */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -77,4 +77,23 @@ img {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.2);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 150, 150, 0.4);
+}
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(150, 150, 150, 0.2) transparent;
 }
