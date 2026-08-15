@@ -489,13 +489,23 @@ export default function RadioPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {paginatedSongs.map((song, index) => {
             if (!song) return null;
-            const songSrc = song.src || song.audioUrl;
-            const isSelected = Boolean(currentTrack?.src && songSrc && currentTrack.src === songSrc);
+            const isSelected = Boolean(
+              currentTrack && (
+                (song.id !== undefined && currentTrack.id !== undefined && String(song.id) === String(currentTrack.id)) ||
+                (song.title && currentTrack.title && song.title === currentTrack.title && song.artist === currentTrack.artist)
+              )
+            );
 
             return (
               <div
                 key={song.id || index}
-                onClick={() => playTrack(song)}
+                onClick={() => {
+                  if (isSelected) {
+                    togglePlay();
+                  } else {
+                    playTrack(song);
+                  }
+                }}
                 className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 group relative overflow-hidden ${
                   isSelected
                     ? "bg-blue-50/70 dark:bg-[#0866ff]/15 border-[#0866ff]/50 dark:border-[#0866ff]/60 shadow-xs"
@@ -594,80 +604,105 @@ export default function RadioPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-[#393a3b]/60">
-                {paginatedSongs.map((song) => (
-                  <tr
-                    key={song.id || song.src}
-                    className="hover:bg-slate-50 dark:hover:bg-[#303031]/50 transition group"
-                  >
-                    <td className="p-3 pl-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800">
-                          {song.cover ? (
-                            <img src={song.cover} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <Music2 className="w-4 h-4 text-slate-400 m-auto" />
-                          )}
+                {paginatedSongs.map((song) => {
+                  const isSelected = Boolean(
+                    currentTrack && (
+                      (song.id !== undefined && currentTrack.id !== undefined && String(song.id) === String(currentTrack.id)) ||
+                      (song.title && currentTrack.title && song.title === currentTrack.title && song.artist === currentTrack.artist)
+                    )
+                  );
+
+                  return (
+                    <tr
+                      key={song.id || song.src}
+                      className={`hover:bg-slate-50 dark:hover:bg-[#303031]/50 transition group ${
+                        isSelected ? "bg-blue-50/40 dark:bg-[#0866ff]/10" : ""
+                      }`}
+                    >
+                      <td className="p-3 pl-4">
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800">
+                            {song.cover ? (
+                              <img src={song.cover} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <Music2 className="w-4 h-4 text-slate-400 m-auto" />
+                            )}
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className={`font-bold truncate ${isSelected ? "text-[#0866ff]" : "text-zinc-900 dark:text-zinc-100"}`}>
+                              {song.title}
+                            </span>
+                            <span className="text-[11px] text-zinc-500 truncate">
+                              {song.artist || "Nhiều nghệ sĩ"}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                            {song.title}
-                          </span>
-                          <span className="text-[11px] text-zinc-500 truncate">
-                            {song.artist || "Nhiều nghệ sĩ"}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className="p-3">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/50">
-                        {song.genre}
-                      </span>
-                    </td>
+                      <td className="p-3">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/50">
+                          {song.genre}
+                        </span>
+                      </td>
 
-                    <td className="p-3 hidden sm:table-cell max-w-[160px]">
-                      <a
-                        href={song.src || song.audioUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[11px] font-mono text-zinc-500 hover:text-[#0866ff] truncate flex items-center gap-1"
-                        title={song.src || song.audioUrl}
-                      >
-                        <span className="truncate">{song.src || song.audioUrl}</span>
-                        <ExternalLink className="w-3 h-3 shrink-0" />
-                      </a>
-                    </td>
-
-                    <td className="p-3 pr-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() => playTrack(song)}
-                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-zinc-700 dark:text-zinc-300 transition cursor-pointer"
-                          title="Phát bài này"
+                      <td className="p-3 hidden sm:table-cell max-w-[160px]">
+                        <a
+                          href={song.src || song.audioUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] font-mono text-zinc-500 hover:text-[#0866ff] truncate flex items-center gap-1"
+                          title={song.src || song.audioUrl}
                         >
-                          <Play className="w-3.5 h-3.5 fill-current" />
-                        </button>
+                          <span className="truncate">{song.src || song.audioUrl}</span>
+                          <ExternalLink className="w-3 h-3 shrink-0" />
+                        </a>
+                      </td>
 
-                        {song.id && (
+                      <td className="p-3 pr-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
                           <button
                             type="button"
-                            disabled={deletingId === song.id}
-                            onClick={() => handleDeleteSong(song)}
-                            className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-500 transition cursor-pointer disabled:opacity-40"
-                            title="Xóa bài hát"
+                            onClick={() => {
+                              if (isSelected) {
+                                togglePlay();
+                              } else {
+                                playTrack(song);
+                              }
+                            }}
+                            className={`p-1.5 rounded-lg transition cursor-pointer ${
+                              isSelected && isPlaying
+                                ? "bg-[#0866ff] text-white shadow-2xs"
+                                : "hover:bg-slate-100 dark:hover:bg-slate-800 text-zinc-700 dark:text-zinc-300"
+                            }`}
+                            title={isSelected && isPlaying ? "Tạm dừng" : "Phát bài này"}
                           >
-                            {deletingId === song.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            {isSelected && isPlaying ? (
+                              <Pause className="w-3.5 h-3.5 fill-current" />
                             ) : (
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Play className="w-3.5 h-3.5 fill-current" />
                             )}
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+
+                          {song.id && (
+                            <button
+                              type="button"
+                              disabled={deletingId === song.id}
+                              onClick={() => handleDeleteSong(song)}
+                              className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-500 transition cursor-pointer disabled:opacity-40"
+                              title="Xóa bài hát"
+                            >
+                              {deletingId === song.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

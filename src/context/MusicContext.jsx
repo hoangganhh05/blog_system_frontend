@@ -21,8 +21,8 @@ export const VIETNAMESE_PLAYLIST = [
     genre: "Vinahouse",
     genreColor: "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
     cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80",
-    src: "https://streams.ilovemusic.de/iloveradio2.mp3",
-    fallbackSrc: "https://streams.ilovemusic.de/iloveradio9.mp3",
+    src: "https://streams.ilovemusic.de/iloveradio14.mp3",
+    fallbackSrc: "https://streams.ilovemusic.de/iloveradio2.mp3",
   },
   {
     id: 3,
@@ -31,7 +31,7 @@ export const VIETNAMESE_PLAYLIST = [
     genre: "Vinahouse",
     genreColor: "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
     cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80",
-    src: "https://streams.ilovemusic.de/iloveradio2.mp3",
+    src: "https://streams.ilovemusic.de/iloveradio15.mp3",
     fallbackSrc: "https://streams.ilovemusic.de/iloveradio9.mp3",
   },
   {
@@ -63,7 +63,7 @@ export const VIETNAMESE_PLAYLIST = [
     genre: "Lofi Chill",
     genreColor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
     cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
-    src: "https://streams.ilovemusic.de/iloveradio10.mp3",
+    src: "https://streams.ilovemusic.de/iloveradio11.mp3",
     fallbackSrc: "https://streams.ilovemusic.de/iloveradio1.mp3",
   },
   {
@@ -83,7 +83,7 @@ export const VIETNAMESE_PLAYLIST = [
     genre: "Lofi Chill",
     genreColor: "bg-cyan-100 text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300",
     cover: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80",
-    src: "https://streams.ilovemusic.de/iloveradio10.mp3",
+    src: "https://streams.ilovemusic.de/iloveradio16.mp3",
     fallbackSrc: "https://streams.ilovemusic.de/iloveradio9.mp3",
   },
 
@@ -105,7 +105,7 @@ export const VIETNAMESE_PLAYLIST = [
     genre: "V-Pop",
     genreColor: "bg-pink-100 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300",
     cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
-    src: "https://streams.ilovemusic.de/iloveradio10.mp3",
+    src: "https://streams.ilovemusic.de/iloveradio12.mp3",
     fallbackSrc: "https://stream.zeno.fm/f3wvbbqmdg8uv",
   },
   {
@@ -115,7 +115,7 @@ export const VIETNAMESE_PLAYLIST = [
     genre: "V-Pop",
     genreColor: "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300",
     cover: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&auto=format&fit=crop&q=80",
-    src: "https://streams.ilovemusic.de/iloveradio1.mp3",
+    src: "https://streams.ilovemusic.de/iloveradio18.mp3",
     fallbackSrc: "https://stream.zeno.fm/f3wvbbqmdg8uv",
   },
   {
@@ -125,7 +125,7 @@ export const VIETNAMESE_PLAYLIST = [
     genre: "V-Pop",
     genreColor: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300",
     cover: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&auto=format&fit=crop&q=80",
-    src: "https://streams.ilovemusic.de/iloveradio9.mp3",
+    src: "https://streams.ilovemusic.de/iloveradio20.mp3",
     fallbackSrc: "https://streams.ilovemusic.de/iloveradio2.mp3",
   },
 ];
@@ -138,12 +138,10 @@ export function formatAudioTime(secs) {
   return `${m}:${s < 10 ? "0" : ""}${s}`;
 }
 
-export function formatDurationTime(duration) {
-  if (!duration || isNaN(duration) || duration === Infinity || duration <= 0) {
-    return "LIVE";
-  }
-  const m = Math.floor(duration / 60);
-  const s = Math.floor(duration % 60);
+export function formatDurationTime(secs) {
+  if (!secs || isNaN(secs) || secs === 0 || secs === Infinity) return "Trực tiếp";
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
   return `${m}:${s < 10 ? "0" : ""}${s}`;
 }
 
@@ -197,6 +195,7 @@ export function MusicProvider({ children }) {
   const rawTrack = playlist[currentTrackIndex] || playlist[0] || VIETNAMESE_PLAYLIST[0];
   const currentTrack = {
     ...rawTrack,
+    id: rawTrack?.id ?? (currentTrackIndex + 1),
     src: rawTrack?.src || rawTrack?.audioUrl || VIETNAMESE_PLAYLIST[0].src,
     fallbackSrc: rawTrack?.fallbackSrc || rawTrack?.fallbackAudioUrl || VIETNAMESE_PLAYLIST[0].fallbackSrc,
     cover: rawTrack?.cover || rawTrack?.coverUrl || VIETNAMESE_PLAYLIST[0].cover,
@@ -211,8 +210,9 @@ export function MusicProvider({ children }) {
       .getAll()
       .then((res) => {
         if (Array.isArray(res.data) && res.data.length > 0) {
-          const normalized = res.data.map((item) => ({
+          const normalized = res.data.map((item, idx) => ({
             ...item,
+            id: item.id || `backend_${idx + 1}`,
             src: item.src || item.audioUrl || VIETNAMESE_PLAYLIST[0].src,
             fallbackSrc: item.fallbackSrc || item.fallbackAudioUrl,
             cover: item.cover || item.coverUrl || VIETNAMESE_PLAYLIST[0].cover,
@@ -309,7 +309,10 @@ export function MusicProvider({ children }) {
     audio.addEventListener("error", onError);
 
     return () => {
-      audio.pause();
+      try {
+        audio.pause();
+        audio.src = "";
+      } catch {}
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onLoadedMetadata);
       audio.removeEventListener("durationchange", onDurationChange);
@@ -346,9 +349,13 @@ export function MusicProvider({ children }) {
     retryCountRef.current = 0;
 
     if (audioRef.current) {
-      audioRef.current.pause();
+      // Force pause & reset before switching audio
+      try {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      } catch {}
+
       audioRef.current.src = audioSource;
-      audioRef.current.currentTime = 0;
       audioRef.current
         .play()
         .then(() => setIsPlaying(true))
@@ -370,13 +377,20 @@ export function MusicProvider({ children }) {
     if (typeof trackOrIndex === "number") {
       targetIndex = (trackOrIndex + curList.length) % curList.length;
     } else if (typeof trackOrIndex === "object") {
-      const foundIdx = curList.findIndex(
-        (t) =>
-          (trackOrIndex.id && t.id === trackOrIndex.id) ||
-          (trackOrIndex.src && (t.src === trackOrIndex.src || t.audioUrl === trackOrIndex.src)) ||
-          (trackOrIndex.audioUrl && (t.src === trackOrIndex.audioUrl || t.audioUrl === trackOrIndex.audioUrl)) ||
-          (trackOrIndex.title && t.title === trackOrIndex.title)
-      );
+      let foundIdx = -1;
+      // Match by ID first
+      if (trackOrIndex.id !== undefined && trackOrIndex.id !== null) {
+        foundIdx = curList.findIndex((t) => String(t.id) === String(trackOrIndex.id));
+      }
+      // Match by title & artist
+      if (foundIdx === -1 && trackOrIndex.title) {
+        foundIdx = curList.findIndex((t) => t.title === trackOrIndex.title && t.artist === trackOrIndex.artist);
+      }
+      // Match by source URL
+      if (foundIdx === -1 && (trackOrIndex.src || trackOrIndex.audioUrl)) {
+        const s = trackOrIndex.src || trackOrIndex.audioUrl;
+        foundIdx = curList.findIndex((t) => t.src === s || t.audioUrl === s);
+      }
 
       if (foundIdx !== -1) {
         targetIndex = foundIdx;
@@ -398,6 +412,20 @@ export function MusicProvider({ children }) {
       if (idx !== -1) targetIndex = idx;
     }
 
+    // If clicking on the exact currently selected track: toggle play / pause cleanly
+    if (targetIndex === currentTrackIndexRef.current && audioRef.current?.src) {
+      if (audioRef.current.paused) {
+        audioRef.current
+          .play()
+          .then(() => setIsPlaying(true))
+          .catch(() => setIsPlaying(false));
+      } else {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+      return;
+    }
+
     playTrackInternal(targetIndex);
   }, []);
 
@@ -405,6 +433,7 @@ export function MusicProvider({ children }) {
     if (!audioRef.current) return;
     if (isPlaying) {
       audioRef.current.pause();
+      setIsPlaying(false);
     } else {
       audioRef.current
         .play()
@@ -458,8 +487,9 @@ export function MusicProvider({ children }) {
     try {
       const res = await songService.getAll();
       if (Array.isArray(res.data) && res.data.length > 0) {
-        const normalized = res.data.map((item) => ({
+        const normalized = res.data.map((item, idx) => ({
           ...item,
+          id: item.id || `backend_${idx + 1}`,
           src: item.src || item.audioUrl || VIETNAMESE_PLAYLIST[0].src,
           fallbackSrc: item.fallbackSrc || item.fallbackAudioUrl,
           cover: item.cover || item.coverUrl || VIETNAMESE_PLAYLIST[0].cover,
@@ -475,6 +505,7 @@ export function MusicProvider({ children }) {
         playlist,
         currentTrack,
         currentTrackIndex,
+        currentTrackId: currentTrack?.id,
         isPlaying,
         currentTime,
         duration,

@@ -160,7 +160,7 @@ export default function MiniMusicPlayer() {
 
             <div className="max-h-44 overflow-y-auto flex flex-col gap-1 pr-1 custom-scrollbar">
               {filteredPlaylist.map((track) => {
-                const originalIndex = playlist.findIndex((p) => p.id === track.id);
+                const originalIndex = playlist.findIndex((p) => String(p.id) === String(track.id));
                 const isThisPlaying = currentTrackIndex === originalIndex;
 
                 return (
@@ -168,7 +168,11 @@ export default function MiniMusicPlayer() {
                     key={track.id}
                     type="button"
                     onClick={() => {
-                      playTrack(originalIndex);
+                      if (isThisPlaying) {
+                        togglePlay();
+                      } else {
+                        playTrack(originalIndex);
+                      }
                     }}
                     className={`flex items-center justify-between gap-2 p-1.5 rounded-lg text-left transition w-full cursor-pointer ${
                       isThisPlaying
@@ -190,13 +194,21 @@ export default function MiniMusicPlayer() {
                       </div>
                     </div>
 
-                    <span
-                      className={`text-[8px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
-                        track.genreColor || "bg-zinc-200 text-zinc-700"
-                      }`}
-                    >
-                      {track.genre}
-                    </span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {isThisPlaying && isPlaying && (
+                        <div className="flex items-center gap-0.5">
+                          <div className="w-0.5 h-2 bg-current rounded-full animate-bounce" />
+                          <div className="w-0.5 h-3 bg-current rounded-full animate-bounce [animation-delay:0.2s]" />
+                        </div>
+                      )}
+                      <span
+                        className={`text-[8px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                          track.genreColor || "bg-zinc-200 text-zinc-700"
+                        }`}
+                      >
+                        {track.genre}
+                      </span>
+                    </div>
                   </button>
                 );
               })}
@@ -582,13 +594,19 @@ export default function MiniMusicPlayer() {
 
               <div className="max-h-48 overflow-y-auto flex flex-col gap-1.5 pr-1 custom-scrollbar">
                 {filteredPlaylist.map((track) => {
-                  const origIdx = playlist.findIndex((p) => p.id === track.id);
+                  const origIdx = playlist.findIndex((p) => String(p.id) === String(track.id));
                   const isCur = currentTrackIndex === origIdx;
                   return (
                     <button
                       key={track.id}
                       type="button"
-                      onClick={() => playTrack(origIdx)}
+                      onClick={() => {
+                        if (isCur) {
+                          togglePlay();
+                        } else {
+                          playTrack(origIdx);
+                        }
+                      }}
                       className={`flex items-center justify-between p-2 rounded-xl text-left transition w-full cursor-pointer ${
                         isCur
                           ? "bg-black text-white dark:bg-white dark:text-black font-semibold shadow-xs"
@@ -602,13 +620,21 @@ export default function MiniMusicPlayer() {
                           <span className="text-[10px] opacity-75 truncate">{track.artist}</span>
                         </div>
                       </div>
-                      <span
-                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
-                          track.genreColor || "bg-zinc-200 text-zinc-700"
-                        }`}
-                      >
-                        {track.genre}
-                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {isCur && isPlaying && (
+                          <div className="flex items-center gap-0.5">
+                            <div className="w-0.5 h-2.5 bg-current rounded-full animate-bounce" />
+                            <div className="w-0.5 h-3.5 bg-current rounded-full animate-bounce [animation-delay:0.2s]" />
+                          </div>
+                        )}
+                        <span
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                            track.genreColor || "bg-zinc-200 text-zinc-700"
+                          }`}
+                        >
+                          {track.genre}
+                        </span>
+                      </div>
                     </button>
                   );
                 })}
