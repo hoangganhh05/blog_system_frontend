@@ -187,7 +187,14 @@ export default function StickerPicker({ onSelectSticker, onClose }) {
         </div>
 
         {/* Sticker Pack Tabs - Horizontal Scroll */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-0.5 whitespace-nowrap">
+        <div
+          onWheel={(e) => {
+            if (e.deltaY !== 0) {
+              e.currentTarget.scrollLeft += e.deltaY;
+            }
+          }}
+          className="flex overflow-x-auto whitespace-nowrap scrollbar-none no-scrollbar scroll-smooth items-center gap-2 py-1 px-0.5"
+        >
           {STICKER_PACKS.map((pack) => {
             const Icon = pack.icon;
             const isSelected = activePackId === pack.id;
@@ -196,14 +203,14 @@ export default function StickerPicker({ onSelectSticker, onClose }) {
                 key={pack.id}
                 type="button"
                 onClick={() => setActivePackId(pack.id)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-bold shrink-0 transition cursor-pointer select-none whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold flex-shrink-0 shrink-0 transition cursor-pointer select-none whitespace-nowrap ${
                   isSelected
                     ? "bg-rose-500 text-white shadow-xs"
                     : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100"
                 }`}
                 title={pack.name}
               >
-                <Icon className="w-3 h-3 shrink-0" />
+                <Icon className="w-3 h-3 flex-shrink-0 shrink-0" />
                 <span>{pack.name}</span>
               </button>
             );
