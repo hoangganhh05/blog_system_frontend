@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -64,6 +65,7 @@ export default function Profile() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isStoryArchiveOpen, setIsStoryArchiveOpen] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState(null);
   const [editForm, setEditForm] = useState({ fullName: "", bio: "", avatarUrl: "", bannerUrl: "" });
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -331,8 +333,10 @@ export default function Profile() {
         {user.bannerUrl ? (
           <img
             src={user.bannerUrl}
-            alt=""
-            className="w-full h-full object-cover"
+            alt="Ảnh bìa"
+            className="w-full h-full object-cover cursor-pointer"
+            onClick={() => setLightboxUrl(user.bannerUrl)}
+            title="Nhấp để xem ảnh bìa"
           />
         ) : null}
 
@@ -371,8 +375,10 @@ export default function Profile() {
             {user.avatarUrl ? (
               <img
                 src={user.avatarUrl}
-                alt=""
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-900 shadow-md object-cover"
+                alt="Ảnh đại diện"
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-900 shadow-md object-cover cursor-pointer hover:opacity-90 transition"
+                onClick={() => setLightboxUrl(user.avatarUrl)}
+                title="Nhấp để xem ảnh đại diện"
               />
             ) : (
               <div
@@ -758,6 +764,36 @@ export default function Profile() {
           onClose={() => setIsStoryArchiveOpen(false)}
           userId={currentUserId}
         />
+      )}
+
+      {/* Image Lightbox Modal (Avatar / Cover Photo) */}
+      {lightboxUrl && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/85 backdrop-blur-sm animate-in fade-in duration-150 cursor-zoom-out"
+          onClick={() => setLightboxUrl(null)}
+          onKeyDown={(e) => e.key === "Escape" && setLightboxUrl(null)}
+          tabIndex={-1}
+          ref={(el) => el?.focus()}
+        >
+          {/* Close Button */}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setLightboxUrl(null); }}
+            className="absolute top-4 right-4 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white transition cursor-pointer z-10"
+            title="Đóng"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Full-size Image */}
+          <img
+            src={lightboxUrl}
+            alt="Xem ảnh chi tiết"
+            className="max-w-[92vw] max-h-[88vh] object-contain rounded-2xl shadow-2xl animate-in zoom-in-90 duration-200 cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>,
+        document.body
       )}
     </div>
   );
