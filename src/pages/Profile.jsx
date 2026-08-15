@@ -543,7 +543,127 @@ export default function Profile() {
       </div>
 
       {/* 2. Header Info (Avatar + Name + Bio + Stats + Action Buttons centered) */}
-      <div className="px-3 sm:px-6 -mt-14 sm:-mt-16 md:-mt-20 mb-4 flex flex-col items-center justify-center text-center">
+      <div className="px-3 sm:px-6 -mt-14 sm:-mt-16 md:-mt-20 mb-4 flex flex-col items-center justify-center text-center relative">
+        {/* Nút 3 chấm tùy chọn góc phải (Gọn gàng trên Mobile & Desktop) */}
+        {isMe && (
+          <div className="absolute right-2 sm:right-6 top-16 sm:top-18 z-20" ref={moreMenuRef}>
+            <button
+              type="button"
+              onClick={() => setIsMoreMenuOpen((v) => !v)}
+              className={`w-10 h-10 rounded-full border border-zinc-200/90 dark:border-zinc-700/90 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 transition-all duration-150 cursor-pointer shadow-xs active:scale-95 flex items-center justify-center ${
+                isMoreMenuOpen ? "bg-zinc-200 dark:bg-zinc-700 ring-2 ring-[#0866ff]/30" : ""
+              }`}
+              title="Tùy chọn trang cá nhân"
+            >
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+
+            {isMoreMenuOpen && (
+              <div className="absolute right-0 top-12 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-150 text-left">
+                {/* 1. Chỉnh sửa hồ sơ */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreMenuOpen(false);
+                    setIsEditModalOpen(true);
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
+                >
+                  <PenSquare className="w-4 h-4 text-[#0866ff]" />
+                  <span>Chỉnh sửa hồ sơ</span>
+                </button>
+
+                {/* 2. Kho lưu trữ tin */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreMenuOpen(false);
+                    setIsStoryArchiveOpen(true);
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
+                >
+                  <Archive className="w-4 h-4 text-indigo-500" />
+                  <span>Kho lưu trữ tin 24h</span>
+                </button>
+
+                {/* 3. Bài viết đã lưu */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreMenuOpen(false);
+                    navigate("/saved");
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
+                >
+                  <Bookmark className="w-4 h-4 text-amber-500" />
+                  <span>Bài viết đã lưu</span>
+                </button>
+
+                {/* 4. Bật/Tắt trạng thái hoạt động */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextState = !isUserActiveStatusEnabled(currentUserId);
+                    setUserActiveStatusEnabled(currentUserId, nextState);
+                    toast.success(nextState ? "Đã bật trạng thái hoạt động (Online)" : "Đã tắt trạng thái hoạt động (Ngoại tuyến)");
+                  }}
+                  className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className={`w-2.5 h-2.5 rounded-full ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
+                    <span>Trạng thái hoạt động</span>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"}`}>
+                    {isUserActiveStatusEnabled(currentUserId) ? "Bật" : "Tắt"}
+                  </span>
+                </button>
+
+                {/* 5. Cài đặt & Quyền riêng tư */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreMenuOpen(false);
+                    navigate("/security");
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
+                >
+                  <Settings className="w-4 h-4 text-zinc-500" />
+                  <span>Cài đặt & Quyền riêng tư</span>
+                </button>
+
+                <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-0.5" />
+
+                {/* 6. Sao chép liên kết trang cá nhân */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreMenuOpen(false);
+                    navigator.clipboard.writeText(window.location.href);
+                    toast.success("Đã sao chép liên kết trang cá nhân!");
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
+                >
+                  <Copy className="w-4 h-4 text-emerald-500" />
+                  <span>Sao chép liên kết</span>
+                </button>
+
+                {/* 7. Đăng xuất */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreMenuOpen(false);
+                    setIsLogoutConfirmOpen(true);
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition w-full text-left cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Đăng xuất</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Avatar với nút camera tải ảnh ở chính giữa */}
         <div className="relative shrink-0 group mb-3">
           <Avatar
@@ -659,115 +779,9 @@ export default function Profile() {
           </span>
         </div>
 
-        {/* Action Buttons (Căn giữa) */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-2 w-full max-w-md">
-          {isMe ? (
-            <div className="relative" ref={moreMenuRef}>
-              <button
-                type="button"
-                onClick={() => setIsMoreMenuOpen((v) => !v)}
-                className={`p-2.5 px-4 rounded-full border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer shadow-2xs active:scale-95 flex items-center gap-1.5 ${
-                  isMoreMenuOpen ? "bg-zinc-100 dark:bg-zinc-800 ring-2 ring-[#0866ff]/30" : ""
-                }`}
-                title="Tùy chọn trang cá nhân"
-              >
-                <MoreHorizontal className="w-5 h-5" />
-                <span className="text-xs font-semibold">Tùy chọn trang cá nhân</span>
-              </button>
-
-              {isMoreMenuOpen && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-12 w-60 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-150 text-left">
-                  {/* 1. Chỉnh sửa hồ sơ */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsMoreMenuOpen(false);
-                      setIsEditModalOpen(true);
-                    }}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
-                  >
-                    <PenSquare className="w-4 h-4 text-[#0866ff]" />
-                    <span>Chỉnh sửa hồ sơ</span>
-                  </button>
-
-                  {/* 2. Kho lưu trữ tin */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsMoreMenuOpen(false);
-                      setIsStoryArchiveOpen(true);
-                    }}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
-                  >
-                    <Archive className="w-4 h-4 text-indigo-500" />
-                    <span>Kho lưu trữ tin 24h</span>
-                  </button>
-
-                  {/* 3. Bài viết đã lưu */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsMoreMenuOpen(false);
-                      navigate("/saved");
-                    }}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
-                  >
-                    <Bookmark className="w-4 h-4 text-amber-500" />
-                    <span>Bài viết đã lưu</span>
-                  </button>
-
-                  {/* 4. Cài đặt trang cá nhân */}
-                  {/* 4. Bật/Tắt trạng thái hoạt động */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const nextState = !isUserActiveStatusEnabled(currentUserId);
-                      setUserActiveStatusEnabled(currentUserId, nextState);
-                      toast.success(nextState ? "Đã bật trạng thái hoạt động (Online)" : "Đã tắt trạng thái hoạt động (Ngoại tuyến)");
-                    }}
-                    className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span className={`w-2.5 h-2.5 rounded-full ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
-                      <span>Trạng thái hoạt động</span>
-                    </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"}`}>
-                      {isUserActiveStatusEnabled(currentUserId) ? "Bật" : "Tắt"}
-                    </span>
-                  </button>
-
-                  {/* 5. Cài đặt trang cá nhân */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsMoreMenuOpen(false);
-                      navigate("/security");
-                    }}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
-                  >
-                    <Settings className="w-4 h-4 text-zinc-500" />
-                    <span>Cài đặt & Quyền riêng tư</span>
-                  </button>
-
-                  <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-0.5" />
-
-                  {/* 6. Sao chép liên kết trang cá nhân */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsMoreMenuOpen(false);
-                      navigator.clipboard.writeText(window.location.href);
-                      toast.success("Đã sao chép liên kết trang cá nhân!");
-                    }}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
-                  >
-                    <Copy className="w-4 h-4 text-emerald-500" />
-                    <span>Sao chép liên kết</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
+        {/* Action Buttons cho người khác xem trang (Căn giữa) */}
+        {!isMe && (
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-2 w-full max-w-md">
             <>
               {/* Nút Theo dõi / Hủy theo dõi (Độc lập, lưu vào Database) */}
               <button
@@ -929,8 +943,8 @@ export default function Profile() {
                 )}
               </div>
             </>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Banner thông báo lời mời kết bạn nếu đang chờ phản hồi */}
         {!isMe && friendshipStatus === "PENDING_RECEIVED" && (
