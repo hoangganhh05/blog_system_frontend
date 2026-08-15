@@ -238,7 +238,10 @@ export default function MobileNavDrawer({
         </div>
 
         {/* Scrollable Content Container */}
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar">
+        <div
+          className="flex-1 overflow-y-auto overscroll-contain p-4 flex flex-col gap-4 custom-scrollbar touch-pan-y"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           {/* Mobile Drawer Search Bar */}
           <form
             onSubmit={(e) => {

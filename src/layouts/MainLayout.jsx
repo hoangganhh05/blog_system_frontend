@@ -392,7 +392,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           ====================================================================== */}
       <div className="max-w-[1600px] w-full flex-1 min-h-0 h-[calc(100dvh-3.5rem)] mx-auto px-4 grid grid-cols-12 gap-6 overflow-hidden">
         {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-2, hidden on mobile) */}
-        <aside className="hidden lg:block lg:col-span-2 min-w-0 min-h-0 h-full max-h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
+        <aside className="hidden lg:block lg:col-span-2 min-w-0 min-h-0 h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar pt-4 pb-20 select-none">
           <LeftSidebar />
         </aside>
 
@@ -400,13 +400,14 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className="col-span-12 lg:col-span-7 min-w-0 min-h-0 w-full h-full max-h-full overflow-y-auto custom-scrollbar px-1 sm:px-2 pt-3 sm:pt-4 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4"
+          className="col-span-12 lg:col-span-7 min-w-0 min-h-0 w-full h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar px-1 sm:px-2 pt-3 sm:pt-4 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y"
+          style={{ WebkitOverflowScrolling: "touch" }}
         >
           {children}
         </main>
 
         {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, hidden on mobile) */}
-        <aside className="hidden lg:block lg:col-span-3 min-w-0 min-h-0 h-full max-h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
+        <aside className="hidden lg:block lg:col-span-3 min-w-0 min-h-0 h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar pt-4 pb-20 select-none">
           <RightSidebar />
         </aside>
       </div>
