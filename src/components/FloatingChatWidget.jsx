@@ -23,6 +23,7 @@ import {
   ChevronDown,
   CheckCheck,
   Clock,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -124,6 +125,7 @@ export default function FloatingChatWidget() {
   const [editingText, setEditingText] = useState("");
   const [conversationsMap, setConversationsMap] = useState({});
   const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const [friendSearchQuery, setFriendSearchQuery] = useState("");
 
   // Pinned Messages state (persisted per conversation)
   const [pinnedMessages, setPinnedMessages] = useState(() => {
@@ -396,6 +398,20 @@ export default function FloatingChatWidget() {
     try {
       const res = await chatService.sendMessage(currentUserId, activeFriend.id, text);
       setMessages((prev) => [...prev, res.data]);
+    } catch (err) {
+      toast.error("Không thể gửi tin nhắn!");
+    }
+  };
+
+  // Send Direct Message (Quick greeting templates)
+  const handleSendDirectMessage = async (customText) => {
+    const text = (customText || "").trim();
+    if (!text || !currentUserId || !activeFriend?.id) return;
+
+    try {
+      const res = await chatService.sendMessage(currentUserId, activeFriend.id, text);
+      setMessages((prev) => [...prev, res.data]);
+      toast.success("Đã gửi lời chào!");
     } catch (err) {
       toast.error("Không thể gửi tin nhắn!");
     }
@@ -754,64 +770,111 @@ export default function FloatingChatWidget() {
                   </span>
                 </div>
 
-                <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 px-3 py-1.5">
-                  Danh sách bạn bè ({friends.length})
+                {/* Friends Search Input Bar */}
+                <div className="relative mb-2">
+                  <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm người nhắn, bạn bè..."
+                    value={friendSearchQuery}
+                    onChange={(e) => setFriendSearchQuery(e.target.value)}
+                    className="w-full bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 focus:border-[#0866ff] rounded-xl py-2 pl-9 pr-8 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none transition shadow-2xs"
+                  />
+                  {friendSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setFriendSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition cursor-pointer"
+                      title="Xóa tìm kiếm"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
+
+                {/* Header title */}
+                <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 px-1 py-1 flex items-center justify-between">
+                  <span>Danh sách bạn bè ({friends.length})</span>
+                  {friendSearchQuery && (
+                    <span className="text-[10px] text-indigo-500 font-normal lowercase">
+                      đang lọc: "{friendSearchQuery}"
+                    </span>
+                  )}
+                </div>
+
                 {friends.length === 0 ? (
                   <div className="py-8 text-center text-xs text-zinc-400">
                     Chưa có bạn bè. Hãy kết bạn để bắt đầu trò chuyện!
                   </div>
                 ) : (
-                  friends.map((friend) => {
-                    const fName = friend.fullName || friend.username;
-                    const conv = conversationsMap[friend.id] || {};
-                    const lastText = conv.lastMessage || "Bấm để nhắn tin";
-                    const unread = conv.unreadCount || 0;
+                  (() => {
+                    const filteredFriends = friends.filter((f) => {
+                      if (!friendSearchQuery.trim()) return true;
+                      const q = friendSearchQuery.toLowerCase().trim();
+                      const name = (f.fullName || "").toLowerCase();
+                      const username = (f.username || "").toLowerCase();
+                      return name.includes(q) || username.includes(q);
+                    });
 
-                    return (
-                      <div
-                        key={friend.id}
-                        onClick={() => {
-                          setActiveFriend(friend);
-                          if (unread > 0) markConversationAsRead(friend.id);
-                        }}
-                        className={`flex items-center justify-between p-2.5 rounded-2xl cursor-pointer transition ${
-                          unread > 0
-                            ? "bg-zinc-100 dark:bg-zinc-900 font-bold"
-                            : "hover:bg-zinc-100 dark:hover:bg-zinc-900/80"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          {friend.avatarUrl ? (
-                            <img
-                              src={friend.avatarUrl}
-                              alt=""
-                              className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full text-xs font-bold bg-zinc-800 text-white flex items-center justify-center shrink-0">
-                              {getInitials(fName)}
-                            </div>
-                          )}
-
-                          <div className="flex flex-col min-w-0 flex-1">
-                            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                              {fName}
-                            </span>
-                            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
-                              {lastText}
-                            </span>
-                          </div>
+                    if (filteredFriends.length === 0) {
+                      return (
+                        <div className="py-8 text-center text-xs text-zinc-400">
+                          Không tìm thấy người dùng nào phù hợp với "{friendSearchQuery}".
                         </div>
+                      );
+                    }
 
-                        {unread > 0 && (
-                          <span className="min-w-5 h-5 px-1.5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 ml-2 shadow-xs">
-                            {unread > 99 ? "99+" : unread}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })
+                    return filteredFriends.map((friend) => {
+                      const fName = friend.fullName || friend.username;
+                      const conv = conversationsMap[friend.id] || {};
+                      const lastText = conv.lastMessage || "Bấm để nhắn tin";
+                      const unread = conv.unreadCount || 0;
+
+                      return (
+                        <div
+                          key={friend.id}
+                          onClick={() => {
+                            setActiveFriend(friend);
+                            if (unread > 0) markConversationAsRead(friend.id);
+                          }}
+                          className={`flex items-center justify-between p-2.5 rounded-2xl cursor-pointer transition ${
+                            unread > 0
+                              ? "bg-zinc-100 dark:bg-zinc-900 font-bold"
+                              : "hover:bg-zinc-100 dark:hover:bg-zinc-900/80"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            {friend.avatarUrl ? (
+                              <img
+                                src={friend.avatarUrl}
+                                alt=""
+                                className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full text-xs font-bold bg-zinc-800 text-white flex items-center justify-center shrink-0">
+                                {getInitials(fName)}
+                              </div>
+                            )}
+
+                            <div className="flex flex-col min-w-0 flex-1">
+                              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                                {fName}
+                              </span>
+                              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                                {lastText}
+                              </span>
+                            </div>
+                          </div>
+
+                          {unread > 0 && (
+                            <span className="min-w-5 h-5 px-1.5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 ml-2 shadow-xs">
+                              {unread > 99 ? "99+" : unread}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()
                 )}
               </div>
             ) : (
@@ -872,8 +935,43 @@ export default function FloatingChatWidget() {
                   className="flex-1 p-3.5 overflow-y-auto flex flex-col gap-2.5"
                 >
                 {messages.length === 0 ? (
-                  <div className="text-center text-xs text-zinc-400 my-auto py-8">
-                    Hãy gửi lời chào đầu tiên! 👋
+                  <div className="text-center my-auto py-6 px-3 flex flex-col items-center gap-3 animate-in fade-in duration-200">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 text-[#0866ff] flex items-center justify-center text-xl shadow-2xs">
+                      👋
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        Bạn và {activeFriend?.fullName || activeFriend?.username} đã kết nối!
+                      </span>
+                      <span className="text-[11px] text-zinc-400">
+                        Gửi lời chào đầu tiên để bắt đầu cuộc trò chuyện thân thiết nhé.
+                      </span>
+                    </div>
+
+                    {/* Quick Greeting Suggestion Templates */}
+                    <div className="flex flex-col gap-1.5 w-full max-w-xs mt-1">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider text-left pl-1">
+                        Gợi ý lời chào nhanh:
+                      </span>
+                      {[
+                        "👋 Chào bạn! Rất vui được làm quen",
+                        "✨ Chào bạn, kết nối cùng nhau nhé!",
+                        "📝 Mình thấy bài viết của bạn rất hay!",
+                        "☕ Chúc bạn một ngày tốt lành và nhiều năng lượng!",
+                      ].map((greet, gIdx) => (
+                        <button
+                          key={gIdx}
+                          type="button"
+                          onClick={() => handleSendDirectMessage(greet)}
+                          className="px-3 py-2 rounded-xl text-xs font-medium text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-[#0866ff] hover:bg-blue-50/50 dark:hover:bg-blue-950/20 text-zinc-700 dark:text-zinc-300 transition cursor-pointer active:scale-98 shadow-2xs flex items-center justify-between group"
+                        >
+                          <span className="truncate">{greet}</span>
+                          <span className="text-[10px] text-[#0866ff] font-bold opacity-0 group-hover:opacity-100 transition shrink-0 ml-1">
+                            Gửi ↵
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 ) : (
                   messages.map((msg, idx) => {

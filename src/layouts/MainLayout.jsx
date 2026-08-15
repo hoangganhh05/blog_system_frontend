@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Bell, Plus, ChevronDown, LogOut,
   Sun, Moon, Shield, User, Settings, Home,
-  Compass, Bookmark, Users, BarChart2, X, Sparkles, Hash, ArrowUp,
+  Compass, Bookmark, Users, BarChart2, X, Sparkles, Hash, ArrowUp, ArrowLeft,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import notificationService from "../services/notificationService";
@@ -30,11 +30,13 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const profileMenuRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const mobileSearchInputRef = useRef(null);
 
   // Poll notifications badge
   useEffect(() => {
@@ -128,93 +130,154 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           STICKY TOP HEADER (h-14, Full-width Fluid Navbar, Crisp border-b)
           ====================================================================== */}
       <header className="w-full h-14 shrink-0 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50">
-        <div className="w-full h-14 px-4 sm:px-6 md:px-8 lg:px-12 flex items-center justify-between gap-4">
-
-          {/* LEFT: Minimalist Logo + Nav Links */}
-          <div className="flex items-center gap-6 shrink-0">
-            <Logo size="md" withText={true} />
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1">
-              {navLinks.map(({ to, label, icon: Icon }) => {
-                const active = location.pathname === to || (to !== "/" && location.pathname.startsWith(to));
-                return (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                      active
-                        ? "text-[#0866ff] bg-[#0866ff]/10 dark:bg-[#0866ff]/20"
-                        : "text-[#65676b] hover:text-[#050505] dark:text-[#b0b3b8] dark:hover:text-[#e4e6eb] hover:bg-slate-100 dark:hover:bg-[#303031]"
-                    }`}
-                  >
-                    <Icon strokeWidth={active ? 2.4 : 1.75} className="w-4 h-4" />
-                    <span>{label}</span>
-                  </NavLink>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* CENTER: Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xs hidden sm:block">
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm bài viết, tác giả..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-transparent focus:border-[#0866ff] rounded-full py-1.5 pl-8 pr-3 text-xs text-[#050505] dark:text-[#e4e6eb] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none transition"
-              />
-            </div>
-          </form>
-
-          {/* RIGHT: Actions */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Create Post Button */}
-            <button
-              type="button"
-              onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
-            >
-              <Plus strokeWidth={2.5} className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Đăng bài</span>
-            </button>
-
-            {/* Trợ lý AI Gemini */}
+        {mobileSearchOpen ? (
+          /* FULL WIDTH MOBILE SEARCH BAR OVERLAY */
+          <div className="w-full h-14 px-3 sm:px-6 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
             <button
               type="button"
               onClick={() => {
-                window.dispatchEvent(new CustomEvent("close_chat_widget"));
-                setIsAiModalOpen(true);
+                setMobileSearchOpen(false);
+                setSearchQuery("");
               }}
-              className="p-2 rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer"
-              title="Trợ lý AI BlogViet (Gemini 3.7 Flash)"
+              className="p-2 rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer shrink-0"
+              title="Đóng tìm kiếm"
             >
-              <Sparkles strokeWidth={2} className="w-4 h-4" />
+              <ArrowLeft className="w-5 h-5" />
             </button>
 
-            {/* Notifications */}
-            <NavLink
-              to="/notifications"
-              className={({ isActive }) =>
-                `relative p-2 rounded-full transition ${
-                  isActive
-                    ? "text-black dark:text-white bg-zinc-100 dark:bg-zinc-800"
-                    : "text-zinc-500 hover:text-black dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                }`
-              }
-              title="Thông báo"
-            >
-              <Bell strokeWidth={1.8} className="w-4 h-4" />
-              {unreadNotifs > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-zinc-900" />
+            <form onSubmit={handleSearchSubmit} className="flex-1 relative min-w-0">
+              <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                ref={mobileSearchInputRef}
+                type="text"
+                placeholder="Tìm bài viết, tác giả, hashtag..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+                className="w-full bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-transparent focus:border-[#0866ff] rounded-full py-2 pl-9 pr-9 text-xs text-[#050505] dark:text-[#e4e6eb] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none transition"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition"
+                  title="Xóa chữ"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               )}
-            </NavLink>
+            </form>
 
-            {/* Profile Dropdown */}
-            <div className="relative" ref={profileMenuRef}>
+            <button
+              type="button"
+              onClick={handleSearchSubmit}
+              disabled={!searchQuery.trim()}
+              className="px-3.5 py-1.5 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition disabled:opacity-40 shrink-0 cursor-pointer shadow-xs"
+            >
+              Tìm
+            </button>
+          </div>
+        ) : (
+          /* STANDARD NAVBAR LAYOUT */
+          <div className="w-full h-14 px-4 sm:px-6 md:px-8 lg:px-12 flex items-center justify-between gap-4">
+            {/* LEFT: Minimalist Logo + Nav Links */}
+            <div className="flex items-center gap-6 shrink-0">
+              <Logo size="md" withText={true} />
+
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex items-center gap-1">
+                {navLinks.map(({ to, label, icon: Icon }) => {
+                  const active = location.pathname === to || (to !== "/" && location.pathname.startsWith(to));
+                  return (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                        active
+                          ? "text-[#0866ff] bg-[#0866ff]/10 dark:bg-[#0866ff]/20"
+                          : "text-[#65676b] hover:text-[#050505] dark:text-[#b0b3b8] dark:hover:text-[#e4e6eb] hover:bg-slate-100 dark:hover:bg-[#303031]"
+                      }`}
+                    >
+                      <Icon strokeWidth={active ? 2.4 : 1.75} className="w-4 h-4" />
+                      <span>{label}</span>
+                    </NavLink>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* CENTER: Search Bar */}
+            <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xs hidden sm:block">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm bài viết, tác giả..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-transparent focus:border-[#0866ff] rounded-full py-1.5 pl-8 pr-3 text-xs text-[#050505] dark:text-[#e4e6eb] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none transition"
+                />
+              </div>
+            </form>
+
+            {/* RIGHT: Actions */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Mobile Search Button (Visible only on small screens) */}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileSearchOpen(true);
+                  setTimeout(() => mobileSearchInputRef.current?.focus(), 50);
+                }}
+                className="sm:hidden p-2 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                title="Tìm kiếm bài viết, tác giả"
+              >
+                <Search strokeWidth={2} className="w-4 h-4" />
+              </button>
+
+              {/* Create Post Button */}
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
+              >
+                <Plus strokeWidth={2.5} className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Đăng bài</span>
+              </button>
+
+              {/* Trợ lý AI Gemini */}
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("close_chat_widget"));
+                  setIsAiModalOpen(true);
+                }}
+                className="p-2 rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer"
+                title="Trợ lý AI BlogViet (Gemini 3.7 Flash)"
+              >
+                <Sparkles strokeWidth={2} className="w-4 h-4" />
+              </button>
+
+              {/* Notifications */}
+              <NavLink
+                to="/notifications"
+                className={({ isActive }) =>
+                  `relative p-2 rounded-full transition ${
+                    isActive
+                      ? "text-black dark:text-white bg-zinc-100 dark:bg-zinc-800"
+                      : "text-zinc-500 hover:text-black dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  }`
+                }
+                title="Thông báo"
+              >
+                <Bell strokeWidth={1.8} className="w-4 h-4" />
+                {unreadNotifs > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-zinc-900" />
+                )}
+              </NavLink>
+
+              {/* Profile Dropdown */}
+              <div className="relative" ref={profileMenuRef}>
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen((v) => !v)}
@@ -318,6 +381,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
             </div>
           </div>
         </div>
+      )}
 
         {/* Full Feature Synchronized Mobile Nav Drawer */}
         <MobileNavDrawer

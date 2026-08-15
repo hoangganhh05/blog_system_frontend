@@ -22,6 +22,7 @@ import {
   UserPlus,
   Check,
   Sparkles,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -63,6 +64,7 @@ export default function MobileNavDrawer({
 
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [followingIds, setFollowingIds] = useState([]);
+  const [drawerSearchQuery, setDrawerSearchQuery] = useState("");
 
   // Load User Stats & Suggestions when open
   useEffect(() => {
@@ -191,6 +193,28 @@ export default function MobileNavDrawer({
 
         {/* Scrollable Content Container */}
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar">
+          {/* Mobile Drawer Search Bar */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (drawerSearchQuery.trim()) {
+                navigate(`/search?q=${encodeURIComponent(drawerSearchQuery.trim())}`);
+                setDrawerSearchQuery("");
+                onClose();
+              }
+            }}
+            className="relative w-full"
+          >
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Tìm bài viết, tác giả..."
+              value={drawerSearchQuery}
+              onChange={(e) => setDrawerSearchQuery(e.target.value)}
+              className="w-full bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-transparent focus:border-[#0866ff] rounded-xl py-2 pl-9 pr-3 text-xs text-[#050505] dark:text-[#e4e6eb] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none transition"
+            />
+          </form>
+
           {/* 1. Mobile Shortcut Profile Card with Stats */}
           {currentUser ? (
             <div className="p-3.5 rounded-2xl bg-[#f0f2f5] dark:bg-[#18191a] border border-[#e4e6eb] dark:border-[#393a3b] flex flex-col gap-3">
