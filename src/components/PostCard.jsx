@@ -267,7 +267,6 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
   return (
     <article
-      ref={cardRef}
       onClick={handleCardClick}
       className={`rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-200 flex gap-3.5 ${
         !isDetailed ? "cursor-pointer" : ""
