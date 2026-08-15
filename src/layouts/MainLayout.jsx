@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Bell, Plus, ChevronDown, LogOut,
   Sun, Moon, Shield, User, Settings, Home,
-  Compass, Bookmark, Users, BarChart2, X, Sparkles,
+  Compass, Bookmark, Users, BarChart2, X, Sparkles, Hash,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import notificationService from "../services/notificationService";
@@ -11,6 +11,7 @@ import CreatePostModal from "../components/CreatePostModal";
 import AiAssistantModal from "../components/AiAssistantModal";
 import LeftSidebar from "../components/LeftSidebar";
 import RightSidebar from "../components/RightSidebar";
+import MiniMusicPlayer from "../components/MiniMusicPlayer";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -278,15 +279,29 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               </button>
 
               {mobileMenuOpen && (
-                <div className="absolute right-0 top-10 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-2 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute right-0 top-10 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-2.5 z-50 flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-100">
                   {currentUser && (
                     <Link
                       to={`/profile/${currentUserId}`}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                      className="flex items-center gap-2.5 p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition mb-1"
                     >
-                      <User className="w-4 h-4 text-zinc-500" />
-                      <span>{currentUser.fullName || currentUser.username}</span>
+                      {currentUser.avatarUrl ? (
+                        <img src={currentUser.avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                      ) : (
+                        <div
+                          className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
+                          style={{ backgroundColor: currentUser.avatarColor || "#27272a" }}
+                        >
+                          {getInitials(currentUser.fullName || currentUser.username)}
+                        </div>
+                      )}
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                          {currentUser.fullName || currentUser.username}
+                        </span>
+                        <span className="text-[11px] text-zinc-500 truncate">@{currentUser.username}</span>
+                      </div>
                     </Link>
                   )}
 
@@ -298,7 +313,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                       className={({ isActive }) =>
                         `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
                           isActive
-                            ? "bg-zinc-100 dark:bg-zinc-800 text-black dark:text-white"
+                            ? "bg-zinc-100 dark:bg-zinc-800 text-black dark:text-white font-bold"
                             : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                         }`
                       }
@@ -307,7 +322,34 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                     </NavLink>
                   ))}
 
-                  <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1" />
+                  <Link
+                    to="/security"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                  >
+                    <Shield className="w-4 h-4 text-zinc-500" /> Cài đặt & Bảo mật
+                  </Link>
+
+                  {/* Trending Tags in Mobile Drawer */}
+                  <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/80 my-1">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-2 block mb-1.5">
+                      Chủ đề nổi bật
+                    </span>
+                    <div className="flex flex-wrap gap-1 px-1">
+                      {["#Vinahouse", "#IT", "#Chung", "#AI", "#DuLich"].map((tag) => (
+                        <Link
+                          key={tag}
+                          to={`/search?q=${encodeURIComponent(tag.replace("#", ""))}`}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                        >
+                          {tag}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-0.5" />
 
                   <button
                     type="button"
@@ -329,7 +371,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                         logout();
                         navigate("/login");
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition mt-auto cursor-pointer"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition mt-1 cursor-pointer"
                     >
                       <LogOut size={16} />
                       <span>Đăng xuất tài khoản</span>
@@ -353,7 +395,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       {/* ======================================================================
           3-COLUMN SYMMETRIC SOCIAL LAYOUT (Left Sidebar | Feed | Right Sidebar)
           ====================================================================== */}
-      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 py-6 pb-20 md:pb-6 flex-1 flex justify-center items-start gap-6">
+      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 py-4 sm:py-6 pb-24 md:pb-6 flex-1 flex justify-center items-start gap-6">
         {/* LEFT COLUMN: Shortcuts & Profile Sidebar (Desktop XL) */}
         <aside className="hidden xl:block w-64 shrink-0">
           <div className="sticky top-20">
@@ -361,8 +403,8 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           </div>
         </aside>
 
-        {/* CENTER COLUMN: Main Content Feed */}
-        <main className="w-full max-w-[640px] shrink-0 min-w-0 flex flex-col gap-4">
+        {/* CENTER COLUMN: Main Content Feed (Full-width 100% on mobile, max 640px on desktop) */}
+        <main className="w-full max-w-full lg:max-w-[640px] shrink-0 min-w-0 flex flex-col gap-4">
           {children}
         </main>
 
@@ -372,6 +414,13 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
             <RightSidebar />
           </div>
         </aside>
+      </div>
+
+      {/* ======================================================================
+          MOBILE FLOATING MUSIC BAR (Fixed above bottom nav on mobile)
+          ====================================================================== */}
+      <div className="lg:hidden">
+        <MiniMusicPlayer />
       </div>
 
       {/* ======================================================================
