@@ -1,15 +1,34 @@
 /**
- * Robust Web Crypto AES-256-CBC Encryption Utility with Graceful Fallback
+ * Robust Web Crypto AES-256-CBC Encryption Utility
  * Compatible with Spring Boot Java Cipher: AES/CBC/PKCS5Padding
+ * Strict 256-bit (32 bytes) Key & 128-bit (16 bytes) IV
  */
 
-const SECRET_KEY_STR = "BlogVietSecureKey2026AES256Secret"; // 32 bytes (256 bits)
-const INIT_VECTOR_STR = "BlogVietInitVec1"; // 16 bytes (128 bits)
+const SECRET_KEY_STR = "BlogViet_Secure_AES256_Key_2026_"; // Exactly 32 chars = 32 bytes = 256 bits
+const INIT_VECTOR_STR = "BlogVietInitVec1"; // Exactly 16 chars = 16 bytes = 128 bits
 
 let cachedKey = null;
 
 function hasSubtleCrypto() {
   return typeof window !== "undefined" && window.crypto && Boolean(window.crypto.subtle);
+}
+
+// Ensure key is strictly 32 bytes (256 bits)
+function getExact32ByteKey() {
+  const encoder = new TextEncoder();
+  const rawBytes = encoder.encode(SECRET_KEY_STR);
+  const key32 = new Uint8Array(32);
+  key32.set(rawBytes.subarray(0, 32));
+  return key32;
+}
+
+// Ensure IV is strictly 16 bytes (128 bits)
+function getExact16ByteIv() {
+  const encoder = new TextEncoder();
+  const rawBytes = encoder.encode(INIT_VECTOR_STR);
+  const iv16 = new Uint8Array(16);
+  iv16.set(rawBytes.subarray(0, 16));
+  return iv16;
 }
 
 // Helper Base64 encode/decode
@@ -23,7 +42,7 @@ function bufferToBase64(buffer) {
 }
 
 function base64ToBuffer(base64) {
-  const cleaned = base64.trim().replace(/\s/g, "");
+  const cleaned = String(base64 || "").trim().replace(/\s/g, "");
   const binary = window.atob(cleaned);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
@@ -37,7 +56,7 @@ async function getCryptoKey() {
   if (!hasSubtleCrypto()) return null;
 
   try {
-    const keyBytes = new TextEncoder().encode(SECRET_KEY_STR);
+    const keyBytes = getExact32ByteKey();
     cachedKey = await window.crypto.subtle.importKey(
       "raw",
       keyBytes,
@@ -53,7 +72,7 @@ async function getCryptoKey() {
 }
 
 /**
- * Encrypt plaintext into Base64 ciphertext (AES-256-CBC)
+ * Encrypt plaintext string into Base64 ciphertext (AES-256-CBC)
  * Returns { success: boolean, data: string }
  */
 export async function encryptData(plainText) {
@@ -62,7 +81,6 @@ export async function encryptData(plainText) {
   }
 
   if (!hasSubtleCrypto()) {
-    // Subtle Crypto not available (e.g. non-https or older mobile webview)
     return { success: false, data: plainText };
   }
 
@@ -71,7 +89,7 @@ export async function encryptData(plainText) {
     if (!key) return { success: false, data: plainText };
 
     const textToEncrypt = typeof plainText === "object" ? JSON.stringify(plainText) : String(plainText);
-    const ivBytes = new TextEncoder().encode(INIT_VECTOR_STR);
+    const ivBytes = getExact16ByteIv();
     const encodedData = new TextEncoder().encode(textToEncrypt);
 
     const encryptedBuffer = await window.crypto.subtle.encrypt(
@@ -111,7 +129,7 @@ export async function decryptData(cipherText) {
     const key = await getCryptoKey();
     if (!key) return cipherText;
 
-    const ivBytes = new TextEncoder().encode(INIT_VECTOR_STR);
+    const ivBytes = getExact16ByteIv();
     const cipherBuffer = base64ToBuffer(cipherText);
 
     const decryptedBuffer = await window.crypto.subtle.decrypt(
