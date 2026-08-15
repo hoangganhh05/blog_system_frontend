@@ -523,7 +523,7 @@ export default function Profile() {
       </div>
 
       {/* 2. Header Info (Avatar + Action Buttons) */}
-      <div className="px-3 -mt-10 md:-mt-12 mb-2 flex flex-col">
+      <div className="px-3 sm:px-4 -mt-12 sm:-mt-14 mb-3 flex flex-col">
         <div className="flex justify-between items-end gap-3 mb-2">
           {/* Avatar với nút camera tải ảnh */}
           <div className="relative shrink-0 group">
@@ -539,7 +539,7 @@ export default function Profile() {
               showActiveStatus={user.showActiveStatus}
               disableLink={true}
               onClick={() => setLightboxUrl(user.avatarUrl)}
-              className="cursor-pointer hover:opacity-90 transition"
+              className="cursor-pointer hover:opacity-90 transition ring-4 ring-white dark:ring-zinc-900 bg-white dark:bg-zinc-900 shadow-md"
             />
 
             {/* Chấm tròn trạng thái hoạt động trên Avatar Profile */}
@@ -756,8 +756,8 @@ export default function Profile() {
         )}
 
         {/* Typography */}
-        <div className="flex flex-col">
-          <h1 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 tracking-tight">
+        <div className="flex flex-col mt-1.5 sm:mt-2">
+          <h1 className="font-bold text-lg sm:text-xl text-zinc-900 dark:text-zinc-100 tracking-tight">
             {user.fullName || user.username}
           </h1>
           <div className="flex items-center gap-2">
