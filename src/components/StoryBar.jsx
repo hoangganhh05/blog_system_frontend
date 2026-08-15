@@ -17,6 +17,7 @@ function getInitials(name) {
 
 function StoryBar() {
   const { currentUser } = useAuth();
+  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
   const { groupedStories, refreshStories } = useStories();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(null);
