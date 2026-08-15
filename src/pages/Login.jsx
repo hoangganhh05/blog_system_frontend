@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, Sparkles, ArrowRight, Lock, Mail } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
 
@@ -32,62 +32,85 @@ export default function Login() {
       login(res.data);
       navigate(from, { replace: true });
     } catch (err) {
-      const serverMsg = typeof err.response?.data === "string"
-        ? err.response.data
-        : err.response?.data?.message;
-      setError(serverMsg || "Đăng nhập thất bại. Vui lòng kiểm tra lại Email và Mật khẩu!");
+      const serverMsg =
+        typeof err.response?.data === "string"
+          ? err.response.data
+          : err.response?.data?.message;
+      setError(
+        serverMsg || "Đăng nhập thất bại. Vui lòng kiểm tra lại Email và Mật khẩu!"
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#f8fafc] dark:bg-[#0b0f19] px-4 py-12 transition-colors">
-      <div className="w-full max-w-md bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800/80 p-8 shadow-sm">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#f8fafc] dark:bg-[#0b0f19] px-4 py-12 transition-colors duration-200 relative overflow-hidden">
+      {/* Ambient background glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-rose-500/10 dark:bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-md bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 p-7 sm:p-9 shadow-xl z-10 animate-in fade-in zoom-in-95 duration-200">
         {/* Header Form */}
         <div className="flex flex-col items-center text-center mb-6">
-          <Link to="/" className="w-12 h-12 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-black text-xl tracking-tighter mx-auto shadow-sm hover:opacity-90 transition select-none">
+          <Link
+            to="/"
+            className="w-13 h-13 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-black text-xl tracking-tighter shadow-md hover:scale-105 active:scale-95 transition select-none"
+          >
             BV
           </Link>
-          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-3 tracking-tight">
+          <h1 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-4 tracking-tight">
             Đăng nhập BlogViet
           </h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Chào mừng trở lại! Vui lòng nhập thông tin tài khoản của bạn.
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed max-w-xs">
+            Chào mừng trở lại! Đăng nhập để chia sẻ câu chuyện và kết nối cùng cộng đồng.
           </p>
         </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs p-3 rounded-lg border border-red-200 dark:border-red-900/50 mb-4 animate-in fade-in duration-150">
-            {error}
+          <div className="bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs p-3.5 rounded-2xl border border-rose-200 dark:border-rose-900/60 mb-5 animate-in fade-in duration-150 flex items-start gap-2">
+            <span className="font-bold">⚠️</span>
+            <span className="flex-1 leading-snug">{error}</span>
           </div>
         )}
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
               Email hoặc Tên đăng nhập
             </label>
-            <input
-              id="email"
-              type="text"
-              name="email"
-              placeholder="name@example.com hoặc username"
-              value={form.email}
-              onChange={handleChange}
-              autoComplete="username"
-              autoFocus
-              className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
-            />
+            <div className="relative">
+              <Mail className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                id="email"
+                type="text"
+                name="email"
+                placeholder="name@example.com hoặc username"
+                value={form.email}
+                onChange={handleChange}
+                autoComplete="username"
+                autoFocus
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-              Mật khẩu
-            </label>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                Mật khẩu
+              </label>
+              <Link
+                to="/forgot-password"
+                className="text-[11px] font-semibold text-zinc-500 hover:text-black dark:hover:text-white transition"
+              >
+                Quên mật khẩu?
+              </Link>
+            </div>
             <div className="relative">
+              <Lock className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -96,62 +119,54 @@ export default function Login() {
                 value={form.password}
                 onChange={handleChange}
                 autoComplete="current-password"
-                className="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
+                className="w-full pl-10 pr-11 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-0.5 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition cursor-pointer p-1"
                 title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
-            </div>
-            <div className="flex justify-end mt-1.5">
-              <Link
-                to="/forgot-password"
-                className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:underline transition"
-              >
-                Quên mật khẩu?
-              </Link>
             </div>
           </div>
 
           <button
-            id="login-btn"
+            id="login-submit-btn"
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 mt-2 bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-semibold text-sm rounded-xl transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3 rounded-2xl bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black font-bold text-xs sm:text-sm transition-all active:scale-[0.98] shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
           >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Đang đăng nhập...</span>
+                <span>Đang xác thực...</span>
               </>
             ) : (
-              "Đăng nhập"
+              <>
+                <span>Đăng nhập ngay</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
             )}
           </button>
         </form>
 
-        {/* Footer Navigation */}
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center mt-6">
-          Chưa có tài khoản?{" "}
-          <Link
-            to="/register"
-            className="font-semibold text-black dark:text-white underline hover:opacity-80 transition"
-          >
-            Đăng ký ngay
-          </Link>
-        </p>
-
-        <div className="text-center mt-3">
-          <Link
-            to="/"
-            className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
-          >
-            ← Quay về trang chủ
-          </Link>
+        {/* Footer Prompt */}
+        <div className="mt-7 pt-5 border-t border-slate-100 dark:border-slate-800 text-center">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Chưa có tài khoản?{" "}
+            <Link
+              to="/register"
+              className="font-bold text-zinc-900 dark:text-zinc-100 hover:underline transition"
+            >
+              Đăng ký tài khoản mới
+            </Link>
+          </p>
         </div>
       </div>
     </div>
