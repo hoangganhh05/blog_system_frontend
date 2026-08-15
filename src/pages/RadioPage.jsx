@@ -377,18 +377,19 @@ export default function RadioPage() {
       </div>
 
       {/* ======================================================================
-          2. VIEW MODE TOGGLE & ACTION TOOLBAR (Wrap-safe, Zero-overflow)
+          2. VIEW MODE TOGGLE & ACTION TOOLBAR (Clean, Pro Alignment)
           ====================================================================== */}
-      <div className="flex flex-col gap-3 bg-white dark:bg-[#242526] p-3 sm:p-4 rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] shadow-xs">
-        {/* Row 1: Mode switcher tabs */}
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex bg-slate-100 dark:bg-[#303031] p-1 rounded-xl gap-1 w-full sm:w-auto">
+      <div className="flex flex-col gap-3.5 bg-white dark:bg-[#242526] p-3.5 sm:p-4 rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] shadow-xs">
+        {/* Row 1: Segmented Mode Tabs & Right Actions */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+          {/* Segmented Mode Switcher */}
+          <div className="inline-flex p-1 bg-slate-100 dark:bg-[#18191a] rounded-xl border border-slate-200/50 dark:border-zinc-800">
             <button
               type="button"
               onClick={() => setViewMode("player")}
-              className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 viewMode === "player"
-                  ? "bg-white dark:bg-[#18191a] text-[#0866ff] shadow-xs"
+                  ? "bg-white dark:bg-[#242526] text-[#0866ff] shadow-xs font-extrabold"
                   : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-white"
               }`}
             >
@@ -399,9 +400,9 @@ export default function RadioPage() {
             <button
               type="button"
               onClick={() => setViewMode("manage")}
-              className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 viewMode === "manage"
-                  ? "bg-white dark:bg-[#18191a] text-[#0866ff] shadow-xs"
+                  ? "bg-white dark:bg-[#242526] text-[#0866ff] shadow-xs font-extrabold"
                   : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-white"
               }`}
             >
@@ -410,19 +411,19 @@ export default function RadioPage() {
             </button>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          {/* Action Buttons Group */}
+          <div className="flex items-center gap-2">
             <button
               type="button"
               disabled={isSyncing}
               onClick={handleSyncTrending}
-              className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 text-xs font-bold hover:bg-indigo-100 active:scale-95 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#18191a] hover:bg-slate-200/80 dark:hover:bg-[#303031] text-[#050505] dark:text-[#e4e6eb] border border-slate-200/60 dark:border-zinc-800 text-xs font-semibold active:scale-95 transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               title="Làm mới danh sách bài hát thịnh hành"
             >
               {isSyncing ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0866ff]" />
               ) : (
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               )}
               <span>{isSyncing ? "Đang đồng bộ..." : "Cập nhật mới"}</span>
             </button>
@@ -430,25 +431,34 @@ export default function RadioPage() {
             <button
               type="button"
               onClick={() => setIsImportModalOpen(true)}
-              className="px-3.5 py-1.5 rounded-xl bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold active:scale-95 transition shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+              className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold active:scale-95 transition shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
               title="Thêm bài hát mới"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               <span>Thêm nhạc</span>
             </button>
           </div>
         </div>
 
-        {/* Row 2: Search input */}
+        {/* Row 2: Search Bar */}
         <div className="relative w-full">
-          <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
-            placeholder="Tìm kiếm bài hát, ca sĩ..."
+            placeholder="Tìm kiếm bài hát, ca sĩ, thể loại..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-[#303031] border border-slate-200 dark:border-[#393a3b] rounded-xl py-1.5 pl-8 pr-3 text-xs text-[#050505] dark:text-[#e4e6eb] placeholder-zinc-400 focus:outline-none focus:border-[#0866ff] transition"
+            className="w-full bg-slate-100/70 dark:bg-[#18191a] border border-slate-200 dark:border-zinc-800 rounded-xl py-2 pl-10 pr-8 text-xs text-[#050505] dark:text-[#e4e6eb] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none focus:border-[#0866ff] dark:focus:border-[#0866ff] focus:ring-2 focus:ring-[#0866ff]/15 transition"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
