@@ -4,6 +4,7 @@ import { Search, ArrowLeft, Loader2, UserPlus, Users } from "lucide-react";
 import userService from "../services/userService";
 import postService from "../services/postService";
 import PostCard from "../components/PostCard";
+import Avatar from "../components/Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -137,16 +138,15 @@ export default function SearchPage() {
             users.map((user) => (
               <div key={user.id} className="p-4 flex items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition">
                 <Link to={`/profile/${user.id}`} className="flex items-center gap-3 min-w-0">
-                  {user.avatarUrl ? (
-                    <img src={user.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover" />
-                  ) : (
-                    <div
-                      className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm"
-                      style={{ backgroundColor: user.avatarColor || "#4f46e5" }}
-                    >
-                      {getInitials(user.fullName || user.username)}
-                    </div>
-                  )}
+                  <Avatar
+                    userId={user.id}
+                    src={user.avatarUrl}
+                    name={user.fullName || user.username}
+                    username={user.username}
+                    avatarColor={user.avatarColor}
+                    size="md"
+                    className="shrink-0"
+                  />
                   <div className="flex flex-col min-w-0">
                     <span className="font-bold text-sm text-zinc-900 dark:text-white truncate">
                       {user.fullName || user.username}

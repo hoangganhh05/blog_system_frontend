@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
+import Avatar from "../components/Avatar";
 import userService from "../services/userService";
 import postService from "../services/postService";
 import bookmarkService from "../services/bookmarkService";
@@ -514,21 +515,20 @@ export default function Profile() {
         <div className="flex justify-between items-end gap-3 mb-2">
           {/* Avatar với nút camera tải ảnh */}
           <div className="relative shrink-0 group">
-            {user.avatarUrl ? (
-              <img
-                src={user.avatarUrl}
-                alt="Ảnh đại diện"
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-900 shadow-md object-cover cursor-pointer hover:opacity-90 transition"
-                onClick={() => setLightboxUrl(user.avatarUrl)}
-                title="Nhấp để xem ảnh đại diện"
-              />
-            ) : (
-              <div
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-zinc-900 shadow-md flex items-center justify-center font-bold text-white text-xl md:text-2xl bg-zinc-800 dark:bg-zinc-700"
-              >
-                {getInitials(user.fullName || user.username)}
-              </div>
-            )}
+            <Avatar
+              userId={user.id}
+              src={user.avatarUrl}
+              name={user.fullName || user.username}
+              username={user.username}
+              avatarColor={user.avatarColor}
+              size="3xl"
+              isOnline={user.isOnline}
+              lastActiveAt={user.lastActiveAt}
+              showActiveStatus={user.showActiveStatus}
+              disableLink={true}
+              onClick={() => setLightboxUrl(user.avatarUrl)}
+              className="cursor-pointer hover:opacity-90 transition"
+            />
 
             {/* Chấm tròn trạng thái hoạt động trên Avatar Profile */}
             {user.showActiveStatus !== false && (
@@ -949,30 +949,18 @@ export default function Profile() {
                     to={`/profile/${f.id}`}
                     className="flex items-center gap-3 min-w-0 flex-1 group"
                   >
-                    <div className="relative shrink-0">
-                      {f.avatarUrl ? (
-                        <img
-                          src={f.avatarUrl}
-                          alt=""
-                          className="w-11 h-11 rounded-full object-cover shrink-0"
-                        />
-                      ) : (
-                        <div
-                          className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
-                          style={{ backgroundColor: f.avatarColor || "#0866ff" }}
-                        >
-                          {getInitials(f.fullName || f.username)}
-                        </div>
-                      )}
-                      {f.showActiveStatus !== false && (
-                        <span
-                          className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-900 ${
-                            isUserOnline(f) ? "bg-emerald-500" : "bg-zinc-400"
-                          }`}
-                          title={formatLastActive(f)}
-                        />
-                      )}
-                    </div>
+                    <Avatar
+                      userId={f.id}
+                      src={f.avatarUrl}
+                      name={f.fullName || f.username}
+                      username={f.username}
+                      avatarColor={f.avatarColor}
+                      size="md"
+                      isOnline={f.isOnline}
+                      lastActiveAt={f.lastActiveAt}
+                      showActiveStatus={f.showActiveStatus}
+                      className="shrink-0"
+                    />
                     <div className="flex flex-col min-w-0">
                       <span className="font-bold text-sm text-zinc-900 dark:text-white group-hover:underline truncate">
                         {f.fullName || f.username}
@@ -1041,30 +1029,18 @@ export default function Profile() {
                     to={`/profile/${fl.id}`}
                     className="flex items-center gap-3 min-w-0 flex-1 group"
                   >
-                    <div className="relative shrink-0">
-                      {fl.avatarUrl ? (
-                        <img
-                          src={fl.avatarUrl}
-                          alt=""
-                          className="w-11 h-11 rounded-full object-cover shrink-0"
-                        />
-                      ) : (
-                        <div
-                          className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
-                          style={{ backgroundColor: fl.avatarColor || "#0866ff" }}
-                        >
-                          {getInitials(fl.fullName || fl.username)}
-                        </div>
-                      )}
-                      {fl.showActiveStatus !== false && (
-                        <span
-                          className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-900 ${
-                            isUserOnline(fl) ? "bg-emerald-500" : "bg-zinc-400"
-                          }`}
-                          title={formatLastActive(fl)}
-                        />
-                      )}
-                    </div>
+                    <Avatar
+                      userId={fl.id}
+                      src={fl.avatarUrl}
+                      name={fl.fullName || fl.username}
+                      username={fl.username}
+                      avatarColor={fl.avatarColor}
+                      size="md"
+                      isOnline={fl.isOnline}
+                      lastActiveAt={fl.lastActiveAt}
+                      showActiveStatus={fl.showActiveStatus}
+                      className="shrink-0"
+                    />
                     <div className="flex flex-col min-w-0">
                       <span className="font-bold text-sm text-zinc-900 dark:text-white group-hover:underline truncate">
                         {fl.fullName || fl.username}

@@ -6,6 +6,7 @@ import userService from "../services/userService";
 import friendService from "../services/friendService";
 
 import Logo from "./Logo";
+import Avatar from "./Avatar";
 
 const TRENDING_TAGS = [
   { tag: "#Vinahouse", count: "1.2k" },
@@ -72,26 +73,18 @@ export default function LeftSidebar() {
             to={`/profile/${currentUserId}`}
             className="flex items-center gap-3 group"
           >
-            {currentUser.avatarUrl ? (
-              <img
-                src={currentUser.avatarUrl}
-                alt=""
-                className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shadow-xs"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                  if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
-                }}
-              />
-            ) : null}
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs shadow-xs"
-              style={{
-                backgroundColor: currentUser.avatarColor || "#27272a",
-                display: currentUser.avatarUrl ? "none" : "flex",
-              }}
-            >
-              {getInitials(currentUser.fullName || currentUser.username)}
-            </div>
+                        <Avatar
+              userId={currentUserId}
+              src={currentUser.avatarUrl}
+              name={currentUser.fullName || currentUser.username}
+              username={currentUser.username}
+              avatarColor={currentUser.avatarColor}
+              size="md"
+              isOnline={currentUser.isOnline}
+              lastActiveAt={currentUser.lastActiveAt}
+              showActiveStatus={currentUser.showActiveStatus}
+              className="border border-zinc-200 dark:border-zinc-700 shadow-xs"
+            />
 
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:underline">

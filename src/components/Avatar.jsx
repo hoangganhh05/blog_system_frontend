@@ -1,0 +1,107 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { isUserOnline, formatLastActive } from "../utils/statusUtils";
+
+function getInitials(name) {
+  if (!name || typeof name !== "string") return "?";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+const SIZE_MAP = {
+  xs: { box: "w-6 h-6", text: "text-[10px]", dot: "w-2 h-2" },
+  sm: { box: "w-8 h-8", text: "text-xs", dot: "w-2.5 h-2.5" },
+  md: { box: "w-10 h-10", text: "text-sm", dot: "w-3 h-3" },
+  lg: { box: "w-12 h-12", text: "text-base", dot: "w-3.5 h-3.5" },
+  xl: { box: "w-16 h-16", text: "text-lg", dot: "w-4 h-4" },
+  "2xl": { box: "w-20 h-20", text: "text-xl", dot: "w-4 h-4" },
+  "3xl": { box: "w-24 h-24", text: "text-2xl", dot: "w-5 h-5" },
+};
+
+export default function Avatar({
+  userId,
+  src,
+  avatarUrl,
+  name,
+  alt,
+  fullName,
+  username,
+  avatarColor,
+  size = "md",
+  isOnline,
+  lastActiveAt,
+  showActiveStatus = false,
+  className = "",
+  disableLink = false,
+  onClick,
+  title,
+}) {
+  const navigate = useNavigate();
+  const [imgError, setImgError] = useState(false);
+
+  const imageSrc = src || avatarUrl;
+  const displayName = name || fullName || username || alt || "Người dùng";
+  const userInitials = getInitials(displayName);
+  
+  const sizeConfig = SIZE_MAP[size] || {
+    box: typeof size === "string" && size.startsWith("w-") ? size : "w-10 h-10",
+    text: "text-sm",
+    dot: "w-3 h-3",
+  };
+
+  const userObj = {
+    isOnline,
+    lastActiveAt,
+    showActiveStatus,
+  };
+
+  const online = isUserOnline(userObj);
+  const activeTooltip = formatLastActive(userObj) || displayName;
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (onClick) {
+      onClick(e);
+    }
+    if (!disableLink && userId) {
+      navigate(`/profile/${userId}`);
+    }
+  };
+
+  const isClickable = !disableLink && Boolean(userId);
+
+  return (
+    <div
+      onClick={handleClick}
+      title={title || activeTooltip}
+      className={`relative shrink-0 rounded-full select-none ${
+        isClickable ? "cursor-pointer hover:opacity-90 active:scale-95 transition-all" : ""
+      } ${sizeConfig.box} ${className}`}
+    >
+      {imageSrc && !imgError ? (
+        <img
+          src={imageSrc}
+          alt={displayName}
+          onError={() => setImgError(true)}
+          className="w-full h-full rounded-full object-cover shrink-0"
+        />
+      ) : (
+        <div
+          className={`w-full h-full rounded-full flex items-center justify-center font-bold text-white uppercase shrink-0 shadow-xs ${sizeConfig.text}`}
+          style={{ backgroundColor: avatarColor || "#0866ff" }}
+        >
+          {userInitials}
+        </div>
+      )}
+
+      {showActiveStatus && (
+        <span
+          className={`absolute bottom-0 right-0 rounded-full border-2 border-white dark:border-zinc-900 ${
+            sizeConfig.dot
+          } ${online ? "bg-emerald-500" : "bg-zinc-400"}`}
+        />
+      )}
+    </div>
+  );
+}

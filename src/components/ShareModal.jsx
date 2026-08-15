@@ -17,16 +17,7 @@ import { useAuth } from "../context/AuthContext";
 import friendService from "../services/friendService";
 import chatService from "../services/chatService";
 import postService from "../services/postService";
-
-function getInitials(name) {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
+import Avatar from "../components/Avatar";
 
 export default function ShareModal({
   post,
@@ -221,17 +212,15 @@ export default function ShareModal({
             {/* Embedded Post Preview */}
             <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 flex flex-col gap-2.5">
               <div className="flex items-center gap-2.5">
-                {author.avatarUrl ? (
-                  <img
-                    src={author.avatarUrl}
-                    alt=""
-                    className="w-7 h-7 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
-                  />
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-zinc-800 text-white font-bold text-[10px] flex items-center justify-center">
-                    {getInitials(authorName)}
-                  </div>
-                )}
+                <Avatar
+                  userId={author.id}
+                  src={author.avatarUrl}
+                  name={authorName}
+                  username={author.username}
+                  avatarColor={author.avatarColor}
+                  size="xs"
+                  className="shrink-0"
+                />
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
                     {authorName}
@@ -321,17 +310,15 @@ export default function ShareModal({
                       className="py-2.5 flex items-center justify-between gap-3"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        {friend.avatarUrl ? (
-                          <img
-                            src={friend.avatarUrl}
-                            alt=""
-                            className="w-9 h-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
-                          />
-                        ) : (
-                          <div className="w-9 h-9 rounded-full bg-zinc-800 text-white font-bold text-xs flex items-center justify-center">
-                            {getInitials(friend.fullName || friend.username)}
-                          </div>
-                        )}
+                        <Avatar
+                          userId={friend.id}
+                          src={friend.avatarUrl}
+                          name={friend.fullName || friend.username}
+                          username={friend.username}
+                          avatarColor={friend.avatarColor}
+                          size="sm"
+                          className="shrink-0"
+                        />
                         <div className="flex flex-col min-w-0">
                           <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
                             {friend.fullName || friend.username}

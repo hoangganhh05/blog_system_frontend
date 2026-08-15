@@ -8,6 +8,7 @@ import commentService from "../services/commentService";
 import PostCard from "../components/PostCard";
 import Comment from "../components/Comment";
 import GifPicker from "../components/GifPicker";
+import Avatar from "../components/Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -187,17 +188,15 @@ export default function PostDetail() {
 
             <div className="flex items-center gap-3">
               <div className="shrink-0">
-                {currentUser.avatarUrl ? (
-                  <img
-                    src={currentUser.avatarUrl}
-                    alt=""
-                    className="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs bg-zinc-800 dark:bg-zinc-700 shrink-0">
-                    {getInitials(currentUser.fullName || currentUser.username)}
-                  </div>
-                )}
+                <Avatar
+                  userId={currentUserId}
+                  src={currentUser?.avatarUrl}
+                  name={currentUser?.fullName || currentUser?.username}
+                  username={currentUser?.username}
+                  avatarColor={currentUser?.avatarColor}
+                  size="sm"
+                  className="border border-zinc-200 dark:border-zinc-700"
+                />
               </div>
 
               <input

@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import PostCard from "../components/PostCard";
 import StoryBar from "../components/StoryBar";
 import QuickComposer from "../components/QuickComposer";
+import Avatar from "../components/Avatar";
 import {
   Loader2,
   MessageSquare,
@@ -329,20 +330,15 @@ export default function Home() {
                   className="w-36 shrink-0 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/60 dark:border-zinc-700/60 flex flex-col items-center text-center gap-2"
                 >
                   <Link to={`/profile/${user.id}`} className="flex flex-col items-center gap-1.5">
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt=""
-                        className="w-11 h-11 rounded-full object-cover shadow-xs"
-                      />
-                    ) : (
-                      <div
-                        className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-xs shadow-xs"
-                        style={{ backgroundColor: user.avatarColor || "#3f3f46" }}
-                      >
-                        {getInitials(name)}
-                      </div>
-                    )}
+                    <Avatar
+                      userId={user.id}
+                      src={user.avatarUrl}
+                      name={name}
+                      username={user.username}
+                      avatarColor={user.avatarColor}
+                      size="md"
+                      className="shrink-0"
+                    />
                     <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-[110px]">
                       {name}
                     </span>

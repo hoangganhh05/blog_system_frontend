@@ -14,11 +14,7 @@ import RightSidebar from "../components/RightSidebar";
 import MiniMusicPlayer from "../components/MiniMusicPlayer";
 import MobileNavDrawer from "../components/MobileNavDrawer";
 import Logo from "../components/Logo";
-
-function getInitials(name) {
-  if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
-}
+import Avatar from "../components/Avatar";
 
 export default function MainLayout({ children, isDark, onToggleTheme }) {
   const { currentUser, logout } = useAuth();
@@ -283,20 +279,15 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 onClick={() => setProfileMenuOpen((v) => !v)}
                 className="flex items-center gap-1 p-0.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
               >
-                {currentUser?.avatarUrl ? (
-                  <img
-                    src={currentUser.avatarUrl}
-                    alt=""
-                    className="w-7 h-7 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
-                  />
-                ) : (
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-white text-[10px]"
-                    style={{ backgroundColor: currentUser?.avatarColor || "#27272a" }}
-                  >
-                    {getInitials(currentUser?.fullName || currentUser?.username)}
-                  </div>
-                )}
+                <Avatar
+                  userId={currentUserId}
+                  src={currentUser?.avatarUrl}
+                  name={currentUser?.fullName || currentUser?.username}
+                  username={currentUser?.username}
+                  avatarColor={currentUser?.avatarColor}
+                  size="sm"
+                  className="border border-zinc-200 dark:border-zinc-700"
+                />
                 <ChevronDown className="w-3 h-3 text-zinc-400 hidden sm:inline" />
               </button>
 
@@ -308,16 +299,16 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                     onClick={() => setProfileMenuOpen(false)}
                     className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
                   >
-                    {currentUser?.avatarUrl ? (
-                      <img src={currentUser.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
-                    ) : (
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
-                        style={{ backgroundColor: currentUser?.avatarColor || "#27272a" }}
-                      >
-                        {getInitials(currentUser?.fullName || currentUser?.username)}
-                      </div>
-                    )}
+                    <Avatar
+                      userId={currentUserId}
+                      src={currentUser?.avatarUrl}
+                      name={currentUser?.fullName || currentUser?.username}
+                      username={currentUser?.username}
+                      avatarColor={currentUser?.avatarColor}
+                      size="sm"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="shrink-0"
+                    />
                     <div className="flex flex-col min-w-0 leading-tight">
                       <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
                         {currentUser?.fullName || currentUser?.username}
@@ -501,20 +492,14 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           }
           title="Trang cá nhân"
         >
-          {currentUser?.avatarUrl ? (
-            <img
-              src={currentUser.avatarUrl}
-              alt=""
-              className="w-6 h-6 rounded-full object-cover"
-            />
-          ) : (
-            <div
-              className="w-6 h-6 rounded-full flex items-center justify-center font-bold text-white text-[10px]"
-              style={{ backgroundColor: currentUser?.avatarColor || "#27272a" }}
-            >
-              {getInitials(currentUser?.fullName || currentUser?.username)}
-            </div>
-          )}
+          <Avatar
+            userId={currentUserId}
+            src={currentUser?.avatarUrl}
+            name={currentUser?.fullName || currentUser?.username}
+            username={currentUser?.username}
+            avatarColor={currentUser?.avatarColor}
+            size="xs"
+          />
         </NavLink>
       </nav>
 

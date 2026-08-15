@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import uploadService from "../services/uploadService";
 import storyService from "../services/storyService";
+import Avatar from "./Avatar";
 
 const COLOR_PRESETS = [
   "linear-gradient(135deg, #18181b 0%, #27272a 100%)",
@@ -216,17 +217,15 @@ export default function CreateStoryModal({ isOpen = true, onClose, onCreated, on
 
               {/* Author Info */}
               <div className="relative z-10 flex items-center gap-2">
-                {currentUser?.avatarUrl ? (
-                  <img
-                    src={currentUser.avatarUrl}
-                    alt=""
-                    className="w-7 h-7 rounded-full border border-white/60 object-cover"
-                  />
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-zinc-800 text-white font-bold text-[10px] flex items-center justify-center border border-white/60">
-                    {getInitials(currentUser?.fullName || currentUser?.username)}
-                  </div>
-                )}
+                                <Avatar
+                  userId={currentUser?.id}
+                  src={currentUser?.avatarUrl}
+                  name={currentUser?.fullName || currentUser?.username}
+                  username={currentUser?.username}
+                  avatarColor={currentUser?.avatarColor}
+                  size="sm"
+                  className="border border-white/60 object-cover"
+                />
                 <span className="text-xs font-bold drop-shadow">
                   {currentUser?.fullName || currentUser?.username || "Bạn"}
                 </span>

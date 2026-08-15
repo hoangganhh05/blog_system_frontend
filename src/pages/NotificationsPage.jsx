@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import notificationService from "../services/notificationService";
 import friendService from "../services/friendService";
 import { toast } from "sonner";
+import Avatar from "../components/Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -211,36 +212,21 @@ export default function NotificationsPage() {
                 }`}
               >
                 {/* Avatar / Icon */}
-                <div
-                  className="relative shrink-0 cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (sender.id) navigate(`/profile/${sender.id}`);
-                  }}
-                  title={`Xem trang cá nhân của ${senderName}`}
-                >
-                  {sender.avatarUrl ? (
-                    <img
-                      src={sender.avatarUrl}
-                      alt=""
-                      className="w-10 h-10 rounded-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                        if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
-                      }}
-                    />
-                  ) : null}
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
-                    style={{
-                      backgroundColor: sender.avatarColor || "#4f46e5",
-                      display: sender.avatarUrl ? "none" : "flex",
-                    }}
-                  >
-                    {getInitials(senderName)}
-                  </div>
+                <div className="relative shrink-0">
+                  <Avatar
+                    userId={sender.id}
+                    src={sender.avatarUrl}
+                    name={senderName}
+                    username={sender.username}
+                    avatarColor={sender.avatarColor}
+                    size="md"
+                    isOnline={sender.isOnline}
+                    lastActiveAt={sender.lastActiveAt}
+                    showActiveStatus={sender.showActiveStatus}
+                    className="border border-zinc-200 dark:border-zinc-800 shadow-xs"
+                  />
                   {!n.read && (
-                    <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-zinc-950" />
+                    <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-zinc-950 pointer-events-none" />
                   )}
                 </div>
 

@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import friendService from "../services/friendService";
 import chatService from "../services/chatService";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -179,34 +180,17 @@ function ChatBox() {
                         onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-secondary)"}
                         onMouseLeave={(e) => e.currentTarget.style.background = "none"}
                       >
-                        <div style={{ position: "relative" }}>
-                          {f.avatarUrl ? (
-                            <img
-                              src={f.avatarUrl}
-                              alt={name}
-                              className="avatar avatar-sm"
-                              style={{ objectFit: "cover" }}
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                                if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
-                              }}
-                            />
-                          ) : null}
-                          <div
-                            className="avatar avatar-sm"
-                            style={{
-                              background: f.avatarColor ? `linear-gradient(135deg, ${f.avatarColor}, ${f.avatarColor}bb)` : undefined,
-                              display: f.avatarUrl ? "none" : "flex",
-                            }}
-                          >
-                            {getInitials(name)}
-                          </div>
-                          <span style={{
-                            position: "absolute", bottom: 0, right: 0,
-                            width: 8, height: 8, borderRadius: "50%",
-                            background: "#31a24c", border: "1.5px solid var(--bg-card)"
-                          }} />
-                        </div>
+                                                <Avatar
+                          userId={f.id}
+                          src={f.avatarUrl}
+                          name={name}
+                          username={f.username}
+                          avatarColor={f.avatarColor}
+                          size="sm"
+                          isOnline={true}
+                          showActiveStatus={true}
+                          className="border-2 border-[var(--bg-card)]"
+                        />
                         <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>{name}</span>
                       </div>
                     );
@@ -247,34 +231,17 @@ function ChatBox() {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ position: "relative" }}>
-                {activeFriend.avatarUrl ? (
-                  <img
-                    src={activeFriend.avatarUrl}
-                    alt={activeFriend.fullName}
-                    className="avatar avatar-sm"
-                    style={{ objectFit: "cover" }}
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                      if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
-                    }}
-                  />
-                ) : null}
-                <div
-                  className="avatar avatar-sm"
-                  style={{
-                    background: activeFriend.avatarColor ? `linear-gradient(135deg, ${activeFriend.avatarColor}, ${activeFriend.avatarColor}bb)` : undefined,
-                    display: activeFriend.avatarUrl ? "none" : "flex",
-                  }}
-                >
-                  {getInitials(activeFriend.fullName || activeFriend.username)}
-                </div>
-                <span style={{
-                  position: "absolute", bottom: 0, right: 0,
-                  width: 8, height: 8, borderRadius: "50%",
-                  background: "#31a24c", border: "1.5px solid var(--bg-card)"
-                }} />
-              </div>
+                            <Avatar
+                userId={activeFriend.id}
+                src={activeFriend.avatarUrl}
+                name={activeFriend.fullName || activeFriend.username}
+                username={activeFriend.username}
+                avatarColor={activeFriend.avatarColor}
+                size="sm"
+                isOnline={true}
+                showActiveStatus={true}
+                className="border-2 border-[var(--bg-card)]"
+              />
               <div>
                 <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>
                   {activeFriend.fullName || activeFriend.username}

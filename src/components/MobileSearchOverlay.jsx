@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import userService from "../services/userService";
 import postService from "../services/postService";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -307,11 +308,14 @@ function MobileSearchOverlay({ isOpen, onClose }) {
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        {item.avatarUrl ? (
-                          <img
+                                                {item.avatarUrl ? (
+                          <Avatar
+                            userId={item.userId}
                             src={item.avatarUrl}
-                            alt=""
-                            style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
+                            name={item.text}
+                            avatarColor={item.avatarColor}
+                            size="w-10 h-10"
+                            onClick={() => onClose()}
                           />
                         ) : (
                           <div
@@ -386,27 +390,24 @@ function MobileSearchOverlay({ isOpen, onClose }) {
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      {u.avatarUrl ? (
-                        <img
-                          src={u.avatarUrl}
-                          alt=""
-                          style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }}
-                        />
-                      ) : (
-                        <div
-                          className="avatar"
-                          style={{
-                            width: 44,
-                            height: 44,
-                            fontSize: 16,
-                            background: u.avatarColor
-                              ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)`
-                              : undefined,
-                          }}
-                        >
-                          {getInitials(u.fullName || u.username)}
-                        </div>
-                      )}
+                                            <Avatar
+                        userId={u.id}
+                        src={u.avatarUrl}
+                        name={u.fullName || u.username}
+                        username={u.username}
+                        avatarColor={u.avatarColor}
+                        size="w-11 h-11"
+                        onClick={() => {
+                          saveRecentItem({
+                            id: `user_${u.id}`,
+                            text: u.fullName || u.username,
+                            userId: u.id,
+                            avatarUrl: u.avatarUrl,
+                            type: "user",
+                          });
+                          onClose();
+                        }}
+                      />
                       <div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
                           {u.fullName || u.username}
@@ -452,24 +453,24 @@ function MobileSearchOverlay({ isOpen, onClose }) {
                         background: "var(--bg-secondary)",
                       }}
                     >
-                      {u.avatarUrl ? (
-                        <img
-                          src={u.avatarUrl}
-                          alt=""
-                          style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
-                        />
-                      ) : (
-                        <div
-                          className="avatar avatar-sm"
-                          style={{
-                            background: u.avatarColor
-                              ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)`
-                              : undefined,
-                          }}
-                        >
-                          {getInitials(u.fullName || u.username)}
-                        </div>
-                      )}
+                                            <Avatar
+                        userId={u.id}
+                        src={u.avatarUrl}
+                        name={u.fullName || u.username}
+                        username={u.username}
+                        avatarColor={u.avatarColor}
+                        size="w-10 h-10"
+                        onClick={() => {
+                          saveRecentItem({
+                            id: `user_${u.id}`,
+                            text: u.fullName || u.username,
+                            userId: u.id,
+                            avatarUrl: u.avatarUrl,
+                            type: "user",
+                          });
+                          onClose();
+                        }}
+                      />
                       <div>
                         <div style={{ fontSize: 14.5, fontWeight: 700, color: "var(--text-primary)" }}>
                           {u.fullName || u.username}

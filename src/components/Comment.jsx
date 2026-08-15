@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import commentService from "../services/commentService";
 import ConfirmModal from "./ConfirmModal";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -119,28 +120,20 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
   return (
     <div className="flex gap-3 py-3 border-b border-zinc-100 dark:border-zinc-900 group">
       {/* Cột Avatar */}
-      <Link to={`/profile/${author.id}`} className="shrink-0">
-        {authorAvatarUrl ? (
-          <img
-            src={authorAvatarUrl}
-            alt={authorName}
-            className="w-9 h-9 rounded-full object-cover"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-              if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
-            }}
-          />
-        ) : null}
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
-          style={{
-            backgroundColor: authorAvatarColor || "#4f46e5",
-            display: authorAvatarUrl ? "none" : "flex",
-          }}
-        >
-          {getInitials(authorName)}
-        </div>
-      </Link>
+      <div className="shrink-0">
+        <Avatar
+          userId={author.id}
+          src={authorAvatarUrl}
+          name={authorName}
+          username={author.username}
+          avatarColor={authorAvatarColor}
+          size="sm"
+          isOnline={author.isOnline}
+          lastActiveAt={author.lastActiveAt}
+          showActiveStatus={author.showActiveStatus}
+          className="border border-zinc-200 dark:border-zinc-800 shadow-xs"
+        />
+      </div>
 
       {/* Cột Nội Dung Bình Luận */}
       <div className="flex-1 min-w-0 flex flex-col">

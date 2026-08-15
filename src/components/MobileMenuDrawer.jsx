@@ -2,6 +2,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -55,25 +56,15 @@ export default function MobileMenuDrawer({ isOpen, onClose, isDark, onToggleThem
               onClick={onClose}
               className="mobile-menu-profile-card"
             >
-              {currentUser.avatarUrl ? (
-                <img
-                  src={currentUser.avatarUrl}
-                  alt={currentUser.fullName || currentUser.username}
-                  className="avatar avatar-md"
-                  style={{ objectFit: "cover" }}
-                />
-              ) : (
-                <div
-                  className="avatar avatar-md"
-                  style={{
-                    background: currentUser.avatarColor
-                      ? `linear-gradient(135deg, ${currentUser.avatarColor}, ${currentUser.avatarColor}bb)`
-                      : undefined
-                  }}
-                >
-                  {getInitials(currentUser.fullName || currentUser.username)}
-                </div>
-              )}
+                            <Avatar
+                userId={currentUser.id}
+                src={currentUser.avatarUrl}
+                name={currentUser.fullName || currentUser.username}
+                username={currentUser.username}
+                avatarColor={currentUser.avatarColor}
+                size="md"
+                onClick={() => onClose()}
+              />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {currentUser.fullName || currentUser.username}

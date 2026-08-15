@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import notificationService from "../services/notificationService";
 import friendService from "../services/friendService";
 import { toast } from "sonner";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -316,41 +317,19 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
                 }}
               >
                 {/* Avatar */}
-                <div
-                  style={{ position: "relative", cursor: "pointer", marginTop: 2 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (n.sender?.id) {
-                      navigate(`/profile/${n.sender.id}`);
-                      onClose();
-                    }
-                  }}
-                  title={`Xem trang cá nhân của ${senderName}`}
-                >
-                  {n.sender?.avatarUrl ? (
-                    <img
-                      src={n.sender.avatarUrl}
-                      alt={senderName}
-                      className="avatar avatar-md"
-                      style={{ objectFit: "cover" }}
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                        if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
-                      }}
-                    />
-                  ) : null}
-                  <div
-                    className="avatar avatar-md"
-                    style={{
-                      background: n.sender?.avatarColor
-                        ? `linear-gradient(135deg, ${n.sender.avatarColor}, ${n.sender.avatarColor}bb)`
-                        : undefined,
-                      display: n.sender?.avatarUrl ? "none" : "flex",
-                    }}
-                  >
-                    {getInitials(senderName)}
-                  </div>
-                </div>
+                <Avatar
+                  userId={n.sender?.id}
+                  src={n.sender?.avatarUrl}
+                  name={senderName}
+                  username={n.sender?.username}
+                  avatarColor={n.sender?.avatarColor}
+                  size="md"
+                  isOnline={n.sender?.isOnline}
+                  lastActiveAt={n.sender?.lastActiveAt}
+                  showActiveStatus={n.sender?.showActiveStatus}
+                  onClick={() => onClose()}
+                  className="mt-0.5 border border-zinc-200 dark:border-zinc-800 shadow-xs"
+                />
 
                 {/* Content */}
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, overflow: "hidden" }}>

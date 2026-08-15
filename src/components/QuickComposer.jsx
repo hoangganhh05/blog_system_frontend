@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import postService from "../services/postService";
 import uploadService from "../services/uploadService";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -118,26 +119,17 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs flex gap-3">
       {/* Avatar */}
       <div className="shrink-0">
-        {currentUser.avatarUrl ? (
-          <img
-            src={currentUser.avatarUrl}
-            alt=""
-            className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-              if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
-            }}
-          />
-        ) : null}
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs bg-zinc-800 dark:bg-zinc-700"
-          style={{
-            backgroundColor: currentUser.avatarColor || "#27272a",
-            display: currentUser.avatarUrl ? "none" : "flex",
-          }}
-        >
-          {getInitials(currentUser.fullName || currentUser.username)}
-        </div>
+        <Avatar
+          userId={currentUserId}
+          src={currentUser.avatarUrl}
+          name={currentUser.fullName || currentUser.username}
+          username={currentUser.username}
+          avatarColor={currentUser.avatarColor}
+          size="md"
+          isOnline={true}
+          showActiveStatus={currentUser.showActiveStatus}
+          className="border border-zinc-200 dark:border-zinc-700 shadow-xs"
+        />
       </div>
 
       {/* Input */}

@@ -6,6 +6,7 @@ import likeService from "../services/likeService";
 import followService from "../services/followService";
 import friendService from "../services/friendService";
 import { toast } from "sonner";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -234,25 +235,19 @@ export default function ReactionsModal({
                   >
                     {/* Avatar with Heart badge */}
                     <div className="relative shrink-0">
-                      {user.avatarUrl ? (
-                        <img
-                          src={user.avatarUrl}
-                          alt=""
-                          className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-                        />
-                      ) : (
-                        <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs"
-                          style={{
-                            backgroundColor: user.avatarColor || "#475569",
-                          }}
-                        >
-                          {getInitials(user.fullName || user.username)}
-                        </div>
-                      )}
+                      <Avatar
+                        userId={user.id}
+                        src={user.avatarUrl}
+                        name={user.fullName || user.username}
+                        username={user.username}
+                        avatarColor={user.avatarColor}
+                        size="md"
+                        onClick={() => onClose?.()}
+                        className="border border-slate-200 dark:border-slate-700"
+                      />
 
                       {/* Small heart badge on avatar */}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-rose-500 border border-white dark:border-[#111827] flex items-center justify-center shadow-xs">
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-rose-500 border border-white dark:border-[#111827] flex items-center justify-center shadow-xs pointer-events-none">
                         <Heart className="w-2.5 h-2.5 fill-white text-white" />
                       </div>
                     </div>

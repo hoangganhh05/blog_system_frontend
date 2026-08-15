@@ -7,6 +7,7 @@ import postService from "../services/postService";
 import NotificationDrawer from "./NotificationDrawer";
 import MobileMenuDrawer from "./MobileMenuDrawer";
 import MobileSearchOverlay from "./MobileSearchOverlay";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -439,8 +440,15 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
                       onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
-                        {item.avatarUrl ? (
-                          <img src={item.avatarUrl} alt="" className="avatar avatar-sm" style={{ width: 36, height: 36, objectFit: "cover" }} />
+                                                {item.avatarUrl ? (
+                          <Avatar
+                            userId={item.userId}
+                            src={item.avatarUrl}
+                            name={item.text}
+                            avatarColor={item.avatarColor}
+                            size="w-9 h-9"
+                            onClick={() => setSearchFocused(false)}
+                          />
                         ) : (
                           <div
                             style={{
@@ -532,13 +540,25 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
                                 onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"}
                                 onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                               >
-                                {u.avatarUrl ? (
-                                  <img src={u.avatarUrl} alt={name} className="avatar avatar-sm" style={{ width: 36, height: 36, objectFit: "cover" }} />
-                                ) : (
-                                  <div className="avatar avatar-sm" style={{ width: 36, height: 36, background: u.avatarColor ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)` : undefined }}>
-                                    {getInitials(name)}
-                                  </div>
-                                )}
+                                                                <Avatar
+                                  userId={u.id}
+                                  src={u.avatarUrl}
+                                  name={name}
+                                  username={u.username}
+                                  avatarColor={u.avatarColor}
+                                  size="w-9 h-9"
+                                  onClick={() => {
+                                    saveRecentSearch({
+                                      id: `user_${u.id}`,
+                                      text: name,
+                                      userId: u.id,
+                                      avatarUrl: u.avatarUrl,
+                                      subtext: `@${u.username}`,
+                                      type: "user",
+                                    });
+                                    setSearchFocused(false);
+                                  }}
+                                />
                                 <div style={{ display: "flex", flexDirection: "column" }}>
                                   <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{name}</span>
                                   <span style={{ fontSize: 11.5, color: "var(--text-muted)" }}>@{u.username}</span>
@@ -880,13 +900,18 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
                         }}
                         style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", cursor: "pointer", borderBottom: "1px solid var(--border-light)" }}
                       >
-                        {u.avatarUrl ? (
-                          <img src={u.avatarUrl} alt={name} className="avatar avatar-sm" style={{ objectFit: "cover" }} />
-                        ) : (
-                          <div className="avatar avatar-sm" style={{ background: u.avatarColor ? `linear-gradient(135deg, ${u.avatarColor}, ${u.avatarColor}bb)` : undefined }}>
-                            {getInitials(name)}
-                          </div>
-                        )}
+                                                <Avatar
+                          userId={u.id}
+                          src={u.avatarUrl}
+                          name={name}
+                          username={u.username}
+                          avatarColor={u.avatarColor}
+                          size="w-9 h-9"
+                          onClick={() => {
+                            setMobileSearchOpen(false);
+                            setSearchFocused(false);
+                          }}
+                        />
                         <div style={{ display: "flex", flexDirection: "column" }}>
                           <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{name}</span>
                           <span style={{ fontSize: 12, color: "var(--text-muted)" }}>@{u.username}</span>

@@ -25,6 +25,7 @@ import EditPostModal from "./EditPostModal";
 import ReactionsModal from "./ReactionsModal";
 import ConfirmModal from "./ConfirmModal";
 import ShareModal from "./ShareModal";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -273,32 +274,18 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
     >
       {/* Avatar */}
       <div className="shrink-0">
-        <Link
-          to={`/profile/${author.id}`}
-          onClick={(e) => e.stopPropagation()}
-          className="relative group block shrink-0"
-        >
-          {authorAvatarUrl ? (
-            <img
-              src={authorAvatarUrl}
-              alt=""
-              className="w-10 h-10 rounded-full object-cover group-hover:opacity-90 transition border border-zinc-200 dark:border-zinc-700"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-                if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
-              }}
-            />
-          ) : null}
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
-            style={{
-              backgroundColor: authorAvatarColor || "#27272a",
-              display: authorAvatarUrl ? "none" : "flex",
-            }}
-          >
-            {getInitials(authorName)}
-          </div>
-        </Link>
+        <Avatar
+          userId={author.id}
+          src={authorAvatarUrl}
+          name={authorName}
+          username={author.username}
+          avatarColor={authorAvatarColor}
+          size="md"
+          isOnline={author.isOnline}
+          lastActiveAt={author.lastActiveAt}
+          showActiveStatus={author.showActiveStatus}
+          className="border border-zinc-200 dark:border-zinc-700 shadow-xs"
+        />
       </div>
 
       {/* Cột Nội Dung & Tương Tác */}
@@ -436,26 +423,15 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                 }}
                 className="flex items-center gap-2 group hover:underline"
               >
-                {origAuthorAvatarUrl ? (
-                  <img
-                    src={origAuthorAvatarUrl}
-                    alt=""
-                    className="w-6 h-6 rounded-full object-cover shrink-0"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                      if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
-                    }}
-                  />
-                ) : null}
-                <div
-                  className="w-6 h-6 rounded-full text-[10px] font-bold text-white flex items-center justify-center shrink-0"
-                  style={{
-                    backgroundColor: origAuthorAvatarColor || "#27272a",
-                    display: origAuthorAvatarUrl ? "none" : "flex",
-                  }}
-                >
-                  {getInitials(origAuthorName)}
-                </div>
+                                <Avatar
+                  userId={origAuthor.id}
+                  src={origAuthorAvatarUrl}
+                  name={origAuthorName}
+                  username={origAuthor.username}
+                  avatarColor={origAuthorAvatarColor}
+                  size="xs"
+                  className="shrink-0 border border-zinc-200 dark:border-zinc-700 shadow-xs"
+                />
                 <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 truncate">
                   {origAuthorName}
                 </span>

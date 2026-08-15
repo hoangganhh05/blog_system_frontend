@@ -7,6 +7,7 @@ import userService from "../services/userService";
 import followService from "../services/followService";
 import MiniMusicPlayer from "./MiniMusicPlayer";
 import { isUserOnline, formatLastActive } from "../utils/statusUtils";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -125,36 +126,18 @@ export default function RightSidebar() {
                     to={`/profile/${user.id}`}
                     className="flex items-center gap-2.5 min-w-0 group"
                   >
-                    <div className="relative shrink-0">
-                      {user.avatarUrl ? (
-                        <img
-                          src={user.avatarUrl}
-                          alt=""
-                          className="w-9 h-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                            if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
-                          }}
-                        />
-                      ) : null}
-                      <div
-                        className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-[10px] shrink-0"
-                        style={{
-                          backgroundColor: user.avatarColor || "#27272a",
-                          display: user.avatarUrl ? "none" : "flex",
-                        }}
-                      >
-                        {getInitials(displayName)}
-                      </div>
-                      {user.showActiveStatus !== false && (
-                        <span
-                          className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-1.5 border-white dark:border-zinc-900 ${
-                            isUserOnline(user) ? "bg-emerald-500" : "bg-zinc-400"
-                          }`}
-                          title={formatLastActive(user)}
-                        />
-                      )}
-                    </div>
+                                        <Avatar
+                      userId={user.id}
+                      src={user.avatarUrl}
+                      name={displayName}
+                      username={user.username}
+                      avatarColor={user.avatarColor}
+                      size="w-9 h-9"
+                      isOnline={user.isOnline}
+                      lastActiveAt={user.lastActiveAt}
+                      showActiveStatus={user.showActiveStatus !== false}
+                      className="border border-zinc-200 dark:border-zinc-700 shrink-0 shadow-xs"
+                    />
 
                     <div className="flex flex-col min-w-0">
                       <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:underline">

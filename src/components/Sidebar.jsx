@@ -2,11 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import friendService from "../services/friendService";
-
-function getInitials(name) {
-  if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
-}
+import Avatar from "../components/Avatar";
 
 function Sidebar({ categories, activeCategoryId, onSelectCategory }) {
   return (
@@ -121,13 +117,15 @@ function SidebarRight({ trendingPosts }) {
             return (
               <div key={req.id} style={{ display: "flex", flexDirection: "column", gap: 8, padding: "8px 0", borderBottom: "1px dashed var(--border-light)" }}>
                 <Link to={`/profile/${sender.id}`} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: "inherit" }}>
-                  {sender.avatarUrl ? (
-                    <img src={sender.avatarUrl} alt={senderName} className="avatar avatar-sm" style={{ objectFit: "cover" }} />
-                  ) : (
-                    <div className="avatar avatar-sm" style={{ background: sender.avatarColor ? `linear-gradient(135deg, ${sender.avatarColor}, ${sender.avatarColor}bb)` : undefined }}>
-                      {getInitials(senderName)}
-                    </div>
-                  )}
+                  <Avatar
+                    userId={sender.id}
+                    src={sender.avatarUrl}
+                    name={senderName}
+                    username={sender.username}
+                    avatarColor={sender.avatarColor}
+                    size="sm"
+                    className="shrink-0"
+                  />
                   <span style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)" }}>{senderName}</span>
                 </Link>
                 <div style={{ display: "flex", gap: 6 }}>
@@ -168,20 +166,18 @@ function SidebarRight({ trendingPosts }) {
                   title={`Nhắn tin với ${name}`}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ position: "relative" }}>
-                      {friend.avatarUrl ? (
-                        <img src={friend.avatarUrl} alt={name} className="avatar avatar-sm" style={{ objectFit: "cover" }} />
-                      ) : (
-                        <div className="avatar avatar-sm" style={{ background: friend.avatarColor ? `linear-gradient(135deg, ${friend.avatarColor}, ${friend.avatarColor}bb)` : undefined }}>
-                          {getInitials(name)}
-                        </div>
-                      )}
-                      <span style={{
-                        position: "absolute", bottom: 0, right: 0,
-                        width: 9, height: 9, borderRadius: "50%",
-                        background: "#31a24c", border: "2px solid var(--bg-card)"
-                      }} />
-                    </div>
+                  <Avatar
+                    userId={friend.id}
+                    src={friend.avatarUrl}
+                    name={name}
+                    username={friend.username}
+                    avatarColor={friend.avatarColor}
+                    size="sm"
+                    isOnline={friend.isOnline}
+                    lastActiveAt={friend.lastActiveAt}
+                    showActiveStatus={friend.showActiveStatus}
+                    className="shrink-0"
+                  />
                     <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>{name}</span>
                   </div>
                   <span style={{ fontSize: 14, color: "var(--primary)" }}>💬</span>

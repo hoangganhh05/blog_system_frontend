@@ -6,6 +6,7 @@ import { useMusic } from "../context/MusicContext";
 import userService from "../services/userService";
 import friendService from "../services/friendService";
 import followService from "../services/followService";
+import Avatar from "./Avatar";
 import {
   Home,
   Compass,
@@ -223,20 +224,16 @@ export default function MobileNavDrawer({
                 onClick={onClose}
                 className="flex items-center gap-3 group"
               >
-                {currentUser.avatarUrl ? (
-                  <img
-                    src={currentUser.avatarUrl}
-                    alt=""
-                    className="w-12 h-12 rounded-full object-cover border border-[#e4e6eb] dark:border-[#393a3b] shadow-xs"
-                  />
-                ) : (
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-xs"
-                    style={{ backgroundColor: currentUser.avatarColor || "#475569" }}
-                  >
-                    {getInitials(currentUser.fullName || currentUser.username)}
-                  </div>
-                )}
+                                <Avatar
+                  userId={currentUserId}
+                  src={currentUser.avatarUrl}
+                  name={currentUser.fullName || currentUser.username}
+                  username={currentUser.username}
+                  avatarColor={currentUser.avatarColor}
+                  size="lg"
+                  onClick={() => onClose()}
+                  className="border border-[#e4e6eb] dark:border-[#393a3b] shadow-xs"
+                />
 
                 <div className="flex flex-col min-w-0">
                   <span className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate group-hover:underline">
@@ -365,20 +362,15 @@ export default function MobileNavDrawer({
                         onClick={onClose}
                         className="flex items-center gap-2 min-w-0 flex-1 group"
                       >
-                        {user.avatarUrl ? (
-                          <img
-                            src={user.avatarUrl}
-                            alt=""
-                            className="w-8 h-8 rounded-full object-cover shrink-0"
-                          />
-                        ) : (
-                          <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-[10px] shrink-0"
-                            style={{ backgroundColor: user.avatarColor || "#475569" }}
-                          >
-                            {getInitials(user.fullName || user.username)}
-                          </div>
-                        )}
+                                                <Avatar
+                          userId={user.id}
+                          src={user.avatarUrl}
+                          name={user.fullName || user.username}
+                          username={user.username}
+                          avatarColor={user.avatarColor}
+                          size="w-8 h-8"
+                          onClick={() => onClose()}
+                        />
                         <div className="flex flex-col min-w-0">
                           <span className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb] truncate group-hover:underline">
                             {user.fullName || user.username}

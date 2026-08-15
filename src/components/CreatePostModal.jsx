@@ -6,6 +6,7 @@ import postService from "../services/postService";
 import categoryService from "../services/categoryService";
 import uploadService from "../services/uploadService";
 import aiService from "../services/aiService";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -175,19 +176,15 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
         <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
           {/* User Meta Row */}
           <div className="flex items-center gap-3">
-            {currentUser?.avatarUrl ? (
-              <img
-                src={currentUser.avatarUrl}
-                alt=""
-                className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
-              />
-            ) : (
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs bg-zinc-800 dark:bg-zinc-700 shrink-0"
-              >
-                {getInitials(currentUser?.fullName || currentUser?.username)}
-              </div>
-            )}
+                        <Avatar
+              userId={currentUser?.id}
+              src={currentUser?.avatarUrl}
+              name={currentUser?.fullName || currentUser?.username}
+              username={currentUser?.username}
+              avatarColor={currentUser?.avatarColor}
+              size="md"
+              className="border border-zinc-200 dark:border-zinc-700 shadow-xs"
+            />
 
             <div className="flex flex-col min-w-0">
               <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 truncate">

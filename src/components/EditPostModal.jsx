@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import postService from "../services/postService";
 import categoryService from "../services/categoryService";
 import { useAuth } from "../context/AuthContext";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -113,18 +114,16 @@ export default function EditPostModal({ isOpen = true, onClose, post, onUpdated 
         </div>
 
         {/* User Info Bar */}
-        <div className="flex items-center gap-3 px-5 pt-4 pb-2">
-          {currentUser?.avatarUrl ? (
-            <img
-              src={currentUser.avatarUrl}
-              alt=""
-              className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs bg-zinc-800 dark:bg-zinc-700">
-              {getInitials(currentUser?.fullName || currentUser?.username)}
-            </div>
-          )}
+        <div className="flex items-center gap-3 px-5 py-3">
+          <Avatar
+            userId={currentUser?.id}
+            src={currentUser?.avatarUrl}
+            name={currentUser?.fullName || currentUser?.username}
+            username={currentUser?.username}
+            avatarColor={currentUser?.avatarColor}
+            size="md"
+            className="border border-zinc-200 dark:border-zinc-700 shadow-xs"
+          />
           <div className="flex flex-col">
             <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
               {currentUser?.fullName || currentUser?.username}

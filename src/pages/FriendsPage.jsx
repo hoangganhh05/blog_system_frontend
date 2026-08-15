@@ -6,16 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import friendService from "../services/friendService";
 import userService from "../services/userService";
 import { isUserOnline, formatLastActive } from "../utils/statusUtils";
-
-function getInitials(name) {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
+import Avatar from "../components/Avatar";
 
 export default function FriendsPage() {
   const { currentUser } = useAuth();
@@ -177,26 +168,18 @@ export default function FriendsPage() {
             friends.map((friend) => (
               <div key={friend.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition rounded-xl">
                 <Link to={`/profile/${friend.id}`} className="flex items-center gap-3 min-w-0">
-                  <div className="relative shrink-0">
-                    {friend.avatarUrl ? (
-                      <img src={friend.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover shrink-0" />
-                    ) : (
-                      <div
-                        className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
-                        style={{ backgroundColor: friend.avatarColor || "#4f46e5" }}
-                      >
-                        {getInitials(friend.fullName || friend.username)}
-                      </div>
-                    )}
-                    {friend.showActiveStatus !== false && (
-                      <span
-                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-900 ${
-                          isUserOnline(friend) ? "bg-emerald-500" : "bg-zinc-400"
-                        }`}
-                        title={formatLastActive(friend)}
-                      />
-                    )}
-                  </div>
+                  <Avatar
+                    userId={friend.id}
+                    src={friend.avatarUrl}
+                    name={friend.fullName || friend.username}
+                    username={friend.username}
+                    avatarColor={friend.avatarColor}
+                    size="md"
+                    isOnline={friend.isOnline}
+                    lastActiveAt={friend.lastActiveAt}
+                    showActiveStatus={friend.showActiveStatus}
+                    className="shrink-0"
+                  />
                   <div className="flex flex-col min-w-0">
                     <span className="font-bold text-sm text-zinc-900 dark:text-white truncate">
                       {friend.fullName || friend.username}
@@ -241,26 +224,18 @@ export default function FriendsPage() {
               return (
                 <div key={req.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition rounded-xl">
                   <Link to={`/profile/${requester.id}`} className="flex items-center gap-3 min-w-0">
-                    <div className="relative shrink-0">
-                      {requester.avatarUrl ? (
-                        <img src={requester.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover shrink-0" />
-                      ) : (
-                        <div
-                          className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
-                          style={{ backgroundColor: requester.avatarColor || "#4f46e5" }}
-                        >
-                          {getInitials(requester.fullName || requester.username)}
-                        </div>
-                      )}
-                      {requester.showActiveStatus !== false && (
-                        <span
-                          className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-900 ${
-                            isUserOnline(requester) ? "bg-emerald-500" : "bg-zinc-400"
-                          }`}
-                          title={formatLastActive(requester)}
-                        />
-                      )}
-                    </div>
+                  <Avatar
+                    userId={requester.id}
+                    src={requester.avatarUrl}
+                    name={requester.fullName || requester.username}
+                    username={requester.username}
+                    avatarColor={requester.avatarColor}
+                    size="md"
+                    isOnline={requester.isOnline}
+                    lastActiveAt={requester.lastActiveAt}
+                    showActiveStatus={requester.showActiveStatus}
+                    className="shrink-0"
+                  />
                     <div className="flex flex-col min-w-0">
                       <span className="font-bold text-sm text-zinc-900 dark:text-white truncate">
                         {requester.fullName || requester.username}
@@ -300,26 +275,18 @@ export default function FriendsPage() {
             suggestions.map((sug) => (
               <div key={sug.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition rounded-xl">
                 <Link to={`/profile/${sug.id}`} className="flex items-center gap-3 min-w-0">
-                  <div className="relative shrink-0">
-                    {sug.avatarUrl ? (
-                      <img src={sug.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover shrink-0" />
-                    ) : (
-                      <div
-                        className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
-                        style={{ backgroundColor: sug.avatarColor || "#4f46e5" }}
-                      >
-                        {getInitials(sug.fullName || sug.username)}
-                      </div>
-                    )}
-                    {sug.showActiveStatus !== false && (
-                      <span
-                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-900 ${
-                          isUserOnline(sug) ? "bg-emerald-500" : "bg-zinc-400"
-                        }`}
-                        title={formatLastActive(sug)}
-                      />
-                    )}
-                  </div>
+                  <Avatar
+                    userId={sug.id}
+                    src={sug.avatarUrl}
+                    name={sug.fullName || sug.username}
+                    username={sug.username}
+                    avatarColor={sug.avatarColor}
+                    size="md"
+                    isOnline={sug.isOnline}
+                    lastActiveAt={sug.lastActiveAt}
+                    showActiveStatus={sug.showActiveStatus}
+                    className="shrink-0"
+                  />
                   <div className="flex flex-col min-w-0">
                     <span className="font-bold text-sm text-zinc-900 dark:text-white truncate">
                       {sug.fullName || sug.username}

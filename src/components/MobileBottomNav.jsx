@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import notificationService from "../services/notificationService";
+import Avatar from "./Avatar";
 
 export default function MobileBottomNav() {
   const [hidden, setHidden] = useState(false);
@@ -150,13 +151,14 @@ export default function MobileBottomNav() {
           title="Hồ sơ"
           aria-label="Hồ sơ"
         >
-          {currentUser.avatarUrl ? (
-            <img src={currentUser.avatarUrl} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} />
-          ) : (
-            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--bg-input)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: 12 }}>
-              {((currentUser.fullName || currentUser.username) ? (currentUser.fullName || currentUser.username).split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2) : "?")}
-            </div>
-          )}
+                    <Avatar
+            userId={currentUserId}
+            src={currentUser.avatarUrl}
+            name={currentUser.fullName || currentUser.username}
+            username={currentUser.username}
+            avatarColor={currentUser.avatarColor}
+            size="w-7 h-7"
+          />
         </NavLink>
       ) : (
         <NavLink to="/login" className="mobile-nav-item" title="Đăng nhập" aria-label="Đăng nhập">

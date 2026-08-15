@@ -35,6 +35,7 @@ import GifPicker from "./GifPicker";
 import EmojiPicker from "./EmojiPicker";
 import { isUserOnline, formatLastActive } from "../utils/statusUtils";
 import StickerPicker from "./StickerPicker";
+import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -689,36 +690,18 @@ export default function FloatingChatWidget() {
                     }
                     className="flex items-center gap-2 cursor-pointer min-w-0 flex-1 group"
                   >
-                    <div className="relative shrink-0">
-                      {activeFriend.avatarUrl ? (
-                        <img
-                          src={activeFriend.avatarUrl}
-                          alt=""
-                          className="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                            if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
-                          }}
-                        />
-                      ) : null}
-                      <div
-                        className="w-8 h-8 rounded-full text-xs font-bold text-white flex items-center justify-center shrink-0"
-                        style={{
-                          backgroundColor: activeFriend.avatarColor || "#27272a",
-                          display: activeFriend.avatarUrl ? "none" : "flex",
-                        }}
-                      >
-                        {getInitials(activeFriend.fullName || activeFriend.username)}
-                      </div>
-                      {!activeFriend.isAi && activeFriend.showActiveStatus !== false && (
-                        <span
-                          className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-zinc-900 ${
-                            isUserOnline(activeFriend) ? "bg-emerald-500" : "bg-zinc-400"
-                          }`}
-                          title={formatLastActive(activeFriend)}
-                        />
-                      )}
-                    </div>
+                    <Avatar
+                      userId={activeFriend.id}
+                      src={activeFriend.avatarUrl}
+                      name={activeFriend.fullName || activeFriend.username}
+                      username={activeFriend.username}
+                      avatarColor={activeFriend.avatarColor}
+                      size="sm"
+                      isOnline={activeFriend.isOnline}
+                      lastActiveAt={activeFriend.lastActiveAt}
+                      showActiveStatus={!activeFriend.isAi && activeFriend.showActiveStatus !== false}
+                      className="border border-zinc-200 dark:border-zinc-700 shrink-0"
+                    />
                     <div className="flex flex-col min-w-0">
                       <span className="font-bold text-xs truncate text-zinc-900 dark:text-zinc-100 group-hover:underline">
                         {activeFriend.fullName || activeFriend.username}
@@ -873,40 +856,22 @@ export default function FloatingChatWidget() {
                           className={`flex items-center justify-between p-2.5 rounded-2xl cursor-pointer transition ${
                             unread > 0
                               ? "bg-zinc-100 dark:bg-zinc-900 font-bold"
-                              : "hover:bg-zinc-100 dark:hover:bg-zinc-900/80"
+                              : "hover:bg-zinc-100 dark:bg-zinc-900/80"
                           }`}
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className="relative shrink-0">
-                              {friend.avatarUrl ? (
-                                <img
-                                  src={friend.avatarUrl}
-                                  alt=""
-                                  className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = "none";
-                                    if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
-                                  }}
-                                />
-                              ) : null}
-                              <div
-                                className="w-10 h-10 rounded-full text-xs font-bold text-white flex items-center justify-center shrink-0"
-                                style={{
-                                  backgroundColor: friend.avatarColor || "#27272a",
-                                  display: friend.avatarUrl ? "none" : "flex",
-                                }}
-                              >
-                                {getInitials(fName)}
-                              </div>
-                              {friend.showActiveStatus !== false && (
-                                <span
-                                  className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-900 ${
-                                    isUserOnline(friend) ? "bg-emerald-500" : "bg-zinc-400"
-                                  }`}
-                                  title={formatLastActive(friend)}
-                                />
-                              )}
-                            </div>
+                            <Avatar
+                              userId={friend.id}
+                              src={friend.avatarUrl}
+                              name={fName}
+                              username={friend.username}
+                              avatarColor={friend.avatarColor}
+                              size="md"
+                              isOnline={friend.isOnline}
+                              lastActiveAt={friend.lastActiveAt}
+                              showActiveStatus={friend.showActiveStatus !== false}
+                              className="border border-zinc-200 dark:border-zinc-700 shrink-0"
+                            />
 
                             <div className="flex flex-col min-w-0 flex-1">
                               <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
@@ -1539,16 +1504,15 @@ export default function FloatingChatWidget() {
                 </span>
               </div>
             ) : (
-              <div className="w-28 h-28 rounded-full bg-zinc-800 border-4 border-white/20 flex items-center justify-center text-4xl shadow-2xl animate-pulse">
-                {activeCall.friend?.avatarUrl ? (
-                  <img
-                    src={activeCall.friend.avatarUrl}
-                    alt=""
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  getInitials(activeCall.friend?.fullName || activeCall.friend?.username)
-                )}
+                            <div className="w-28 h-28 rounded-full bg-zinc-800 border-4 border-white/20 flex items-center justify-center text-4xl shadow-2xl animate-pulse">
+                <Avatar
+                  userId={activeCall.friend?.id}
+                  src={activeCall.friend?.avatarUrl}
+                  name={activeCall.friend?.fullName || activeCall.friend?.username}
+                  username={activeCall.friend?.username}
+                  avatarColor={activeCall.friend?.avatarColor}
+                  size="3xl"
+                />
               </div>
             )}
           </div>

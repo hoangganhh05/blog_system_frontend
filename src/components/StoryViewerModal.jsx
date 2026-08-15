@@ -17,6 +17,7 @@ import storyService from "../services/storyService";
 import chatService from "../services/chatService";
 import ConfirmModal from "./ConfirmModal";
 import { isVideoUrl } from "../utils/mediaUtils";
+import Avatar from "./Avatar";
 
 const STORY_REACTIONS = ["👍", "❤️", "😆", "😮", "😢", "😡"];
 
@@ -305,17 +306,16 @@ export default function StoryViewerModal({
               if (author?.id) navigate(`/profile/${author.id}`);
             }}
           >
-            {author?.avatarUrl ? (
-              <img
-                src={author.avatarUrl}
-                alt=""
-                className="w-8 h-8 rounded-full border border-white/60 object-cover"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-zinc-800 text-white font-bold text-xs flex items-center justify-center border border-white/60">
-                {getInitials(authorName)}
-              </div>
-            )}
+                        <Avatar
+              userId={author?.id}
+              src={author?.avatarUrl}
+              name={authorName}
+              username={author?.username}
+              avatarColor={author?.avatarColor}
+              size="w-8 h-8"
+              onClick={() => onClose()}
+              className="border-2 border-white/60"
+            />
             <div className="flex flex-col drop-shadow">
               <span className="text-xs font-bold leading-tight truncate max-w-[160px]">
                 {authorName}
@@ -486,17 +486,15 @@ export default function StoryViewerModal({
                       className="flex items-center justify-between py-2.5"
                     >
                       <div className="flex items-center gap-3">
-                        {userObj.avatarUrl ? (
-                          <img
-                            src={userObj.avatarUrl}
-                            alt=""
-                            className="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-zinc-800 text-white font-bold text-xs flex items-center justify-center">
-                            {getInitials(userObj.fullName || userObj.username)}
-                          </div>
-                        )}
+                                                <Avatar
+                          userId={userObj.id}
+                          src={userObj.avatarUrl}
+                          name={userObj.fullName || userObj.username}
+                          username={userObj.username}
+                          avatarColor={userObj.avatarColor}
+                          size="w-8 h-8"
+                          className="border border-zinc-200 dark:border-zinc-700"
+                        />
                         <div className="flex flex-col">
                           <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
                             {userObj.fullName || userObj.username}
