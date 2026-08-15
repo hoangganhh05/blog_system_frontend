@@ -13,6 +13,8 @@ import {
   MoreHorizontal,
   Image as ImageIcon,
   LogOut,
+  Users,
+  Lock,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
@@ -48,8 +50,13 @@ export default function Profile() {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [savedPosts, setSavedPosts] = useState([]);
-  const [activeTab, setActiveTab] = useState("posts"); // "posts" | "media" | "saved"
+  const [activeTab, setActiveTab] = useState("posts"); // "posts" | "media" | "friends" | "saved"
   const [loading, setLoading] = useState(true);
+
+  // Public Friends List
+  const [profileFriends, setProfileFriends] = useState([]);
+  const [isFriendsPrivate, setIsFriendsPrivate] = useState(false);
+  const [friendsLoading, setFriendsLoading] = useState(false);
 
   // Friendship
   const [friendshipStatus, setFriendshipStatus] = useState("NONE");
@@ -139,6 +146,28 @@ export default function Profile() {
         .catch(() => {});
     }
   }, [targetUserId, currentUserId, isMe]);
+
+  // Load Friends List when viewing the Friends Tab
+  useEffect(() => {
+    if (activeTab === "friends" && targetUserId) {
+      setFriendsLoading(true);
+      setIsFriendsPrivate(false);
+      friendService.getFriendsList(targetUserId)
+        .then((res) => {
+          if (res.data?.isPrivate) {
+            setIsFriendsPrivate(true);
+            setProfileFriends([]);
+          } else {
+            const list = Array.isArray(res.data) ? res.data : (res.data?.content || []);
+            setProfileFriends(list);
+          }
+        })
+        .catch(() => {
+          setProfileFriends([]);
+        })
+        .finally(() => setFriendsLoading(false));
+    }
+  }, [activeTab, targetUserId]);
 
   // Handle direct Avatar upload
   const handleDirectAvatarUpload = async (e) => {
@@ -379,7 +408,7 @@ export default function Profile() {
   const mediaPosts = posts.filter((p) => Boolean(p.thumbNail));
 
   return (
-    <div className="w-full min-h-full flex flex-col">
+    <div className="w-full min-h-full flex flex-col touch-pan-y">
       {/* Page Header */}
       <div className="flex items-center gap-3 pb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <button
@@ -688,18 +717,26 @@ export default function Profile() {
             <strong className="text-zinc-900 dark:text-zinc-100 font-bold">{followerCount}</strong> người theo dõi
           </span>
           <span>·</span>
-          <span>
+          <span
+            onClick={() => setActiveTab("friends")}
+            className="cursor-pointer hover:underline"
+            title="Xem danh sách bạn bè"
+          >
             <strong className="text-zinc-900 dark:text-zinc-100 font-bold">{friendCount}</strong> bạn bè
           </span>
           <span>·</span>
-          <span>
+          <span
+            onClick={() => setActiveTab("posts")}
+            className="cursor-pointer hover:underline"
+            title="Xem bài viết"
+          >
             <strong className="text-zinc-900 dark:text-zinc-100 font-bold">{posts.length}</strong> bài viết
           </span>
         </div>
       </div>
 
-      {/* Tabs: Chia đều 3 cột với thanh active tối giản */}
-      <div className="grid grid-cols-3 text-center border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
+      {/* Tabs: Chia đều các cột với thanh active tối giản */}
+      <div className={`grid ${isMe ? "grid-cols-4" : "grid-cols-3"} text-center border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs`}>
         <button
           type="button"
           onClick={() => setActiveTab("posts")}
@@ -730,18 +767,34 @@ export default function Profile() {
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab("saved")}
+          onClick={() => setActiveTab("friends")}
           className={`py-3 text-xs font-semibold transition cursor-pointer relative ${
-            activeTab === "saved"
+            activeTab === "friends"
               ? "text-black dark:text-white"
               : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
         >
-          Đã lưu
-          {activeTab === "saved" && (
+          Bạn bè ({friendCount})
+          {activeTab === "friends" && (
             <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-black dark:bg-white rounded-full" />
           )}
         </button>
+        {isMe && (
+          <button
+            type="button"
+            onClick={() => setActiveTab("saved")}
+            className={`py-3 text-xs font-semibold transition cursor-pointer relative ${
+              activeTab === "saved"
+                ? "text-black dark:text-white"
+                : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+            }`}
+          >
+            Đã lưu
+            {activeTab === "saved" && (
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-black dark:bg-white rounded-full" />
+            )}
+          </button>
+        )}
       </div>
 
       {/* Tab Content List */}
@@ -780,6 +833,88 @@ export default function Profile() {
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-200"
                   />
                 </Link>
+              ))}
+            </div>
+          )
+        ) : activeTab === "friends" ? (
+          friendsLoading ? (
+            <div className="p-12 text-center flex justify-center text-zinc-400">
+              <Loader2 className="w-6 h-6 animate-spin" />
+            </div>
+          ) : isFriendsPrivate ? (
+            <div className="p-12 text-center text-zinc-400 flex flex-col items-center gap-2">
+              <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
+                <Lock className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                Danh sách bạn bè đang ở chế độ riêng tư
+              </span>
+              <span className="text-[11px] text-zinc-500 max-w-xs text-center">
+                Người dùng này đã thiết lập ẩn danh sách bạn bè theo quyền riêng tư.
+              </span>
+            </div>
+          ) : profileFriends.length === 0 ? (
+            <div className="p-12 text-center text-zinc-400 text-xs">
+              Chưa có bạn bè nào được hiển thị.
+            </div>
+          ) : (
+            <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900">
+              {profileFriends.map((f) => (
+                <div
+                  key={f.id}
+                  className="p-3.5 sm:p-4 flex items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition"
+                >
+                  <Link
+                    to={`/profile/${f.id}`}
+                    className="flex items-center gap-3 min-w-0 flex-1 group"
+                  >
+                    {f.avatarUrl ? (
+                      <img
+                        src={f.avatarUrl}
+                        alt=""
+                        className="w-11 h-11 rounded-full object-cover shrink-0"
+                      />
+                    ) : (
+                      <div
+                        className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
+                        style={{ backgroundColor: f.avatarColor || "#0866ff" }}
+                      >
+                        {getInitials(f.fullName || f.username)}
+                      </div>
+                    )}
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-bold text-sm text-zinc-900 dark:text-white group-hover:underline truncate">
+                        {f.fullName || f.username}
+                      </span>
+                      <span className="text-xs text-zinc-400 truncate">
+                        @{f.username}
+                      </span>
+                    </div>
+                  </Link>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {currentUserId && Number(currentUserId) !== Number(f.id) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(
+                            new CustomEvent("open_chat_user", { detail: { friend: f } })
+                          );
+                        }}
+                        className="p-2 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                        title="Nhắn tin"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </button>
+                    )}
+                    <Link
+                      to={`/profile/${f.id}`}
+                      className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+                    >
+                      Xem trang
+                    </Link>
+                  </div>
+                </div>
               ))}
             </div>
           )
