@@ -385,26 +385,26 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       </header>
 
       {/* ======================================================================
-          3-COLUMN INDEPENDENT SCROLLABLE SOCIAL LAYOUT
-          (Left Sidebar | Main Feed Center | Right Sidebar)
+          FULL-WIDTH GRID EXPANSION LAYOUT (1600px Max, 12-Column Grid)
+          (Left Sidebar: col-span-2 | Main Content: col-span-12 lg:col-span-7 | Right Sidebar: col-span-3)
           ====================================================================== */}
-      <div className="w-full flex-1 min-h-0 h-[calc(100dvh-3.5rem)] max-w-7xl mx-auto px-2 sm:px-4 md:px-6 flex justify-center items-stretch gap-4 lg:gap-6 overflow-hidden">
-        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (Independent Scrollable Column) */}
-        <aside className="hidden lg:block w-60 xl:w-72 shrink-0 min-h-0 h-full max-h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
+      <div className="max-w-[1600px] w-full flex-1 min-h-0 h-[calc(100dvh-3.5rem)] mx-auto px-4 grid grid-cols-12 gap-6 overflow-hidden">
+        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-2, hidden on mobile) */}
+        <aside className="hidden lg:block lg:col-span-2 min-w-0 min-h-0 h-full max-h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
           <LeftSidebar />
         </aside>
 
-        {/* CENTER COLUMN: Main Content Feed (Independent Scrollable Center Column) */}
+        {/* CENTER COLUMN: Main Content Feed (col-span-12 on mobile, lg:col-span-7 on desktop) */}
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className="w-full flex-1 min-h-0 max-w-full lg:max-w-[620px] xl:max-w-[680px] h-full max-h-full overflow-y-auto custom-scrollbar px-1 sm:px-3 pt-3 sm:pt-4 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4"
+          className="col-span-12 lg:col-span-7 min-w-0 min-h-0 w-full h-full max-h-full overflow-y-auto custom-scrollbar px-1 sm:px-2 pt-3 sm:pt-4 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4"
         >
           {children}
         </main>
 
-        {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (Independent Scrollable Column) */}
-        <aside className="hidden lg:block w-72 xl:w-80 shrink-0 min-h-0 h-full max-h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
+        {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, hidden on mobile) */}
+        <aside className="hidden lg:block lg:col-span-3 min-w-0 min-h-0 h-full max-h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
           <RightSidebar />
         </aside>
       </div>
