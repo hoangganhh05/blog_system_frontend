@@ -45,7 +45,7 @@ export default function TrendingPage() {
   }, [filter]);
 
   return (
-    <div className="w-full flex flex-col gap-5">
+    <div className="w-full flex flex-col gap-4 pt-1 sm:pt-2">
       {/* Unified Header with Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
         <div className="flex items-center gap-2.5 min-w-0">

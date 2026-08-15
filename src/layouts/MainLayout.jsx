@@ -418,9 +418,9 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           - Profile / Posts / Tools: Balanced Centered Layout (max-w-5xl mx-auto)
           ====================================================================== */}
       {is3ColumnFeedPage ? (
-        <div className="w-full px-1 sm:px-1.5 md:px-2 min-h-screen grid grid-cols-12 gap-2 sm:gap-2.5 items-start">
+        <div className="w-full px-1.5 sm:px-2 md:px-3 min-h-screen grid grid-cols-12 gap-2.5 sm:gap-3 items-start">
           {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-2, sticky independent) */}
-          <aside className="hidden lg:block lg:col-span-2 sticky top-14 sm:top-15 h-[calc(100vh-3.75rem)] overflow-y-auto overscroll-contain no-scrollbar pt-1 pb-6 select-none">
+          <aside className="hidden lg:block lg:col-span-2 sticky top-14 sm:top-16 h-[calc(100vh-4rem)] overflow-y-auto overscroll-contain custom-scrollbar pt-2 sm:pt-3 pb-12">
             <LeftSidebar />
           </aside>
 
@@ -428,13 +428,13 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           <main
             ref={mainRef}
             onScroll={handleMainScroll}
-            className="col-span-12 lg:col-span-7 min-w-0 w-full pt-1 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-2 touch-pan-y animate-fade-in-up"
+            className="col-span-12 lg:col-span-7 min-w-0 w-full pt-3 sm:pt-4 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-2.5 touch-pan-y animate-fade-in-up"
           >
             {children}
           </main>
 
           {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, sticky independent) */}
-          <aside className="hidden lg:block lg:col-span-3 sticky top-14 sm:top-15 h-[calc(100vh-3.75rem)] overflow-y-auto overscroll-contain no-scrollbar pt-1 pb-6 select-none">
+          <aside className="hidden lg:block lg:col-span-3 sticky top-14 sm:top-16 h-[calc(100vh-4rem)] overflow-y-auto overscroll-contain custom-scrollbar pt-2 sm:pt-3 pb-12">
             <RightSidebar />
           </aside>
         </div>
@@ -442,7 +442,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className={`w-full flex-1 px-1 sm:px-3 pt-1 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-2 touch-pan-y animate-fade-in-up ${
+          className={`w-full flex-1 px-2 sm:px-4 pt-3 sm:pt-5 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-3 touch-pan-y animate-fade-in-up ${
             isProfilePage
               ? "max-w-5xl mx-auto"
               : isPostDetailPage
