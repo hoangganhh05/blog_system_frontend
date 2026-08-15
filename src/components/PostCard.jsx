@@ -220,25 +220,21 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
   const handleEdit = (e) => {
     e?.stopPropagation();
-    console.log("👉 [PostCard] Đã click nút 'Chỉnh sửa bài viết' cho post ID:", post?.id);
     setUserMenuOpen(false);
     setIsEditModalOpen(true);
   };
 
   const handleDelete = (e) => {
     e?.stopPropagation();
-    console.log("👉 [PostCard] Đã click nút 'Xóa bài viết' cho post ID:", post?.id);
     setUserMenuOpen(false);
     setIsDeleteModalOpen(true);
   };
 
   const confirmDeletePost = async () => {
     const targetPostId = post?.id || currentPost?.id;
-    console.log("🗑️ [PostCard] Đang gửi yêu cầu xóa bài viết tới API, ID:", targetPostId);
     setIsDeleteModalOpen(false);
     try {
       await postService.delete(targetPostId);
-      console.log("✅ [PostCard] Xóa bài viết thành công ID:", targetPostId);
       toast.success("Đã xóa bài viết thành công!");
       if (onDelete) onDelete(targetPostId);
       window.dispatchEvent(
@@ -395,7 +391,6 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                         onClick={(e) => {
                           e.stopPropagation();
                           e.preventDefault();
-                          console.log("👉 [PostCard] Bấm nút SỬA cho post:", post?.id);
                           setUserMenuOpen(false);
                           setIsEditModalOpen(true);
                         }}
@@ -412,7 +407,6 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                         onClick={(e) => {
                           e.stopPropagation();
                           e.preventDefault();
-                          console.log("👉 [PostCard] Bấm nút XÓA cho post:", post?.id);
                           setUserMenuOpen(false);
                           setIsDeleteModalOpen(true);
                         }}

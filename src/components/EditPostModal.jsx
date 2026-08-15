@@ -69,9 +69,7 @@ export default function EditPostModal({ isOpen = true, onClose, post, onUpdated 
         ...(categoryIdNum ? { category: { id: categoryIdNum }, categoryId: categoryIdNum } : {}),
       };
 
-      console.log("📝 [EditPostModal] Đang gửi payload cập nhật bài viết ID:", post.id, payload);
       const res = await postService.update(post.id, payload);
-      console.log("✅ [EditPostModal] Cập nhật thành công ID:", post.id, res.data);
 
       toast.success("Cập nhật bài viết thành công!");
       const updatedData = res.data || {
