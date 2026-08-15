@@ -81,11 +81,11 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   ];
 
   return (
-    <div className="w-full min-h-screen bg-[#F0F2F5] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 flex flex-col">
+    <div className="w-full min-h-screen bg-[#f8fafc] dark:bg-[#0b0f19] text-zinc-900 dark:text-[#f1f5f9] flex flex-col transition-colors duration-200">
       {/* ======================================================================
           STICKY TOP HEADER (h-14, Full-width Fluid Navbar, Crisp border-b)
           ====================================================================== */}
-      <header className="w-full bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-50">
+      <header className="w-full bg-white/95 dark:bg-[#111827]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 sticky top-0 z-50">
         <div className="w-full h-14 px-4 sm:px-6 md:px-8 lg:px-12 flex items-center justify-between gap-4">
 
           {/* LEFT: Minimalist Logo + Nav Links */}
@@ -320,7 +320,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       {/* ======================================================================
           MOBILE BOTTOM NAVIGATION (Fixed Instagram-style, md:hidden)
           ====================================================================== */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 h-14 bg-white/95 dark:bg-zinc-950/95 backdrop-blur border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-around px-2 md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 h-14 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-around px-2 md:hidden">
         {/* 1. Trang chủ */}
         <NavLink
           to="/"

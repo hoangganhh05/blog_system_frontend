@@ -28,12 +28,23 @@ html {
   font-family: "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
 }
 
+/* ============================================
+   SMOOTH PALETTE: CLEAN LIGHT & SMOOTH CHARCOAL DARK
+   ============================================ */
 body {
   font-family: "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc;
+  color: #0f172a;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+html.dark body {
+  background-color: #0b0f19;
+  color: #f1f5f9;
 }
 
 a {
@@ -60,12 +71,12 @@ img {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(150, 150, 150, 0.3);
+  background: rgba(148, 163, 184, 0.3);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(150, 150, 150, 0.5);
+  background: rgba(148, 163, 184, 0.5);
 }
 
 /* ============================================
@@ -87,13 +98,13 @@ img {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(150, 150, 150, 0.2);
+  background: rgba(148, 163, 184, 0.2);
   border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(150, 150, 150, 0.4);
+  background: rgba(148, 163, 184, 0.4);
 }
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(150, 150, 150, 0.2) transparent;
+  scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
 }

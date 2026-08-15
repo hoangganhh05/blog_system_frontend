@@ -96,7 +96,7 @@ export default function SecuritySettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F2F5] dark:bg-black text-zinc-900 dark:text-zinc-100 py-8 px-4 transition-colors">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b0f19] text-zinc-900 dark:text-[#f1f5f9] py-8 px-4 transition-colors">
       <div className="max-w-2xl mx-auto flex flex-col gap-6">
         {/* Header trang */}
         <div className="flex flex-col gap-1">
