@@ -115,7 +115,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           {/* LEFT: Minimalist Logo + Nav Links */}
           <div className="flex items-center gap-6 shrink-0">
             <Link to="/" className="flex items-center gap-2 shrink-0 group">
-              <div className="w-8 h-8 rounded-lg bg-[#0866ff] flex items-center justify-center font-black text-white text-sm tracking-tighter shadow-xs">
+              <div className="w-8 h-8 rounded-xl bg-white dark:bg-black text-black dark:text-white border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-center font-black text-sm tracking-tight transition-all group-hover:scale-105 select-none">
                 BV
               </div>
               <span className="font-extrabold text-base tracking-tight text-[#050505] dark:text-[#e4e6eb] hidden sm:inline">

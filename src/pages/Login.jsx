@@ -55,7 +55,7 @@ export default function Login() {
         <div className="flex flex-col items-center text-center mb-6">
           <Link
             to="/"
-            className="w-14 h-14 rounded-2xl bg-[#0866ff] text-white flex items-center justify-center font-black text-2xl tracking-tighter shadow-lg shadow-blue-500/25 hover:scale-105 active:scale-95 transition-all select-none border border-white/20"
+            className="w-14 h-14 rounded-2xl bg-white dark:bg-black text-black dark:text-white border border-slate-200 dark:border-zinc-800 shadow-md hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center font-black text-2xl tracking-tight select-none"
           >
             BV
           </Link>
