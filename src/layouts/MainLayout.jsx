@@ -387,26 +387,26 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       </header>
 
       {/* ======================================================================
-          EDGE-TO-EDGE FULL-WIDTH GRID LAYOUT (Facebook-style Sticky Sidebars + Natural Feed Scroll)
-          (Left Sidebar: col-span-3 | Main Content: col-span-12 lg:col-span-6 | Right Sidebar: col-span-3)
+          STICKY INDEPENDENT SCROLLING LAYOUT (2-7-3 Ratio, items-start)
+          (Left Sidebar: col-span-2 | Main Feed: col-span-12 lg:col-span-7 | Right Sidebar: col-span-3)
           ====================================================================== */}
-      <div className="w-full flex-1 px-1 sm:px-2 md:px-3 lg:px-4 grid grid-cols-12 gap-3 lg:gap-4">
-        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-3, sticky below navbar) */}
-        <aside className="hidden lg:block lg:col-span-3 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto overscroll-contain custom-scrollbar pt-3 pb-8 select-none">
+      <div className="w-full px-2 md:px-3 min-h-screen grid grid-cols-12 gap-4 items-start">
+        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-2, sticky independent) */}
+        <aside className="hidden lg:block lg:col-span-2 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain no-scrollbar pt-3 pb-8 select-none">
           <LeftSidebar />
         </aside>
 
-        {/* CENTER COLUMN: Main Content Feed (col-span-12 on mobile, lg:col-span-6 on desktop) */}
+        {/* CENTER COLUMN: Main Content Feed (col-span-12 on mobile, lg:col-span-7 on desktop) */}
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className="col-span-12 lg:col-span-6 min-w-0 w-full min-h-[calc(100vh-3.5rem)] px-1 sm:px-2 pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y"
+          className="col-span-12 lg:col-span-7 min-w-0 w-full pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y"
         >
           {children}
         </main>
 
-        {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, sticky below navbar) */}
-        <aside className="hidden lg:block lg:col-span-3 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto overscroll-contain custom-scrollbar pt-3 pb-8 select-none">
+        {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, sticky independent) */}
+        <aside className="hidden lg:block lg:col-span-3 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain no-scrollbar pt-3 pb-8 select-none">
           <RightSidebar />
         </aside>
       </div>
