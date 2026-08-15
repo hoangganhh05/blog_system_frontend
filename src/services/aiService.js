@@ -92,6 +92,111 @@ const aiService = {
   },
 
   /**
+   * Stream dữ liệu thời gian thực (SSE) từ Gemini 3.7 qua Backend Spring Boot
+   * @param {string} userMessage
+   * @param {string} [imageBase64]
+   * @param {string} [imageMimeType]
+   * @param {function(string): void} onChunk
+   * @param {AbortSignal} [signal]
+   */
+  async streamChatWithAI(userMessage, imageBase64 = null, imageMimeType = null, onChunk, signal = null) {
+    const msg = (userMessage || "").trim();
+    if (!msg && !imageBase64) {
+      onChunk?.("Bạn hãy nhập nội dung hoặc đính kèm ảnh để trò chuyện với Trợ lý AI nhé! ✨");
+      return;
+    }
+
+    const now = new Date();
+    const currentDateTime = now.toLocaleString("vi-VN", {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const systemTimeContext = `[Thời gian thực tế hiện tại của hệ thống: ${currentDateTime} (Múi giờ: ${timeZone}). Hãy luôn sử dụng mốc thời gian này khi người dùng hỏi về ngày, giờ, thời gian hiện tại.]\n\n`;
+    const promptWithTime = systemTimeContext + (msg || "Hãy phân tích hình ảnh này giúp tôi.");
+
+    const payload = {
+      prompt: promptWithTime,
+      imageBase64: imageBase64 || null,
+      imageMimeType: imageMimeType || null,
+    };
+
+    const token = localStorage.getItem("blog_token");
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    if (token && token !== "undefined" && token !== "null") {
+      headers["Authorization"] = "Bearer " + token;
+    }
+
+    const apiBaseUrl = import.meta.env.VITE_API_URL || "/api";
+    const endpoint = `${apiBaseUrl.replace(/\/$/, "")}/ai/stream`;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+        signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith("data: ")) {
+            const dataStr = trimmed.substring(6).trim();
+            if (dataStr === "[DONE]") {
+              return;
+            }
+            try {
+              const parsed = JSON.parse(dataStr);
+              if (parsed.chunk) {
+                onChunk(parsed.chunk);
+              } else if (parsed.error) {
+                throw new Error(parsed.error);
+              }
+            } catch (e) {
+              if (dataStr && !dataStr.startsWith("{")) {
+                onChunk(dataStr);
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      if (err.name === "AbortError") {
+        return;
+      }
+      // Nếu stream fetch thất bại, fallback sang chatWithAI thông thường
+      console.warn("[STREAM FAIL, FALLBACK TO SYNC]", err);
+      const fallbackReply = await this.chatWithAI(userMessage, imageBase64, imageMimeType);
+      onChunk(fallbackReply);
+    }
+  },
+
+  /**
    * Sinh bài viết tự động dựa trên prompt của người dùng
    * @param {string} prompt 
    * @returns {Promise<{title: string, content: string, hashtags: string}>}
