@@ -165,12 +165,15 @@ export default function RightSidebar() {
               const displayName = user.fullName || user.username;
 
               return (
-                <div key={user.id} className="flex items-center justify-between gap-2">
+                <div
+                  key={user.id}
+                  className="flex items-center justify-between gap-2 p-1 -mx-1 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-all duration-200"
+                >
                   <Link
                     to={`/profile/${user.id}`}
                     className="flex items-center gap-2.5 min-w-0 group"
                   >
-                                        <Avatar
+                    <Avatar
                       userId={user.id}
                       src={user.avatarUrl}
                       name={displayName}
@@ -180,7 +183,7 @@ export default function RightSidebar() {
                       isOnline={user.isOnline}
                       lastActiveAt={user.lastActiveAt}
                       showActiveStatus={user.showActiveStatus !== false}
-                      className="border border-zinc-200 dark:border-zinc-700 shrink-0 shadow-xs"
+                      className="border border-zinc-200 dark:border-zinc-700 shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200"
                     />
 
                     <div className="flex flex-col min-w-0">
@@ -196,15 +199,15 @@ export default function RightSidebar() {
                   <button
                     type="button"
                     onClick={() => handleToggleFollow(user)}
-                    className={`px-3 py-1 rounded-full text-[11px] font-bold transition flex items-center gap-1 shrink-0 cursor-pointer ${
+                    className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all duration-150 active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer ${
                       isFollowing
                         ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
-                        : "bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black shadow-xs active:scale-95"
+                        : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-2xs"
                     }`}
                   >
                     {isFollowing ? (
                       <>
-                        <Check className="w-3 h-3 text-emerald-500" />
+                        <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                         <span>Đang theo dõi</span>
                       </>
                     ) : (

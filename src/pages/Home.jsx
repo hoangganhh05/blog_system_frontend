@@ -422,9 +422,9 @@ export default function Home() {
         </div>
       )}
 
-      {/* Feed Posts List */}
-      <div key={activeTab} className="animate-tab-fade flex flex-col gap-3.5 mt-1">
-        {loading ? (
+      {/* 3. POSTS FEED LIST WITH SMOOTH STAGGERED TRANSITION */}
+      <div key={activeTab} className="flex flex-col gap-3.5 animate-tab-fade">
+        {loading && posts.length === 0 ? (
           <>
             <PostSkeleton />
             <PostSkeleton />
@@ -433,7 +433,7 @@ export default function Home() {
         ) : displayedPosts.length === 0 ? (
           activeTab === "following" ? (
             /* Empty State chuyên biệt cho Tab Đang Theo Dõi */
-            <div className="p-8 sm:p-10 text-center flex flex-col items-center justify-center gap-3.5 text-zinc-500 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs">
+            <div className="p-8 sm:p-10 text-center flex flex-col items-center justify-center gap-3.5 text-zinc-500 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs animate-scale-in">
               <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center shadow-xs">
                 <UserPlus className="w-7 h-7 stroke-[1.5]" />
               </div>
@@ -457,14 +457,14 @@ export default function Home() {
               {!currentUserId ? (
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition active:scale-95 shadow-sm mt-1"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition-transform active:scale-95 shadow-sm mt-1"
                 >
                   <span>Đăng nhập ngay</span>
                 </Link>
               ) : followingIds.length === 0 ? (
                 <Link
                   to="/friends"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition active:scale-95 shadow-sm mt-1"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition-transform active:scale-95 shadow-sm mt-1"
                 >
                   <Users className="w-4 h-4" />
                   <span>Khám phá tác giả ngay</span>
@@ -474,14 +474,14 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setActiveTab("forYou")}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition active:scale-95 shadow-sm cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition-transform active:scale-95 shadow-sm cursor-pointer"
                   >
                     <Compass className="w-3.5 h-3.5" />
                     <span>Xem Dành Cho Bạn</span>
                   </button>
                   <Link
                     to="/friends"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-semibold transition active:scale-95"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-semibold transition-transform active:scale-95"
                   >
                     <Users className="w-3.5 h-3.5" />
                     <span>Tìm thêm tác giả</span>
@@ -491,7 +491,7 @@ export default function Home() {
             </div>
           ) : (
             /* Empty State cho Tab Dành Cho Bạn */
-            <div className="p-12 text-center flex flex-col items-center justify-center gap-3 text-zinc-400 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+            <div className="p-12 text-center flex flex-col items-center justify-center gap-3 text-zinc-400 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 animate-scale-in">
               <MessageSquare className="w-12 h-12 stroke-[1.25] text-zinc-300 dark:text-zinc-700" />
               <p className="font-semibold text-sm text-zinc-600 dark:text-zinc-400">
                 Chưa có bài viết nào
@@ -502,13 +502,18 @@ export default function Home() {
             </div>
           )
         ) : (
-          displayedPosts.map((post) => (
-            <PostCard
+          displayedPosts.map((post, idx) => (
+            <div
               key={post.id}
-              post={post}
-              onDelete={handleDeletePost}
-              onEdit={handleEditPost}
-            />
+              className="animate-fade-in-up"
+              style={{ animationDelay: `${Math.min(idx * 40, 240)}ms` }}
+            >
+              <PostCard
+                post={post}
+                onDelete={handleDeletePost}
+                onEdit={handleEditPost}
+              />
+            </div>
           ))
         )}
       </div>
