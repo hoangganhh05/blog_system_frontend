@@ -71,10 +71,11 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   }, [post]);
 
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(currentPost?.likesCount || 0);
+  const [likeCount, setLikeCount] = useState(currentPost?.likesCount || post?.likesCount || 0);
   const [likersPreview, setLikersPreview] = useState(null);
   const [isHoveringLike, setIsHoveringLike] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
+  const [commentCount, setCommentCount] = useState(currentPost?.commentsCount || post?.commentsCount || 0);
   const [menuOpen, setUserMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
   const buttonRef = useRef(null);
