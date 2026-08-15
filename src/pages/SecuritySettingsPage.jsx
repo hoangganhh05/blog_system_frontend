@@ -42,6 +42,27 @@ export default function SecuritySettingsPage() {
   });
   const [savingPrivacy, setSavingPrivacy] = useState(false);
 
+  // Load privacy settings directly from Backend Database on mount
+  useEffect(() => {
+    if (currentUserId) {
+      userService
+        .getById(currentUserId)
+        .then((res) => {
+          const u = res.data;
+          if (u) {
+            setPrivacySettings({
+              postVisibility: u.postVisibility || "PUBLIC",
+              friendRequestScope: u.friendRequestScope || "EVERYONE",
+              messageScope: u.messageScope || "EVERYONE",
+              showActiveStatus: u.showActiveStatus !== false,
+              showFollowingList: u.showFollowingList !== false,
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [currentUserId]);
+
   const handleInputChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -86,13 +107,22 @@ export default function SecuritySettingsPage() {
     }
   };
 
+  // Save Privacy Settings permanently to Database via Backend API
   const handleSavePrivacy = async () => {
+    if (!currentUserId) {
+      toast.error("Vui lòng đăng nhập!");
+      return;
+    }
+
     setSavingPrivacy(true);
-    // Simulate/save privacy settings
-    setTimeout(() => {
+    try {
+      await userService.update(currentUserId, privacySettings);
+      toast.success("Đã lưu thiết lập quyền riêng tư vào cơ sở dữ liệu!");
+    } catch {
+      toast.error("Không thể lưu cài đặt quyền riêng tư lúc này!");
+    } finally {
       setSavingPrivacy(false);
-      toast.success("Đã lưu thiết lập quyền riêng tư thành công!");
-    }, 600);
+    }
   };
 
   return (
