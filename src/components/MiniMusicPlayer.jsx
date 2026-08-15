@@ -15,6 +15,8 @@ import {
   ListMusic,
   X,
   Music2,
+  ChevronUp,
+  Maximize2,
 } from "lucide-react";
 
 // Hàm chuẩn hóa tiếng Việt không dấu để tìm kiếm thông minh
@@ -47,6 +49,7 @@ export default function MiniMusicPlayer() {
   } = useMusic();
 
   const [showPlaylist, setShowPlaylist] = useState(false);
+  const [showMobileModal, setShowMobileModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSeek = (e) => {
@@ -320,8 +323,11 @@ export default function MiniMusicPlayer() {
           />
         </div>
 
-        {/* Left: Mini spinning art & title & genre tag */}
-        <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
+        {/* Left: Mini spinning art & title & genre tag -> Click opens Mobile Full Sheet */}
+        <div
+          onClick={() => setShowMobileModal(true)}
+          className="flex items-center gap-2.5 min-w-0 flex-1 pr-2 cursor-pointer"
+        >
           <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-xs">
             <img src={currentTrack.cover} alt="" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
@@ -351,7 +357,7 @@ export default function MiniMusicPlayer() {
           </div>
         </div>
 
-        {/* Right: Quick Controls */}
+        {/* Right: Quick Controls & Expand Button */}
         <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
@@ -371,8 +377,192 @@ export default function MiniMusicPlayer() {
           >
             <SkipForward className="w-4 h-4" />
           </button>
+          <button
+            type="button"
+            onClick={() => setShowMobileModal(true)}
+            className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition cursor-pointer"
+            title="Mở rộng trình phát nhạc"
+          >
+            <ChevronUp className="w-4 h-4" />
+          </button>
         </div>
       </div>
+
+      {/* ======================================================================
+          3. FULL MOBILE MUSIC BOTTOM SHEET / MODAL
+          ====================================================================== */}
+      {showMobileModal && (
+        <div
+          className="lg:hidden fixed inset-0 z-[999999] bg-black/70 backdrop-blur-md flex flex-col justify-end animate-in fade-in duration-200"
+          onClick={() => setShowMobileModal(false)}
+        >
+          <div
+            className="w-full max-h-[85vh] bg-white dark:bg-zinc-900 rounded-t-3xl border-t border-zinc-200 dark:border-zinc-800 p-5 flex flex-col shadow-2xl overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <Link
+                to="/radio"
+                onClick={() => setShowMobileModal(false)}
+                className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-zinc-100 hover:text-rose-500"
+              >
+                <Radio className="w-4 h-4 text-rose-500 animate-pulse" />
+                <span>Phòng Radio Toàn Màn Hình</span>
+                <ExternalLink className="w-3 h-3 text-zinc-400" />
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => setShowMobileModal(false)}
+                className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Big Vinyl Cover */}
+            <div className="flex flex-col items-center justify-center my-4">
+              <div className="relative w-36 h-36 rounded-full overflow-hidden shadow-xl border-4 border-zinc-200 dark:border-zinc-800">
+                <img
+                  src={currentTrack.cover}
+                  alt=""
+                  className={`w-full h-full object-cover ${isPlaying ? "animate-spin" : ""}`}
+                  style={{ animationDuration: "8s" }}
+                />
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 shadow-inner flex items-center justify-center">
+                    <Disc3 className="w-4 h-4 text-rose-500" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center text-center mt-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                    {currentTrack.title}
+                  </span>
+                  <span
+                    className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                      currentTrack.genreColor || "bg-zinc-100 dark:bg-zinc-800 text-zinc-600"
+                    }`}
+                  >
+                    {currentTrack.genre}
+                  </span>
+                </div>
+                <span className="text-xs text-zinc-500 mt-0.5">{currentTrack.artist}</span>
+              </div>
+            </div>
+
+            {/* Progress Scrubber */}
+            <div className="flex flex-col gap-1 my-2">
+              <input
+                type="range"
+                min="0"
+                max={duration || 100}
+                value={currentTime}
+                onChange={handleSeek}
+                className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-black dark:accent-white"
+              />
+              <div className="flex justify-between text-[11px] text-zinc-400 font-mono">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+            </div>
+
+            {/* Main Controls */}
+            <div className="flex items-center justify-center gap-6 py-2">
+              <button
+                type="button"
+                onClick={toggleMute}
+                className="p-2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition cursor-pointer"
+              >
+                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={prevTrack}
+                className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 transition cursor-pointer"
+              >
+                <SkipBack className="w-5 h-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={togglePlay}
+                className="w-12 h-12 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition cursor-pointer"
+              >
+                {isPlaying ? (
+                  <Pause className="w-5 h-5 fill-current" />
+                ) : (
+                  <Play className="w-5 h-5 fill-current ml-0.5" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={nextTrack}
+                className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 transition cursor-pointer"
+              >
+                <SkipForward className="w-5 h-5" />
+              </button>
+
+              <div className="text-xs font-mono text-zinc-400">
+                {currentTrackIndex + 1}/{playlist.length}
+              </div>
+            </div>
+
+            {/* Searchable Playlist Inside Mobile Modal */}
+            <div className="mt-3 p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-2xl border border-zinc-200 dark:border-zinc-700 flex flex-col gap-2">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Tìm bài hát, ca sĩ..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl pl-9 pr-7 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none"
+                />
+              </div>
+
+              <div className="max-h-48 overflow-y-auto flex flex-col gap-1.5 pr-1 custom-scrollbar">
+                {filteredPlaylist.map((track) => {
+                  const origIdx = playlist.findIndex((p) => p.id === track.id);
+                  const isCur = currentTrackIndex === origIdx;
+                  return (
+                    <button
+                      key={track.id}
+                      type="button"
+                      onClick={() => playTrack(origIdx)}
+                      className={`flex items-center justify-between p-2 rounded-xl text-left transition w-full cursor-pointer ${
+                        isCur
+                          ? "bg-black text-white dark:bg-white dark:text-black font-semibold shadow-xs"
+                          : "hover:bg-zinc-200/60 dark:hover:bg-zinc-700/60 text-zinc-700 dark:text-zinc-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <Music2 className="w-3.5 h-3.5 shrink-0" />
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="text-xs truncate">{track.title}</span>
+                          <span className="text-[10px] opacity-75 truncate">{track.artist}</span>
+                        </div>
+                      </div>
+                      <span
+                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                          track.genreColor || "bg-zinc-200 text-zinc-700"
+                        }`}
+                      >
+                        {track.genre}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import postService from "../services/postService";
 import categoryService from "../services/categoryService";
 import friendService from "../services/friendService";
+import userService from "../services/userService";
 import { useAuth } from "../context/AuthContext";
 import PostCard from "../components/PostCard";
 import StoryBar from "../components/StoryBar";
@@ -13,9 +14,17 @@ import {
   Users,
   UserPlus,
   Compass,
+  Sparkles,
+  Check,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const PAGE_SIZE = 15;
+
+function getInitials(name) {
+  if (!name) return "?";
+  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+}
 
 function PostSkeleton() {
   return (
@@ -46,6 +55,8 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [friendIds, setFriendIds] = useState([]);
+  const [suggestedUsers, setSuggestedUsers] = useState([]);
+  const [sentRequests, setSentRequests] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
@@ -60,6 +71,32 @@ export default function Home() {
       .then((res) => setCategories(res.data || []))
       .catch(() => {});
   }, []);
+
+  // Fetch suggested friends for mobile carousel
+  useEffect(() => {
+    userService
+      .getAll("", 0, 8)
+      .then((res) => {
+        const list = Array.isArray(res.data) ? res.data : res.data?.content || [];
+        const filtered = list.filter((u) => Number(u.id) !== Number(currentUserId)).slice(0, 6);
+        setSuggestedUsers(filtered);
+      })
+      .catch(() => {});
+  }, [currentUserId]);
+
+  const handleFollowSuggested = async (targetUser) => {
+    if (!currentUserId) {
+      toast.error("Vui lòng đăng nhập để theo dõi!");
+      return;
+    }
+    try {
+      await friendService.sendFriendRequest(currentUserId, targetUser.id);
+      setSentRequests((prev) => new Set(prev).add(targetUser.id));
+      toast.success(`Đã gửi lời mời kết nối tới ${targetUser.fullName || targetUser.username}!`);
+    } catch {
+      setSentRequests((prev) => new Set(prev).add(targetUser.id));
+    }
+  };
 
   // Load friends / followed IDs
   const loadFriendsList = useCallback(() => {
@@ -227,8 +264,82 @@ export default function Home() {
       {/* Quick Composer ở đầu bảng tin */}
       <QuickComposer onPostCreated={handlePostCreated} categories={categories} />
 
+      {/* Mobile Suggested Friends Carousel (Đồng bộ 100% tính năng gợi ý bạn bè lên Mobile) */}
+      {suggestedUsers.length > 0 && activeTab === "forYou" && (
+        <div className="lg:hidden p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs my-3 flex flex-col gap-2">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+              Gợi ý kết bạn cho bạn
+            </span>
+            <Link
+              to="/friends"
+              className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+            >
+              Xem tất cả
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1">
+            {suggestedUsers.map((user) => {
+              const isSent = sentRequests.has(user.id);
+              const name = user.fullName || user.username;
+              return (
+                <div
+                  key={user.id}
+                  className="w-36 shrink-0 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/60 dark:border-zinc-700/60 flex flex-col items-center text-center gap-2"
+                >
+                  <Link to={`/profile/${user.id}`} className="flex flex-col items-center gap-1.5">
+                    {user.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt=""
+                        className="w-11 h-11 rounded-full object-cover shadow-xs"
+                      />
+                    ) : (
+                      <div
+                        className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-xs shadow-xs"
+                        style={{ backgroundColor: user.avatarColor || "#3f3f46" }}
+                      >
+                        {getInitials(name)}
+                      </div>
+                    )}
+                    <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-[110px]">
+                      {name}
+                    </span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => handleFollowSuggested(user)}
+                    disabled={isSent}
+                    className={`w-full py-1 rounded-full text-[11px] font-semibold flex items-center justify-center gap-1 transition cursor-pointer ${
+                      isSent
+                        ? "bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
+                        : "bg-black text-white dark:bg-white dark:text-black hover:opacity-90 active:scale-95 shadow-xs"
+                    }`}
+                  >
+                    {isSent ? (
+                      <>
+                        <Check className="w-3 h-3" />
+                        <span>Đã gửi</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-3 h-3" />
+                        <span>Theo dõi</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Feed Posts List */}
-      <div className="flex flex-col gap-3.5 mt-3.5">
+      <div className="flex flex-col gap-3.5 mt-1">
         {loading ? (
           <>
             <PostSkeleton />

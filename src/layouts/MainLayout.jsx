@@ -12,6 +12,7 @@ import AiAssistantModal from "../components/AiAssistantModal";
 import LeftSidebar from "../components/LeftSidebar";
 import RightSidebar from "../components/RightSidebar";
 import MiniMusicPlayer from "../components/MiniMusicPlayer";
+import MobileNavDrawer from "../components/MobileNavDrawer";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -265,131 +266,28 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
             </div>
 
             {/* Mobile Hamburger */}
-            <div className="relative md:hidden" ref={mobileMenuRef}>
+            <div className="relative md:hidden">
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen((v) => !v)}
-                className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                onClick={() => setMobileMenuOpen(true)}
+                className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                title="Mở menu đầy đủ"
               >
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                )}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
               </button>
-
-              {mobileMenuOpen && (
-                <div className="absolute right-0 top-10 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-2.5 z-50 flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-100">
-                  {currentUser && (
-                    <Link
-                      to={`/profile/${currentUserId}`}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2.5 p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition mb-1"
-                    >
-                      {currentUser.avatarUrl ? (
-                        <img src={currentUser.avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
-                      ) : (
-                        <div
-                          className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
-                          style={{ backgroundColor: currentUser.avatarColor || "#27272a" }}
-                        >
-                          {getInitials(currentUser.fullName || currentUser.username)}
-                        </div>
-                      )}
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                          {currentUser.fullName || currentUser.username}
-                        </span>
-                        <span className="text-[11px] text-zinc-500 truncate">@{currentUser.username}</span>
-                      </div>
-                    </Link>
-                  )}
-
-                  {navLinks.map(({ to, label, icon: Icon }) => (
-                    <NavLink
-                      key={to}
-                      to={to}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={({ isActive }) =>
-                        `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                          isActive
-                            ? "bg-zinc-100 dark:bg-zinc-800 text-black dark:text-white font-bold"
-                            : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                        }`
-                      }
-                    >
-                      <Icon strokeWidth={1.75} className="w-4 h-4" /> {label}
-                    </NavLink>
-                  ))}
-
-                  <Link
-                    to="/security"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
-                  >
-                    <Shield className="w-4 h-4 text-zinc-500" /> Cài đặt & Bảo mật
-                  </Link>
-
-                  {/* Trending Tags in Mobile Drawer */}
-                  <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/80 my-1">
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-2 block mb-1.5">
-                      Chủ đề nổi bật
-                    </span>
-                    <div className="flex flex-wrap gap-1 px-1">
-                      {["#Vinahouse", "#IT", "#Chung", "#AI", "#DuLich"].map((tag) => (
-                        <Link
-                          key={tag}
-                          to={`/search?q=${encodeURIComponent(tag.replace("#", ""))}`}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                        >
-                          {tag}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-0.5" />
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onToggleTheme?.();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
-                  >
-                    {isDark ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-zinc-500" />}
-                    <span>{isDark ? "Chế độ Sáng" : "Chế độ Tối"}</span>
-                  </button>
-
-                  {currentUser ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        logout();
-                        navigate("/login");
-                      }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition mt-1 cursor-pointer"
-                    >
-                      <LogOut size={16} />
-                      <span>Đăng xuất tài khoản</span>
-                    </button>
-                  ) : (
-                    <Link
-                      to="/login"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-white bg-black dark:bg-white dark:text-black mt-1"
-                    >
-                      Đăng nhập
-                    </Link>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>
+
+        {/* Full Feature Synchronized Mobile Nav Drawer */}
+        <MobileNavDrawer
+          isOpen={mobileMenuOpen}
+          onClose={() => setMobileMenuOpen(false)}
+          isDark={isDark}
+          onToggleTheme={onToggleTheme}
+        />
       </header>
 
       {/* ======================================================================
