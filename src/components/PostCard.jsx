@@ -500,7 +500,6 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                   setIsReactionsModalOpen(true);
                 }}
                 className="text-xs text-zinc-500 dark:text-zinc-400 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer font-semibold px-1 py-0.5"
-                title="Bấm để xem danh sách chi tiết"
               >
                 {likeCount}
               </button>
@@ -508,7 +507,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
             {/* Hover Tooltip Popup (Hiển thị danh sách nhanh khi rê chuột) */}
             {isHoveringLike && likeCount > 0 && (
-              <div className="absolute bottom-full left-0 mb-2 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 px-3.5 py-2.5 rounded-xl shadow-2xl z-50 pointer-events-none whitespace-nowrap backdrop-blur-md border border-white/10 dark:border-zinc-300 animate-in fade-in zoom-in-95 duration-100 flex flex-col gap-1">
+              <div className="absolute bottom-full left-0 mb-2 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 px-3 py-2 rounded-xl shadow-2xl z-50 pointer-events-none whitespace-nowrap backdrop-blur-md border border-white/10 dark:border-zinc-300 animate-in fade-in zoom-in-95 duration-100 flex flex-col gap-1">
                 <div className="flex items-center gap-1.5 text-xs font-bold leading-none">
                   <span>❤️</span>
                   <span>{likeCount} lượt thích</span>
@@ -518,9 +517,6 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                     {likersPreview}
                   </span>
                 )}
-                <span className="text-[9px] text-zinc-400 dark:text-zinc-500 italic leading-none pt-0.5">
-                  Nhấp chuột để xem danh sách đầy đủ
-                </span>
               </div>
             )}
           </div>
