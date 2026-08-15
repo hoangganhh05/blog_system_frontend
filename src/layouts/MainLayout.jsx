@@ -529,6 +529,36 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
             </>
           )}
         </NavLink>
+
+        {/* 5. Trang cá nhân (Avatar thu nhỏ cạnh Chuông thông báo) */}
+        <NavLink
+          to={currentUser ? `/profile/${currentUserId}` : "/login"}
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition-all duration-150 active:scale-90 ${
+              isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
+            }`
+          }
+          title="Trang cá nhân"
+        >
+          {({ isActive }) =>
+            currentUser ? (
+              <div className={`p-0.5 rounded-full transition-all ${isActive ? "ring-2 ring-[#0866ff] ring-offset-1 dark:ring-offset-zinc-900" : ""}`}>
+                <Avatar
+                  userId={currentUserId}
+                  src={currentUser?.avatarUrl}
+                  name={currentUser?.fullName || currentUser?.username}
+                  username={currentUser?.username}
+                  avatarColor={currentUser?.avatarColor}
+                  size="xs"
+                  hideStatus={true}
+                  className="w-6 h-6 min-w-6 min-h-6 border border-zinc-200 dark:border-zinc-700 shadow-xs"
+                />
+              </div>
+            ) : (
+              <User strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />
+            )
+          }
+        </NavLink>
       </nav>
 
       {/* Create Post Modal */}
