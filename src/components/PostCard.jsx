@@ -120,9 +120,11 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
   const menuRef = useRef(null);
 
-  const author = currentPost?.user || {};
+  const author = currentPost?.user || post?.user || {};
   const authorName = author.fullName || author.username || "Người dùng";
-  const isOwner = currentUserId && (Number(author.id) === Number(currentUserId) || Number(author.id) === Number(currentUser?.id));
+  const authorId = Number(author.id || currentPost?.userId || post?.userId);
+  const myId = Number(currentUserId || currentUser?.id);
+  const isOwner = myId > 0 && authorId > 0 && authorId === myId;
   const authorAvatarUrl = isOwner ? (currentUser?.avatarUrl || author.avatarUrl) : (author.avatarUrl || author.avatar);
   const authorAvatarColor = isOwner ? (currentUser?.avatarColor || author.avatarColor) : author.avatarColor;
 
@@ -233,13 +235,17 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   };
 
   const confirmDeletePost = async () => {
-    console.log("🗑️ [PostCard] Đang gửi yêu cầu xóa bài viết tới API, ID:", post?.id);
+    const targetPostId = post?.id || currentPost?.id;
+    console.log("🗑️ [PostCard] Đang gửi yêu cầu xóa bài viết tới API, ID:", targetPostId);
     setIsDeleteModalOpen(false);
     try {
-      await postService.delete(post.id);
-      console.log("✅ [PostCard] Xóa bài viết thành công ID:", post?.id);
+      await postService.delete(targetPostId);
+      console.log("✅ [PostCard] Xóa bài viết thành công ID:", targetPostId);
       toast.success("Đã xóa bài viết thành công!");
-      if (onDelete) onDelete(post.id);
+      if (onDelete) onDelete(targetPostId);
+      window.dispatchEvent(
+        new CustomEvent("post_deleted", { detail: { postId: targetPostId } })
+      );
     } catch (err) {
       console.error("❌ [PostCard] Lỗi khi gọi API xóa bài viết:", err.response?.status, err.response?.data || err);
       const msg =

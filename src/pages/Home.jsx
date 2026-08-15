@@ -271,14 +271,37 @@ export default function Home() {
     }
   };
 
-  // Listen for refresh feed event
+  // Listen for refresh feed and global post events
   useEffect(() => {
     const handleRefresh = () => {
       loadFollowingList();
       fetchPosts(0, true);
     };
+
+    const handleGlobalDelete = (e) => {
+      const { postId } = e.detail || {};
+      if (postId) {
+        setPosts((prev) => prev.filter((p) => Number(p.id) !== Number(postId)));
+      }
+    };
+
+    const handleGlobalUpdate = (e) => {
+      const { post: updated } = e.detail || {};
+      if (updated?.id) {
+        setPosts((prev) =>
+          prev.map((p) => (Number(p.id) === Number(updated.id) ? { ...p, ...updated } : p))
+        );
+      }
+    };
+
     window.addEventListener("refresh_feed_posts", handleRefresh);
-    return () => window.removeEventListener("refresh_feed_posts", handleRefresh);
+    window.addEventListener("post_deleted", handleGlobalDelete);
+    window.addEventListener("post_updated", handleGlobalUpdate);
+    return () => {
+      window.removeEventListener("refresh_feed_posts", handleRefresh);
+      window.removeEventListener("post_deleted", handleGlobalDelete);
+      window.removeEventListener("post_updated", handleGlobalUpdate);
+    };
   }, [fetchPosts, loadFollowingList]);
 
   const handlePostCreated = (newPost) => {
@@ -288,13 +311,13 @@ export default function Home() {
   };
 
   const handleDeletePost = (deletedId) => {
-    setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+    setPosts((prev) => prev.filter((p) => Number(p.id) !== Number(deletedId)));
   };
 
   const handleEditPost = (updatedPost) => {
     if (!updatedPost?.id) return;
     setPosts((prev) =>
-      prev.map((p) => (p.id === updatedPost.id ? { ...p, ...updatedPost } : p))
+      prev.map((p) => (Number(p.id) === Number(updatedPost.id) ? { ...p, ...updatedPost } : p))
     );
   };
 
