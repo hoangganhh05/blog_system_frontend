@@ -277,8 +277,8 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 )}
               </NavLink>
 
-              {/* Profile Dropdown (Visible on Desktop & Mobile for fast profile/settings access) */}
-              <div className="relative block" ref={profileMenuRef}>
+              {/* Profile Dropdown (Desktop only - Mobile accesses profile & settings via ☰ menu) */}
+              <div className="relative hidden md:block" ref={profileMenuRef}>
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen((v) => !v)}
