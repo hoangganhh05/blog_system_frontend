@@ -17,6 +17,7 @@ import {
   MoreHorizontal,
   Mic,
   Square,
+  Sticker,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -25,21 +26,8 @@ import chatService from "../services/chatService";
 import uploadService from "../services/uploadService";
 import AudioMessagePlayer from "./AudioMessagePlayer";
 import GifPicker from "./GifPicker";
-
-const STICKERS = [
-  { emoji: "❤️", text: "Yêu thương" },
-  { emoji: "🔥", text: "Cháy quá" },
-  { emoji: "😂", text: "Cười ngất" },
-  { emoji: "🥰", text: "Mê mẩn" },
-  { emoji: "👍", text: "Tuyệt vời" },
-  { emoji: "🎉", text: "Chúc mừng" },
-  { emoji: "🐱", text: "Meow" },
-  { emoji: "🚀", text: "Lên đỉnh" },
-  { emoji: "💖", text: "Bật tim" },
-  { emoji: "🎁", text: "Quà này" },
-  { emoji: "💡", text: "Ý hay" },
-  { emoji: "🌟", text: "10 điểm" },
-];
+import EmojiPicker from "./EmojiPicker";
+import StickerPicker from "./StickerPicker";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -106,7 +94,8 @@ export default function FloatingChatWidget() {
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [activeCall, setActiveCall] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [showStickers, setShowStickers] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showStickerPicker, setShowStickerPicker] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [activeMsgMenuId, setActiveMsgMenuId] = useState(null);
   const [editingMsgId, setEditingMsgId] = useState(null);
@@ -193,6 +182,7 @@ export default function FloatingChatWidget() {
 
           let previewContent = lastMsg.content || "Đã gửi 1 tệp đính kèm";
           if (previewContent.startsWith("📷 http")) previewContent = "📷 [Hình ảnh]";
+          if (previewContent.startsWith("🏷️ http")) previewContent = "🏷️ [Nhãn dán]";
           if (previewContent.startsWith("🎙️ http")) previewContent = "🎙️ [Tin nhắn thoại]";
 
           newMap[friend.id] = {
@@ -387,6 +377,19 @@ export default function FloatingChatWidget() {
       setMessages((prev) => [...prev, resMsg.data]);
     } catch {
       toast.error("Không thể gửi ảnh GIF!");
+    }
+  };
+
+  // Send Sticker
+  const handleSendSticker = async (stickerUrl) => {
+    if (!stickerUrl || !activeFriend?.id) return;
+    const text = `🏷️ ${stickerUrl}`;
+
+    try {
+      const resMsg = await chatService.sendMessage(currentUserId, activeFriend.id, text);
+      setMessages((prev) => [...prev, resMsg.data]);
+    } catch {
+      toast.error("Không thể gửi nhãn dán!");
     }
   };
 
@@ -842,7 +845,7 @@ export default function FloatingChatWidget() {
                             )}
                           </div>
 
-                          {/* Message Bubble: Text / Image / Voice */}
+                          {/* Message Bubble: Text / Image / Sticker / Voice */}
                           {isEditingThis ? (
                             <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700">
                               <input
@@ -868,6 +871,18 @@ export default function FloatingChatWidget() {
                             </div>
                           ) : isVoice ? (
                             <AudioMessagePlayer src={msg.content} isMe={isMe} />
+                          ) : msg.content?.startsWith("🏷️ http") ? (
+                            <div className="p-1 max-w-[140px] max-h-[140px] flex items-center justify-center">
+                              <img
+                                src={msg.content.replace("🏷️ ", "").trim()}
+                                alt="Sticker"
+                                className="w-24 h-24 sm:w-28 sm:h-28 object-contain cursor-pointer hover:scale-110 active:scale-95 transition-transform duration-150"
+                                onClick={() =>
+                                  window.open(msg.content.replace("🏷️ ", "").trim(), "_blank")
+                                }
+                                loading="lazy"
+                              />
+                            </div>
                           ) : msg.content?.startsWith("📷 http") ? (
                             <div className="rounded-2xl overflow-hidden max-w-[220px] max-h-[220px] border border-zinc-200 dark:border-zinc-800 shadow-sm">
                               <img
@@ -877,6 +892,7 @@ export default function FloatingChatWidget() {
                                 onClick={() =>
                                   window.open(msg.content.replace("📷 ", "").trim(), "_blank")
                                 }
+                                loading="lazy"
                               />
                             </div>
                           ) : (
@@ -947,28 +963,34 @@ export default function FloatingChatWidget() {
             )}
           </div>
 
-          {/* Stickers Grid */}
-          {showStickers && (
-            <div className="p-3 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 grid grid-cols-6 gap-2">
-              {STICKERS.map((st) => (
-                <button
-                  key={st.emoji}
-                  type="button"
-                  onClick={() => {
-                    setInputMessage(`${st.emoji} ${st.text}`);
-                    setShowStickers(false);
-                  }}
-                  className="py-1.5 text-lg hover:scale-125 transition-transform flex items-center justify-center cursor-pointer"
-                >
-                  {st.emoji}
-                </button>
-              ))}
+          {/* Emoji Picker Popup */}
+          {showEmojiPicker && (
+            <div className="p-2 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 flex justify-center animate-in fade-in zoom-in-95 duration-100">
+              <EmojiPicker
+                onSelectEmoji={(emoji) => {
+                  setInputMessage((prev) => prev + emoji);
+                }}
+                onClose={() => setShowEmojiPicker(false)}
+              />
+            </div>
+          )}
+
+          {/* Sticker Picker Popup */}
+          {showStickerPicker && (
+            <div className="p-2 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 flex justify-center animate-in fade-in zoom-in-95 duration-100">
+              <StickerPicker
+                onSelectSticker={(url) => {
+                  handleSendSticker(url);
+                  setShowStickerPicker(false);
+                }}
+                onClose={() => setShowStickerPicker(false)}
+              />
             </div>
           )}
 
           {/* GIF Picker Popup */}
           {showGifPicker && (
-            <div className="p-2 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 flex justify-center">
+            <div className="p-2 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 flex justify-center animate-in fade-in zoom-in-95 duration-100">
               <GifPicker
                 onSelectGif={(url) => {
                   handleSendGif(url);
@@ -1015,19 +1037,42 @@ export default function FloatingChatWidget() {
               ) : (
                 /* Standard Message Input Form */
                 <form onSubmit={handleSendMessage} className="flex items-center gap-1 sm:gap-1.5 w-full min-w-0">
-                  {/* Left media actions bar */}
-                  <div className="flex items-center gap-0.5 shrink-0">
+                  {/* Media actions toolbar */}
+                  <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                    {/* Emoji Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEmojiPicker((v) => !v);
+                        setShowStickerPicker(false);
+                        setShowGifPicker(false);
+                      }}
+                      className={`p-1.5 rounded-xl transition cursor-pointer ${
+                        showEmojiPicker
+                          ? "bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400"
+                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      }`}
+                      title="Biểu tượng cảm xúc (Emoji)"
+                    >
+                      <Smile className="w-4 h-4" />
+                    </button>
+
                     {/* Sticker Toggle */}
                     <button
                       type="button"
                       onClick={() => {
-                        setShowStickers((v) => !v);
+                        setShowStickerPicker((v) => !v);
+                        setShowEmojiPicker(false);
                         setShowGifPicker(false);
                       }}
-                      className="p-1 sm:p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition cursor-pointer"
-                      title="Sticker & Emoji"
+                      className={`p-1.5 rounded-xl transition cursor-pointer ${
+                        showStickerPicker
+                          ? "bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400"
+                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      }`}
+                      title="Nhãn dán sinh động (Sticker)"
                     >
-                      <Smile className="w-4 h-4" />
+                      <Sticker className="w-4 h-4" />
                     </button>
 
                     {/* GIF Picker Toggle */}
@@ -1035,9 +1080,10 @@ export default function FloatingChatWidget() {
                       type="button"
                       onClick={() => {
                         setShowGifPicker((v) => !v);
-                        setShowStickers(false);
+                        setShowEmojiPicker(false);
+                        setShowStickerPicker(false);
                       }}
-                      className={`px-1 py-0.5 rounded text-[10px] font-black transition cursor-pointer ${
+                      className={`px-1.5 py-1 rounded-xl text-[10px] font-black transition cursor-pointer ${
                         showGifPicker
                           ? "bg-amber-500 text-black shadow-xs"
                           : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -1052,7 +1098,7 @@ export default function FloatingChatWidget() {
                       type="button"
                       onClick={() => imageInputRef.current?.click()}
                       disabled={uploadingImage || isUploadingVoice}
-                      className="p-1 sm:p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition cursor-pointer disabled:opacity-50"
+                      className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition cursor-pointer disabled:opacity-50"
                       title="Gửi hình ảnh"
                     >
                       {uploadingImage ? (
@@ -1074,7 +1120,7 @@ export default function FloatingChatWidget() {
                       type="button"
                       onClick={handleStartRecording}
                       disabled={isUploadingVoice || uploadingImage}
-                      className="p-1 sm:p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition cursor-pointer disabled:opacity-50"
+                      className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition cursor-pointer disabled:opacity-50"
                       title="Ghi âm tin nhắn thoại (Voice Message)"
                     >
                       <Mic className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
