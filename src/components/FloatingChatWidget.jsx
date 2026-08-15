@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   X,
@@ -267,38 +267,74 @@ export default function FloatingChatWidget() {
   const prevMsgLengthRef = useRef(0);
   const typingTimerRef = useRef(null);
 
+  // Reactive Active Status State
+  const [userActiveStatus, setUserActiveStatus] = useState(() => isUserActiveStatusEnabled(currentUserId));
+
   // MediaRecorder Refs
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const recordingTimerRef = useRef(null);
   const audioStreamRef = useRef(null);
 
-  // 1. Fetch friend list
-  useEffect(() => {
+  // 1. Fetch friend list with useCallback
+  const fetchFriends = useCallback(async () => {
     if (!currentUserId) return;
-    const fetchFriends = async () => {
-      try {
-        const friendsRes = await friendService
-          .getFriendsList(currentUserId)
-          .catch(() => ({ data: [] }));
-        const rawFriends = friendsRes.data || [];
-        const apiFriendsList = rawFriends
-          .map((f) => f.friend || f.user || f)
-          .filter((f) => f && f.id && String(f.id) !== String(currentUserId));
+    try {
+      const friendsRes = await friendService
+        .getFriendsList(currentUserId)
+        .catch(() => ({ data: [] }));
+      const rawFriends = friendsRes.data || [];
+      const apiFriendsList = rawFriends
+        .map((f) => f.friend || f.user || f)
+        .filter((f) => f && f.id && String(f.id) !== String(currentUserId));
 
-        const friendMap = new Map();
-        apiFriendsList.forEach((u) => {
-          if (u && u.id && String(u.id) !== String(currentUserId)) {
-            friendMap.set(String(u.id), u);
-          }
-        });
-        setFriends(Array.from(friendMap.values()));
-      } catch {
-        setFriends([]);
+      const friendMap = new Map();
+      apiFriendsList.forEach((u) => {
+        if (u && u.id && String(u.id) !== String(currentUserId)) {
+          friendMap.set(String(u.id), u);
+        }
+      });
+      setFriends(Array.from(friendMap.values()));
+    } catch {
+      setFriends([]);
+    }
+  }, [currentUserId]);
+
+  useEffect(() => {
+    fetchFriends();
+  }, [fetchFriends]);
+
+  // Synchronize active status events across components & tabs
+  useEffect(() => {
+    const handleStatusEvent = (e) => {
+      if (e.detail?.enabled !== undefined) {
+        setUserActiveStatus(Boolean(e.detail.enabled));
       }
     };
+    window.addEventListener("active_status_toggle_changed", handleStatusEvent);
+    return () => window.removeEventListener("active_status_toggle_changed", handleStatusEvent);
+  }, []);
+
+  // Handle Toggle Active Status
+  const handleToggleMyActiveStatus = async () => {
+    if (!currentUserId) return;
+    const nextState = !userActiveStatus;
+    setUserActiveStatus(nextState); // Immediate optimistic UI state update
+    setUserActiveStatusEnabled(currentUserId, nextState);
+    toast.success(nextState ? "Đã bật trạng thái hoạt động (Trực tuyến)" : "Đã tắt trạng thái hoạt động (Ẩn)");
+    try {
+      const userService = (await import("../services/userService")).default;
+      await userService.updateActiveStatus(nextState);
+      if (nextState) {
+        await userService.heartbeat();
+      } else {
+        await userService.setOffline();
+      }
+    } catch (err) {
+      console.warn("Lỗi cập nhật trạng thái hoạt động:", err);
+    }
     fetchFriends();
-  }, [currentUserId]);
+  };
 
   // 2. Poll unread summaries (Luôn cập nhật số đếm tin nhắn chưa đọc dù widget đang đóng hay mở)
   useEffect(() => {
@@ -1187,17 +1223,13 @@ export default function FloatingChatWidget() {
                     {currentUserId && (
                       <button
                         type="button"
-                        onClick={() => {
-                          const nextState = !isUserActiveStatusEnabled(currentUserId);
-                          setUserActiveStatusEnabled(currentUserId, nextState);
-                          toast.success(nextState ? "Đã bật trạng thái hoạt động (Trực tuyến)" : "Đã tắt trạng thái hoạt động (Ẩn)");
-                        }}
+                        onClick={handleToggleMyActiveStatus}
                         className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition cursor-pointer active:scale-95 shadow-2xs"
                         title="Bật/Tắt trạng thái hoạt động của bạn"
                       >
-                        <span className={`w-2 h-2 rounded-full shrink-0 ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${userActiveStatus ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
                         <span className="text-zinc-700 dark:text-zinc-300 font-medium hidden xs:inline">
-                          {isUserActiveStatusEnabled(currentUserId) ? "Trực tuyến" : "Đang ẩn"}
+                          {userActiveStatus ? "Trực tuyến" : "Đang ẩn"}
                         </span>
                       </button>
                     )}
@@ -1404,8 +1436,8 @@ export default function FloatingChatWidget() {
                   {/* Active Status Settings Card */}
                   <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-xl ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
-                        <span className={`w-3.5 h-3.5 rounded-full block ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
+                      <div className={`p-2 rounded-xl ${userActiveStatus ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
+                        <span className={`w-3.5 h-3.5 rounded-full block ${userActiveStatus ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
                       </div>
                       <div className="flex flex-col">
                         <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
@@ -1418,14 +1450,10 @@ export default function FloatingChatWidget() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => {
-                        const next = !isUserActiveStatusEnabled(currentUserId);
-                        setUserActiveStatusEnabled(currentUserId, next);
-                        toast.success(next ? "Đã bật trạng thái trực tuyến" : "Đã tắt trạng thái trực tuyến (Ẩn)");
-                      }}
-                      className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative ${isUserActiveStatusEnabled(currentUserId) ? "bg-black dark:bg-white" : "bg-zinc-300 dark:bg-zinc-700"}`}
+                      onClick={handleToggleMyActiveStatus}
+                      className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative ${userActiveStatus ? "bg-black dark:bg-white" : "bg-zinc-300 dark:bg-zinc-700"}`}
                     >
-                      <div className={`w-5 h-5 rounded-full bg-white dark:bg-black transition-transform ${isUserActiveStatusEnabled(currentUserId) ? "translate-x-4" : "translate-x-0"}`} />
+                      <div className={`w-5 h-5 rounded-full bg-white dark:bg-black transition-transform ${userActiveStatus ? "translate-x-4" : "translate-x-0"}`} />
                     </button>
                   </div>
 
