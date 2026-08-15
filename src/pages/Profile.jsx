@@ -410,7 +410,7 @@ export default function Profile() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 shrink-0 pb-1">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 shrink-0 pb-1 justify-end max-w-[240px] sm:max-w-none">
             {isMe ? (
               <>
                 <button

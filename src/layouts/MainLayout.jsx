@@ -293,14 +293,14 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       {/* ======================================================================
           3-COLUMN SYMMETRIC SOCIAL LAYOUT (Left Sidebar | Feed | Right Sidebar)
           ====================================================================== */}
-      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 pb-24 md:pb-6 flex-1 flex justify-center items-start gap-6">
+      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 pb-28 md:pb-8 flex-1 flex justify-center items-start gap-6">
         {/* LEFT COLUMN: Shortcuts & Profile Sidebar (Desktop XL - Absolute zero-shift sticky) */}
         <aside className="hidden xl:block w-64 shrink-0 sticky top-14 pt-4 sm:pt-6 h-[calc(100vh-3.5rem)] overflow-y-auto custom-scrollbar pb-6">
           <LeftSidebar />
         </aside>
 
         {/* CENTER COLUMN: Main Content Feed (Aligned padding, natural window scroll) */}
-        <main className="w-full max-w-full lg:max-w-[640px] shrink-0 min-w-0 flex flex-col gap-4 pt-4 sm:pt-6 pb-12">
+        <main className="w-full flex-1 max-w-full lg:max-w-[640px] min-w-0 flex flex-col gap-4 pt-4 sm:pt-6 pb-12">
           {children}
         </main>
 
