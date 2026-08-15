@@ -9,6 +9,8 @@ import { useAuth } from "../context/AuthContext";
 import notificationService from "../services/notificationService";
 import CreatePostModal from "../components/CreatePostModal";
 import AiAssistantModal from "../components/AiAssistantModal";
+import LeftSidebar from "../components/LeftSidebar";
+import RightSidebar from "../components/RightSidebar";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -349,11 +351,28 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       </header>
 
       {/* ======================================================================
-          MAIN CONTENT CONTAINER (Centered max-w-[680px] with balanced spacing)
+          3-COLUMN SYMMETRIC SOCIAL LAYOUT (Left Sidebar | Feed | Right Sidebar)
           ====================================================================== */}
-      <main className="w-full max-w-[680px] mx-auto px-4 py-6 pb-20 md:pb-6 flex-1 flex flex-col gap-4">
-        {children}
-      </main>
+      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 py-6 pb-20 md:pb-6 flex-1 flex justify-center items-start gap-6">
+        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (Desktop XL) */}
+        <aside className="hidden xl:block w-64 shrink-0">
+          <div className="sticky top-20">
+            <LeftSidebar />
+          </div>
+        </aside>
+
+        {/* CENTER COLUMN: Main Content Feed */}
+        <main className="w-full max-w-[640px] shrink-0 min-w-0 flex flex-col gap-4">
+          {children}
+        </main>
+
+        {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (Desktop LG/XL) */}
+        <aside className="hidden lg:block w-72 shrink-0">
+          <div className="sticky top-20 flex flex-col gap-4">
+            <RightSidebar />
+          </div>
+        </aside>
+      </div>
 
       {/* ======================================================================
           MOBILE BOTTOM NAVIGATION (Fixed Instagram-style, md:hidden)
