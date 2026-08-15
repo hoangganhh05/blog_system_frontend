@@ -19,6 +19,7 @@ import userService from "../services/userService";
 import postService from "../services/postService";
 import bookmarkService from "../services/bookmarkService";
 import friendService from "../services/friendService";
+import followService from "../services/followService";
 import uploadService from "../services/uploadService";
 import PostCard from "../components/PostCard";
 import StoryArchiveModal from "../components/StoryArchiveModal";
@@ -53,6 +54,11 @@ export default function Profile() {
   const [friendshipStatus, setFriendshipStatus] = useState("NONE");
   const [friendCount, setFriendCount] = useState(0);
   const [friendLoading, setFriendLoading] = useState(false);
+
+  // Follow System
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followLoading, setFollowLoading] = useState(false);
 
   // Modals State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -100,10 +106,18 @@ export default function Profile() {
       friendService.getStatus(currentUserId, targetUserId)
         .then((res) => setFriendshipStatus(res.data?.status || "NONE"))
         .catch(() => {});
+
+      followService.checkFollowStatus(targetUserId)
+        .then((res) => setIsFollowing(res.data?.isFollowing || false))
+        .catch(() => {});
     }
 
     friendService.getFriendCount(targetUserId)
       .then((res) => setFriendCount(res.data?.count || 0))
+      .catch(() => {});
+
+    followService.getFollowCounts(targetUserId)
+      .then((res) => setFollowerCount(res.data?.followerCount || 0))
       .catch(() => {});
 
     // Load Saved posts if viewing own profile
@@ -223,6 +237,36 @@ export default function Profile() {
       toast.error("Thao tác thất bại. Vui lòng thử lại!");
     } finally {
       setFriendLoading(false);
+    }
+  };
+
+  const handleToggleFollow = async () => {
+    if (!currentUserId || !targetUserId) {
+      toast.error("Vui lòng đăng nhập để thực hiện thao tác!");
+      return;
+    }
+
+    const prevFollowing = isFollowing;
+    const prevCount = followerCount;
+
+    setIsFollowing(!prevFollowing);
+    setFollowerCount(prevFollowing ? Math.max(0, prevCount - 1) : prevCount + 1);
+    setFollowLoading(true);
+
+    try {
+      if (prevFollowing) {
+        await followService.unfollowUser(targetUserId);
+        toast.info(`Đã hủy theo dõi ${user?.fullName || user?.username}`);
+      } else {
+        await followService.followUser(targetUserId);
+        toast.success(`Đang theo dõi ${user?.fullName || user?.username}`);
+      }
+    } catch {
+      setIsFollowing(prevFollowing);
+      setFollowerCount(prevCount);
+      toast.error("Không thể thay đổi trạng thái theo dõi lúc này!");
+    } finally {
+      setFollowLoading(false);
     }
   };
 
@@ -390,16 +434,40 @@ export default function Profile() {
               </>
             ) : (
               <>
+                {/* Nút Theo dõi / Hủy theo dõi (Độc lập, lưu vào Database) */}
+                <button
+                  type="button"
+                  onClick={handleToggleFollow}
+                  disabled={followLoading}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    isFollowing
+                      ? "bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
+                      : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-100 shadow-xs active:scale-95"
+                  }`}
+                >
+                  {followLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : isFollowing ? (
+                    <span>Đang theo dõi</span>
+                  ) : (
+                    <>
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Theo dõi</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Nút Kết bạn / Bạn bè */}
                 <button
                   type="button"
                   onClick={handleToggleFriend}
                   disabled={friendLoading}
-                  className={`px-4 py-1.5 rounded-full text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
                     friendshipStatus === "ACCEPTED"
-                      ? "bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white"
+                      ? "bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
                       : friendshipStatus === "PENDING"
                       ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                      : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-100"
+                      : "border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200"
                   }`}
                 >
                   {friendLoading ? (
@@ -412,13 +480,11 @@ export default function Profile() {
                   ) : friendshipStatus === "PENDING" ? (
                     <span>Đã gửi lời mời</span>
                   ) : (
-                    <>
-                      <UserPlus className="w-3.5 h-3.5" />
-                      <span>Kết bạn</span>
-                    </>
+                    <span>+ Kết bạn</span>
                   )}
                 </button>
 
+                {/* Nút Nhắn tin */}
                 <button
                   type="button"
                   onClick={() => {
@@ -457,13 +523,17 @@ export default function Profile() {
         ) : null}
 
         {/* Stats */}
-        <div className="flex items-center gap-4 text-xs text-zinc-500 mt-2 pb-2">
+        <div className="flex items-center gap-3 text-xs text-zinc-500 mt-2 pb-2">
           <span>
-            <strong className="text-zinc-900 dark:text-zinc-100 font-semibold">{friendCount}</strong> bạn bè
+            <strong className="text-zinc-900 dark:text-zinc-100 font-bold">{followerCount}</strong> người theo dõi
           </span>
           <span>·</span>
           <span>
-            <strong className="text-zinc-900 dark:text-zinc-100 font-semibold">{posts.length}</strong> bài viết
+            <strong className="text-zinc-900 dark:text-zinc-100 font-bold">{friendCount}</strong> bạn bè
+          </span>
+          <span>·</span>
+          <span>
+            <strong className="text-zinc-900 dark:text-zinc-100 font-bold">{posts.length}</strong> bài viết
           </span>
         </div>
       </div>

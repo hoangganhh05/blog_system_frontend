@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
 import friendService from "../services/friendService";
+import followService from "../services/followService";
 
 const TRENDING_TAGS = [
   { tag: "#Vinahouse", count: "1.2k" },
@@ -49,7 +50,7 @@ export default function MobileNavDrawer({ isOpen, onClose, isDark, onToggleTheme
   });
 
   const [suggestedUsers, setSuggestedUsers] = useState([]);
-  const [sentRequests, setSentRequests] = useState(new Set());
+  const [followingIds, setFollowingIds] = useState([]);
 
   // Load user stats and suggested friends for mobile drawer
   useEffect(() => {
@@ -78,6 +79,14 @@ export default function MobileNavDrawer({ isOpen, onClose, isDark, onToggleTheme
           }));
         })
         .catch(() => {});
+
+      followService
+        .getFollowingIds(currentUserId)
+        .then((res) => {
+          const ids = Array.isArray(res.data) ? res.data.map(Number) : [];
+          setFollowingIds(ids);
+        })
+        .catch(() => {});
     }
 
     // Suggested users
@@ -91,17 +100,31 @@ export default function MobileNavDrawer({ isOpen, onClose, isDark, onToggleTheme
       .catch(() => {});
   }, [isOpen, currentUserId]);
 
-  const handleFollow = async (targetUser) => {
+  const handleToggleFollow = async (targetUser) => {
     if (!currentUserId) {
       toast.error("Vui lòng đăng nhập để theo dõi!");
       return;
     }
-    try {
-      await friendService.sendFriendRequest(currentUserId, targetUser.id);
-      setSentRequests((prev) => new Set(prev).add(targetUser.id));
-      toast.success(`Đã gửi lời mời kết nối tới ${targetUser.fullName || targetUser.username}!`);
-    } catch {
-      setSentRequests((prev) => new Set(prev).add(targetUser.id));
+
+    const isFollowing = followingIds.includes(Number(targetUser.id));
+    const targetName = targetUser.fullName || targetUser.username;
+
+    if (isFollowing) {
+      try {
+        await followService.unfollowUser(targetUser.id);
+        setFollowingIds((prev) => prev.filter((id) => id !== Number(targetUser.id)));
+        toast.info(`Đã hủy theo dõi ${targetName}`);
+      } catch {
+        toast.error("Không thể hủy theo dõi!");
+      }
+    } else {
+      try {
+        await followService.followUser(targetUser.id);
+        setFollowingIds((prev) => [...prev, Number(targetUser.id)]);
+        toast.success(`Đang theo dõi ${targetName}!`);
+      } catch {
+        toast.error("Không thể theo dõi!");
+      }
     }
   };
 
@@ -261,13 +284,13 @@ export default function MobileNavDrawer({ isOpen, onClose, isDark, onToggleTheme
             </div>
           </div>
 
-          {/* 4. Gợi ý kết bạn (Suggested Friends on Mobile) */}
+          {/* 4. Gợi ý theo dõi tác giả (Suggested Friends on Mobile) */}
           {suggestedUsers.length > 0 && (
             <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-2">
               <div className="flex items-center justify-between px-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                  Gợi ý kết bạn
+                  Gợi ý theo dõi
                 </span>
                 <Link
                   to="/friends"
@@ -280,7 +303,7 @@ export default function MobileNavDrawer({ isOpen, onClose, isDark, onToggleTheme
 
               <div className="flex flex-col gap-2">
                 {suggestedUsers.map((user) => {
-                  const isSent = sentRequests.has(user.id);
+                  const isFollowing = followingIds.includes(Number(user.id));
                   const name = user.fullName || user.username;
                   return (
                     <div
@@ -318,18 +341,17 @@ export default function MobileNavDrawer({ isOpen, onClose, isDark, onToggleTheme
 
                       <button
                         type="button"
-                        onClick={() => handleFollow(user)}
-                        disabled={isSent}
+                        onClick={() => handleToggleFollow(user)}
                         className={`px-2.5 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1 shrink-0 transition cursor-pointer ${
-                          isSent
-                            ? "bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
+                          isFollowing
+                            ? "bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-rose-100 dark:hover:bg-rose-950/40 hover:text-rose-600"
                             : "bg-black text-white dark:bg-white dark:text-black hover:opacity-90 active:scale-95 shadow-xs"
                         }`}
                       >
-                        {isSent ? (
+                        {isFollowing ? (
                           <>
-                            <Check className="w-3 h-3" />
-                            <span>Đã gửi</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
+                            <span>Đang theo dõi</span>
                           </>
                         ) : (
                           <>

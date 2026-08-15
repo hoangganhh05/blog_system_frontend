@@ -4,7 +4,7 @@ import { UserPlus, Check, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
-import friendService from "../services/friendService";
+import followService from "../services/followService";
 import MiniMusicPlayer from "./MiniMusicPlayer";
 
 function getInitials(name) {
@@ -17,7 +17,7 @@ export default function RightSidebar() {
   const currentUserId = currentUser ? Number(currentUser.id || currentUser.userId) : null;
 
   const [suggestedUsers, setSuggestedUsers] = useState([]);
-  const [sentRequests, setSentRequests] = useState(new Set());
+  const [followingIds, setFollowingIds] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -32,21 +32,44 @@ export default function RightSidebar() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    // Load following IDs from Database
+    if (currentUserId) {
+      followService
+        .getFollowingIds(currentUserId)
+        .then((res) => {
+          const ids = Array.isArray(res.data) ? res.data.map(Number) : [];
+          setFollowingIds(ids);
+        })
+        .catch(() => {});
+    }
   }, [currentUserId]);
 
-  const handleFollow = async (targetUser) => {
+  const handleToggleFollow = async (targetUser) => {
     if (!currentUserId) {
-      toast.error("Vui lòng đăng nhập để theo dõi và kết bạn!");
+      toast.error("Vui lòng đăng nhập để theo dõi!");
       return;
     }
 
-    try {
-      await friendService.sendFriendRequest(currentUserId, targetUser.id);
-      setSentRequests((prev) => new Set(prev).add(targetUser.id));
-      toast.success(`Đã gửi lời mời kết bạn tới ${targetUser.fullName || targetUser.username}!`);
-    } catch {
-      toast.info(`Đã gửi lời mời kết nối tới ${targetUser.fullName || targetUser.username}`);
-      setSentRequests((prev) => new Set(prev).add(targetUser.id));
+    const isFollowing = followingIds.includes(Number(targetUser.id));
+    const targetName = targetUser.fullName || targetUser.username;
+
+    if (isFollowing) {
+      try {
+        await followService.unfollowUser(targetUser.id);
+        setFollowingIds((prev) => prev.filter((id) => id !== Number(targetUser.id)));
+        toast.info(`Đã hủy theo dõi ${targetName}`);
+      } catch {
+        toast.error("Không thể hủy theo dõi!");
+      }
+    } else {
+      try {
+        await followService.followUser(targetUser.id);
+        setFollowingIds((prev) => [...prev, Number(targetUser.id)]);
+        toast.success(`Đang theo dõi ${targetName}!`);
+      } catch {
+        toast.error("Không thể theo dõi!");
+      }
     }
   };
 
@@ -55,7 +78,7 @@ export default function RightSidebar() {
       {/* 1. Mini Music Player (Vinahouse / Lofi Focus) */}
       <MiniMusicPlayer />
 
-      {/* 2. Gợi ý kết bạn (Suggestions for You) */}
+      {/* 2. Gợi ý kết bạn & Theo dõi (Suggestions for You) */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
@@ -92,7 +115,7 @@ export default function RightSidebar() {
         ) : (
           <div className="flex flex-col gap-3">
             {suggestedUsers.map((user) => {
-              const isSent = sentRequests.has(user.id);
+              const isFollowing = followingIds.includes(Number(user.id));
               const displayName = user.fullName || user.username;
 
               return (
@@ -128,18 +151,17 @@ export default function RightSidebar() {
 
                   <button
                     type="button"
-                    onClick={() => handleFollow(user)}
-                    disabled={isSent}
+                    onClick={() => handleToggleFollow(user)}
                     className={`px-3 py-1 rounded-full text-[11px] font-bold transition flex items-center gap-1 shrink-0 cursor-pointer ${
-                      isSent
-                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-default"
+                      isFollowing
+                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
                         : "bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black shadow-xs active:scale-95"
                     }`}
                   >
-                    {isSent ? (
+                    {isFollowing ? (
                       <>
-                        <Check className="w-3 h-3" />
-                        <span>Đã gửi</span>
+                        <Check className="w-3 h-3 text-emerald-500" />
+                        <span>Đang theo dõi</span>
                       </>
                     ) : (
                       <>

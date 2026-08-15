@@ -4,6 +4,7 @@ import postService from "../services/postService";
 import categoryService from "../services/categoryService";
 import friendService from "../services/friendService";
 import userService from "../services/userService";
+import followService from "../services/followService";
 import { useAuth } from "../context/AuthContext";
 import PostCard from "../components/PostCard";
 import StoryBar from "../components/StoryBar";
@@ -54,9 +55,8 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("forYou"); // "forYou" | "following"
   const [posts, setPosts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [friendIds, setFriendIds] = useState([]);
+  const [followingIds, setFollowingIds] = useState([]);
   const [suggestedUsers, setSuggestedUsers] = useState([]);
-  const [sentRequests, setSentRequests] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
@@ -72,6 +72,35 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
+  // Fetch following IDs directly from Database via Backend API
+  const loadFollowingList = useCallback(() => {
+    if (currentUserId) {
+      followService
+        .getFollowingIds(currentUserId)
+        .then((res) => {
+          const ids = Array.isArray(res.data) ? res.data.map(Number) : [];
+          setFollowingIds(ids);
+        })
+        .catch(() => {
+          // Fallback to friend list if follows table is newly created
+          friendService
+            .getFriendsList(currentUserId)
+            .then((res) => {
+              const list = Array.isArray(res.data) ? res.data : [];
+              const ids = list.map((u) => Number(u.id || u.friendId || u.userId)).filter(Boolean);
+              setFollowingIds(ids);
+            })
+            .catch(() => setFollowingIds([]));
+        });
+    } else {
+      setFollowingIds([]);
+    }
+  }, [currentUserId]);
+
+  useEffect(() => {
+    loadFollowingList();
+  }, [loadFollowingList]);
+
   // Fetch suggested friends
   useEffect(() => {
     userService
@@ -84,43 +113,34 @@ export default function Home() {
       .catch(() => {});
   }, [currentUserId]);
 
-  const handleFollowSuggested = async (targetUser) => {
+  // Toggle follow/unfollow saved permanently to Database
+  const handleToggleFollow = async (targetUser) => {
     if (!currentUserId) {
-      toast.error("Vui lòng đăng nhập để theo dõi!");
+      toast.error("Vui lòng đăng nhập để theo dõi tác giả này!");
       return;
     }
-    try {
-      await friendService.sendFriendRequest(currentUserId, targetUser.id);
-      setSentRequests((prev) => new Set(prev).add(targetUser.id));
-      toast.success(`Đã gửi lời mời kết nối tới ${targetUser.fullName || targetUser.username}!`);
-    } catch {
-      setSentRequests((prev) => new Set(prev).add(targetUser.id));
+
+    const isCurrentlyFollowing = followingIds.includes(Number(targetUser.id));
+    const targetName = targetUser.fullName || targetUser.username;
+
+    if (isCurrentlyFollowing) {
+      try {
+        await followService.unfollowUser(targetUser.id);
+        setFollowingIds((prev) => prev.filter((id) => id !== Number(targetUser.id)));
+        toast.info(`Đã hủy theo dõi ${targetName}`);
+      } catch {
+        toast.error("Không thể hủy theo dõi lúc này!");
+      }
+    } else {
+      try {
+        await followService.followUser(targetUser.id);
+        setFollowingIds((prev) => [...prev, Number(targetUser.id)]);
+        toast.success(`Đang theo dõi ${targetName}!`);
+      } catch {
+        toast.error("Không thể theo dõi lúc này!");
+      }
     }
   };
-
-  // Load friends / followed IDs from backend
-  const loadFriendsList = useCallback(() => {
-    if (currentUserId) {
-      friendService
-        .getFriendsList(currentUserId)
-        .then((res) => {
-          const list = Array.isArray(res.data) ? res.data : [];
-          const ids = list
-            .map((u) => Number(u.id || u.friendId || u.userId))
-            .filter((id) => !isNaN(id) && id > 0);
-          setFriendIds(ids);
-        })
-        .catch(() => {
-          setFriendIds([]);
-        });
-    } else {
-      setFriendIds([]);
-    }
-  }, [currentUserId]);
-
-  useEffect(() => {
-    loadFriendsList();
-  }, [loadFriendsList]);
 
   // Fetch posts
   const fetchPosts = useCallback(
@@ -178,8 +198,7 @@ export default function Home() {
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     if (tab === "following") {
-      loadFriendsList();
-      // Load more posts to ensure following authors are included
+      loadFollowingList();
       if (posts.length < 40 && hasMore) {
         fetchPosts(page + 1);
       }
@@ -188,10 +207,13 @@ export default function Home() {
 
   // Listen for refresh feed event
   useEffect(() => {
-    const handleRefresh = () => fetchPosts(0, true);
+    const handleRefresh = () => {
+      loadFollowingList();
+      fetchPosts(0, true);
+    };
     window.addEventListener("refresh_feed_posts", handleRefresh);
     return () => window.removeEventListener("refresh_feed_posts", handleRefresh);
-  }, [fetchPosts]);
+  }, [fetchPosts, loadFollowingList]);
 
   const handlePostCreated = (newPost) => {
     if (newPost) {
@@ -210,23 +232,23 @@ export default function Home() {
     );
   };
 
-  // Filter posts based on activeTab
+  // Filter posts based on following state directly from Database
   const displayedPosts = useMemo(() => {
     if (activeTab === "following") {
       if (!currentUserId) return [];
-      const friendIdSet = new Set(friendIds);
-      // Hiển thị bài viết của chính mình và những người bạn/tác giả đã follow
+      const followingSet = new Set(followingIds);
+      // Hiển thị bài viết của chính mình và những người dùng đang theo dõi trong DB
       return posts.filter((p) => {
         const authorId = Number(p.user?.id || p.author?.id);
-        return authorId === currentUserId || friendIdSet.has(authorId);
+        return authorId === Number(currentUserId) || followingSet.has(authorId);
       });
     }
     return posts;
-  }, [posts, activeTab, friendIds, currentUserId]);
+  }, [posts, activeTab, followingIds, currentUserId]);
 
   return (
     <div className="w-full min-h-full flex flex-col">
-      {/* Sticky Top Header with 2 Tabs (Threads / X Segmented Pill Style) */}
+      {/* Sticky Top Header with 2 Tabs (Segmented Pill Style) */}
       <div className="flex bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 p-1 rounded-2xl mb-3 shrink-0 shadow-xs gap-1">
         <button
           type="button"
@@ -261,13 +283,13 @@ export default function Home() {
       {/* Quick Composer ở đầu bảng tin */}
       <QuickComposer onPostCreated={handlePostCreated} categories={categories} />
 
-      {/* Mobile Suggested Friends Carousel (Đồng bộ 100% tính năng gợi ý bạn bè lên Mobile) */}
+      {/* Mobile Suggested Friends Carousel (Đồng bộ 100% tính năng gợi ý theo dõi lên Mobile) */}
       {suggestedUsers.length > 0 && activeTab === "forYou" && (
         <div className="lg:hidden p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs my-3 flex flex-col gap-2">
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-              Gợi ý kết bạn cho bạn
+              Gợi ý tác giả cho bạn
             </span>
             <Link
               to="/friends"
@@ -279,7 +301,7 @@ export default function Home() {
 
           <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1">
             {suggestedUsers.map((user) => {
-              const isSent = sentRequests.has(user.id);
+              const isFollowing = followingIds.includes(Number(user.id));
               const name = user.fullName || user.username;
               return (
                 <div
@@ -308,18 +330,17 @@ export default function Home() {
 
                   <button
                     type="button"
-                    onClick={() => handleFollowSuggested(user)}
-                    disabled={isSent}
+                    onClick={() => handleToggleFollow(user)}
                     className={`w-full py-1 rounded-full text-[11px] font-semibold flex items-center justify-center gap-1 transition cursor-pointer ${
-                      isSent
-                        ? "bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
+                      isFollowing
+                        ? "bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-rose-100 dark:hover:bg-rose-950/40 hover:text-rose-600"
                         : "bg-black text-white dark:bg-white dark:text-black hover:opacity-90 active:scale-95 shadow-xs"
                     }`}
                   >
-                    {isSent ? (
+                    {isFollowing ? (
                       <>
-                        <Check className="w-3 h-3" />
-                        <span>Đã gửi</span>
+                        <Check className="w-3 h-3 text-emerald-500" />
+                        <span>Đang theo dõi</span>
                       </>
                     ) : (
                       <>
@@ -354,16 +375,16 @@ export default function Home() {
                 <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
                   {!currentUserId
                     ? "Đăng nhập để xem bảng tin theo dõi"
-                    : friendIds.length === 0
+                    : followingIds.length === 0
                     ? "Bạn chưa theo dõi ai"
                     : "Chưa có bài viết nào từ người bạn theo dõi"}
                 </p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm leading-relaxed mx-auto">
                   {!currentUserId
-                    ? "Đăng nhập vào BlogViet để theo dõi các tác giả yêu thích và cập nhật bài viết mới nhất từ bạn bè của bạn."
-                    : friendIds.length === 0
-                    ? "Hãy khám phá và theo dõi thêm bạn bè hoặc tác giả yêu thích để không bỏ lỡ các tin tức, bài viết hấp dẫn!"
-                    : "Những người bạn đang theo dõi chưa đăng bài viết nào gần đây. Hãy kết nối thêm bạn bè hoặc quay lại bảng tin chung."}
+                    ? "Đăng nhập vào BlogViet để theo dõi các tác giả yêu thích và cập nhật bài viết mới nhất từ những người bạn quan tâm."
+                    : followingIds.length === 0
+                    ? "Hãy khám phá và bấm 'Theo dõi' các tác giả yêu thích để không bỏ lỡ những bài viết thú vị!"
+                    : "Những tác giả bạn đang theo dõi chưa đăng bài viết nào gần đây. Hãy kết nối thêm bạn bè hoặc quay lại bảng tin chung."}
                 </p>
               </div>
 
@@ -374,13 +395,13 @@ export default function Home() {
                 >
                   <span>Đăng nhập ngay</span>
                 </Link>
-              ) : friendIds.length === 0 ? (
+              ) : followingIds.length === 0 ? (
                 <Link
                   to="/friends"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition active:scale-95 shadow-sm mt-1"
                 >
                   <Users className="w-4 h-4" />
-                  <span>Khám phá bạn bè ngay</span>
+                  <span>Khám phá tác giả ngay</span>
                 </Link>
               ) : (
                 <div className="flex items-center gap-2 mt-1">
@@ -397,7 +418,7 @@ export default function Home() {
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-semibold transition active:scale-95"
                   >
                     <Users className="w-3.5 h-3.5" />
-                    <span>Tìm thêm bạn</span>
+                    <span>Tìm thêm tác giả</span>
                   </Link>
                 </div>
               )}
