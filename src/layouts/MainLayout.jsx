@@ -121,11 +121,11 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   ];
 
   return (
-    <div className="w-full h-[100dvh] max-h-[100dvh] bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col overflow-hidden transition-colors duration-200">
+    <div className="min-h-screen w-full bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col transition-colors duration-200">
       {/* ======================================================================
           STICKY TOP HEADER (h-14, Full-width Fluid Navbar, Crisp border-b)
           ====================================================================== */}
-      <header className="w-full h-14 shrink-0 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50">
+      <header className="w-full h-14 shrink-0 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50 shadow-xs">
         {mobileSearchOpen ? (
           /* FULL WIDTH MOBILE SEARCH BAR OVERLAY */
           <div className="w-full h-14 px-3 sm:px-6 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
@@ -387,12 +387,12 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       </header>
 
       {/* ======================================================================
-          EDGE-TO-EDGE FULL-WIDTH GRID LAYOUT (Facebook-style)
+          EDGE-TO-EDGE FULL-WIDTH GRID LAYOUT (Facebook-style Sticky Sidebars + Natural Feed Scroll)
           (Left Sidebar: col-span-3 | Main Content: col-span-12 lg:col-span-6 | Right Sidebar: col-span-3)
           ====================================================================== */}
-      <div className="w-full flex-1 min-h-0 h-[calc(100dvh-3.5rem)] px-1 sm:px-2 md:px-3 lg:px-4 grid grid-cols-12 gap-3 lg:gap-4 overflow-hidden">
-        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-3, hidden on mobile) */}
-        <aside className="hidden lg:block lg:col-span-3 min-w-0 min-h-0 h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar pt-3 pb-20 select-none">
+      <div className="w-full flex-1 px-1 sm:px-2 md:px-3 lg:px-4 grid grid-cols-12 gap-3 lg:gap-4">
+        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-3, sticky below navbar) */}
+        <aside className="hidden lg:block lg:col-span-3 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto overscroll-contain custom-scrollbar pt-3 pb-8 select-none">
           <LeftSidebar />
         </aside>
 
@@ -400,14 +400,13 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className="col-span-12 lg:col-span-6 min-w-0 min-h-0 w-full h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar px-1 sm:px-2 pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y"
-          style={{ WebkitOverflowScrolling: "touch" }}
+          className="col-span-12 lg:col-span-6 min-w-0 w-full min-h-[calc(100vh-3.5rem)] px-1 sm:px-2 pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y"
         >
           {children}
         </main>
 
-        {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, hidden on mobile) */}
-        <aside className="hidden lg:block lg:col-span-3 min-w-0 min-h-0 h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar pt-3 pb-20 select-none">
+        {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, sticky below navbar) */}
+        <aside className="hidden lg:block lg:col-span-3 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto overscroll-contain custom-scrollbar pt-3 pb-8 select-none">
           <RightSidebar />
         </aside>
       </div>
