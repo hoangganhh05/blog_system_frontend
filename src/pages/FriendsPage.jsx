@@ -160,13 +160,13 @@ export default function FriendsPage() {
             </div>
           ) : (
             friends.map((friend) => (
-              <div key={friend.id} className="p-4 flex items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition">
+              <div key={friend.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition rounded-xl">
                 <Link to={`/profile/${friend.id}`} className="flex items-center gap-3 min-w-0">
                   {friend.avatarUrl ? (
-                    <img src={friend.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover" />
+                    <img src={friend.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover shrink-0" />
                   ) : (
                     <div
-                      className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm"
+                      className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
                       style={{ backgroundColor: friend.avatarColor || "#4f46e5" }}
                     >
                       {getInitials(friend.fullName || friend.username)}
@@ -182,7 +182,7 @@ export default function FriendsPage() {
                   </div>
                 </Link>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                   <button
                     type="button"
                     onClick={() => {
@@ -190,7 +190,7 @@ export default function FriendsPage() {
                         new CustomEvent("open_chat_user", { detail: { friend } })
                       );
                     }}
-                    className="p-2 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    className="p-2 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
                     title="Nhắn tin"
                   >
                     <MessageCircle className="w-4 h-4" />
@@ -214,13 +214,13 @@ export default function FriendsPage() {
             pendingRequests.map((req) => {
               const requester = req.requester || {};
               return (
-                <div key={req.id} className="p-4 flex items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition">
+                <div key={req.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition rounded-xl">
                   <Link to={`/profile/${requester.id}`} className="flex items-center gap-3 min-w-0">
                     {requester.avatarUrl ? (
-                      <img src={requester.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover" />
+                      <img src={requester.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover shrink-0" />
                     ) : (
                       <div
-                        className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm"
+                        className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
                         style={{ backgroundColor: requester.avatarColor || "#4f46e5" }}
                       >
                         {getInitials(requester.fullName || requester.username)}
@@ -236,18 +236,18 @@ export default function FriendsPage() {
                     </div>
                   </Link>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                     <button
                       type="button"
                       onClick={() => handleAcceptRequest(requester.id)}
-                      className="px-4 py-1.5 rounded-full text-xs font-bold bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:opacity-90"
+                      className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#0866ff] hover:bg-[#0756d6] text-white cursor-pointer active:scale-95 shadow-xs"
                     >
                       Chấp nhận
                     </button>
                     <button
                       type="button"
                       onClick={() => handleRejectRequest(requester.id)}
-                      className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200"
+                      className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 cursor-pointer active:scale-95"
                     >
                       Xóa
                     </button>
@@ -263,13 +263,13 @@ export default function FriendsPage() {
             </div>
           ) : (
             suggestions.map((sug) => (
-              <div key={sug.id} className="p-4 flex items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition">
+              <div key={sug.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition rounded-xl">
                 <Link to={`/profile/${sug.id}`} className="flex items-center gap-3 min-w-0">
                   {sug.avatarUrl ? (
-                    <img src={sug.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover" />
+                    <img src={sug.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover shrink-0" />
                   ) : (
                     <div
-                      className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm"
+                      className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
                       style={{ backgroundColor: sug.avatarColor || "#4f46e5" }}
                     >
                       {getInitials(sug.fullName || sug.username)}
@@ -288,7 +288,7 @@ export default function FriendsPage() {
                 <button
                   type="button"
                   onClick={() => handleSendFriendRequest(sug.id)}
-                  className="px-4 py-1.5 rounded-full text-xs font-bold bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:opacity-90 flex items-center gap-1.5"
+                  className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#0866ff] hover:bg-[#0756d6] text-white flex items-center gap-1.5 self-end sm:self-auto shrink-0 cursor-pointer active:scale-95 shadow-xs"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>Kết bạn</span>
