@@ -41,7 +41,24 @@ const aiService = {
     if (!msg) return "Bạn hãy nhập nội dung để trò chuyện với Trợ lý AI nhé! ✨";
 
     try {
-      const response = await axiosClient.post("/ai/chat", { prompt: msg });
+      // Truyền mốc thời gian thực tế của hệ thống vào prompt để AI luôn biết ngày giờ hiện tại
+      const now = new Date();
+      const currentDateTime = now.toLocaleString("vi-VN", {
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const systemTimeContext = `[Thời gian thực tế hiện tại của hệ thống: ${currentDateTime} (Múi giờ: ${timeZone}). Hãy luôn sử dụng mốc thời gian này khi người dùng hỏi về ngày, giờ, thời gian hiện tại.]\n\n`;
+      const promptWithTime = systemTimeContext + msg;
+
+      const response = await axiosClient.post("/ai/chat", { prompt: promptWithTime });
       if (response.data && response.data.reply) {
         return response.data.reply;
       }
