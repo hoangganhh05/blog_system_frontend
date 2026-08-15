@@ -18,6 +18,11 @@ import {
   Mic,
   Square,
   Sticker,
+  Pin,
+  PinOff,
+  ChevronDown,
+  CheckCheck,
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -48,6 +53,23 @@ function formatTime(dateStr) {
   const d = new Date(formatted);
   if (isNaN(d.getTime())) return "";
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatFullTime(dateStr) {
+  if (!dateStr) return "";
+  let formatted = dateStr;
+  if (typeof dateStr === "string" && !dateStr.endsWith("Z") && !dateStr.includes("+")) {
+    formatted = dateStr + "Z";
+  }
+  const d = new Date(formatted);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 function isAudioMessage(content) {
@@ -102,6 +124,19 @@ export default function FloatingChatWidget() {
   const [editingText, setEditingText] = useState("");
   const [conversationsMap, setConversationsMap] = useState({});
   const [unreadChatCount, setUnreadChatCount] = useState(0);
+
+  // Pinned Messages state (persisted per conversation)
+  const [pinnedMessages, setPinnedMessages] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("pinned_chat_messages") || "{}");
+    } catch {
+      return {};
+    }
+  });
+
+  // Scroll to bottom states
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
+  const [newMsgCountWhileScrolled, setNewMsgCountWhileScrolled] = useState(0);
 
   // Voice Recording States
   const [isRecording, setIsRecording] = useState(false);
@@ -227,9 +262,13 @@ export default function FloatingChatWidget() {
           .then((res) => {
             const list = res.data || [];
             if (list.length > prevMsgLengthRef.current) {
+              const diff = list.length - prevMsgLengthRef.current;
               const lastMsg = list[list.length - 1];
               if (lastMsg && Number(lastMsg.senderId || lastMsg.sender?.id) !== currentUserId) {
                 playNotificationSound();
+                if (userScrolledUpRef.current) {
+                  setNewMsgCountWhileScrolled((prev) => prev + diff);
+                }
               }
             }
             prevMsgLengthRef.current = list.length;
@@ -247,8 +286,20 @@ export default function FloatingChatWidget() {
   // 5. Auto scroll to bottom
   const handleScrollChat = (e) => {
     const el = e.target;
-    const isBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
-    userScrolledUpRef.current = !isBottom;
+    const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const isNearBottom = distanceToBottom < 100;
+    userScrolledUpRef.current = !isNearBottom;
+    setShowScrollBottom(!isNearBottom);
+    if (isNearBottom) {
+      setNewMsgCountWhileScrolled(0);
+    }
+  };
+
+  const handleScrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    userScrolledUpRef.current = false;
+    setShowScrollBottom(false);
+    setNewMsgCountWhileScrolled(0);
   };
 
   useEffect(() => {
@@ -259,6 +310,8 @@ export default function FloatingChatWidget() {
 
   useEffect(() => {
     userScrolledUpRef.current = false;
+    setShowScrollBottom(false);
+    setNewMsgCountWhileScrolled(0);
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
     }, 50);
@@ -391,6 +444,36 @@ export default function FloatingChatWidget() {
     } catch {
       toast.error("Không thể gửi nhãn dán!");
     }
+  };
+
+  // Toggle Pin Message
+  const handleTogglePinMessage = (msg) => {
+    if (!activeFriend?.id || !msg) return;
+    setPinnedMessages((prev) => {
+      const isCurrentlyPinned = prev[activeFriend.id]?.id === msg.id;
+      const updated = { ...prev };
+      if (isCurrentlyPinned) {
+        delete updated[activeFriend.id];
+        toast.success("Đã bỏ ghim tin nhắn!");
+      } else {
+        const senderName =
+          Number(msg.senderId || msg.sender?.id) === currentUserId
+            ? "Bạn"
+            : activeFriend.fullName || activeFriend.username || "Đối phương";
+        updated[activeFriend.id] = {
+          id: msg.id,
+          content: msg.content,
+          senderName,
+          createdAt: msg.createdAt,
+        };
+        toast.success("Đã ghim tin nhắn lên đầu!");
+      }
+      try {
+        localStorage.setItem("pinned_chat_messages", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    setActiveMsgMenuId(null);
   };
 
   // -------------------------------------------------------------
@@ -732,12 +815,62 @@ export default function FloatingChatWidget() {
                 )}
               </div>
             ) : (
-              /* Conversation Messages */
-              <div
-                ref={chatScrollContainerRef}
-                onScroll={handleScrollChat}
-                className="flex-1 p-3.5 overflow-y-auto flex flex-col gap-2.5"
-              >
+              /* Conversation Header & Pinned Banner & Messages Wrapper */
+              <div className="flex-1 flex flex-col min-h-0 relative">
+                {/* Pinned Message Banner */}
+                {activeFriend && pinnedMessages[activeFriend.id] && (
+                  <div className="bg-amber-50/95 dark:bg-amber-950/50 border-b border-amber-200/70 dark:border-amber-900/50 px-3 py-1.5 flex items-center justify-between gap-2 shrink-0 animate-in slide-in-from-top-1 duration-150 shadow-2xs z-10">
+                    <div
+                      onClick={() => {
+                        const target = document.getElementById(`msg-${pinnedMessages[activeFriend.id].id}`);
+                        if (target) {
+                          target.scrollIntoView({ behavior: "smooth", block: "center" });
+                          target.classList.add("ring-2", "ring-amber-500", "rounded-2xl", "bg-amber-100/40", "dark:bg-amber-900/30");
+                          setTimeout(() => {
+                            target.classList.remove("ring-2", "ring-amber-500", "rounded-2xl", "bg-amber-100/40", "dark:bg-amber-900/30");
+                          }, 2500);
+                        }
+                      }}
+                      className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer group"
+                      title="Bấm để cuộn tới vị trí tin nhắn được ghim"
+                    >
+                      <Pin className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 fill-amber-500/20" />
+                      <div className="flex flex-col min-w-0 text-left">
+                        <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                          <span>Đã ghim ({pinnedMessages[activeFriend.id].senderName})</span>
+                          <span className="text-[9px] font-normal text-amber-600 dark:text-amber-400 opacity-75">
+                            {formatTime(pinnedMessages[activeFriend.id].createdAt)}
+                          </span>
+                        </span>
+                        <span className="text-[11px] text-zinc-700 dark:text-zinc-300 truncate font-medium">
+                          {pinnedMessages[activeFriend.id].content?.startsWith("📷 http")
+                            ? "📷 [Hình ảnh]"
+                            : pinnedMessages[activeFriend.id].content?.startsWith("🏷️ http")
+                            ? "🏷️ [Nhãn dán]"
+                            : pinnedMessages[activeFriend.id].content?.startsWith("🎙️ http")
+                            ? "🎙️ [Tin nhắn thoại]"
+                            : pinnedMessages[activeFriend.id].content}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleTogglePinMessage(pinnedMessages[activeFriend.id])}
+                      className="p-1 rounded-lg text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer shrink-0"
+                      title="Bỏ ghim tin nhắn"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Conversation Messages */}
+                <div
+                  ref={chatScrollContainerRef}
+                  onScroll={handleScrollChat}
+                  className="flex-1 p-3.5 overflow-y-auto flex flex-col gap-2.5"
+                >
                 {messages.length === 0 ? (
                   <div className="text-center text-xs text-zinc-400 my-auto py-8">
                     Hãy gửi lời chào đầu tiên! 👋
@@ -751,10 +884,13 @@ export default function FloatingChatWidget() {
                     const isVoice = isAudioMessage(msg.content);
                     const isLastRead = isMe && msg.id === lastReadMessageId && !activeFriend?.isAi;
 
+                    const isPinned = pinnedMessages[activeFriend?.id]?.id === msg.id;
+
                     return (
                       <div
+                        id={`msg-${msg.id}`}
                         key={msg.id || idx}
-                        className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
+                        className={`flex flex-col transition-all duration-200 ${isMe ? "items-end" : "items-start"}`}
                       >
                         <div
                           className={`flex items-end gap-2 group max-w-[85%] ${
@@ -782,7 +918,7 @@ export default function FloatingChatWidget() {
                             </div>
                           )}
 
-                          {/* Quick Options Button */}
+                          {/* Quick Options Button & 3-Dot Dropdown */}
                           <div className="relative opacity-0 group-hover:opacity-100 transition shrink-0">
                             <button
                               type="button"
@@ -790,31 +926,70 @@ export default function FloatingChatWidget() {
                                 setActiveMsgMenuId(activeMsgMenuId === msg.id ? null : msg.id)
                               }
                               className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition cursor-pointer"
+                              title="Tùy chọn tin nhắn"
                             >
                               <MoreHorizontal className="w-3.5 h-3.5" />
                             </button>
 
                             {activeMsgMenuId === msg.id && (
                               <div
-                                className={`absolute bottom-6 z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl p-1 flex flex-col min-w-32 animate-in zoom-in-95 duration-100 ${
+                                className={`absolute bottom-6 z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 flex flex-col min-w-44 animate-in zoom-in-95 duration-100 ${
                                   isMe ? "right-0" : "left-0"
                                 }`}
                               >
+                                {/* Message Info (Time & Status) */}
+                                <div className="px-2.5 py-1.5 border-b border-zinc-100 dark:border-zinc-800 text-[10px] flex flex-col gap-0.5 text-zinc-500 dark:text-zinc-400 select-none">
+                                  <div className="flex items-center gap-1 font-medium">
+                                    <Clock className="w-3 h-3 text-zinc-400" />
+                                    <span>{formatFullTime(msg.createdAt)}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1 font-semibold">
+                                    <CheckCheck className={`w-3 h-3 ${isMe && (msg.isRead || msg.read) ? "text-[#0866ff]" : "text-zinc-400"}`} />
+                                    <span>
+                                      {isMe
+                                        ? msg.isRead || msg.read
+                                          ? "Đã xem"
+                                          : "Đã gửi"
+                                        : "Đã nhận"}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Pin / Unpin Action */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleTogglePinMessage(msg)}
+                                  className="px-2.5 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl flex items-center gap-2 text-left cursor-pointer transition"
+                                >
+                                  {isPinned ? (
+                                    <>
+                                      <PinOff className="w-3.5 h-3.5 text-amber-500" />
+                                      <span className="text-amber-600 dark:text-amber-400 font-semibold">Bỏ ghim tin nhắn</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Pin className="w-3.5 h-3.5 text-zinc-500" />
+                                      <span>Ghim tin nhắn</span>
+                                    </>
+                                  )}
+                                </button>
+
+                                {/* Copy Action */}
                                 <button
                                   type="button"
                                   onClick={() => {
                                     handleCopyMessage(msg.content);
                                     setActiveMsgMenuId(null);
                                   }}
-                                  className="px-2.5 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg flex items-center gap-2 text-left"
+                                  className="px-2.5 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl flex items-center gap-2 text-left cursor-pointer transition"
                                 >
-                                  <Copy className="w-3 h-3" />
+                                  <Copy className="w-3.5 h-3.5" />
                                   <span>Sao chép</span>
                                 </button>
 
                                 {isMe && (
                                   <>
-                                    {!isVoice && (
+                                    {!isVoice && !msg.content?.startsWith("📷") && !msg.content?.startsWith("🏷️") && (
                                       <button
                                         type="button"
                                         onClick={() => {
@@ -822,9 +997,9 @@ export default function FloatingChatWidget() {
                                           setEditingText(msg.content);
                                           setActiveMsgMenuId(null);
                                         }}
-                                        className="px-2.5 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg flex items-center gap-2 text-left"
+                                        className="px-2.5 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl flex items-center gap-2 text-left cursor-pointer transition"
                                       >
-                                        <Edit2 className="w-3 h-3" />
+                                        <Edit2 className="w-3.5 h-3.5" />
                                         <span>Chỉnh sửa</span>
                                       </button>
                                     )}
@@ -834,9 +1009,9 @@ export default function FloatingChatWidget() {
                                         handleDeleteMessage(msg.id);
                                         setActiveMsgMenuId(null);
                                       }}
-                                      className="px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg flex items-center gap-2 text-left"
+                                      className="px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl flex items-center gap-2 text-left cursor-pointer transition"
                                     >
-                                      <Trash2 className="w-3 h-3" />
+                                      <Trash2 className="w-3.5 h-3.5" />
                                       <span>Xóa</span>
                                     </button>
                                   </>
@@ -960,6 +1135,26 @@ export default function FloatingChatWidget() {
                 )}
                 <div ref={messagesEndRef} />
               </div>
+
+              {/* Scroll to Bottom Floating Indicator Button */}
+              {showScrollBottom && (
+                <div className="absolute right-3.5 bottom-3 z-40 animate-in fade-in zoom-in-90 duration-150">
+                  <button
+                    type="button"
+                    onClick={handleScrollToBottom}
+                    className="px-2.5 py-1.5 rounded-full bg-zinc-900/90 dark:bg-white/95 text-white dark:text-black shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 backdrop-blur-xs text-xs font-bold cursor-pointer ring-1 ring-white/20 dark:ring-black/10"
+                    title="Cuộn xuống tin nhắn mới nhất"
+                  >
+                    <ChevronDown className="w-4 h-4 animate-bounce" />
+                    {newMsgCountWhileScrolled > 0 && (
+                      <span className="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-black shrink-0 shadow-xs">
+                        +{newMsgCountWhileScrolled}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
             )}
           </div>
 
