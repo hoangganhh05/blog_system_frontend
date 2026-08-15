@@ -227,6 +227,22 @@ export default function AnalyticsChart({
     },
   ];
 
+  // Pointer move handler to calculate nearest hovered slice on mouse & touch
+  const handlePointerMove = (e) => {
+    if (!containerRef.current || !chartData.length) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
+    const mouseX = clientX - rect.left;
+
+    const paddingLeftPx = (PADDING_LEFT / SVG_WIDTH) * rect.width;
+    const chartWidthPx = (chartWidth / SVG_WIDTH) * rect.width;
+
+    const relativeX = mouseX - paddingLeftPx;
+    const stepPx = chartWidthPx / (chartData.length - 1);
+    const index = Math.max(0, Math.min(chartData.length - 1, Math.round(relativeX / stepPx)));
+    setHoveredIndex(index);
+  };
+
   // Selected item data for hover tooltip
   const activeHoverItem = hoveredIndex !== null ? chartData[hoveredIndex] : null;
 
@@ -248,7 +264,7 @@ export default function AnalyticsChart({
               </span>
             </div>
             <p className="text-[11px] text-zinc-500 mt-0.5">
-              Phân tích số liệu truy cập hồ sơ và phản hồi bài viết trực quan
+              Phân tích số liệu truy cập hồ sơ và phản hồi bài viết trực quan (Di chuột/chạm để xem chi tiết)
             </p>
           </div>
         </div>
@@ -345,11 +361,14 @@ export default function AnalyticsChart({
       {/* 3. Main Responsive SVG Chart Canvas with Gradient Fills & Crosshair Tooltip */}
       <div
         ref={containerRef}
-        className="relative w-full h-64 sm:h-72 mt-1 select-none"
+        className="relative w-full h-64 sm:h-72 mt-1 select-none cursor-crosshair touch-none"
+        onMouseMove={handlePointerMove}
+        onTouchMove={handlePointerMove}
+        onTouchStart={handlePointerMove}
         onMouseLeave={() => setHoveredIndex(null)}
       >
         <svg
-          className="w-full h-full overflow-visible"
+          className="w-full h-full overflow-visible pointer-events-none"
           viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
           preserveAspectRatio="none"
         >
@@ -375,7 +394,7 @@ export default function AnalyticsChart({
 
           {/* Horizontal Grid lines & Y Axis Labels */}
           {yTicks.map((tick, i) => (
-            <g key={i}>
+            <g key={i} className="pointer-events-none">
               <line
                 x1={PADDING_LEFT}
                 y1={tick.y}
@@ -398,16 +417,16 @@ export default function AnalyticsChart({
 
           {/* Area Fills under lines */}
           {activeSeries.views && (
-            <path d={getAreaPath(viewsPoints)} fill="url(#gradViews)" className="transition-all duration-300" />
+            <path d={getAreaPath(viewsPoints)} fill="url(#gradViews)" className="transition-all duration-300 pointer-events-none" />
           )}
           {activeSeries.likes && (
-            <path d={getAreaPath(likesPoints)} fill="url(#gradLikes)" className="transition-all duration-300" />
+            <path d={getAreaPath(likesPoints)} fill="url(#gradLikes)" className="transition-all duration-300 pointer-events-none" />
           )}
           {activeSeries.comments && (
-            <path d={getAreaPath(commentsPoints)} fill="url(#gradComments)" className="transition-all duration-300" />
+            <path d={getAreaPath(commentsPoints)} fill="url(#gradComments)" className="transition-all duration-300 pointer-events-none" />
           )}
           {activeSeries.shares && (
-            <path d={getAreaPath(sharesPoints)} fill="url(#gradShares)" className="transition-all duration-300" />
+            <path d={getAreaPath(sharesPoints)} fill="url(#gradShares)" className="transition-all duration-300 pointer-events-none" />
           )}
 
           {/* Curved Stroke Lines */}
@@ -418,7 +437,7 @@ export default function AnalyticsChart({
               stroke="#0866ff"
               strokeWidth="2.5"
               strokeLinecap="round"
-              className="transition-all duration-300 drop-shadow-sm"
+              className="transition-all duration-300 drop-shadow-sm pointer-events-none"
             />
           )}
           {activeSeries.likes && (
@@ -428,7 +447,7 @@ export default function AnalyticsChart({
               stroke="#f43f5e"
               strokeWidth="2.5"
               strokeLinecap="round"
-              className="transition-all duration-300 drop-shadow-sm"
+              className="transition-all duration-300 drop-shadow-sm pointer-events-none"
             />
           )}
           {activeSeries.comments && (
@@ -438,7 +457,7 @@ export default function AnalyticsChart({
               stroke="#10b981"
               strokeWidth="2.5"
               strokeLinecap="round"
-              className="transition-all duration-300 drop-shadow-sm"
+              className="transition-all duration-300 drop-shadow-sm pointer-events-none"
             />
           )}
           {activeSeries.shares && (
@@ -448,7 +467,7 @@ export default function AnalyticsChart({
               stroke="#8b5cf6"
               strokeWidth="2.5"
               strokeLinecap="round"
-              className="transition-all duration-300 drop-shadow-sm"
+              className="transition-all duration-300 drop-shadow-sm pointer-events-none"
             />
           )}
 
@@ -459,7 +478,7 @@ export default function AnalyticsChart({
             const isHovered = hoveredIndex === index;
 
             return (
-              <g key={index}>
+              <g key={index} className="pointer-events-none">
                 {/* X Label */}
                 <text
                   x={x}
@@ -484,7 +503,7 @@ export default function AnalyticsChart({
                     stroke="#0866ff"
                     strokeWidth="1.5"
                     strokeDasharray="4,4"
-                    className="opacity-70"
+                    className="opacity-75"
                   />
                 )}
 
@@ -493,7 +512,7 @@ export default function AnalyticsChart({
                   <circle
                     cx={viewsPoints[index][0]}
                     cy={viewsPoints[index][1]}
-                    r="4.5"
+                    r="5"
                     fill="#0866ff"
                     stroke="#ffffff"
                     strokeWidth="2"
@@ -504,7 +523,7 @@ export default function AnalyticsChart({
                   <circle
                     cx={likesPoints[index][0]}
                     cy={likesPoints[index][1]}
-                    r="4.5"
+                    r="5"
                     fill="#f43f5e"
                     stroke="#ffffff"
                     strokeWidth="2"
@@ -515,7 +534,7 @@ export default function AnalyticsChart({
                   <circle
                     cx={commentsPoints[index][0]}
                     cy={commentsPoints[index][1]}
-                    r="4.5"
+                    r="5"
                     fill="#10b981"
                     stroke="#ffffff"
                     strokeWidth="2"
@@ -526,25 +545,13 @@ export default function AnalyticsChart({
                   <circle
                     cx={sharesPoints[index][0]}
                     cy={sharesPoints[index][1]}
-                    r="4.5"
+                    r="5"
                     fill="#8b5cf6"
                     stroke="#ffffff"
                     strokeWidth="2"
                     className="drop-shadow-md animate-pulse"
                   />
                 )}
-
-                {/* Invisible Hover Hitbox Slice */}
-                <rect
-                  x={x - stepX / 2}
-                  y={0}
-                  width={stepX}
-                  height={SVG_HEIGHT}
-                  fill="transparent"
-                  className="cursor-pointer"
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onTouchStart={() => setHoveredIndex(index)}
-                />
               </g>
             );
           })}
@@ -553,74 +560,89 @@ export default function AnalyticsChart({
         {/* Floating Tooltip Card */}
         {activeHoverItem && (
           <div
-            className="absolute z-20 pointer-events-none p-3 rounded-2xl bg-zinc-900/95 dark:bg-zinc-800/95 text-white backdrop-blur-md border border-zinc-700/80 shadow-xl transition-all duration-150 flex flex-col gap-1.5 min-w-[170px]"
+            className="absolute z-20 pointer-events-none p-3.5 rounded-2xl bg-zinc-950/95 dark:bg-zinc-900/95 text-white backdrop-blur-xl border border-zinc-700/80 shadow-2xl transition-all duration-150 flex flex-col gap-2 min-w-[190px] max-w-[240px] animate-in fade-in zoom-in-95 duration-100"
             style={{
               left: `${Math.min(
                 Math.max(
                   ((PADDING_LEFT + hoveredIndex * (chartWidth / (chartData.length - 1))) /
                     SVG_WIDTH) *
                     100,
-                  18
+                  22
                 ),
-                82
+                78
               )}%`,
-              top: "10%",
+              top: "6%",
               transform: "translate(-50%, 0)",
             }}
           >
-            <div className="flex items-center justify-between pb-1 border-b border-zinc-700/60 text-[11px] font-bold text-zinc-300">
-              <span>{activeHoverItem.fullDate}</span>
-              <span className="text-[10px] text-zinc-400 font-mono">{timeRange.toUpperCase()}</span>
+            {/* Header: Date + Time Range */}
+            <div className="flex items-center justify-between pb-1.5 border-b border-zinc-800 text-[11px] font-bold text-zinc-200">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-3 h-3 text-[#0866ff]" />
+                {activeHoverItem.fullDate}
+              </span>
+              <span className="text-[10px] text-zinc-400 font-mono px-1.5 py-0.5 rounded-md bg-zinc-800/80">
+                {timeRange === "7d" ? "Tuần" : timeRange === "30d" ? "Tháng" : "Năm"}
+              </span>
             </div>
 
-            <div className="flex flex-col gap-1 text-xs">
+            {/* Metrics List */}
+            <div className="flex flex-col gap-1.5 text-xs">
               {activeSeries.views && (
-                <div className="flex items-center justify-between gap-3 text-zinc-200">
+                <div className="flex items-center justify-between gap-3 text-zinc-300">
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#0866ff]" />
+                    <span className="w-2 h-2 rounded-full bg-[#0866ff] ring-2 ring-[#0866ff]/30 shrink-0" />
                     <span>Lượt xem:</span>
                   </span>
-                  <span className="font-bold font-mono text-white">
+                  <span className="font-bold font-mono text-white text-xs">
                     {activeHoverItem.views.toLocaleString()}
                   </span>
                 </div>
               )}
 
               {activeSeries.likes && (
-                <div className="flex items-center justify-between gap-3 text-zinc-200">
+                <div className="flex items-center justify-between gap-3 text-zinc-300">
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#f43f5e]" />
+                    <span className="w-2 h-2 rounded-full bg-[#f43f5e] ring-2 ring-[#f43f5e]/30 shrink-0" />
                     <span>Lượt thích:</span>
                   </span>
-                  <span className="font-bold font-mono text-white">
+                  <span className="font-bold font-mono text-white text-xs">
                     {activeHoverItem.likes.toLocaleString()}
                   </span>
                 </div>
               )}
 
               {activeSeries.comments && (
-                <div className="flex items-center justify-between gap-3 text-zinc-200">
+                <div className="flex items-center justify-between gap-3 text-zinc-300">
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#10b981]" />
+                    <span className="w-2 h-2 rounded-full bg-[#10b981] ring-2 ring-[#10b981]/30 shrink-0" />
                     <span>Bình luận:</span>
                   </span>
-                  <span className="font-bold font-mono text-white">
+                  <span className="font-bold font-mono text-white text-xs">
                     {activeHoverItem.comments.toLocaleString()}
                   </span>
                 </div>
               )}
 
               {activeSeries.shares && (
-                <div className="flex items-center justify-between gap-3 text-zinc-200">
+                <div className="flex items-center justify-between gap-3 text-zinc-300">
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#8b5cf6]" />
+                    <span className="w-2 h-2 rounded-full bg-[#8b5cf6] ring-2 ring-[#8b5cf6]/30 shrink-0" />
                     <span>Chia sẻ:</span>
                   </span>
-                  <span className="font-bold font-mono text-white">
+                  <span className="font-bold font-mono text-white text-xs">
                     {activeHoverItem.shares.toLocaleString()}
                   </span>
                 </div>
               )}
+            </div>
+
+            {/* Tooltip Sub-footer: Total Interactions & Rate */}
+            <div className="pt-1.5 border-t border-zinc-800/80 flex items-center justify-between text-[10px] text-zinc-400">
+              <span>Tổng tương tác:</span>
+              <span className="font-bold font-mono text-emerald-400">
+                {(activeHoverItem.likes + activeHoverItem.comments + activeHoverItem.shares).toLocaleString()}
+              </span>
             </div>
           </div>
         )}
