@@ -162,6 +162,23 @@ export default function LeftSidebar() {
             <span>{label}</span>
           </NavLink>
         ))}
+
+        {/* Nút mở nhanh Trợ lý AI BlogViet */}
+        <button
+          type="button"
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent("open_ai_assistant"));
+          }}
+          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer text-left group"
+        >
+          <div className="flex items-center gap-3">
+            <Sparkles className="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400 group-hover:rotate-12 transition-transform" />
+            <span>Trợ lý BlogViet AI</span>
+          </div>
+          <span className="text-[9px] font-bold bg-indigo-100 dark:bg-indigo-900/60 px-1.5 py-0.5 rounded-md">
+            Gemini 3.7
+          </span>
+        </button>
       </div>
 
       {/* 3. Lối tắt chuyên mục / Trending Tags */}

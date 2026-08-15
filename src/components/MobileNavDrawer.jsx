@@ -291,6 +291,24 @@ export default function MobileNavDrawer({
                 <span>{label}</span>
               </NavLink>
             ))}
+
+            {/* Trợ lý AI Gemini Shortcut */}
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                window.dispatchEvent(new CustomEvent("open_ai_assistant"));
+              }}
+              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition cursor-pointer text-left"
+            >
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
+                <span>Trợ lý BlogViet AI</span>
+              </div>
+              <span className="text-[10px] font-bold bg-indigo-200/80 dark:bg-indigo-900/80 px-2 py-0.5 rounded-full">
+                Gemini 3.7
+              </span>
+            </button>
           </div>
 
           {/* 3. Follow Suggestions Section */}

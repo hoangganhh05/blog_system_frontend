@@ -30,12 +30,27 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
 
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => {
+      // Đóng hộp thoại tin nhắn bạn bè để tránh xung đột giao diện khi mở Trợ lý AI
+      window.dispatchEvent(new CustomEvent("close_chat_widget"));
+
+      const timer = setTimeout(() => {
         inputRef.current?.focus();
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
+
+      const handleKeyDown = (e) => {
+        if (e.key === "Escape") {
+          onClose?.();
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener("keydown", handleKeyDown);
+      };
     }
-  }, [isOpen, messages, isThinking]);
+  }, [isOpen, messages, isThinking, onClose]);
 
   if (!isOpen) return null;
   if (typeof document === "undefined") return null;

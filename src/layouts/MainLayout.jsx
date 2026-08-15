@@ -65,6 +65,23 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // Global event listener for AI Assistant modal
+  useEffect(() => {
+    const handleOpenAi = () => {
+      window.dispatchEvent(new CustomEvent("close_chat_widget"));
+      setIsAiModalOpen(true);
+    };
+    const handleCloseAi = () => {
+      setIsAiModalOpen(false);
+    };
+    window.addEventListener("open_ai_assistant", handleOpenAi);
+    window.addEventListener("close_ai_assistant", handleCloseAi);
+    return () => {
+      window.removeEventListener("open_ai_assistant", handleOpenAi);
+      window.removeEventListener("close_ai_assistant", handleCloseAi);
+    };
+  }, []);
+
   // Scroll to Top Listener (Handles both independent main column and window scroll)
   const mainRef = useRef(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -168,9 +185,12 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
             {/* Trợ lý AI Gemini */}
             <button
               type="button"
-              onClick={() => setIsAiModalOpen(true)}
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("close_chat_widget"));
+                setIsAiModalOpen(true);
+              }}
               className="p-2 rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer"
-              title="Trợ lý AI Gemini"
+              title="Trợ lý AI BlogViet (Gemini 3.7 Flash)"
             >
               <Sparkles strokeWidth={2} className="w-4 h-4" />
             </button>

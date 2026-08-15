@@ -23,17 +23,8 @@ import { useAuth } from "../context/AuthContext";
 import friendService from "../services/friendService";
 import chatService from "../services/chatService";
 import uploadService from "../services/uploadService";
-import aiService from "../services/aiService";
 import AudioMessagePlayer from "./AudioMessagePlayer";
 import GifPicker from "./GifPicker";
-
-const AI_USER = {
-  id: "ai_bot",
-  fullName: "✨ Trợ lý BlogViet",
-  username: "tro_ly_blogviet",
-  avatarColor: "#6366f1",
-  isAi: true,
-};
 
 const STICKERS = [
   { emoji: "❤️", text: "Yêu thương" },
@@ -153,10 +144,9 @@ export default function FloatingChatWidget() {
         const rawFriends = friendsRes.data || [];
         const apiFriendsList = rawFriends
           .map((f) => f.friend || f.user || f)
-          .filter((f) => f && String(f.id) !== String(currentUserId));
+          .filter((f) => f && f.id && String(f.id) !== String(currentUserId));
 
         const friendMap = new Map();
-        friendMap.set("ai_bot", AI_USER);
         apiFriendsList.forEach((u) => {
           if (u && u.id && String(u.id) !== String(currentUserId)) {
             friendMap.set(String(u.id), u);
@@ -164,7 +154,7 @@ export default function FloatingChatWidget() {
         });
         setFriends(Array.from(friendMap.values()));
       } catch {
-        setFriends([AI_USER]);
+        setFriends([]);
       }
     };
     fetchFriends();
@@ -172,10 +162,10 @@ export default function FloatingChatWidget() {
 
   // 2. Poll unread summaries (Luôn cập nhật số đếm tin nhắn chưa đọc dù widget đang đóng hay mở)
   useEffect(() => {
-    if (!currentUserId || friends.length <= 1) return;
+    if (!currentUserId || friends.length === 0) return;
 
     const fetchAllSummaries = async () => {
-      const realFriends = friends.filter((f) => f && !f.isAi);
+      const realFriends = friends.filter((f) => f && f.id);
       if (realFriends.length === 0) return;
 
       try {
@@ -240,21 +230,6 @@ export default function FloatingChatWidget() {
   // 4. Fetch chat history with active friend
   useEffect(() => {
     let timer;
-    if (isOpen && activeFriend?.isAi) {
-      if (messages.length === 0) {
-        setMessages([
-          {
-            id: "ai_welcome",
-            senderId: "ai_bot",
-            content:
-              "Xin chào! Mình là Trợ lý BlogViet ✨. Bạn cần tư vấn ý tưởng bài viết, giải đáp thắc mắc hay trò chuyện gì cứ nhắn cho mình nhé!",
-            createdAt: new Date().toISOString(),
-          },
-        ]);
-      }
-      return;
-    }
-
     if (currentUserId && activeFriend?.id) {
       const fetchChat = () => {
         chatService
@@ -308,8 +283,22 @@ export default function FloatingChatWidget() {
         setActiveFriend(friend);
       }
     };
+    const handleCloseChat = () => {
+      setIsOpen(false);
+    };
+    const handleOpenAi = () => {
+      // Khi mở AI Assistant, tự động đóng hộp thoại chat cá nhân để tránh xung đột giao diện
+      setIsOpen(false);
+    };
+
     window.addEventListener("open_chat_user", handleOpenChat);
-    return () => window.removeEventListener("open_chat_user", handleOpenChat);
+    window.addEventListener("close_chat_widget", handleCloseChat);
+    window.addEventListener("open_ai_assistant", handleOpenAi);
+    return () => {
+      window.removeEventListener("open_chat_user", handleOpenChat);
+      window.removeEventListener("close_chat_widget", handleCloseChat);
+      window.removeEventListener("open_ai_assistant", handleOpenAi);
+    };
   }, []);
 
   // WebRTC Call Stream
@@ -357,88 +346,30 @@ export default function FloatingChatWidget() {
   // Send Message
   const handleSendMessage = async (e) => {
     e?.preventDefault();
-    if (!inputMessage.trim() || !currentUserId) return;
+    if (!inputMessage.trim() || !currentUserId || !activeFriend?.id) return;
     const text = inputMessage.trim();
     setInputMessage("");
 
-    const targetFriend = activeFriend || AI_USER;
-
-    if (targetFriend.isAi) {
-      const userMsgObj = {
-        id: Date.now(),
-        senderId: currentUserId,
-        content: text,
-        createdAt: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, userMsgObj]);
-      setIsAiTyping(true);
-
-      try {
-        const aiResponse = await aiService.chatWithAI(text);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            senderId: "ai_bot",
-            content: aiResponse,
-            createdAt: new Date().toISOString(),
-          },
-        ]);
-      } catch {
-      } finally {
-        setIsAiTyping(false);
-      }
-      return;
-    }
-
-    if (targetFriend.id) {
-      try {
-        const res = await chatService.sendMessage(currentUserId, targetFriend.id, text);
-        setMessages((prev) => [...prev, res.data]);
-      } catch (err) {
-        toast.error("Không thể gửi tin nhắn!");
-      }
+    try {
+      const res = await chatService.sendMessage(currentUserId, activeFriend.id, text);
+      setMessages((prev) => [...prev, res.data]);
+    } catch (err) {
+      toast.error("Không thể gửi tin nhắn!");
     }
   };
 
   // Image Upload
   const handleImageSelect = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !activeFriend?.id) return;
     setUploadingImage(true);
     try {
       const res = await uploadService.uploadFile(file);
       const imageUrl = res.data.url || res.data;
       const text = `📷 ${imageUrl}`;
 
-      if (activeFriend?.isAi) {
-        const userMsgObj = {
-          id: Date.now(),
-          senderId: currentUserId,
-          content: text,
-          createdAt: new Date().toISOString(),
-        };
-        setMessages((prev) => [...prev, userMsgObj]);
-        setIsAiTyping(true);
-        try {
-          const aiResponse = await aiService.chatWithAI("Tôi vừa gửi một bức ảnh cho bạn xem nè!");
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: Date.now() + 1,
-              senderId: "ai_bot",
-              content: aiResponse,
-              createdAt: new Date().toISOString(),
-            },
-          ]);
-        } catch {
-        } finally {
-          setIsAiTyping(false);
-        }
-      } else if (activeFriend?.id) {
-        const resMsg = await chatService.sendMessage(currentUserId, activeFriend.id, text);
-        setMessages((prev) => [...prev, resMsg.data]);
-      }
+      const resMsg = await chatService.sendMessage(currentUserId, activeFriend.id, text);
+      setMessages((prev) => [...prev, resMsg.data]);
     } catch {
       toast.error("Không thể tải ảnh lên!");
     } finally {
@@ -448,40 +379,14 @@ export default function FloatingChatWidget() {
 
   // Send Animated GIF
   const handleSendGif = async (gifUrl) => {
-    if (!gifUrl) return;
+    if (!gifUrl || !activeFriend?.id) return;
     const text = `📷 ${gifUrl}`;
 
-    if (activeFriend?.isAi) {
-      const userMsgObj = {
-        id: Date.now(),
-        senderId: currentUserId,
-        content: text,
-        createdAt: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, userMsgObj]);
-      setIsAiTyping(true);
-      try {
-        const aiResponse = await aiService.chatWithAI("Tôi vừa gửi một ảnh GIF động vui nhộn cho bạn nè!");
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            senderId: "ai_bot",
-            content: aiResponse,
-            createdAt: new Date().toISOString(),
-          },
-        ]);
-      } catch {
-      } finally {
-        setIsAiTyping(false);
-      }
-    } else if (activeFriend?.id) {
-      try {
-        const resMsg = await chatService.sendMessage(currentUserId, activeFriend.id, text);
-        setMessages((prev) => [...prev, resMsg.data]);
-      } catch {
-        toast.error("Không thể gửi ảnh GIF!");
-      }
+    try {
+      const resMsg = await chatService.sendMessage(currentUserId, activeFriend.id, text);
+      setMessages((prev) => [...prev, resMsg.data]);
+    } catch {
+      toast.error("Không thể gửi ảnh GIF!");
     }
   };
 
@@ -555,34 +460,8 @@ export default function FloatingChatWidget() {
         const audioUrl = uploadRes.data?.url || uploadRes.data?.secureUrl || uploadRes.data;
         const voiceText = `🎙️ ${audioUrl}`;
 
-        const targetFriend = activeFriend || AI_USER;
-
-        if (targetFriend.isAi) {
-          const userMsgObj = {
-            id: Date.now(),
-            senderId: currentUserId,
-            content: voiceText,
-            createdAt: new Date().toISOString(),
-          };
-          setMessages((prev) => [...prev, userMsgObj]);
-          setIsAiTyping(true);
-          try {
-            const aiResponse = await aiService.chatWithAI("Tôi vừa gửi một tin nhắn thoại cho bạn!");
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: Date.now() + 1,
-                senderId: "ai_bot",
-                content: aiResponse,
-                createdAt: new Date().toISOString(),
-              },
-            ]);
-          } catch {
-          } finally {
-            setIsAiTyping(false);
-          }
-        } else if (targetFriend.id) {
-          const res = await chatService.sendMessage(currentUserId, targetFriend.id, voiceText);
+        if (activeFriend?.id) {
+          const res = await chatService.sendMessage(currentUserId, activeFriend.id, voiceText);
           setMessages((prev) => [...prev, res.data]);
         }
       } catch (err) {
@@ -619,26 +498,23 @@ export default function FloatingChatWidget() {
   };
 
   const handleEditMessage = async (msgId) => {
-    if (!editingText.trim()) return;
+    if (!editingText.trim() || !activeFriend?.id) return;
     const newContent = editingText.trim();
     setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, content: newContent } : m)));
     setEditingMsgId(null);
     setEditingText("");
     toast.success("Đã chỉnh sửa tin nhắn!");
     try {
-      if (!activeFriend?.isAi) {
-        await chatService.editMessage(msgId, newContent);
-      }
+      await chatService.editMessage(msgId, newContent);
     } catch {}
   };
 
   const handleDeleteMessage = async (msgId) => {
+    if (!activeFriend?.id) return;
     setMessages((prev) => prev.filter((m) => m.id !== msgId));
     toast.success("Đã xóa tin nhắn!");
     try {
-      if (!activeFriend?.isAi) {
-        await chatService.deleteMessage(msgId);
-      }
+      await chatService.deleteMessage(msgId);
     } catch {}
   };
 
@@ -674,7 +550,7 @@ export default function FloatingChatWidget() {
 
       {/* Chat Window: Fixed bottom responsive, max-height calc(100dvh-80px) */}
       {isOpen && (
-        <div className="fixed bottom-14 sm:bottom-16 lg:bottom-6 right-2 sm:right-4 lg:right-6 left-2 sm:left-auto sm:w-96 md:w-88 h-[520px] max-h-[calc(100dvh-80px)] z-[99999] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-3xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed bottom-14 sm:bottom-16 lg:bottom-6 right-2 sm:right-4 lg:right-6 left-2 sm:left-auto sm:w-96 md:w-88 h-[520px] max-h-[calc(100dvh-80px)] z-[999] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-3xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
           {/* Header */}
           <div className="px-4 py-3 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0 text-zinc-900 dark:text-zinc-100">
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
@@ -693,15 +569,11 @@ export default function FloatingChatWidget() {
                   </button>
                   <div
                     onClick={() =>
-                      activeFriend.id && !activeFriend.isAi && navigate(`/profile/${activeFriend.id}`)
+                      activeFriend.id && navigate(`/profile/${activeFriend.id}`)
                     }
                     className="flex items-center gap-2 cursor-pointer min-w-0 flex-1 group"
                   >
-                    {activeFriend.isAi ? (
-                      <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
-                        ✨
-                      </div>
-                    ) : activeFriend.avatarUrl ? (
+                    {activeFriend.avatarUrl ? (
                       <img
                         src={activeFriend.avatarUrl}
                         alt=""
@@ -717,38 +589,36 @@ export default function FloatingChatWidget() {
                         {activeFriend.fullName || activeFriend.username}
                       </span>
                       <span className="text-[10px] text-zinc-400 truncate">
-                        {activeFriend.isAi ? "Trợ lý thông minh" : "Đang hoạt động"}
+                        Đang hoạt động
                       </span>
                     </div>
                   </div>
 
                   {/* Audio / Video Call Buttons */}
-                  {!activeFriend.isAi && (
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setActiveCall({ type: "voice", friend: activeFriend, seconds: 0 })}
-                        className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
-                        title="Gọi thoại"
-                      >
-                        <Phone className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveCall({ type: "video", friend: activeFriend, seconds: 0 })}
-                        className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
-                        title="Gọi video HD"
-                      >
-                        <Video className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setActiveCall({ type: "voice", friend: activeFriend, seconds: 0 })}
+                      className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                      title="Gọi thoại"
+                    >
+                      <Phone className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveCall({ type: "video", friend: activeFriend, seconds: 0 })}
+                      className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                      title="Gọi video HD"
+                    >
+                      <Video className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <span className="text-base">💬</span>
                   <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
-                    Tin nhắn
+                    Tin nhắn bạn bè
                   </span>
                 </div>
               )}
@@ -772,11 +642,37 @@ export default function FloatingChatWidget() {
             {!activeFriend ? (
               /* Friends List */
               <div className="p-3 flex flex-col gap-1">
+                {/* AI Assistant Dedicated Shortcut Card */}
+                <div
+                  onClick={() => {
+                    setIsOpen(false);
+                    window.dispatchEvent(new CustomEvent("open_ai_assistant"));
+                  }}
+                  className="mb-2 p-3 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-indigo-500/10 dark:from-indigo-950/40 dark:via-violet-950/40 dark:to-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 hover:border-indigo-400 dark:hover:border-indigo-600 transition cursor-pointer flex items-center justify-between group shadow-xs"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                      ✨
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
+                        Trợ lý BlogViet AI
+                      </span>
+                      <span className="text-[10px] text-indigo-600 dark:text-indigo-400 truncate">
+                        Gemini 3.7 Flash · Sẵn sàng 24/7
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/60 px-2 py-0.5 rounded-full shrink-0">
+                    Mở AI →
+                  </span>
+                </div>
+
                 <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 px-3 py-1.5">
                   Danh sách bạn bè ({friends.length})
                 </div>
                 {friends.length === 0 ? (
-                  <div className="py-12 text-center text-xs text-zinc-400">
+                  <div className="py-8 text-center text-xs text-zinc-400">
                     Chưa có bạn bè. Hãy kết bạn để bắt đầu trò chuyện!
                   </div>
                 ) : (
@@ -800,11 +696,7 @@ export default function FloatingChatWidget() {
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                          {friend.isAi ? (
-                            <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
-                              ✨
-                            </div>
-                          ) : friend.avatarUrl ? (
+                          {friend.avatarUrl ? (
                             <img
                               src={friend.avatarUrl}
                               alt=""
