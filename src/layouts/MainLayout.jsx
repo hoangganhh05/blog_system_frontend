@@ -420,7 +420,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       {is3ColumnFeedPage ? (
         <div className="w-full max-w-[1440px] mx-auto min-h-screen grid grid-cols-12 gap-3 sm:gap-4 lg:gap-5 px-2 sm:px-3 md:px-4 pt-3 sm:pt-4 items-start">
           {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-3, sticky independent on gray background) */}
-          <aside className="sidebar-sticky hidden lg:block lg:col-span-3 custom-scrollbar pb-12">
+          <aside className="sidebar-sticky hidden lg:block lg:col-span-3 custom-scrollbar pb-16">
             <LeftSidebar />
           </aside>
 
@@ -434,7 +434,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           </main>
 
           {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, sticky independent on gray background) */}
-          <aside className="sidebar-sticky hidden lg:block lg:col-span-3 custom-scrollbar pb-12">
+          <aside className="sidebar-sticky sidebar-right-fixed hidden lg:block lg:col-span-3 custom-scrollbar pb-16">
             <RightSidebar />
           </aside>
         </div>

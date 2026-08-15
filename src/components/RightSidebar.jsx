@@ -120,7 +120,7 @@ export default function RightSidebar() {
   };
 
   return (
-    <div className="w-full flex flex-col space-y-3 px-1">
+    <div className="w-full min-h-0 flex flex-col space-y-3 px-1 pb-16">
       {/* 1. Mini Music Player (Vinahouse / Lofi Focus) */}
       <MiniMusicPlayer />
 
