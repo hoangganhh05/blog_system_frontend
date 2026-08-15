@@ -857,8 +857,20 @@ export default function FloatingChatWidget() {
                     </div>
                   </div>
 
-                  {/* Audio / Video Call Buttons */}
+                  {/* Audio / Video Call & Typing Test Buttons */}
                   <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFriendTyping(true);
+                        setTimeout(() => setIsFriendTyping(false), 3500);
+                        toast.info(`Đang kích hoạt hiệu ứng 3 chấm soạn tin từ ${activeFriend?.fullName || activeFriend?.username}!`);
+                      }}
+                      className="p-1.5 rounded-lg text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                      title="Xem thử hiệu ứng 3 chấm đang soạn tin nhắn"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                    </button>
                     <button
                       type="button"
                       onClick={() => setActiveCall({ type: "voice", friend: activeFriend, seconds: 0 })}
@@ -1482,31 +1494,39 @@ export default function FloatingChatWidget() {
                   </div>
                 )}
 
-                {/* AI Typing Indicator */}
-                {isAiTyping && (
-                  <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 animate-fade-in-up">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
-                    <span>Trợ lý BlogViet đang phản hồi...</span>
-                  </div>
-                )}
+                {/* Live Typing Indicator (Bong bóng 3 chấm động nảy tuần tự) */}
+                {(isFriendTyping || isAiTyping) && (
+                  <div className="flex items-end gap-2 my-1.5 animate-fade-in-up">
+                    <div className="shrink-0 mb-1">
+                      {activeFriend?.isAi ? (
+                        <div className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
+                          ✨
+                        </div>
+                      ) : activeFriend?.avatarUrl ? (
+                        <img
+                          src={activeFriend.avatarUrl}
+                          alt=""
+                          className="w-6 h-6 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shadow-2xs"
+                        />
+                      ) : (
+                        <div
+                          className="w-6 h-6 rounded-full text-white text-[9px] font-bold flex items-center justify-center shadow-2xs"
+                          style={{ backgroundColor: activeFriend?.avatarColor || "#4f46e5" }}
+                        >
+                          {getInitials(activeFriend?.fullName || activeFriend?.username || "Friend")}
+                        </div>
+                      )}
+                    </div>
 
-                {/* Friend Typing Indicator (Ba chấm động sống động) */}
-                {isFriendTyping && (
-                  <div className="flex items-end gap-2 animate-fade-in-up">
-                    <Avatar
-                      userId={activeFriend?.id}
-                      src={activeFriend?.avatarUrl}
-                      name={activeFriend?.fullName || activeFriend?.username}
-                      username={activeFriend?.username}
-                      avatarColor={activeFriend?.avatarColor}
-                      size="xs"
-                      isOnline={activeFriend?.isOnline}
-                      showActiveStatus={false}
-                    />
-                    <div className="px-3 py-2 rounded-2xl rounded-bl-xs bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/60 shadow-xs flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.3s]" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.15s]" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" />
+                    <div className="flex flex-col gap-1">
+                      <div className="px-3.5 py-2.5 rounded-2xl rounded-bl-xs bg-zinc-200/90 dark:bg-zinc-800 border border-zinc-300/80 dark:border-zinc-700 shadow-xs flex items-center gap-1.5 w-fit">
+                        <span className="w-2 h-2 rounded-full bg-zinc-600 dark:bg-zinc-300 animate-bounce [animation-delay:-0.32s]" />
+                        <span className="w-2 h-2 rounded-full bg-zinc-600 dark:bg-zinc-300 animate-bounce [animation-delay:-0.16s]" />
+                        <span className="w-2 h-2 rounded-full bg-zinc-600 dark:bg-zinc-300 animate-bounce" />
+                      </div>
+                      <span className="text-[10px] text-zinc-500 dark:text-zinc-400 pl-1 font-medium italic">
+                        {activeFriend?.fullName || activeFriend?.username || "Đối phương"} đang soạn tin...
+                      </span>
                     </div>
                   </div>
                 )}
