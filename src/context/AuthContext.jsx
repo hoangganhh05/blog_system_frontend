@@ -33,6 +33,21 @@ export function AuthProvider({ children }) {
             id: parsed.id || parsed.userId,
           };
           setCurrentUser(normalizedUser);
+
+          // Tự động đồng bộ profile mới nhất (avatarUrl, fullName, avatarColor) từ backend
+          import("../services/userService").then(({ default: userService }) => {
+            userService.getMe().then((res) => {
+              if (res.data) {
+                const refreshed = {
+                  ...normalizedUser,
+                  ...res.data,
+                  id: res.data.id || normalizedUser.id,
+                };
+                setCurrentUser(refreshed);
+                localStorage.setItem("blog_user", JSON.stringify(refreshed));
+              }
+            }).catch(() => {});
+          });
         } else {
           throw new Error("Invalid user json");
         }

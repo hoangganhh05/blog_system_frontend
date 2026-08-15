@@ -315,7 +315,7 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
                   if (n.read) e.currentTarget.style.background = "transparent";
                 }}
               >
-                {/* Sender Avatar */}
+                {/* Avatar */}
                 <div
                   style={{ position: "relative", cursor: "pointer", marginTop: 2 }}
                   onClick={(e) => {
@@ -333,19 +333,23 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
                       alt={senderName}
                       className="avatar avatar-md"
                       style={{ objectFit: "cover" }}
-                    />
-                  ) : (
-                    <div
-                      className="avatar avatar-md"
-                      style={{
-                        background: n.sender?.avatarColor
-                          ? `linear-gradient(135deg, ${n.sender.avatarColor}, ${n.sender.avatarColor}bb)`
-                          : undefined,
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
                       }}
-                    >
-                      {getInitials(senderName)}
-                    </div>
-                  )}
+                    />
+                  ) : null}
+                  <div
+                    className="avatar avatar-md"
+                    style={{
+                      background: n.sender?.avatarColor
+                        ? `linear-gradient(135deg, ${n.sender.avatarColor}, ${n.sender.avatarColor}bb)`
+                        : undefined,
+                      display: n.sender?.avatarUrl ? "none" : "flex",
+                    }}
+                  >
+                    {getInitials(senderName)}
+                  </div>
                 </div>
 
                 {/* Content */}

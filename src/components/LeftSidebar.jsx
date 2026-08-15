@@ -77,15 +77,21 @@ export default function LeftSidebar() {
                 src={currentUser.avatarUrl}
                 alt=""
                 className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shadow-xs"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                  if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                }}
               />
-            ) : (
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs shadow-xs"
-                style={{ backgroundColor: currentUser.avatarColor || "#27272a" }}
-              >
-                {getInitials(currentUser.fullName || currentUser.username)}
-              </div>
-            )}
+            ) : null}
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs shadow-xs"
+              style={{
+                backgroundColor: currentUser.avatarColor || "#27272a",
+                display: currentUser.avatarUrl ? "none" : "flex",
+              }}
+            >
+              {getInitials(currentUser.fullName || currentUser.username)}
+            </div>
 
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:underline">

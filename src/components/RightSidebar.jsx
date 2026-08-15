@@ -129,15 +129,21 @@ export default function RightSidebar() {
                         src={user.avatarUrl}
                         alt=""
                         className="w-9 h-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                        }}
                       />
-                    ) : (
-                      <div
-                        className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-[10px] shrink-0"
-                        style={{ backgroundColor: user.avatarColor || "#27272a" }}
-                      >
-                        {getInitials(displayName)}
-                      </div>
-                    )}
+                    ) : null}
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-[10px] shrink-0"
+                      style={{
+                        backgroundColor: user.avatarColor || "#27272a",
+                        display: user.avatarUrl ? "none" : "flex",
+                      }}
+                    >
+                      {getInitials(displayName)}
+                    </div>
 
                     <div className="flex flex-col min-w-0">
                       <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:underline">

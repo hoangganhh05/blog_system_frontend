@@ -118,11 +118,15 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
   const author = currentPost?.user || {};
   const authorName = author.fullName || author.username || "Người dùng";
-  const isOwner = currentUserId && String(author.id) === String(currentUserId);
+  const isOwner = currentUserId && (Number(author.id) === Number(currentUserId) || Number(author.id) === Number(currentUser?.id));
+  const authorAvatarUrl = isOwner ? (currentUser?.avatarUrl || author.avatarUrl) : (author.avatarUrl || author.avatar);
+  const authorAvatarColor = isOwner ? (currentUser?.avatarColor || author.avatarColor) : author.avatarColor;
 
   const originalPost = currentPost?.originalPost || currentPost?.sharedPost || currentPost?.parentPost || currentPost?.repostOf;
   const origAuthor = originalPost?.user || originalPost?.author || {};
   const origAuthorName = origAuthor.fullName || origAuthor.username || "Tác giả gốc";
+  const origAuthorAvatarUrl = origAuthor.avatarUrl || origAuthor.avatar;
+  const origAuthorAvatarColor = origAuthor.avatarColor;
   const origContent = originalPost?.content || originalPost?.body || originalPost?.text || originalPost?.title || "";
   const origMedia = originalPost?.thumbNail || originalPost?.mediaUrl || originalPost?.imageUrl;
 
@@ -274,19 +278,26 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           onClick={(e) => e.stopPropagation()}
           className="relative group block shrink-0"
         >
-          {author.avatarUrl ? (
+          {authorAvatarUrl ? (
             <img
-              src={author.avatarUrl}
+              src={authorAvatarUrl}
               alt=""
               className="w-10 h-10 rounded-full object-cover group-hover:opacity-90 transition border border-zinc-200 dark:border-zinc-700"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+                if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+              }}
             />
-          ) : (
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0 bg-zinc-800 dark:bg-zinc-700"
-            >
-              {getInitials(authorName)}
-            </div>
-          )}
+          ) : null}
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
+            style={{
+              backgroundColor: authorAvatarColor || "#27272a",
+              display: authorAvatarUrl ? "none" : "flex",
+            }}
+          >
+            {getInitials(authorName)}
+          </div>
         </Link>
       </div>
 
@@ -425,13 +436,26 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                 }}
                 className="flex items-center gap-2 group hover:underline"
               >
-                {origAuthor.avatarUrl ? (
-                  <img src={origAuthor.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-zinc-800 dark:bg-zinc-700 text-[10px] font-bold text-white flex items-center justify-center shrink-0">
-                    {getInitials(origAuthorName)}
-                  </div>
-                )}
+                {origAuthorAvatarUrl ? (
+                  <img
+                    src={origAuthorAvatarUrl}
+                    alt=""
+                    className="w-6 h-6 rounded-full object-cover shrink-0"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                    }}
+                  />
+                ) : null}
+                <div
+                  className="w-6 h-6 rounded-full text-[10px] font-bold text-white flex items-center justify-center shrink-0"
+                  style={{
+                    backgroundColor: origAuthorAvatarColor || "#27272a",
+                    display: origAuthorAvatarUrl ? "none" : "flex",
+                  }}
+                >
+                  {getInitials(origAuthorName)}
+                </div>
                 <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 truncate">
                   {origAuthorName}
                 </span>

@@ -224,15 +224,21 @@ export default function NotificationsPage() {
                       src={sender.avatarUrl}
                       alt=""
                       className="w-10 h-10 rounded-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                      }}
                     />
-                  ) : (
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
-                      style={{ backgroundColor: sender.avatarColor || "#4f46e5" }}
-                    >
-                      {getInitials(senderName)}
-                    </div>
-                  )}
+                  ) : null}
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
+                    style={{
+                      backgroundColor: sender.avatarColor || "#4f46e5",
+                      display: sender.avatarUrl ? "none" : "flex",
+                    }}
+                  >
+                    {getInitials(senderName)}
+                  </div>
                   {!n.read && (
                     <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-zinc-950" />
                   )}

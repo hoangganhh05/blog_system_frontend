@@ -62,7 +62,9 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
 
   const author = comment?.user || {};
   const authorName = author.fullName || author.username || "Người dùng";
-  const isOwner = currentUserId && String(author.id) === String(currentUserId);
+  const isOwner = currentUserId && (Number(author.id) === Number(currentUserId) || Number(author.id) === Number(currentUser?.id));
+  const authorAvatarUrl = isOwner ? (currentUser?.avatarUrl || author.avatarUrl) : (author.avatarUrl || author.avatar);
+  const authorAvatarColor = isOwner ? (currentUser?.avatarColor || author.avatarColor) : author.avatarColor;
 
   const parsed = parseCommentContent(comment.content);
 
@@ -118,20 +120,26 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
     <div className="flex gap-3 py-3 border-b border-zinc-100 dark:border-zinc-900 group">
       {/* Cột Avatar */}
       <Link to={`/profile/${author.id}`} className="shrink-0">
-        {author.avatarUrl ? (
+        {authorAvatarUrl ? (
           <img
-            src={author.avatarUrl}
-            alt=""
+            src={authorAvatarUrl}
+            alt={authorName}
             className="w-9 h-9 rounded-full object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+            }}
           />
-        ) : (
-          <div
-            className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
-            style={{ backgroundColor: author.avatarColor || "#4f46e5" }}
-          >
-            {getInitials(authorName)}
-          </div>
-        )}
+        ) : null}
+        <div
+          className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
+          style={{
+            backgroundColor: authorAvatarColor || "#4f46e5",
+            display: authorAvatarUrl ? "none" : "flex",
+          }}
+        >
+          {getInitials(authorName)}
+        </div>
       </Link>
 
       {/* Cột Nội Dung Bình Luận */}

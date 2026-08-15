@@ -181,12 +181,26 @@ function ChatBox() {
                       >
                         <div style={{ position: "relative" }}>
                           {f.avatarUrl ? (
-                            <img src={f.avatarUrl} alt={name} className="avatar avatar-sm" style={{ objectFit: "cover" }} />
-                          ) : (
-                            <div className="avatar avatar-sm" style={{ background: f.avatarColor ? `linear-gradient(135deg, ${f.avatarColor}, ${f.avatarColor}bb)` : undefined }}>
-                              {getInitials(name)}
-                            </div>
-                          )}
+                            <img
+                              src={f.avatarUrl}
+                              alt={name}
+                              className="avatar avatar-sm"
+                              style={{ objectFit: "cover" }}
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                                if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            className="avatar avatar-sm"
+                            style={{
+                              background: f.avatarColor ? `linear-gradient(135deg, ${f.avatarColor}, ${f.avatarColor}bb)` : undefined,
+                              display: f.avatarUrl ? "none" : "flex",
+                            }}
+                          >
+                            {getInitials(name)}
+                          </div>
                           <span style={{
                             position: "absolute", bottom: 0, right: 0,
                             width: 8, height: 8, borderRadius: "50%",
@@ -235,12 +249,26 @@ function ChatBox() {
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ position: "relative" }}>
                 {activeFriend.avatarUrl ? (
-                  <img src={activeFriend.avatarUrl} alt={activeFriend.fullName} className="avatar avatar-sm" style={{ objectFit: "cover" }} />
-                ) : (
-                  <div className="avatar avatar-sm" style={{ background: activeFriend.avatarColor ? `linear-gradient(135deg, ${activeFriend.avatarColor}, ${activeFriend.avatarColor}bb)` : undefined }}>
-                    {getInitials(activeFriend.fullName || activeFriend.username)}
-                  </div>
-                )}
+                  <img
+                    src={activeFriend.avatarUrl}
+                    alt={activeFriend.fullName}
+                    className="avatar avatar-sm"
+                    style={{ objectFit: "cover" }}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                    }}
+                  />
+                ) : null}
+                <div
+                  className="avatar avatar-sm"
+                  style={{
+                    background: activeFriend.avatarColor ? `linear-gradient(135deg, ${activeFriend.avatarColor}, ${activeFriend.avatarColor}bb)` : undefined,
+                    display: activeFriend.avatarUrl ? "none" : "flex",
+                  }}
+                >
+                  {getInitials(activeFriend.fullName || activeFriend.username)}
+                </div>
                 <span style={{
                   position: "absolute", bottom: 0, right: 0,
                   width: 8, height: 8, borderRadius: "50%",

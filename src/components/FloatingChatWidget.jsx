@@ -693,12 +693,21 @@ export default function FloatingChatWidget() {
                         src={activeFriend.avatarUrl}
                         alt=""
                         className="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                        }}
                       />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full text-xs font-bold bg-zinc-800 text-white flex items-center justify-center shrink-0">
-                        {getInitials(activeFriend.fullName || activeFriend.username)}
-                      </div>
-                    )}
+                    ) : null}
+                    <div
+                      className="w-8 h-8 rounded-full text-xs font-bold text-white flex items-center justify-center shrink-0"
+                      style={{
+                        backgroundColor: activeFriend.avatarColor || "#27272a",
+                        display: activeFriend.avatarUrl ? "none" : "flex",
+                      }}
+                    >
+                      {getInitials(activeFriend.fullName || activeFriend.username)}
+                    </div>
                     <div className="flex flex-col min-w-0">
                       <span className="font-bold text-xs truncate text-zinc-900 dark:text-zinc-100 group-hover:underline">
                         {activeFriend.fullName || activeFriend.username}
@@ -862,12 +871,21 @@ export default function FloatingChatWidget() {
                                 src={friend.avatarUrl}
                                 alt=""
                                 className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                  if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                                }}
                               />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full text-xs font-bold bg-zinc-800 text-white flex items-center justify-center shrink-0">
-                                {getInitials(fName)}
-                              </div>
-                            )}
+                            ) : null}
+                            <div
+                              className="w-10 h-10 rounded-full text-xs font-bold text-white flex items-center justify-center shrink-0"
+                              style={{
+                                backgroundColor: friend.avatarColor || "#27272a",
+                                display: friend.avatarUrl ? "none" : "flex",
+                              }}
+                            >
+                              {getInitials(fName)}
+                            </div>
 
                             <div className="flex flex-col min-w-0 flex-1">
                               <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
@@ -1020,9 +1038,20 @@ export default function FloatingChatWidget() {
                                   src={friendAvatar}
                                   alt=""
                                   className="w-6 h-6 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                    if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                                  }}
                                 />
-                              ) : (
-                                <div className="w-6 h-6 rounded-full bg-zinc-800 text-white text-[9px] font-bold flex items-center justify-center">
+                              ) : null}
+                              {!activeFriend?.isAi && (
+                                <div
+                                  className="w-6 h-6 rounded-full text-white text-[9px] font-bold flex items-center justify-center"
+                                  style={{
+                                    backgroundColor: activeFriend?.avatarColor || "#27272a",
+                                    display: friendAvatar ? "none" : "flex",
+                                  }}
+                                >
                                   {getInitials(friendName)}
                                 </div>
                               )}
