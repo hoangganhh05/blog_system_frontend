@@ -492,8 +492,8 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-between text-zinc-500 pt-2 mt-1 max-w-[380px]">
+        {/* Action Buttons (Dàn đều cân đối toàn bộ chiều rộng PostCard) */}
+        <div className="flex items-center justify-between w-full text-zinc-500 pt-2 mt-1 px-2 sm:px-4">
           {/* Like & Reaction section with Hover Tooltip & Click Modal */}
           <div
             className="relative flex items-center gap-1 group/like"
