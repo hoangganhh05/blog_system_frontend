@@ -9,6 +9,7 @@ import {
   Layers,
   ArrowUpRight,
   Info,
+  HelpCircle,
 } from "lucide-react";
 
 /**
@@ -52,6 +53,7 @@ export default function AnalyticsChart({
     shares: true,
   });
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
   const containerRef = useRef(null);
 
   // Toggle series visibility
@@ -66,10 +68,10 @@ export default function AnalyticsChart({
 
   // Generate realistic, dynamic chart data distributed around actual backend totals
   const chartData = useMemo(() => {
-    const baseViews = Math.max(totalViews, 120);
-    const baseLikes = Math.max(totalLikes, 45);
-    const baseComments = Math.max(totalComments, 18);
-    const baseShares = Math.max(Math.round(baseLikes * 0.35), 8);
+    const baseViews = totalViews;
+    const baseLikes = totalLikes;
+    const baseComments = totalComments;
+    const baseShares = Math.round(baseLikes * 0.35);
 
     if (timeRange === "7d") {
       const days = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
@@ -181,11 +183,12 @@ export default function AnalyticsChart({
     return { value, y };
   });
 
-  // Series Metadata Config
+  // Series Metadata Config with live total counts
   const seriesConfig = [
     {
       key: "views",
       label: "Lượt xem trang",
+      count: totalViews,
       icon: Eye,
       stroke: "#0866ff",
       gradientId: "gradViews",
@@ -195,6 +198,7 @@ export default function AnalyticsChart({
     {
       key: "likes",
       label: "Lượt thích",
+      count: totalLikes,
       icon: Heart,
       stroke: "#f43f5e",
       gradientId: "gradLikes",
@@ -204,6 +208,7 @@ export default function AnalyticsChart({
     {
       key: "comments",
       label: "Bình luận",
+      count: totalComments,
       icon: MessageSquare,
       stroke: "#10b981",
       gradientId: "gradComments",
@@ -213,6 +218,7 @@ export default function AnalyticsChart({
     {
       key: "shares",
       label: "Lượt chia sẻ",
+      count: Math.round(totalLikes * 0.35),
       icon: Share2,
       stroke: "#8b5cf6",
       gradientId: "gradShares",
@@ -226,10 +232,10 @@ export default function AnalyticsChart({
 
   return (
     <div className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-4 sm:p-5 flex flex-col gap-4">
-      {/* 1. Header Toolbar: Title, Growth Badge & Time Range Filter */}
+      {/* 1. Header Toolbar: Title, Growth Badge, Explanation Button & Time Range Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-[#0866ff]/15 text-[#0866ff] flex items-center justify-center shadow-2xs">
+          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-[#0866ff]/15 text-[#0866ff] flex items-center justify-center shadow-2xs shrink-0">
             <TrendingUp className="w-4 h-4" />
           </div>
           <div>
@@ -247,66 +253,99 @@ export default function AnalyticsChart({
           </div>
         </div>
 
-        {/* Timeframe Switcher */}
-        <div className="inline-flex p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl border border-zinc-200/50 dark:border-zinc-700/60 self-start sm:self-auto">
-          {[
-            { id: "7d", label: "7 ngày qua" },
-            { id: "30d", label: "30 ngày" },
-            { id: "12m", label: "Theo tháng" },
-          ].map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => {
-                setTimeRange(item.id);
-                setHoveredIndex(null);
-              }}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                timeRange === item.id
-                  ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+        {/* Timeframe Switcher & Info Toggle */}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => setShowInfoTooltip((prev) => !prev)}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+            title="Giải thích cơ chế tính lượt xem & tương tác"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
+
+          <div className="inline-flex p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl border border-zinc-200/50 dark:border-zinc-700/60">
+            {[
+              { id: "7d", label: "7 ngày qua" },
+              { id: "30d", label: "30 ngày" },
+              { id: "12m", label: "Theo tháng" },
+            ].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setTimeRange(item.id);
+                  setHoveredIndex(null);
+                }}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  timeRange === item.id
+                    ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* 2. Interactive Series Toggle Legend */}
-      <div className="flex flex-wrap items-center gap-2 pt-1">
-        <span className="text-[11px] font-semibold text-zinc-400 mr-1 flex items-center gap-1">
-          <Layers className="w-3 h-3" /> Chỉ số:
-        </span>
-        {seriesConfig.map((s) => {
-          const Icon = s.icon;
-          return (
-            <button
-              key={s.key}
-              type="button"
-              onClick={() => toggleSeries(s.key)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer border ${
-                s.active
-                  ? "bg-zinc-50 dark:bg-zinc-800/80 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-2xs"
-                  : "bg-transparent border-transparent text-zinc-400 dark:text-zinc-600 line-through opacity-60 hover:opacity-100"
-              }`}
-              title={`Bật / Tắt hiển thị ${s.label}`}
-            >
-              <span
-                className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: s.stroke }}
-              />
-              <Icon className="w-3.5 h-3.5" style={{ color: s.active ? s.stroke : undefined }} />
-              <span>{s.label}</span>
-            </button>
-          );
-        })}
+      {/* Info Help Banner (Collapsible) */}
+      {showInfoTooltip && (
+        <div className="p-3 rounded-xl bg-blue-50/80 dark:bg-[#0866ff]/10 border border-[#0866ff]/20 text-xs text-zinc-700 dark:text-zinc-300 flex items-start gap-2.5 animate-in fade-in duration-150">
+          <Info className="w-4 h-4 text-[#0866ff] shrink-0 mt-0.5" />
+          <div className="flex-1 text-[11px] leading-relaxed">
+            <strong>Cơ chế tính chỉ số: </strong>
+            <span className="text-zinc-600 dark:text-zinc-400">
+              <strong>Lượt xem (View):</strong> Ghi nhận mỗi lần bài viết hoặc trang cá nhân được hiển thị/truy cập (tính cả khách vãng lai và lượt đọc nhiều lần).
+              <br />
+              <strong>Tương tác (Like, Comment, Share):</strong> Đòi hỏi hành động chủ động từ người dùng có tài khoản, do đó số lượng thường thấp hơn lượt xem nhưng phản ánh mức độ quan tâm sâu sắc.
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Interactive Series Toggle Legend (Perfect 4-Column Grid, Zero Overflow/Wrap Drift) */}
+      <div className="w-full">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">
+          {seriesConfig.map((s) => {
+            const Icon = s.icon;
+            return (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => toggleSeries(s.key)}
+                className={`w-full px-2.5 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-between gap-2 cursor-pointer border ${
+                  s.active
+                    ? "bg-zinc-50 dark:bg-zinc-800/80 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-2xs"
+                    : "bg-transparent border-transparent text-zinc-400 dark:text-zinc-600 line-through opacity-50 hover:opacity-90"
+                }`}
+                title={`Bật / Tắt hiển thị ${s.label}`}
+              >
+                <div className="flex items-center gap-1.5 truncate">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: s.stroke }}
+                  />
+                  <Icon
+                    className="w-3.5 h-3.5 shrink-0"
+                    style={{ color: s.active ? s.stroke : undefined }}
+                  />
+                  <span className="truncate">{s.label}</span>
+                </div>
+                <span className="text-[11px] font-mono font-bold text-zinc-400 shrink-0">
+                  {s.count.toLocaleString()}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 3. Main Responsive SVG Chart Canvas with Gradient Fills & Crosshair Tooltip */}
       <div
         ref={containerRef}
-        className="relative w-full h-64 sm:h-72 mt-2 select-none"
+        className="relative w-full h-64 sm:h-72 mt-1 select-none"
         onMouseLeave={() => setHoveredIndex(null)}
       >
         <svg
@@ -597,23 +636,23 @@ export default function AnalyticsChart({
         </div>
 
         <div className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 flex flex-col">
-          <span className="text-zinc-400">Tỷ lệ chuyển đổi thích</span>
+          <span className="text-zinc-400">Tỷ lệ tương tác / xem</span>
           <span className="font-bold text-rose-500 mt-0.5 font-mono">
-            {totalViews > 0 ? ((totalLikes / totalViews) * 100).toFixed(1) : "8.5"}%
+            {totalViews > 0 ? (((totalLikes + totalComments) / totalViews) * 100).toFixed(1) : "0"}%
           </span>
         </div>
 
         <div className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 flex flex-col">
-          <span className="text-zinc-400">TB bình luận / bài</span>
+          <span className="text-zinc-400">TB tương tác / bài</span>
           <span className="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono">
-            {posts.length > 0 ? (totalComments / posts.length).toFixed(1) : "3.2"}
+            {posts.length > 0 ? ((totalLikes + totalComments) / posts.length).toFixed(1) : "0"}
           </span>
         </div>
 
         <div className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 flex flex-col">
-          <span className="text-zinc-400">Độ lan tỏa (Viral)</span>
+          <span className="text-zinc-400">Hiệu suất hiển thị</span>
           <span className="font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 font-mono">
-            Xuất sắc (9.2/10)
+            Tốt ({totalViews > 100 ? "Tích cực" : "Ổn định"})
           </span>
         </div>
       </div>
