@@ -50,6 +50,7 @@ import AudioMessagePlayer from "./AudioMessagePlayer";
 import GifPicker from "./GifPicker";
 import EmojiPicker from "./EmojiPicker";
 import { isUserOnline, formatLastActive, isUserActiveStatusEnabled, setUserActiveStatusEnabled } from "../utils/statusUtils";
+import useStories from "../hooks/useStories";
 import StickerPicker from "./StickerPicker";
 import Avatar from "./Avatar";
 
@@ -199,22 +200,8 @@ export default function FloatingChatWidget() {
     return localStorage.getItem("blogviet_read_receipts") !== "false";
   });
 
-  // Story / Tin 24h States
-  const [stories, setStories] = useState(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem("blogviet_user_stories") || "[]");
-      if (saved.length > 0) return saved;
-    } catch {}
-    return [
-      {
-        id: "story_ai",
-        user: { id: "ai_bot", fullName: "BlogViet AI", isAi: true },
-        text: "💡 Khám phá tính năng Studio AI mới và trò chuyện thông minh trên BlogViet nhé!",
-        bg: "from-indigo-600 to-purple-600",
-        createdAt: Date.now() - 3600000,
-      },
-    ];
-  });
+  // Story / Tin 24h Global Hook
+  const { rawStories, createStory, refreshStories: refreshGlobalStories } = useStories();
   const [showCreateStoryModal, setShowCreateStoryModal] = useState(false);
   const [activeViewingStory, setActiveViewingStory] = useState(null);
   const [storyText, setStoryText] = useState("");
@@ -721,38 +708,26 @@ export default function FloatingChatWidget() {
     }
   };
 
-  // Handle Create Story
-  const handleCreateStory = (e) => {
+  // Handle Create Story (Đồng bộ toàn hệ thống qua useStories hook)
+  const handleCreateStory = async (e) => {
     e?.preventDefault();
     if (!storyText.trim() && !storyImageUrl) {
       toast.error("Vui lòng nhập nội dung tin hoặc tải lên hình ảnh!");
       return;
     }
-    const newStory = {
-      id: `story_${Date.now()}`,
-      user: {
-        id: currentUserId,
-        fullName: currentUser?.fullName || currentUser?.username || "Bạn",
-        username: currentUser?.username,
-        avatarUrl: currentUser?.avatarUrl,
-        avatarColor: currentUser?.avatarColor,
-      },
-      text: storyText.trim(),
-      imageUrl: storyImageUrl,
-      bg: storyBg,
-      createdAt: Date.now(),
-    };
-
-    const updated = [newStory, ...stories.filter((s) => Number(s.user.id) !== Number(currentUserId))];
-    setStories(updated);
     try {
-      localStorage.setItem("blogviet_user_stories", JSON.stringify(updated));
-    } catch {}
-
-    setStoryText("");
-    setStoryImageUrl("");
-    setShowCreateStoryModal(false);
-    toast.success("Đã đăng tin thành công! Tin sẽ tự động xuất hiện trong 24h.");
+      await createStory({
+        textContent: storyText.trim(),
+        mediaUrl: storyImageUrl,
+        bgColor: storyBg,
+      });
+      setStoryText("");
+      setStoryImageUrl("");
+      setShowCreateStoryModal(false);
+      toast.success("Đã đăng tin thành công! Tin xuất hiện đồng bộ trên cả Trang chủ và Messenger.");
+    } catch {
+      toast.error("Không thể đăng tin lúc này. Vui lòng thử lại!");
+    }
   };
 
   // Handle Input Change with Broadcast Typing Indicator
@@ -1583,8 +1558,16 @@ export default function FloatingChatWidget() {
                     </span>
                   </div>
 
-                  {/* Stories list from friends */}
-                  {stories.map((st) => (
+                  {/* Stories list from backend & friends */}
+                  {(rawStories && rawStories.length > 0 ? rawStories : [
+                    {
+                      id: "story_ai",
+                      user: { id: "ai_bot", fullName: "BlogViet AI", username: "ai" },
+                      text: "💡 Studio AI và tính năng Tin 24h đã được đồng bộ toàn diện trên BlogViet!",
+                      bg: "from-indigo-600 to-purple-600",
+                      createdAt: Date.now() - 3600000,
+                    }
+                  ]).map((st) => (
                     <div
                       key={st.id}
                       onClick={() => setActiveViewingStory(st)}
@@ -2737,15 +2720,15 @@ export default function FloatingChatWidget() {
         <div className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="relative w-full max-w-sm h-[520px] rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between p-4 text-white bg-zinc-950">
             {/* Background Story Content */}
-            {activeViewingStory.imageUrl ? (
+            {activeViewingStory.mediaUrl || activeViewingStory.imageUrl ? (
               <img
-                src={activeViewingStory.imageUrl}
+                src={activeViewingStory.mediaUrl || activeViewingStory.imageUrl}
                 alt="Story"
                 className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
               <div
-                className={`absolute inset-0 w-full h-full bg-gradient-to-tr ${activeViewingStory.bg || "from-indigo-600 to-purple-600"}`}
+                className={`absolute inset-0 w-full h-full bg-gradient-to-tr ${activeViewingStory.bgColor || activeViewingStory.bg || "from-indigo-600 to-purple-600"}`}
               />
             )}
             <div className="absolute inset-0 bg-black/20" />
@@ -2773,7 +2756,7 @@ export default function FloatingChatWidget() {
                       {activeViewingStory.user?.fullName || activeViewingStory.user?.username}
                     </span>
                     <span className="text-[10px] text-white/80 drop-shadow-md">
-                      {activeViewingStory.createdAt ? `${Math.max(1, Math.floor((Date.now() - activeViewingStory.createdAt) / 3600000))} giờ trước` : "24h trước"}
+                      {activeViewingStory.createdAt ? `${Math.max(1, Math.floor((Date.now() - new Date(activeViewingStory.createdAt).getTime()) / 3600000))} giờ trước` : "24h trước"}
                     </span>
                   </div>
                 </div>
@@ -2791,7 +2774,7 @@ export default function FloatingChatWidget() {
             {/* Center Story Text */}
             <div className="relative z-10 my-auto text-center px-4">
               <p className="text-lg font-black leading-relaxed drop-shadow-lg">
-                {activeViewingStory.text}
+                {activeViewingStory.textContent || activeViewingStory.text}
               </p>
             </div>
 

@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import storyService from "../services/storyService";
+import useStories from "../hooks/useStories";
 import CreateStoryModal from "./CreateStoryModal";
 import StoryViewerModal from "./StoryViewerModal";
 
@@ -17,57 +17,16 @@ function getInitials(name) {
 
 function StoryBar() {
   const { currentUser } = useAuth();
-  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
-
-  const [groupedStories, setGroupedStories] = useState([]);
+  const { groupedStories, refreshStories } = useStories();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(null);
 
-  const loadStories = async () => {
-    try {
-      const res = await storyService.getActiveStories();
-      const list = res.data || [];
-
-      const groupsMap = new Map();
-      list.forEach((story) => {
-        const userId = story.user?.id;
-        if (!userId) return;
-        if (!groupsMap.has(userId)) {
-          groupsMap.set(userId, {
-            user: story.user,
-            stories: [],
-          });
-        }
-        groupsMap.get(userId).stories.push(story);
-      });
-
-      const groupedArray = Array.from(groupsMap.values());
-
-      // Sắp xếp: Story của chính mình lên đầu tiên
-      groupedArray.sort((a, b) => {
-        if (currentUserId) {
-          if (a.user.id === currentUserId) return -1;
-          if (b.user.id === currentUserId) return 1;
-        }
-        return 0;
-      });
-
-      setGroupedStories(groupedArray);
-    } catch {
-      // Fail silently
-    }
-  };
-
-  useEffect(() => {
-    loadStories();
-  }, [currentUserId]);
-
   const handleStoryCreated = () => {
-    loadStories();
+    refreshStories();
   };
 
   const handleStoryDeleted = () => {
-    loadStories();
+    refreshStories();
   };
 
   return (
