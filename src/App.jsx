@@ -25,30 +25,89 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import FloatingChatWidget from "./components/FloatingChatWidget";
 
+function getEffectiveTheme(themeMode) {
+  if (themeMode === "dark") return true;
+  if (themeMode === "light") return false;
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
 function AppContent() {
   const location = useLocation();
   const isAuthPage = ["/login", "/register", "/verify-email", "/forgot-password"].includes(location.pathname);
 
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem("theme") || localStorage.getItem("blog_theme");
-    if (saved) return saved === "dark";
-    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const [themeMode, setThemeMode] = useState(() => {
+    return localStorage.getItem("blog_theme_mode") || (localStorage.getItem("theme") ? localStorage.getItem("theme") : "system");
   });
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      localStorage.setItem("blog_theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      localStorage.setItem("blog_theme", "light");
-    }
-  }, [isDark]);
+  const [isCompact, setIsCompact] = useState(() => {
+    return localStorage.getItem("blog_compact_mode") === "true";
+  });
 
-  const toggleTheme = () => setIsDark((v) => !v);
+  const [isDark, setIsDark] = useState(() => getEffectiveTheme(themeMode));
+
+  // Sync theme mode changes & system prefers-color-scheme listener
+  useEffect(() => {
+    const updateTheme = () => {
+      const effectiveDark = getEffectiveTheme(themeMode);
+      setIsDark(effectiveDark);
+      document.documentElement.setAttribute("data-theme", effectiveDark ? "dark" : "light");
+      if (effectiveDark) {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("theme", "dark");
+        localStorage.setItem("blog_theme", "dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("theme", "light");
+        localStorage.setItem("blog_theme", "light");
+      }
+      localStorage.setItem("blog_theme_mode", themeMode);
+    };
+
+    updateTheme();
+
+    if (themeMode === "system") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handler = () => updateTheme();
+      mediaQuery.addEventListener("change", handler);
+      return () => mediaQuery.removeEventListener("change", handler);
+    }
+  }, [themeMode]);
+
+  // Sync compact mode
+  useEffect(() => {
+    if (isCompact) {
+      document.documentElement.classList.add("compact");
+      localStorage.setItem("blog_compact_mode", "true");
+    } else {
+      document.documentElement.classList.remove("compact");
+      localStorage.setItem("blog_compact_mode", "false");
+    }
+  }, [isCompact]);
+
+  // Listen to custom window events from settings page
+  useEffect(() => {
+    const handleThemeEvent = (e) => {
+      if (e.detail?.mode) {
+        setThemeMode(e.detail.mode);
+      }
+    };
+    const handleCompactEvent = (e) => {
+      if (typeof e.detail?.isCompact === "boolean") {
+        setIsCompact(e.detail.isCompact);
+      }
+    };
+
+    window.addEventListener("theme_mode_changed", handleThemeEvent);
+    window.addEventListener("compact_mode_changed", handleCompactEvent);
+    return () => {
+      window.removeEventListener("theme_mode_changed", handleThemeEvent);
+      window.removeEventListener("compact_mode_changed", handleCompactEvent);
+    };
+  }, []);
+
+  const toggleTheme = () => {
+    setThemeMode((prev) => (prev === "dark" ? "light" : "dark"));
+  };
 
   if (isAuthPage) {
     return (

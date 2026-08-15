@@ -171,3 +171,19 @@ img {
 .animate-heart-burst {
   animation: heart-burst 0.5s ease-out forwards;
 }
+
+/* ============================================
+   COMPACT / COZY MODE (ACCESSIBILITY)
+   ============================================ */
+html.compact {
+  font-size: 14.5px;
+}
+
+html.compact .feed-card,
+html.compact .compact-card {
+  padding: 0.875rem !important;
+}
+
+html.compact .space-y-4 > * + * {
+  margin-top: 0.75rem !important;
+}
