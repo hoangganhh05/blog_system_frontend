@@ -17,7 +17,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
       id: "ai-intro",
       role: "ai",
       content:
-        "Xin chào! Mình là **Trợ lý BlogViet** được hỗ trợ bởi trí tuệ nhân tạo Gemini 1.5 Flash ✨.\n\nMình có thể giúp bạn lên ý tưởng, viết bài blog, tóm tắt nội dung hay trò chuyện giải đáp bất kỳ chủ đề nào. Hãy nhắn cho mình nhé!",
+        "Xin chào! Mình là **Trợ lý BlogViet** được hỗ trợ bởi trí tuệ nhân tạo Gemini 3.7 Flash ✨.\n\nMình có thể giúp bạn lên ý tưởng, viết bài blog, tóm tắt nội dung hay trò chuyện giải đáp bất kỳ chủ đề nào. Hãy nhắn cho mình nhé!",
       time: new Date(),
     },
   ]);
@@ -112,7 +112,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
                   Trợ lý BlogViet
                 </span>
                 <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/60">
-                  Gemini 1.5
+                  Gemini 3.7 Flash
                 </span>
               </div>
               <span className="text-[10px] text-emerald-500 font-medium flex items-center gap-1">

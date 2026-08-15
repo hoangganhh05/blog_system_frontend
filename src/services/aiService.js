@@ -1,5 +1,5 @@
 /**
- * AI Assistant Service - Gọi trực tiếp Spring Boot Backend Proxy (Gemini 1.5 Flash bảo mật API Key)
+ * AI Assistant Service - Gọi trực tiếp Spring Boot Backend Proxy (Gemini 3.7 Flash bảo mật API Key)
  */
 import axiosClient from "../api/axiosClient";
 
