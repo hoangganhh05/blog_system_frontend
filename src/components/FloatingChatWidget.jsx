@@ -27,6 +27,18 @@ import {
   Search,
   Heart,
   Sparkles,
+  Settings,
+  SquarePen,
+  Bell,
+  BellOff,
+  Archive,
+  ArchiveRestore,
+  Volume2,
+  VolumeX,
+  Shield,
+  UserX,
+  MessageSquarePlus,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -94,6 +106,7 @@ function isAudioMessage(content) {
 
 function playNotificationSound() {
   try {
+    if (localStorage.getItem("blogviet_chat_sound") === "false") return;
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -131,6 +144,43 @@ export default function FloatingChatWidget() {
   const [conversationsMap, setConversationsMap] = useState({});
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [friendSearchQuery, setFriendSearchQuery] = useState("");
+
+  // Messenger Tabs: "all" | "unread" | "ai" | "archived"
+  const [listTab, setListTab] = useState("all");
+  const [showSettingsView, setShowSettingsView] = useState(false);
+  const [activeFriendMenuId, setActiveFriendMenuId] = useState(null);
+
+  // Sound preference state
+  const [chatSoundEnabled, setChatSoundEnabled] = useState(() => {
+    return localStorage.getItem("blogviet_chat_sound") !== "false";
+  });
+
+  // Archived Chats Map ({ [friendId]: boolean })
+  const [archivedChats, setArchivedChats] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("blogviet_archived_chats") || "{}");
+    } catch {
+      return {};
+    }
+  });
+
+  // Muted Chats Map ({ [friendId]: boolean })
+  const [mutedChats, setMutedChats] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("blogviet_muted_chats") || "{}");
+    } catch {
+      return {};
+    }
+  });
+
+  // Pinned Chats Map ({ [friendId]: boolean })
+  const [pinnedChats, setPinnedChats] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("blogviet_pinned_chats") || "{}");
+    } catch {
+      return {};
+    }
+  });
 
   // Pinned Messages state (persisted per conversation)
   const [pinnedMessages, setPinnedMessages] = useState(() => {
@@ -465,6 +515,93 @@ export default function FloatingChatWidget() {
   }, [activeFriend]);
 
   if (!currentUser) return null;
+
+  // Quick Chat Management Handlers
+  const handleTogglePinChat = (friendId, e) => {
+    e?.stopPropagation();
+    setActiveFriendMenuId(null);
+    setPinnedChats((prev) => {
+      const next = { ...prev, [friendId]: !prev[friendId] };
+      localStorage.setItem("blogviet_pinned_chats", JSON.stringify(next));
+      toast.success(next[friendId] ? "Đã ghim cuộc trò chuyện lên đầu" : "Đã bỏ ghim cuộc trò chuyện");
+      return next;
+    });
+  };
+
+  const handleToggleMuteChat = (friendId, e) => {
+    e?.stopPropagation();
+    setActiveFriendMenuId(null);
+    setMutedChats((prev) => {
+      const next = { ...prev, [friendId]: !prev[friendId] };
+      localStorage.setItem("blogviet_muted_chats", JSON.stringify(next));
+      toast.success(next[friendId] ? "Đã tắt thông báo cuộc trò chuyện" : "Đã bật lại thông báo cuộc trò chuyện");
+      return next;
+    });
+  };
+
+  const handleToggleArchiveChat = (friendId, e) => {
+    e?.stopPropagation();
+    setActiveFriendMenuId(null);
+    setArchivedChats((prev) => {
+      const next = { ...prev, [friendId]: !prev[friendId] };
+      localStorage.setItem("blogviet_archived_chats", JSON.stringify(next));
+      toast.success(next[friendId] ? "Đã chuyển vào tin nhắn lưu trữ" : "Đã khôi phục vào hộp thư chính");
+      return next;
+    });
+  };
+
+  const handleToggleUnreadChat = (friendId, e) => {
+    e?.stopPropagation();
+    setActiveFriendMenuId(null);
+    setConversationsMap((prev) => {
+      const current = prev[friendId]?.unreadCount || 0;
+      const nextCount = current > 0 ? 0 : 1;
+      const next = {
+        ...prev,
+        [friendId]: {
+          ...(prev[friendId] || {}),
+          unreadCount: nextCount,
+        },
+      };
+      toast.success(nextCount > 0 ? "Đã đánh dấu là chưa đọc" : "Đã đánh dấu là đã đọc");
+      return next;
+    });
+  };
+
+  const handleDeleteConversation = (friend, e) => {
+    e?.stopPropagation();
+    setActiveFriendMenuId(null);
+    if (!friend?.id) return;
+    setConversationsMap((prev) => {
+      const next = { ...prev };
+      delete next[friend.id];
+      return next;
+    });
+    if (activeFriend?.id === friend.id) {
+      setMessages([]);
+      setActiveFriend(null);
+    }
+    toast.success(`Đã xóa đoạn hội thoại với ${friend.fullName || friend.username}`);
+  };
+
+  const handleMarkAllAsRead = () => {
+    setConversationsMap((prev) => {
+      const next = {};
+      Object.keys(prev).forEach((k) => {
+        next[k] = { ...prev[k], unreadCount: 0 };
+      });
+      return next;
+    });
+    setUnreadChatCount(0);
+    toast.success("Đã đánh dấu tất cả cuộc trò chuyện là đã đọc!");
+  };
+
+  const handleToggleChatSound = () => {
+    const next = !chatSoundEnabled;
+    setChatSoundEnabled(next);
+    localStorage.setItem("blogviet_chat_sound", String(next));
+    toast.success(next ? "Đã bật âm thanh thông báo tin nhắn" : "Đã tắt âm thanh thông báo tin nhắn");
+  };
 
   // Handle Input Change with Broadcast Typing Indicator
   const handleInputChange = (e) => {
@@ -910,24 +1047,37 @@ export default function FloatingChatWidget() {
                     </span>
                   </div>
 
-                  {/* Active Status Quick Toggle */}
-                  {currentUserId && (
+                  {/* Header Actions */}
+                  <div className="flex items-center gap-1">
+                    {/* Active Status Quick Toggle */}
+                    {currentUserId && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextState = !isUserActiveStatusEnabled(currentUserId);
+                          setUserActiveStatusEnabled(currentUserId, nextState);
+                          toast.success(nextState ? "Đã bật trạng thái hoạt động (Trực tuyến)" : "Đã tắt trạng thái hoạt động (Ẩn)");
+                        }}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition cursor-pointer active:scale-95 shadow-2xs"
+                        title="Bật/Tắt trạng thái hoạt động của bạn"
+                      >
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
+                        <span className="text-zinc-700 dark:text-zinc-300 font-medium hidden xs:inline">
+                          {isUserActiveStatusEnabled(currentUserId) ? "Trực tuyến" : "Đang ẩn"}
+                        </span>
+                      </button>
+                    )}
+
+                    {/* Settings Toggle Button */}
                     <button
                       type="button"
-                      onClick={() => {
-                        const nextState = !isUserActiveStatusEnabled(currentUserId);
-                        setUserActiveStatusEnabled(currentUserId, nextState);
-                        toast.success(nextState ? "Đã bật trạng thái hoạt động (Trực tuyến)" : "Đã tắt trạng thái hoạt động (Ẩn)");
-                      }}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition cursor-pointer active:scale-95 shadow-2xs"
-                      title="Bật/Tắt trạng thái hoạt động của bạn"
+                      onClick={() => setShowSettingsView(true)}
+                      className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
+                      title="Cài đặt tin nhắn"
                     >
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
-                      <span className="text-zinc-700 dark:text-zinc-300 font-medium">
-                        {isUserActiveStatusEnabled(currentUserId) ? "Trực tuyến" : "Đang ẩn"}
-                      </span>
+                      <Settings className="w-4 h-4" />
                     </button>
-                  )}
+                  </div>
                 </div>
               )}
             </div>
@@ -947,37 +1097,157 @@ export default function FloatingChatWidget() {
 
           {/* Chat Body */}
           <div className="flex-1 overflow-y-auto flex flex-col bg-zinc-50/50 dark:bg-zinc-950/60">
-            {!activeFriend ? (
-              /* Friends List */
-              <div className="p-3 flex flex-col gap-1">
-                {/* AI Assistant Dedicated Shortcut Card */}
-                <div
-                  onClick={() => {
-                    setIsOpen(false);
-                    window.dispatchEvent(new CustomEvent("open_ai_assistant"));
-                  }}
-                  className="mb-2 p-3 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-indigo-500/10 dark:from-indigo-950/40 dark:via-violet-950/40 dark:to-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 hover:border-indigo-400 dark:hover:border-indigo-600 transition cursor-pointer flex items-center justify-between group shadow-xs"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                      ✨
+            {showSettingsView && !activeFriend ? (
+              /* Settings View with smooth slide-in */
+              <div className="p-4 flex flex-col gap-3 animate-in slide-in-from-right-4 duration-200">
+                <div className="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowSettingsView(false)}
+                      className="p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+                      title="Quay lại danh sách"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </button>
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      Cài đặt & Tùy chọn Messenger
+                    </span>
+                  </div>
+                </div>
+
+                {/* Sound Settings Card */}
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-xl ${chatSoundEnabled ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
+                      {chatSoundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                     </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
-                        Trợ lý BlogViet AI
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        Âm thanh thông báo
                       </span>
-                      <span className="text-[10px] text-indigo-600 dark:text-indigo-400 truncate">
-                        Gemini 3.7 Flash · Sẵn sàng 24/7
+                      <span className="text-[10px] text-zinc-500">
+                        Phát âm thanh khi có tin nhắn mới đến
                       </span>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/60 px-2 py-0.5 rounded-full shrink-0">
-                    Mở AI →
+                  <button
+                    type="button"
+                    onClick={handleToggleChatSound}
+                    className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative ${chatSoundEnabled ? "bg-black dark:bg-white" : "bg-zinc-300 dark:bg-zinc-700"}`}
+                  >
+                    <div className={`w-5 h-5 rounded-full bg-white dark:bg-black transition-transform ${chatSoundEnabled ? "translate-x-4" : "translate-x-0"}`} />
+                  </button>
+                </div>
+
+                {/* Active Status Settings Card */}
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-xl ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
+                      <span className={`w-3.5 h-3.5 rounded-full block ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        Trạng thái hoạt động
+                      </span>
+                      <span className="text-[10px] text-zinc-500">
+                        Hiển thị chấm xanh khi bạn đang trực tuyến
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !isUserActiveStatusEnabled(currentUserId);
+                      setUserActiveStatusEnabled(currentUserId, next);
+                      toast.success(next ? "Đã bật trạng thái trực tuyến" : "Đã tắt trạng thái trực tuyến (Ẩn)");
+                    }}
+                    className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative ${isUserActiveStatusEnabled(currentUserId) ? "bg-black dark:bg-white" : "bg-zinc-300 dark:bg-zinc-700"}`}
+                  >
+                    <div className={`w-5 h-5 rounded-full bg-white dark:bg-black transition-transform ${isUserActiveStatusEnabled(currentUserId) ? "translate-x-4" : "translate-x-0"}`} />
+                  </button>
+                </div>
+
+                {/* Mark All Read Action */}
+                <div
+                  onClick={handleMarkAllAsRead}
+                  className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
+                      <CheckCheck className="w-4 h-4" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        Đánh dấu tất cả là đã đọc
+                      </span>
+                      <span className="text-[10px] text-zinc-500">
+                        Xóa tất cả số đếm tin nhắn chưa đọc
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 font-semibold">
+                    Thực hiện →
                   </span>
                 </div>
 
+                {/* Archived Messages Quick Jump */}
+                <div
+                  onClick={() => {
+                    setListTab("archived");
+                    setShowSettingsView(false);
+                  }}
+                  className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
+                      <Archive className="w-4 h-4" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        Kho tin nhắn lưu trữ
+                      </span>
+                      <span className="text-[10px] text-zinc-500">
+                        Xem và khôi phục các cuộc trò chuyện đã ẩn
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-full">
+                    {Object.values(archivedChats).filter(Boolean).length}
+                  </span>
+                </div>
+
+                {/* Privacy & Block Management Link */}
+                <div
+                  onClick={() => {
+                    navigate("/security-settings");
+                    setIsOpen(false);
+                  }}
+                  className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400">
+                      <Shield className="w-4 h-4" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        Quyền riêng tư & Bảo mật
+                      </span>
+                      <span className="text-[10px] text-zinc-500">
+                        Quản lý chặn người dùng và bảo mật chat
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 font-semibold">
+                    Mở →
+                  </span>
+                </div>
+              </div>
+            ) : !activeFriend ? (
+              /* Friends List */
+              <div className="p-3 flex flex-col gap-2">
                 {/* Friends Search Input Bar */}
-                <div className="relative mb-2">
+                <div className="relative">
                   <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
@@ -998,43 +1268,152 @@ export default function FloatingChatWidget() {
                   )}
                 </div>
 
-                {/* Header title */}
-                <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 px-1 py-1 flex items-center justify-between">
-                  <span>Danh sách bạn bè ({friends.length})</span>
-                  {friendSearchQuery && (
-                    <span className="text-[10px] text-indigo-500 font-normal lowercase">
-                      đang lọc: "{friendSearchQuery}"
-                    </span>
-                  )}
+                {/* Messenger Filter Tabs Bar */}
+                <div className="flex items-center gap-1 p-1 rounded-2xl bg-zinc-200/60 dark:bg-zinc-900/80 border border-zinc-200/80 dark:border-zinc-800 overflow-x-auto no-scrollbar shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setListTab("all")}
+                    className={`flex-1 py-1.5 px-2.5 rounded-xl text-[11px] font-bold transition whitespace-nowrap cursor-pointer text-center ${
+                      listTab === "all"
+                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-2xs"
+                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+                    }`}
+                  >
+                    Tất cả ({friends.filter((f) => !archivedChats[f.id]).length})
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setListTab("unread")}
+                    className={`flex-1 py-1.5 px-2.5 rounded-xl text-[11px] font-bold transition whitespace-nowrap cursor-pointer flex items-center justify-center gap-1 ${
+                      listTab === "unread"
+                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-2xs"
+                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+                    }`}
+                  >
+                    <span>Chưa đọc</span>
+                    {friends.some((f) => !archivedChats[f.id] && (conversationsMap[f.id]?.unreadCount || 0) > 0) && (
+                      <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setListTab("ai")}
+                    className={`flex-1 py-1.5 px-2.5 rounded-xl text-[11px] font-bold transition whitespace-nowrap cursor-pointer flex items-center justify-center gap-1 ${
+                      listTab === "ai"
+                        ? "bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-2xs"
+                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+                    }`}
+                  >
+                    <span>AI Bot</span>
+                    <span className="text-[10px]">✨</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setListTab("archived")}
+                    className={`flex-1 py-1.5 px-2.5 rounded-xl text-[11px] font-bold transition whitespace-nowrap cursor-pointer flex items-center justify-center gap-1 ${
+                      listTab === "archived"
+                        ? "bg-white dark:bg-zinc-800 text-amber-600 dark:text-amber-400 shadow-2xs"
+                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+                    }`}
+                  >
+                    <span>Lưu trữ</span>
+                    {Object.values(archivedChats).filter(Boolean).length > 0 && (
+                      <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-extrabold">
+                        {Object.values(archivedChats).filter(Boolean).length}
+                      </span>
+                    )}
+                  </button>
                 </div>
 
-                {friends.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-zinc-400">
-                    Chưa có bạn bè. Hãy kết bạn để bắt đầu trò chuyện!
+                {/* AI Tab Dedicated Card */}
+                {listTab === "ai" && (
+                  <div
+                    onClick={() => {
+                      setIsOpen(false);
+                      window.dispatchEvent(new CustomEvent("open_ai_assistant"));
+                    }}
+                    className="p-3.5 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-indigo-500/10 dark:from-indigo-950/40 dark:via-violet-950/40 dark:to-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 hover:border-indigo-400 dark:hover:border-indigo-600 transition cursor-pointer flex items-center justify-between group shadow-xs animate-in fade-in duration-150"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center text-sm font-bold shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                        ✨
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
+                          Trợ lý BlogViet AI
+                        </span>
+                        <span className="text-[10px] text-indigo-600 dark:text-indigo-400 truncate">
+                          Trợ lý thông minh · Sẵn sàng giải đáp 24/7
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/60 px-2.5 py-1 rounded-full shrink-0">
+                      Mở AI →
+                    </span>
                   </div>
-                ) : (
+                )}
+
+                {/* Conversations List */}
+                {listTab !== "ai" && (
                   (() => {
-                    const filteredFriends = friends.filter((f) => {
-                      if (!friendSearchQuery.trim()) return true;
-                      const q = friendSearchQuery.toLowerCase().trim();
-                      const name = (f.fullName || "").toLowerCase();
-                      const username = (f.username || "").toLowerCase();
-                      return name.includes(q) || username.includes(q);
+                    let list = friends.filter((f) => {
+                      if (listTab === "archived") {
+                        return Boolean(archivedChats[f.id]);
+                      }
+                      if (archivedChats[f.id]) return false;
+                      if (listTab === "unread") {
+                        return (conversationsMap[f.id]?.unreadCount || 0) > 0;
+                      }
+                      return true;
                     });
 
-                    if (filteredFriends.length === 0) {
+                    if (friendSearchQuery.trim()) {
+                      const q = friendSearchQuery.toLowerCase().trim();
+                      list = list.filter((f) => {
+                        const name = (f.fullName || "").toLowerCase();
+                        const username = (f.username || "").toLowerCase();
+                        return name.includes(q) || username.includes(q);
+                      });
+                    }
+
+                    // Sort: Pinned chats first
+                    list.sort((a, b) => {
+                      const pinA = pinnedChats[a.id] ? 1 : 0;
+                      const pinB = pinnedChats[b.id] ? 1 : 0;
+                      return pinB - pinA;
+                    });
+
+                    if (list.length === 0) {
                       return (
-                        <div className="py-8 text-center text-xs text-zinc-400">
-                          Không tìm thấy người dùng nào phù hợp với "{friendSearchQuery}".
+                        <div className="py-10 text-center flex flex-col items-center gap-2 text-zinc-400 animate-in fade-in duration-150">
+                          <span className="text-2xl">
+                            {listTab === "archived" ? "📦" : listTab === "unread" ? "✉️" : "💬"}
+                          </span>
+                          <span className="text-xs">
+                            {listTab === "archived"
+                              ? "Chưa có cuộc trò chuyện nào trong kho lưu trữ."
+                              : listTab === "unread"
+                              ? "Bạn đã đọc hết mọi tin nhắn!"
+                              : friendSearchQuery
+                              ? `Không tìm thấy người dùng phù hợp với "${friendSearchQuery}".`
+                              : "Chưa có bạn bè. Hãy kết bạn để bắt đầu trò chuyện!"}
+                          </span>
                         </div>
                       );
                     }
 
-                    return filteredFriends.map((friend) => {
+                    return list.map((friend) => {
                       const fName = friend.fullName || friend.username;
                       const conv = conversationsMap[friend.id] || {};
                       const lastText = conv.lastMessage || "Bấm để nhắn tin";
                       const unread = conv.unreadCount || 0;
+                      const isPinned = Boolean(pinnedChats[friend.id]);
+                      const isMuted = Boolean(mutedChats[friend.id]);
+                      const isArchived = Boolean(archivedChats[friend.id]);
+                      const isMenuOpen = activeFriendMenuId === friend.id;
 
                       return (
                         <div
@@ -1043,11 +1422,11 @@ export default function FloatingChatWidget() {
                             setActiveFriend(friend);
                             if (unread > 0) markConversationAsRead(friend.id);
                           }}
-                          className={`flex items-center justify-between p-2.5 rounded-2xl cursor-pointer transition ${
+                          className={`relative flex items-center justify-between p-2.5 rounded-2xl cursor-pointer transition group/item ${
                             unread > 0
                               ? "bg-zinc-100 dark:bg-zinc-900 font-bold"
-                              : "hover:bg-zinc-100 dark:bg-zinc-900/80"
-                          }`}
+                              : "hover:bg-zinc-100 dark:hover:bg-zinc-900/80"
+                          } ${isPinned ? "border-l-3 border-amber-500 pl-2" : ""}`}
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <Avatar
@@ -1064,20 +1443,100 @@ export default function FloatingChatWidget() {
                             />
 
                             <div className="flex flex-col min-w-0 flex-1">
-                              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                                {fName}
-                              </span>
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                                  {fName}
+                                </span>
+                                {isPinned && (
+                                  <Pin className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
+                                )}
+                                {isMuted && (
+                                  <BellOff className="w-3 h-3 text-zinc-400 shrink-0" />
+                                )}
+                              </div>
                               <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
                                 {lastText}
                               </span>
                             </div>
                           </div>
 
-                          {unread > 0 && (
-                            <span className="min-w-5 h-5 px-1.5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 ml-2 shadow-xs">
-                              {unread > 99 ? "99+" : unread}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1.5 shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
+                            {unread > 0 && (
+                              <span className="min-w-5 h-5 px-1.5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 shadow-xs">
+                                {unread > 99 ? "99+" : unread}
+                              </span>
+                            )}
+
+                            {/* 3-dot Quick Actions Menu Button */}
+                            <div className="relative">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveFriendMenuId(isMenuOpen ? null : friend.id);
+                                }}
+                                className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer opacity-80 sm:opacity-0 group-hover/item:opacity-100"
+                                title="Tùy chọn đoạn chat"
+                              >
+                                <MoreHorizontal className="w-4 h-4" />
+                              </button>
+
+                              {/* Dropdown Menu */}
+                              {isMenuOpen && (
+                                <div
+                                  className="absolute right-0 top-7 z-50 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-1.5 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-150"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleTogglePinChat(friend.id, e)}
+                                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <Pin className="w-3.5 h-3.5 text-amber-500" />
+                                    <span>{isPinned ? "Bỏ ghim" : "Ghim lên đầu"}</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleToggleUnreadChat(friend.id, e)}
+                                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <CheckCheck className="w-3.5 h-3.5 text-blue-500" />
+                                    <span>{unread > 0 ? "Đánh dấu đã đọc" : "Đánh dấu chưa đọc"}</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleToggleMuteChat(friend.id, e)}
+                                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    {isMuted ? <Bell className="w-3.5 h-3.5 text-emerald-500" /> : <BellOff className="w-3.5 h-3.5 text-zinc-500" />}
+                                    <span>{isMuted ? "Bật thông báo" : "Tắt thông báo"}</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleToggleArchiveChat(friend.id, e)}
+                                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    {isArchived ? <ArchiveRestore className="w-3.5 h-3.5 text-amber-500" /> : <Archive className="w-3.5 h-3.5 text-amber-500" />}
+                                    <span>{isArchived ? "Khôi phục tin nhắn" : "Lưu trữ cuộc trò chuyện"}</span>
+                                  </button>
+
+                                  <div className="border-t border-zinc-100 dark:border-zinc-800 my-1" />
+
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleDeleteConversation(friend, e)}
+                                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                                    <span>Xóa cuộc trò chuyện</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       );
                     });
