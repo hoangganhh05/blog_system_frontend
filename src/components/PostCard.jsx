@@ -218,20 +218,30 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
     }, 1500);
   };
 
+  const handleEdit = (e) => {
+    e?.stopPropagation();
+    console.log("👉 [PostCard] Đã click nút 'Chỉnh sửa bài viết' cho post ID:", post?.id);
+    setUserMenuOpen(false);
+    setIsEditModalOpen(true);
+  };
+
   const handleDelete = (e) => {
-    e.stopPropagation();
+    e?.stopPropagation();
+    console.log("👉 [PostCard] Đã click nút 'Xóa bài viết' cho post ID:", post?.id);
     setUserMenuOpen(false);
     setIsDeleteModalOpen(true);
   };
 
   const confirmDeletePost = async () => {
+    console.log("🗑️ [PostCard] Đang gửi yêu cầu xóa bài viết tới API, ID:", post?.id);
     setIsDeleteModalOpen(false);
     try {
       await postService.delete(post.id);
+      console.log("✅ [PostCard] Xóa bài viết thành công ID:", post?.id);
       toast.success("Đã xóa bài viết thành công!");
       if (onDelete) onDelete(post.id);
     } catch (err) {
-      console.error("Lỗi xóa bài viết:", err.response?.data || err);
+      console.error("❌ [PostCard] Lỗi khi gọi API xóa bài viết:", err.response?.status, err.response?.data || err);
       const msg =
         typeof err.response?.data === "string"
           ? err.response.data
@@ -374,11 +384,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                     <>
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setUserMenuOpen(false);
-                          setIsEditModalOpen(true);
-                        }}
+                        onClick={handleEdit}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left transition cursor-pointer"
                       >
                         <Edit className="w-4 h-4" />

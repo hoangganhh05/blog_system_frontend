@@ -60,18 +60,23 @@ export default function EditPostModal({ isOpen = true, onClose, post, onUpdated 
     setIsSubmitting(true);
     try {
       const categoryIdNum = selectedCategory ? Number(selectedCategory) : null;
-      const res = await postService.update(post.id, {
-        content: content.trim(),
-        categoryId: categoryIdNum,
-        status: privacy,
-      });
+      const trimmed = content.trim();
+      const payload = {
+        title: trimmed.slice(0, 100) || "Bài viết",
+        content: trimmed,
+        body: trimmed,
+        status: privacy === "PRIVATE" ? "PRIVATE" : "PUBLIC",
+        ...(categoryIdNum ? { category: { id: categoryIdNum }, categoryId: categoryIdNum } : {}),
+      };
+
+      console.log("📝 [EditPostModal] Đang gửi payload cập nhật bài viết ID:", post.id, payload);
+      const res = await postService.update(post.id, payload);
+      console.log("✅ [EditPostModal] Cập nhật thành công ID:", post.id, res.data);
 
       toast.success("Cập nhật bài viết thành công!");
       const updatedData = res.data || {
         ...post,
-        content: content.trim(),
-        categoryId: categoryIdNum,
-        status: privacy,
+        ...payload,
       };
 
       if (onUpdated) {
@@ -79,7 +84,7 @@ export default function EditPostModal({ isOpen = true, onClose, post, onUpdated 
       }
       onClose();
     } catch (err) {
-      console.error("Lỗi cập nhật bài viết:", err.response?.data || err);
+      console.error("❌ [EditPostModal] Lỗi cập nhật bài viết:", err.response?.status, err.response?.data || err);
       const msg =
         typeof err.response?.data === "string"
           ? err.response.data
