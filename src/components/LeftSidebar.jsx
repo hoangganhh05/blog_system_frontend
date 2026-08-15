@@ -65,15 +65,15 @@ export default function LeftSidebar() {
   }, [currentUserId]);
 
   return (
-    <div className="w-full flex flex-col gap-2">
-      {/* 1. Profile Shortcut Card hoặc Guest Login Card */}
+    <div className="w-full flex flex-col space-y-4 px-1">
+      {/* 1. Profile Shortcut Card hoặc Guest Login Card (Dạng phẳng) */}
       {currentUser ? (
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 shadow-sm flex flex-col gap-3">
+        <div className="flex flex-col gap-3 px-2 py-1">
           <Link
             to={`/profile/${currentUserId}`}
-            className="flex items-center gap-3 group"
+            className="flex items-center gap-3 p-2 -mx-2 rounded-xl hover:bg-slate-200/60 dark:hover:bg-zinc-800/60 transition group"
           >
-                        <Avatar
+            <Avatar
               userId={currentUserId}
               src={currentUser.avatarUrl}
               name={currentUser.fullName || currentUser.username}
@@ -97,29 +97,29 @@ export default function LeftSidebar() {
           </Link>
 
           {/* Quick Stats Grid */}
-          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 text-center">
+          <div className="grid grid-cols-3 gap-2 py-2 border-y border-slate-200/80 dark:border-zinc-800/80 text-center">
             <div className="flex flex-col">
               <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
                 {stats.postCount}
               </span>
-              <span className="text-[10px] text-zinc-400">Bài viết</span>
+              <span className="text-[10px] text-zinc-500 dark:text-zinc-400">Bài viết</span>
             </div>
-            <div className="flex flex-col border-x border-zinc-100 dark:border-zinc-800/80">
+            <div className="flex flex-col border-x border-slate-200/80 dark:border-zinc-800/80">
               <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
                 {stats.totalViews}
               </span>
-              <span className="text-[10px] text-zinc-400">Lượt xem</span>
+              <span className="text-[10px] text-zinc-500 dark:text-zinc-400">Lượt xem</span>
             </div>
             <div className="flex flex-col">
               <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
                 {stats.friendCount}
               </span>
-              <span className="text-[10px] text-zinc-400">Bạn bè</span>
+              <span className="text-[10px] text-zinc-500 dark:text-zinc-400">Bạn bè</span>
             </div>
           </div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col gap-2.5 text-center items-center">
+        <div className="p-4 flex flex-col gap-2.5 text-center items-center rounded-2xl bg-slate-200/40 dark:bg-zinc-800/40">
           <Logo size="md" />
           <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
             Chào mừng đến BlogViet!
@@ -136,8 +136,8 @@ export default function LeftSidebar() {
         </div>
       )}
 
-      {/* 2. Menu Lối tắt tiện ích */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-2 shadow-sm flex flex-col gap-0.5">
+      {/* 2. Menu Lối tắt tiện ích (Dạng danh sách phẳng, cách đều) */}
+      <div className="space-y-1">
         {[
           { to: "/", label: "Bảng tin trang chủ", icon: Home },
           { to: "/trending", label: "Khám phá xu hướng", icon: Compass },
@@ -150,10 +150,10 @@ export default function LeftSidebar() {
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 hover:translate-x-1 active:scale-[0.98] ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors duration-150 ${
                 isActive
-                  ? "bg-zinc-100 dark:bg-zinc-800 text-black dark:text-white font-bold"
-                  : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  ? "bg-slate-200/80 dark:bg-zinc-800 text-black dark:text-white font-bold"
+                  : "text-slate-700 dark:text-zinc-300 hover:bg-slate-200/60 dark:hover:bg-zinc-800/60 hover:text-black dark:hover:text-white"
               }`
             }
           >
@@ -168,38 +168,38 @@ export default function LeftSidebar() {
           onClick={() => {
             window.dispatchEvent(new CustomEvent("open_ai_assistant"));
           }}
-          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer text-left group"
+          className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 transition cursor-pointer text-left w-full group"
         >
           <div className="flex items-center gap-3">
             <Sparkles className="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400 group-hover:rotate-12 transition-transform" />
             <span>Trợ lý BlogViet AI</span>
           </div>
-          <span className="text-[9px] font-bold bg-indigo-100 dark:bg-indigo-900/60 px-1.5 py-0.5 rounded-md">
+          <span className="text-[9px] font-bold bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded-md">
             Gemini 3.7
           </span>
         </button>
       </div>
 
-      {/* 3. Lối tắt chuyên mục / Trending Tags */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+      {/* 3. Lối tắt chuyên mục / Trending Tags (Dạng phẳng không viền hộp) */}
+      <div className="pt-2 px-1 flex flex-col gap-2.5">
+        <div className="flex items-center justify-between px-2">
+          <span className="text-xs font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             Chủ đề thịnh hành
           </span>
           <span className="text-[10px] text-zinc-400 font-semibold">Hot #</span>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 px-1">
           {TRENDING_TAGS.map(({ tag, count }) => (
             <Link
               key={tag}
               to={`/search?q=${encodeURIComponent(tag.replace("#", ""))}`}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-200/70 dark:bg-zinc-800 hover:bg-slate-300/80 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 transition cursor-pointer"
             >
               <Hash className="w-3 h-3 text-zinc-400" />
               <span>{tag.replace("#", "")}</span>
-              <span className="text-[9px] text-zinc-400 ml-0.5">{count}</span>
+              <span className="text-[9px] text-zinc-500 ml-0.5">{count}</span>
             </Link>
           ))}
         </div>

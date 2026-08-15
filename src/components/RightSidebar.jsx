@@ -120,14 +120,14 @@ export default function RightSidebar() {
   };
 
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="w-full flex flex-col space-y-4 px-1">
       {/* 1. Mini Music Player (Vinahouse / Lofi Focus) */}
       <MiniMusicPlayer />
 
-      {/* 2. Gợi ý kết bạn & Theo dõi (Suggestions for You) */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+      {/* 2. Gợi ý kết bạn & Theo dõi (Suggestions for You - Dạng phẳng không viền hộp) */}
+      <div className="flex flex-col gap-3 px-1">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
             Gợi ý cho bạn
           </span>
@@ -144,13 +144,13 @@ export default function RightSidebar() {
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center justify-between animate-pulse">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-zinc-200 dark:bg-zinc-800" />
+                  <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-zinc-800" />
                   <div className="flex flex-col gap-1.5">
-                    <div className="h-3 w-20 bg-zinc-200 dark:bg-zinc-800 rounded" />
-                    <div className="h-2.5 w-14 bg-zinc-100 dark:bg-zinc-900 rounded" />
+                    <div className="h-3 w-20 bg-slate-200 dark:bg-zinc-800 rounded" />
+                    <div className="h-2.5 w-14 bg-slate-100 dark:bg-zinc-900 rounded" />
                   </div>
                 </div>
-                <div className="w-14 h-6 rounded-full bg-zinc-100 dark:bg-zinc-800" />
+                <div className="w-14 h-6 rounded-full bg-slate-200 dark:bg-zinc-800" />
               </div>
             ))}
           </div>
@@ -159,7 +159,7 @@ export default function RightSidebar() {
             Chưa có gợi ý người dùng mới
           </span>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             {suggestedUsers.map((user) => {
               const isFollowing = followingIds.includes(Number(user.id));
               const displayName = user.fullName || user.username;
@@ -167,7 +167,7 @@ export default function RightSidebar() {
               return (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between gap-2 p-1 -mx-1 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-all duration-200"
+                  className="flex items-center justify-between gap-2 p-1.5 rounded-xl hover:bg-slate-200/60 dark:hover:bg-zinc-800/60 transition-colors"
                 >
                   <Link
                     to={`/profile/${user.id}`}
@@ -188,7 +188,7 @@ export default function RightSidebar() {
                       <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:underline">
                         {displayName}
                       </span>
-                      <span className="text-[10px] text-zinc-400 truncate">
+                      <span className="text-[10px] text-zinc-500 truncate">
                         @{user.username}
                       </span>
                     </div>
@@ -199,7 +199,7 @@ export default function RightSidebar() {
                     onClick={() => handleToggleFollow(user)}
                     className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all duration-150 active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer ${
                       isFollowing
-                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
+                        ? "bg-slate-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
                         : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-2xs"
                     }`}
                   >
