@@ -318,7 +318,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           3-COLUMN INDEPENDENT SCROLLABLE SOCIAL LAYOUT
           (Left Sidebar | Main Feed Center | Right Sidebar)
           ====================================================================== */}
-      <div className="w-full flex-1 h-[calc(100vh-3.5rem)] max-w-7xl mx-auto px-2 sm:px-4 md:px-6 flex justify-center items-stretch gap-4 lg:gap-6 overflow-hidden">
+      <div className="w-full flex-1 h-[calc(100dvh-3.5rem)] max-w-7xl mx-auto px-1.5 sm:px-4 md:px-6 flex justify-center items-stretch gap-4 lg:gap-6 overflow-hidden">
         {/* LEFT COLUMN: Shortcuts & Profile Sidebar (Independent Scrollable Column) */}
         <aside className="hidden xl:block w-64 xl:w-72 shrink-0 h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
           <LeftSidebar />
@@ -328,7 +328,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className="w-full flex-1 max-w-full lg:max-w-[680px] h-full overflow-y-auto custom-scrollbar px-1 sm:px-3 pt-4 pb-28 md:pb-16 flex flex-col gap-4"
+          className="w-full flex-1 max-w-full lg:max-w-[680px] h-full overflow-y-auto custom-scrollbar px-1 sm:px-3 pt-3 sm:pt-4 pb-36 md:pb-16 flex flex-col gap-4"
         >
           {children}
         </main>
@@ -461,7 +461,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <button
           type="button"
           onClick={scrollToTop}
-          className="fixed bottom-28 lg:bottom-8 right-4 lg:right-8 z-40 w-10 h-10 rounded-full bg-white/90 dark:bg-zinc-900/90 text-zinc-700 dark:text-zinc-200 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md flex items-center justify-center hover:scale-110 active:scale-95 transition-all animate-in fade-in zoom-in-90 duration-200 cursor-pointer"
+          className="fixed bottom-32 md:bottom-8 right-4 md:right-8 z-40 w-10 h-10 rounded-full bg-white/95 dark:bg-zinc-900/95 text-zinc-700 dark:text-zinc-200 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md flex items-center justify-center hover:scale-110 active:scale-95 transition-all animate-in fade-in zoom-in-90 duration-200 cursor-pointer"
           title="Cuộn lên đầu trang"
         >
           <ArrowUp className="w-4 h-4 stroke-[2.5]" />
