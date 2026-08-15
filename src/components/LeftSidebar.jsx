@@ -5,6 +5,8 @@ import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
 import friendService from "../services/friendService";
 
+import Logo from "./Logo";
+
 const TRENDING_TAGS = [
   { tag: "#Vinahouse", count: "1.2k" },
   { tag: "#IT", count: "3.4k" },
@@ -50,10 +52,12 @@ export default function LeftSidebar() {
       friendService
         .getFriendCount(currentUserId)
         .then((res) => {
-          setStats((prev) => ({
-            ...prev,
-            friendCount: typeof res.data === "number" ? res.data : res.data?.count || 0,
-          }));
+          if (res.data) {
+            setStats((prev) => ({
+              ...prev,
+              friendCount: res.data.count || 0,
+            }));
+          }
         })
         .catch(() => {});
     }
@@ -61,9 +65,9 @@ export default function LeftSidebar() {
 
   return (
     <div className="w-full flex flex-col gap-4">
-      {/* 1. Shortcut Profile Card */}
+      {/* 1. Profile Shortcut Card hoặc Guest Login Card */}
       {currentUser ? (
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 shadow-sm flex flex-col gap-3">
           <Link
             to={`/profile/${currentUserId}`}
             className="flex items-center gap-3 group"
@@ -72,11 +76,11 @@ export default function LeftSidebar() {
               <img
                 src={currentUser.avatarUrl}
                 alt=""
-                className="w-11 h-11 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 group-hover:scale-105 transition shrink-0 shadow-xs"
+                className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shadow-xs"
               />
             ) : (
               <div
-                className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-xs group-hover:scale-105 transition shrink-0 shadow-xs"
+                className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs shadow-xs"
                 style={{ backgroundColor: currentUser.avatarColor || "#27272a" }}
               >
                 {getInitials(currentUser.fullName || currentUser.username)}
@@ -116,10 +120,8 @@ export default function LeftSidebar() {
           </div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col gap-2.5 text-center">
-          <div className="w-10 h-10 rounded-xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-black text-sm mx-auto shadow-sm">
-            BV
-          </div>
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col gap-2.5 text-center items-center">
+          <Logo size="md" />
           <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
             Chào mừng đến BlogViet!
           </span>

@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import Logo from "./Logo";
+
 function getInitials(name) {
   if (!name) return "?";
   return name
@@ -166,9 +168,7 @@ export default function MobileNavDrawer({
         {/* Drawer Header (Always top-pinned, clean alignment) */}
         <div className="p-4 border-b border-[#e4e6eb] dark:border-[#393a3b] flex items-center justify-between shrink-0 bg-white dark:bg-[#242526]">
           <span className="font-extrabold text-base text-[#050505] dark:text-[#e4e6eb] flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg bg-white dark:bg-black text-black dark:text-white border border-slate-200 dark:border-zinc-800 flex items-center justify-center font-black text-xs shadow-xs">
-              BV
-            </span>
+            <Logo size="sm" />
             BlogViet Menu
           </span>
           <button

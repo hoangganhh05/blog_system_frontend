@@ -4,6 +4,8 @@ import { Loader2, Eye, EyeOff, ArrowRight, User, Mail, Lock, Check } from "lucid
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
 
+import Logo from "../components/Logo";
+
 export default function Register() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -73,12 +75,7 @@ export default function Register() {
       <div className="w-full max-w-md bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 p-7 sm:p-9 shadow-xl z-10 animate-in fade-in zoom-in-95 duration-200">
         {/* Header Form */}
         <div className="flex flex-col items-center text-center mb-6">
-          <Link
-            to="/"
-            className="w-14 h-14 rounded-2xl bg-white dark:bg-black text-black dark:text-white border border-slate-200 dark:border-zinc-800 shadow-md hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center font-black text-2xl tracking-tight select-none"
-          >
-            BV
-          </Link>
+          <Logo size="xl" showGlow={true} />
           <h1 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-4 tracking-tight">
             Tạo tài khoản BlogViet
           </h1>
