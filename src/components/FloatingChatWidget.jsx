@@ -1220,7 +1220,7 @@ export default function FloatingChatWidget() {
                 {/* Privacy & Block Management Link */}
                 <div
                   onClick={() => {
-                    navigate("/security-settings");
+                    navigate("/security");
                     setIsOpen(false);
                   }}
                   className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer group"

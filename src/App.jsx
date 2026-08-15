@@ -144,6 +144,10 @@ function AppContent() {
           <Route path="/games" element={<ProtectedRoute><GamesPage /></ProtectedRoute>} />
           <Route path="/ai-creator" element={<ProtectedRoute><AiCreatorPage /></ProtectedRoute>} />
           <Route path="/security" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
+          <Route path="/settings/privacy" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
+          <Route path="/security-settings" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
+          <Route path="/privacy" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
           <Route path="/saved" element={<ProtectedRoute><SavedPosts /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
