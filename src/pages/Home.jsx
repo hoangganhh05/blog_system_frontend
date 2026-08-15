@@ -226,36 +226,32 @@ export default function Home() {
 
   return (
     <div className="w-full min-h-full flex flex-col">
-      {/* Sticky Top Header with 2 Tabs (Threads / X Style - Full Mobile & Desktop Interactive) */}
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800 mb-3 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
+      {/* Sticky Top Header with 2 Tabs (Threads / X Segmented Pill Style) */}
+      <div className="flex bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 p-1 rounded-2xl mb-3 shrink-0 shadow-xs gap-1">
         <button
           type="button"
           onClick={() => handleTabChange("forYou")}
-          className={`flex-1 py-3 text-center text-xs transition-all relative cursor-pointer select-none ${
+          className={`flex-1 py-2.5 text-center text-xs rounded-xl font-bold transition-all duration-150 cursor-pointer flex items-center justify-center gap-1.5 select-none ${
             activeTab === "forYou"
-              ? "text-zinc-950 dark:text-white font-extrabold"
-              : "text-zinc-400 dark:text-zinc-500 font-medium hover:text-zinc-700 dark:hover:text-zinc-300"
+              ? "bg-white dark:bg-zinc-800 text-black dark:text-white shadow-sm font-extrabold"
+              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-white/50 dark:hover:bg-zinc-800/40"
           }`}
         >
+          <span>✨</span>
           <span>Dành cho bạn</span>
-          {activeTab === "forYou" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-zinc-950 dark:bg-white animate-in fade-in duration-150" />
-          )}
         </button>
 
         <button
           type="button"
           onClick={() => handleTabChange("following")}
-          className={`flex-1 py-3 text-center text-xs transition-all relative cursor-pointer select-none ${
+          className={`flex-1 py-2.5 text-center text-xs rounded-xl font-bold transition-all duration-150 cursor-pointer flex items-center justify-center gap-1.5 select-none ${
             activeTab === "following"
-              ? "text-zinc-950 dark:text-white font-extrabold"
-              : "text-zinc-400 dark:text-zinc-500 font-medium hover:text-zinc-700 dark:hover:text-zinc-300"
+              ? "bg-white dark:bg-zinc-800 text-black dark:text-white shadow-sm font-extrabold"
+              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-white/50 dark:hover:bg-zinc-800/40"
           }`}
         >
+          <span>👥</span>
           <span>Đang theo dõi</span>
-          {activeTab === "following" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-zinc-950 dark:bg-white animate-in fade-in duration-150" />
-          )}
         </button>
       </div>
 
