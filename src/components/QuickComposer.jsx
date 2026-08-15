@@ -116,7 +116,7 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
   if (!currentUser) return null;
 
   return (
-    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs flex gap-3">
+    <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs hover:shadow-xs transition-shadow flex gap-3">
       {/* Avatar */}
       <div className="shrink-0">
         <Avatar

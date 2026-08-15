@@ -891,7 +891,7 @@ export default function Profile() {
       </div>
 
       {/* Tab Content List */}
-      <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900 mt-2">
+      <div key={activeTab} className="animate-tab-fade flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900 mt-2">
         {activeTab === "posts" ? (
           posts.length === 0 ? (
             <div className="p-12 text-center text-zinc-400 text-xs">

@@ -423,7 +423,7 @@ export default function Home() {
       )}
 
       {/* Feed Posts List */}
-      <div className="flex flex-col gap-3.5 mt-1">
+      <div key={activeTab} className="animate-tab-fade flex flex-col gap-3.5 mt-1">
         {loading ? (
           <>
             <PostSkeleton />
