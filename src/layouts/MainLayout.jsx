@@ -175,9 +175,9 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           </div>
         ) : (
           /* STANDARD NAVBAR LAYOUT */
-          <div className="w-full h-14 px-3 sm:px-6 md:px-8 lg:px-12 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="w-full h-14 px-3 sm:px-4 md:px-4 flex items-center justify-between gap-2 sm:gap-4">
             {/* LEFT: Minimalist Logo + Nav Links */}
-            <div className="flex items-center gap-4 sm:gap-6 shrink-0 min-w-0">
+            <div className="flex items-center gap-3 sm:gap-5 shrink-0 min-w-0">
               <Logo size="md" withText={true} />
 
               {/* Desktop Navigation */}
@@ -387,12 +387,12 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       </header>
 
       {/* ======================================================================
-          FULL-WIDTH GRID EXPANSION LAYOUT (1600px Max, 12-Column Grid)
+          EDGE-TO-EDGE FULL-WIDTH GRID LAYOUT (Facebook-style)
           (Left Sidebar: col-span-2 | Main Content: col-span-12 lg:col-span-7 | Right Sidebar: col-span-3)
           ====================================================================== */}
-      <div className="max-w-[1600px] w-full flex-1 min-h-0 h-[calc(100dvh-3.5rem)] mx-auto px-4 grid grid-cols-12 gap-6 overflow-hidden">
+      <div className="w-full flex-1 min-h-0 h-[calc(100dvh-3.5rem)] px-2 sm:px-3 md:px-4 grid grid-cols-12 gap-4 overflow-hidden">
         {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-2, hidden on mobile) */}
-        <aside className="hidden lg:block lg:col-span-2 min-w-0 min-h-0 h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar pt-4 pb-20 select-none">
+        <aside className="hidden lg:block lg:col-span-2 min-w-0 min-h-0 h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar pt-3 pb-20 select-none">
           <LeftSidebar />
         </aside>
 
@@ -400,14 +400,14 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className="col-span-12 lg:col-span-7 min-w-0 min-h-0 w-full h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar px-1 sm:px-2 pt-3 sm:pt-4 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y"
+          className="col-span-12 lg:col-span-7 min-w-0 min-h-0 w-full h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar px-1 sm:px-2 pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {children}
         </main>
 
         {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, hidden on mobile) */}
-        <aside className="hidden lg:block lg:col-span-3 min-w-0 min-h-0 h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar pt-4 pb-20 select-none">
+        <aside className="hidden lg:block lg:col-span-3 min-w-0 min-h-0 h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar pt-3 pb-20 select-none">
           <RightSidebar />
         </aside>
       </div>
