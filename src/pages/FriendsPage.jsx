@@ -109,148 +109,94 @@ export default function FriendsPage() {
         </div>
       </div>
 
-      {/* Tabs Switcher */}
-      <div className="flex items-center gap-2 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 overflow-x-auto no-scrollbar">
-        <button
-          type="button"
-          onClick={() => setActiveTab("friends")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition relative cursor-pointer ${
-            activeTab === "friends"
-              ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
-              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
-          }`}
-        >
-          Bạn bè ({friends.length})
-          {activeTab === "friends" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
-          )}
-        </button>
+      {/* Elevated White Content Card */}
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl shadow-sm p-4 sm:p-6 flex flex-col gap-4">
+        {/* Tabs Switcher */}
+        <div className="flex items-center gap-2 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 overflow-x-auto no-scrollbar">
+          <button
+            type="button"
+            onClick={() => setActiveTab("friends")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition relative cursor-pointer ${
+              activeTab === "friends"
+                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+            }`}
+          >
+            Bạn bè ({friends.length})
+            {activeTab === "friends" && (
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
+            )}
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab("requests")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition relative cursor-pointer flex items-center gap-1.5 ${
-            activeTab === "requests"
-              ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
-              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
-          }`}
-        >
-          Lời mời kết bạn
-          {pendingRequests.length > 0 && (
-            <span className="px-1.5 py-0.2 text-[10px] rounded-full bg-rose-500 text-white font-bold">
-              {pendingRequests.length}
-            </span>
-          )}
-          {activeTab === "requests" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
-          )}
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("requests")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition relative cursor-pointer flex items-center gap-1.5 ${
+              activeTab === "requests"
+                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+            }`}
+          >
+            Lời mời kết bạn
+            {pendingRequests.length > 0 && (
+              <span className="px-1.5 py-0.2 text-[10px] rounded-full bg-rose-500 text-white font-bold">
+                {pendingRequests.length}
+              </span>
+            )}
+            {activeTab === "requests" && (
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
+            )}
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab("suggestions")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition relative cursor-pointer ${
-            activeTab === "suggestions"
-              ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
-              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
-          }`}
-        >
-          Gợi ý ({suggestions.length})
-          {activeTab === "suggestions" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
-          )}
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab("suggestions")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition relative cursor-pointer ${
+              activeTab === "suggestions"
+                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+            }`}
+          >
+            Gợi ý ({suggestions.length})
+            {activeTab === "suggestions" && (
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
+            )}
+          </button>
+        </div>
 
-      {/* Content List */}
-      <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900">
-        {loading ? (
-          <div className="p-12 text-center flex justify-center text-zinc-400">
-            <Loader2 className="w-6 h-6 animate-spin" />
-          </div>
-        ) : activeTab === "friends" ? (
-          friends.length === 0 ? (
-            <div className="p-16 text-center text-zinc-400 text-xs">
-              Bạn chưa có bạn bè nào. Hãy xem phần Gợi ý để kết bạn nhé!
+        {/* Content List */}
+        <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800/60">
+          {loading ? (
+            <div className="p-12 text-center flex justify-center text-zinc-400">
+              <Loader2 className="w-6 h-6 animate-spin" />
             </div>
-          ) : (
-            friends.map((friend) => (
-              <div key={friend.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition rounded-xl">
-                <Link to={`/profile/${friend.id}`} className="flex items-center gap-3 min-w-0">
-                  <Avatar
-                    userId={friend.id}
-                    src={friend.avatarUrl}
-                    name={friend.fullName || friend.username}
-                    username={friend.username}
-                    avatarColor={friend.avatarColor}
-                    size="md"
-                    isOnline={friend.isOnline}
-                    lastActiveAt={friend.lastActiveAt}
-                    showActiveStatus={friend.showActiveStatus}
-                    className="shrink-0"
-                  />
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-bold text-sm text-zinc-900 dark:text-white truncate">
-                      {friend.fullName || friend.username}
-                    </span>
-                    <span className="text-xs text-zinc-400 truncate">
-                      {formatLastActive(friend) || `@${friend.username}`}
-                    </span>
-                  </div>
-                </Link>
-
-                <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      window.dispatchEvent(
-                        new CustomEvent("open_chat_user", { detail: { friend } })
-                      );
-                    }}
-                    className="p-2 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
-                    title="Nhắn tin"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                  </button>
-                  <Link
-                    to={`/profile/${friend.id}`}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200"
-                  >
-                    Trang cá nhân
-                  </Link>
-                </div>
+          ) : activeTab === "friends" ? (
+            friends.length === 0 ? (
+              <div className="p-16 text-center text-zinc-400 text-xs">
+                Bạn chưa có bạn bè nào. Hãy xem phần Gợi ý để kết bạn nhé!
               </div>
-            ))
-          )
-        ) : activeTab === "requests" ? (
-          pendingRequests.length === 0 ? (
-            <div className="p-16 text-center text-zinc-400 text-xs">
-              Không có lời mời kết bạn nào đang chờ.
-            </div>
-          ) : (
-            pendingRequests.map((req) => {
-              const requester = req.requester || {};
-              return (
-                <div key={req.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition rounded-xl">
-                  <Link to={`/profile/${requester.id}`} className="flex items-center gap-3 min-w-0">
-                  <Avatar
-                    userId={requester.id}
-                    src={requester.avatarUrl}
-                    name={requester.fullName || requester.username}
-                    username={requester.username}
-                    avatarColor={requester.avatarColor}
-                    size="md"
-                    isOnline={requester.isOnline}
-                    lastActiveAt={requester.lastActiveAt}
-                    showActiveStatus={requester.showActiveStatus}
-                    className="shrink-0"
-                  />
+            ) : (
+              friends.map((friend) => (
+                <div key={friend.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition rounded-xl">
+                  <Link to={`/profile/${friend.id}`} className="flex items-center gap-3 min-w-0">
+                    <Avatar
+                      userId={friend.id}
+                      src={friend.avatarUrl}
+                      name={friend.fullName || friend.username}
+                      username={friend.username}
+                      avatarColor={friend.avatarColor}
+                      size="md"
+                      isOnline={friend.isOnline}
+                      lastActiveAt={friend.lastActiveAt}
+                      showActiveStatus={friend.showActiveStatus}
+                      className="shrink-0"
+                    />
                     <div className="flex flex-col min-w-0">
                       <span className="font-bold text-sm text-zinc-900 dark:text-white truncate">
-                        {requester.fullName || requester.username}
+                        {friend.fullName || friend.username}
                       </span>
                       <span className="text-xs text-zinc-400 truncate">
-                        {formatLastActive(requester) || `@${requester.username}`}
+                        {formatLastActive(friend) || `@${friend.username}`}
                       </span>
                     </div>
                   </Link>
@@ -258,66 +204,123 @@ export default function FriendsPage() {
                   <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                     <button
                       type="button"
-                      onClick={() => handleAcceptRequest(req.id || requester.id)}
-                      className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#0866ff] hover:bg-[#0756d6] text-white cursor-pointer active:scale-95 shadow-xs"
+                      onClick={() => {
+                        window.dispatchEvent(
+                          new CustomEvent("open_chat_user", { detail: { friend } })
+                        );
+                      }}
+                      className="p-2 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+                      title="Nhắn tin"
                     >
-                      Chấp nhận
+                      <MessageCircle className="w-4 h-4" />
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeclineRequest(req.id || requester.id)}
-                      className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 cursor-pointer active:scale-95"
+                    <Link
+                      to={`/profile/${friend.id}`}
+                      className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200"
                     >
-                      Xóa
-                    </button>
+                      Trang cá nhân
+                    </Link>
                   </div>
                 </div>
-              );
-            })
-          )
-        ) : (
-          suggestions.length === 0 ? (
-            <div className="p-16 text-center text-zinc-400 text-xs">
-              Chưa có gợi ý nào mới.
-            </div>
-          ) : (
-            suggestions.map((sug) => (
-              <div key={sug.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition rounded-xl">
-                <Link to={`/profile/${sug.id}`} className="flex items-center gap-3 min-w-0">
-                  <Avatar
-                    userId={sug.id}
-                    src={sug.avatarUrl}
-                    name={sug.fullName || sug.username}
-                    username={sug.username}
-                    avatarColor={sug.avatarColor}
-                    size="md"
-                    isOnline={sug.isOnline}
-                    lastActiveAt={sug.lastActiveAt}
-                    showActiveStatus={sug.showActiveStatus}
-                    className="shrink-0"
-                  />
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-bold text-sm text-zinc-900 dark:text-white truncate">
-                      {sug.fullName || sug.username}
-                    </span>
-                    <span className="text-xs text-zinc-400 truncate">
-                      {formatLastActive(sug) || `@${sug.username}`}
-                    </span>
-                  </div>
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={() => handleSendRequest(sug.id)}
-                  className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#0866ff] hover:bg-[#0756d6] text-white flex items-center gap-1.5 self-end sm:self-auto shrink-0 cursor-pointer active:scale-95 shadow-xs"
-                >
-                  <UserPlus className="w-3.5 h-3.5" />
-                  <span>Kết bạn</span>
-                </button>
+              ))
+            )
+          ) : activeTab === "requests" ? (
+            pendingRequests.length === 0 ? (
+              <div className="p-16 text-center text-zinc-400 text-xs">
+                Không có lời mời kết bạn nào đang chờ.
               </div>
-            ))
-          )
-        )}
+            ) : (
+              pendingRequests.map((req) => {
+                const requester = req.requester || {};
+                return (
+                  <div key={req.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition rounded-xl">
+                    <Link to={`/profile/${requester.id}`} className="flex items-center gap-3 min-w-0">
+                    <Avatar
+                      userId={requester.id}
+                      src={requester.avatarUrl}
+                      name={requester.fullName || requester.username}
+                      username={requester.username}
+                      avatarColor={requester.avatarColor}
+                      size="md"
+                      isOnline={requester.isOnline}
+                      lastActiveAt={requester.lastActiveAt}
+                      showActiveStatus={requester.showActiveStatus}
+                      className="shrink-0"
+                    />
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-bold text-sm text-zinc-900 dark:text-white truncate">
+                          {requester.fullName || requester.username}
+                        </span>
+                        <span className="text-xs text-zinc-400 truncate">
+                          {formatLastActive(requester) || `@${requester.username}`}
+                        </span>
+                      </div>
+                    </Link>
+
+                    <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleAcceptRequest(req.id || requester.id)}
+                        className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#0866ff] hover:bg-[#0756d6] text-white cursor-pointer active:scale-95 shadow-xs"
+                      >
+                        Chấp nhận
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeclineRequest(req.id || requester.id)}
+                        className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 cursor-pointer active:scale-95"
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )
+          ) : (
+            suggestions.length === 0 ? (
+              <div className="p-16 text-center text-zinc-400 text-xs">
+                Chưa có gợi ý nào mới.
+              </div>
+            ) : (
+              suggestions.map((sug) => (
+                <div key={sug.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition rounded-xl">
+                  <Link to={`/profile/${sug.id}`} className="flex items-center gap-3 min-w-0">
+                    <Avatar
+                      userId={sug.id}
+                      src={sug.avatarUrl}
+                      name={sug.fullName || sug.username}
+                      username={sug.username}
+                      avatarColor={sug.avatarColor}
+                      size="md"
+                      isOnline={sug.isOnline}
+                      lastActiveAt={sug.lastActiveAt}
+                      showActiveStatus={sug.showActiveStatus}
+                      className="shrink-0"
+                    />
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-bold text-sm text-zinc-900 dark:text-white truncate">
+                        {sug.fullName || sug.username}
+                      </span>
+                      <span className="text-xs text-zinc-400 truncate">
+                        {formatLastActive(sug) || `@${sug.username}`}
+                      </span>
+                    </div>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSendRequest(sug.id)}
+                    className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#0866ff] hover:bg-[#0756d6] text-white flex items-center gap-1.5 self-end sm:self-auto shrink-0 cursor-pointer active:scale-95 shadow-xs"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>Kết bạn</span>
+                  </button>
+                </div>
+              ))
+            )
+          )}
+        </div>
       </div>
     </div>
   );
