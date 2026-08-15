@@ -44,6 +44,10 @@ const userService = {
     return axiosClient.post("/users/offline");
   },
 
+  updateActiveStatus(showActiveStatus) {
+    return axiosClient.put("/users/active-status", { showActiveStatus });
+  },
+
   register(userData) {
     return axiosClient.post("/auth/register", {
       username: userData.username,

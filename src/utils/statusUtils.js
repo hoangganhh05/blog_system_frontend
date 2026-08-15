@@ -33,7 +33,8 @@ export function setUserActiveStatusEnabled(userId, enabled) {
     localStorage.setItem(`active_status_disabled_${userId}`, enabled ? "false" : "true");
   }
 
-  // Real-time Backend Sync: Phát tín hiệu online hoặc offline tức thì lên Server
+  // Real-time Backend Sync: Phát tín hiệu cập nhật Database và online/offline tức thì
+  userService.updateActiveStatus(enabled).catch(() => {});
   if (enabled) {
     userService.heartbeat().catch(() => {});
   } else {
