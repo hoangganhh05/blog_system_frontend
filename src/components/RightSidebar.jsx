@@ -35,7 +35,6 @@ export default function RightSidebar() {
       .catch(() => {})
       .finally(() => setLoading(false));
 
-    // Load following IDs from Database
     if (currentUserId) {
       followService
         .getFollowingIds(currentUserId)
@@ -47,30 +46,75 @@ export default function RightSidebar() {
     }
   }, [currentUserId]);
 
+  // Sync follow state across components
+  useEffect(() => {
+    const handleFollowChange = (e) => {
+      const { targetUserId, isFollowing } = e.detail || {};
+      if (!targetUserId) return;
+      setFollowingIds((prev) => {
+        const idNum = Number(targetUserId);
+        if (isFollowing) {
+          return prev.includes(idNum) ? prev : [...prev, idNum];
+        } else {
+          return prev.filter((id) => id !== idNum);
+        }
+      });
+    };
+
+    window.addEventListener("follow_state_changed", handleFollowChange);
+    return () => window.removeEventListener("follow_state_changed", handleFollowChange);
+  }, []);
+
   const handleToggleFollow = async (targetUser) => {
     if (!currentUserId) {
       toast.error("Vui lòng đăng nhập để theo dõi!");
       return;
     }
 
-    const isFollowing = followingIds.includes(Number(targetUser.id));
+    const targetIdNum = Number(targetUser.id);
+    const isFollowing = followingIds.includes(targetIdNum);
     const targetName = targetUser.fullName || targetUser.username;
 
+    // 1. Optimistic Update (Immediate UI response)
     if (isFollowing) {
+      setFollowingIds((prev) => prev.filter((id) => id !== targetIdNum));
+      toast.info(`Đã hủy theo dõi ${targetName}`);
+      window.dispatchEvent(
+        new CustomEvent("follow_state_changed", {
+          detail: { targetUserId: targetIdNum, isFollowing: false },
+        })
+      );
       try {
         await followService.unfollowUser(targetUser.id);
-        setFollowingIds((prev) => prev.filter((id) => id !== Number(targetUser.id)));
-        toast.info(`Đã hủy theo dõi ${targetName}`);
       } catch {
+        // Rollback
+        setFollowingIds((prev) => [...prev, targetIdNum]);
         toast.error("Không thể hủy theo dõi!");
+        window.dispatchEvent(
+          new CustomEvent("follow_state_changed", {
+            detail: { targetUserId: targetIdNum, isFollowing: true },
+          })
+        );
       }
     } else {
+      setFollowingIds((prev) => [...prev, targetIdNum]);
+      toast.success(`Đang theo dõi ${targetName}!`);
+      window.dispatchEvent(
+        new CustomEvent("follow_state_changed", {
+          detail: { targetUserId: targetIdNum, isFollowing: true },
+        })
+      );
       try {
         await followService.followUser(targetUser.id);
-        setFollowingIds((prev) => [...prev, Number(targetUser.id)]);
-        toast.success(`Đang theo dõi ${targetName}!`);
       } catch {
+        // Rollback
+        setFollowingIds((prev) => prev.filter((id) => id !== targetIdNum));
         toast.error("Không thể theo dõi!");
+        window.dispatchEvent(
+          new CustomEvent("follow_state_changed", {
+            detail: { targetUserId: targetIdNum, isFollowing: false },
+          })
+        );
       }
     }
   };

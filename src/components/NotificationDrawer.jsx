@@ -225,6 +225,7 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
         top: "calc(100% + 10px)",
         right: 12,
         width: 360,
+        maxWidth: "calc(100vw - 24px)",
         maxHeight: 480,
         background: "var(--bg-card)",
         borderRadius: 18,

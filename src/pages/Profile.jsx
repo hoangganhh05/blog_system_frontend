@@ -393,10 +393,17 @@ export default function Profile() {
 
     const prevFollowing = isFollowing;
     const prevCount = followerCount;
+    const nextFollowing = !prevFollowing;
 
-    setIsFollowing(!prevFollowing);
+    setIsFollowing(nextFollowing);
     setFollowerCount(prevFollowing ? Math.max(0, prevCount - 1) : prevCount + 1);
     setFollowLoading(true);
+
+    window.dispatchEvent(
+      new CustomEvent("follow_state_changed", {
+        detail: { targetUserId: Number(targetUserId), isFollowing: nextFollowing },
+      })
+    );
 
     try {
       if (prevFollowing) {
@@ -410,6 +417,11 @@ export default function Profile() {
       setIsFollowing(prevFollowing);
       setFollowerCount(prevCount);
       toast.error("Không thể thay đổi trạng thái theo dõi lúc này!");
+      window.dispatchEvent(
+        new CustomEvent("follow_state_changed", {
+          detail: { targetUserId: Number(targetUserId), isFollowing: prevFollowing },
+        })
+      );
     } finally {
       setFollowLoading(false);
     }

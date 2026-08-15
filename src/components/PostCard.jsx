@@ -508,7 +508,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
               }`}
               title={liked ? "Bỏ thích" : "Thích bài viết"}
             >
-              <div className="relative p-1.5 rounded-full hover:bg-rose-50 dark:hover:bg-rose-950/30 transition flex items-center justify-center">
+              <div className="relative p-2 min-w-[38px] min-h-[38px] rounded-full hover:bg-rose-50 dark:hover:bg-rose-950/30 transition flex items-center justify-center">
                 <Heart
                   strokeWidth={1.8}
                   className={`w-4 h-4 transition duration-150 ${
@@ -528,7 +528,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                   e.stopPropagation();
                   setIsReactionsModalOpen(true);
                 }}
-                className="text-xs text-zinc-500 dark:text-zinc-400 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer font-semibold px-1 py-0.5"
+                className="text-xs text-zinc-500 dark:text-zinc-400 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer font-semibold px-1.5 py-1 min-h-[36px] flex items-center"
               >
                 {likeCount}
               </button>
@@ -557,7 +557,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
             className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
             title="Bình luận"
           >
-            <div className="p-1.5 rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
+            <div className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
               <MessageCircle strokeWidth={1.8} className="w-4 h-4" />
             </div>
             <span>{commentCount > 0 ? commentCount : ""}</span>
@@ -573,7 +573,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
             className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
             title="Chia sẻ"
           >
-            <div className="p-1.5 rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
+            <div className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
               <Repeat strokeWidth={1.8} className="w-4 h-4" />
             </div>
           </button>
@@ -587,7 +587,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
             }`}
             title="Lưu bài viết"
           >
-            <div className="p-1.5 rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
+            <div className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
               <Bookmark strokeWidth={1.8} className={`w-4 h-4 transition ${bookmarked ? "fill-black dark:fill-white" : ""}`} />
             </div>
           </button>

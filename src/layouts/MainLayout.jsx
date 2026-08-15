@@ -121,7 +121,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   ];
 
   return (
-    <div className="w-full h-screen max-h-screen bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col overflow-hidden transition-colors duration-200">
+    <div className="w-full h-[100dvh] max-h-[100dvh] bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col overflow-hidden transition-colors duration-200">
       {/* ======================================================================
           STICKY TOP HEADER (h-14, Full-width Fluid Navbar, Crisp border-b)
           ====================================================================== */}
@@ -135,7 +135,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 setMobileSearchOpen(false);
                 setSearchQuery("");
               }}
-              className="p-2 rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer shrink-0"
+              className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer shrink-0"
               title="Đóng tìm kiếm"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -156,7 +156,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition"
                   title="Xóa chữ"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -168,16 +168,16 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               type="button"
               onClick={handleSearchSubmit}
               disabled={!searchQuery.trim()}
-              className="px-3.5 py-1.5 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition disabled:opacity-40 shrink-0 cursor-pointer shadow-xs"
+              className="px-4 py-2 min-h-[38px] rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition disabled:opacity-40 shrink-0 cursor-pointer shadow-xs"
             >
               Tìm
             </button>
           </div>
         ) : (
           /* STANDARD NAVBAR LAYOUT */
-          <div className="w-full h-14 px-4 sm:px-6 md:px-8 lg:px-12 flex items-center justify-between gap-4">
+          <div className="w-full h-14 px-3 sm:px-6 md:px-8 lg:px-12 flex items-center justify-between gap-2 sm:gap-4">
             {/* LEFT: Minimalist Logo + Nav Links */}
-            <div className="flex items-center gap-6 shrink-0">
+            <div className="flex items-center gap-4 sm:gap-6 shrink-0 min-w-0">
               <Logo size="md" withText={true} />
 
               {/* Desktop Navigation */}
@@ -217,7 +217,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
             </form>
 
             {/* RIGHT: Actions */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {/* Mobile Search Button (Visible only on small screens) */}
               <button
                 type="button"
@@ -225,7 +225,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                   setMobileSearchOpen(true);
                   setTimeout(() => mobileSearchInputRef.current?.focus(), 50);
                 }}
-                className="sm:hidden p-2 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                className="sm:hidden p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
                 title="Tìm kiếm bài viết, tác giả"
               >
                 <Search strokeWidth={2} className="w-4 h-4" />
@@ -235,7 +235,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
+                className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 min-h-[36px] sm:min-h-[38px] rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
               >
                 <Plus strokeWidth={2.5} className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Đăng bài</span>
@@ -248,7 +248,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                   window.dispatchEvent(new CustomEvent("close_chat_widget"));
                   setIsAiModalOpen(true);
                 }}
-                className="p-2 rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer"
+                className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer"
                 title="Trợ lý AI BlogViet (Gemini 3.7 Flash)"
               >
                 <Sparkles strokeWidth={2} className="w-4 h-4" />
@@ -258,7 +258,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               <NavLink
                 to="/notifications"
                 className={({ isActive }) =>
-                  `relative p-2 rounded-full transition ${
+                  `relative p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-full transition ${
                     isActive
                       ? "text-black dark:text-white bg-zinc-100 dark:bg-zinc-800"
                       : "text-zinc-500 hover:text-black dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -268,7 +268,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               >
                 <Bell strokeWidth={1.8} className="w-4 h-4" />
                 {unreadNotifs > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-zinc-900" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-zinc-900" />
                 )}
               </NavLink>
 
@@ -277,7 +277,8 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen((v) => !v)}
-                className="flex items-center gap-1 p-0.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                className="flex items-center gap-1 p-1 min-w-[40px] min-h-[40px] justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                title="Tài khoản cá nhân"
               >
                 <Avatar
                   userId={currentUserId}
@@ -292,12 +293,12 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               </button>
 
               {profileMenuOpen && (
-                <div className="absolute right-0 top-10 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg p-1.5 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute right-0 top-12 w-56 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-1.5 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
                   {/* User Profile header */}
                   <Link
                     to={`/profile/${currentUserId}`}
                     onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+                    className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
                   >
                     <Avatar
                       userId={currentUserId}
@@ -322,7 +323,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                   <Link
                     to={`/profile/${currentUserId}`}
                     onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
                   >
                     <User className="w-4 h-4 text-zinc-500" /> Hồ sơ cá nhân
                   </Link>
@@ -330,7 +331,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                   <Link
                     to="/security"
                     onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
                   >
                     <Settings className="w-4 h-4 text-zinc-500" /> Cài đặt & Bảo mật
                   </Link>
@@ -338,7 +339,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                   <button
                     type="button"
                     onClick={() => { onToggleTheme?.(); setProfileMenuOpen(false); }}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
                   >
                     {isDark ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-zinc-500" />}
                     {isDark ? "Chế độ Sáng" : "Chế độ Tối"}
@@ -349,7 +350,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                   <button
                     type="button"
                     onClick={() => { logout(); navigate("/login"); }}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition w-full text-left cursor-pointer"
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition w-full text-left cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" /> Đăng xuất
                   </button>
@@ -362,7 +363,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
-                className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
                 title="Mở menu đầy đủ"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -387,7 +388,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           3-COLUMN INDEPENDENT SCROLLABLE SOCIAL LAYOUT
           (Left Sidebar | Main Feed Center | Right Sidebar)
           ====================================================================== */}
-      <div className="w-full flex-1 min-h-0 h-[calc(100vh-3.5rem)] max-w-7xl mx-auto px-1.5 sm:px-4 md:px-6 flex justify-center items-stretch gap-4 lg:gap-6 overflow-hidden">
+      <div className="w-full flex-1 min-h-0 h-[calc(100dvh-3.5rem)] max-w-7xl mx-auto px-1.5 sm:px-4 md:px-6 flex justify-center items-stretch gap-4 lg:gap-6 overflow-hidden">
         {/* LEFT COLUMN: Shortcuts & Profile Sidebar (Independent Scrollable Column) */}
         <aside className="hidden xl:block w-64 xl:w-72 shrink-0 min-h-0 h-full max-h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
           <LeftSidebar />
@@ -397,7 +398,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className="w-full flex-1 min-h-0 max-w-full lg:max-w-[680px] h-full max-h-full overflow-y-auto custom-scrollbar px-1 sm:px-3 pt-3 sm:pt-4 pb-36 md:pb-16 flex flex-col gap-4"
+          className="w-full flex-1 min-h-0 max-w-full lg:max-w-[680px] h-full max-h-full overflow-y-auto custom-scrollbar px-1 sm:px-3 pt-3 sm:pt-4 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4"
         >
           {children}
         </main>
@@ -416,15 +417,15 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       </div>
 
       {/* ======================================================================
-          MOBILE BOTTOM NAVIGATION (Fixed Instagram-style, md:hidden)
+          MOBILE BOTTOM NAVIGATION (Fixed Instagram-style, md:hidden with Safe Area)
           ====================================================================== */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 h-14 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-t border-[#e4e6eb] dark:border-[#393a3b] flex items-center justify-around px-2 md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 min-h-14 h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-t border-[#e4e6eb] dark:border-[#393a3b] flex items-center justify-around px-1 md:hidden">
         {/* 1. Trang chủ */}
         <NavLink
           to="/"
           end
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center p-2 transition ${
+            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition ${
               isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
             }`
           }
@@ -437,7 +438,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <NavLink
           to="/trending"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center p-2 transition ${
+            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition ${
               isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
             }`
           }
@@ -456,7 +457,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               setIsCreateModalOpen(true);
             }
           }}
-          className="w-10 h-10 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white flex items-center justify-center shadow-md active:scale-95 transition cursor-pointer"
+          className="w-11 h-11 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white flex items-center justify-center shadow-md active:scale-95 transition cursor-pointer shrink-0"
           title="Tạo bài viết mới"
         >
           <Plus strokeWidth={2.5} className="w-5 h-5" />
@@ -466,7 +467,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <NavLink
           to="/notifications"
           className={({ isActive }) =>
-            `relative flex flex-col items-center justify-center p-2 transition ${
+            `relative flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition ${
               isActive ? "text-black dark:text-white font-bold" : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
             }`
           }
@@ -476,7 +477,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
             <>
               <Bell strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5" />
               {unreadNotifs > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
+                <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
               )}
             </>
           )}
@@ -486,7 +487,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <NavLink
           to={currentUserId ? `/profile/${currentUserId}` : "/login"}
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center p-0.5 rounded-full transition ${
+            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1 rounded-full transition ${
               isActive ? "ring-2 ring-black dark:ring-white" : ""
             }`
           }
@@ -524,7 +525,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <button
           type="button"
           onClick={scrollToTop}
-          className="fixed bottom-32 md:bottom-8 right-4 md:right-8 z-40 w-10 h-10 rounded-full bg-white/95 dark:bg-zinc-900/95 text-zinc-700 dark:text-zinc-200 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md flex items-center justify-center hover:scale-110 active:scale-95 transition-all animate-in fade-in zoom-in-90 duration-200 cursor-pointer"
+          className="fixed bottom-32 md:bottom-8 right-4 md:right-8 z-40 w-11 h-11 rounded-full bg-white/95 dark:bg-zinc-900/95 text-zinc-700 dark:text-zinc-200 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md flex items-center justify-center hover:scale-110 active:scale-95 transition-all animate-in fade-in zoom-in-90 duration-200 cursor-pointer"
           title="Cuộn lên đầu trang"
         >
           <ArrowUp className="w-4 h-4 stroke-[2.5]" />

@@ -72,7 +72,7 @@ function StoryBar() {
 
   return (
     <div className="w-full bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-3 mb-4 shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1 scroll-smooth">
+      <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1 scroll-smooth touch-pan-x overscroll-x-contain">
         {/* 1. THẺ TẠO TIN (DẠNG DỌC CHUẨN FACEBOOK/INSTAGRAM) */}
         {currentUser && (
           <button

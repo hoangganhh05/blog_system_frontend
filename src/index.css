@@ -34,13 +34,22 @@ html.dark {
 }
 
 /* ============================================
-   ROOT & BASE CONTAINER RESETS (FULL WIDTH)
+   ROOT & BASE CONTAINER RESETS (FULL WIDTH & SAFE AREAS)
    ============================================ */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
 html,
 body,
 #root {
   width: 100% !important;
+  max-width: 100% !important;
   height: 100% !important;
+  min-height: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
   overflow: hidden !important;
@@ -62,7 +71,8 @@ html {
 
 body {
   font-family: "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
-  overflow-x: hidden;
+  overflow-x: hidden !important;
+  max-width: 100vw;
   position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

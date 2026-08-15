@@ -240,12 +240,12 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
 
         {/* Footer Toolbar & Submit Button */}
         <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-3 bg-zinc-50/50 dark:bg-zinc-900/50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
+          <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition cursor-pointer"
+                className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition cursor-pointer"
                 title="Đính kèm ảnh"
               >
                 <Image className="w-4 h-4" />
@@ -263,7 +263,7 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="text-xs bg-zinc-200/70 dark:bg-zinc-800 border-none rounded-full px-3 py-1 text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer"
+                  className="text-xs min-h-[38px] bg-zinc-200/70 dark:bg-zinc-800 border-none rounded-full px-3.5 py-1.5 text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer font-medium"
                 >
                   <option value="">Chủ đề...</option>
                   {categories.map((c) => (
@@ -279,7 +279,7 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
               type="button"
               onClick={handleAiRefine}
               disabled={!content.trim() || isAiGenerating}
-              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition font-medium cursor-pointer"
+              className="flex items-center gap-1.5 text-xs min-h-[38px] px-3.5 py-1.5 rounded-full bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition font-medium cursor-pointer"
               title="Nhờ AI viết hay hơn"
             >
               {isAiGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
@@ -291,7 +291,7 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
             type="button"
             onClick={handleSubmit}
             disabled={(!content.trim() && images.length === 0) || isSubmitting || isUploading}
-            className="w-full py-2.5 rounded-full text-xs font-semibold text-white dark:text-black bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full py-3 min-h-[44px] rounded-full text-xs font-bold text-white dark:text-black bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : editPost ? "Lưu thay đổi" : "Đăng bài"}
           </button>

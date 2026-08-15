@@ -102,6 +102,25 @@ export default function Home() {
     loadFollowingList();
   }, [loadFollowingList]);
 
+  // Sync follow state across components
+  useEffect(() => {
+    const handleFollowChange = (e) => {
+      const { targetUserId, isFollowing } = e.detail || {};
+      if (!targetUserId) return;
+      setFollowingIds((prev) => {
+        const idNum = Number(targetUserId);
+        if (isFollowing) {
+          return prev.includes(idNum) ? prev : [...prev, idNum];
+        } else {
+          return prev.filter((id) => id !== idNum);
+        }
+      });
+    };
+
+    window.addEventListener("follow_state_changed", handleFollowChange);
+    return () => window.removeEventListener("follow_state_changed", handleFollowChange);
+  }, []);
+
   // Fetch suggested friends
   useEffect(() => {
     userService
@@ -114,31 +133,57 @@ export default function Home() {
       .catch(() => {});
   }, [currentUserId]);
 
-  // Toggle follow/unfollow saved permanently to Database
+  // Toggle follow/unfollow with Optimistic UI
   const handleToggleFollow = async (targetUser) => {
     if (!currentUserId) {
       toast.error("Vui lòng đăng nhập để theo dõi tác giả này!");
       return;
     }
 
-    const isCurrentlyFollowing = followingIds.includes(Number(targetUser.id));
+    const targetIdNum = Number(targetUser.id);
+    const isCurrentlyFollowing = followingIds.includes(targetIdNum);
     const targetName = targetUser.fullName || targetUser.username;
 
+    // 1. Optimistic Update (Immediate UI response)
     if (isCurrentlyFollowing) {
+      setFollowingIds((prev) => prev.filter((id) => id !== targetIdNum));
+      toast.info(`Đã hủy theo dõi ${targetName}`);
+      window.dispatchEvent(
+        new CustomEvent("follow_state_changed", {
+          detail: { targetUserId: targetIdNum, isFollowing: false },
+        })
+      );
       try {
         await followService.unfollowUser(targetUser.id);
-        setFollowingIds((prev) => prev.filter((id) => id !== Number(targetUser.id)));
-        toast.info(`Đã hủy theo dõi ${targetName}`);
       } catch {
+        // Rollback
+        setFollowingIds((prev) => [...prev, targetIdNum]);
         toast.error("Không thể hủy theo dõi lúc này!");
+        window.dispatchEvent(
+          new CustomEvent("follow_state_changed", {
+            detail: { targetUserId: targetIdNum, isFollowing: true },
+          })
+        );
       }
     } else {
+      setFollowingIds((prev) => [...prev, targetIdNum]);
+      toast.success(`Đang theo dõi ${targetName}!`);
+      window.dispatchEvent(
+        new CustomEvent("follow_state_changed", {
+          detail: { targetUserId: targetIdNum, isFollowing: true },
+        })
+      );
       try {
         await followService.followUser(targetUser.id);
-        setFollowingIds((prev) => [...prev, Number(targetUser.id)]);
-        toast.success(`Đang theo dõi ${targetName}!`);
       } catch {
+        // Rollback
+        setFollowingIds((prev) => prev.filter((id) => id !== targetIdNum));
         toast.error("Không thể theo dõi lúc này!");
+        window.dispatchEvent(
+          new CustomEvent("follow_state_changed", {
+            detail: { targetUserId: targetIdNum, isFollowing: false },
+          })
+        );
       }
     }
   };
@@ -347,7 +392,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => handleToggleFollow(user)}
-                    className={`w-full py-1 rounded-full text-[11px] font-semibold flex items-center justify-center gap-1 transition cursor-pointer ${
+                    className={`w-full py-2 min-h-[38px] rounded-full text-[11px] font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                       isFollowing
                         ? "bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-rose-100 dark:hover:bg-rose-950/40 hover:text-rose-600"
                         : "bg-black text-white dark:bg-white dark:text-black hover:opacity-90 active:scale-95 shadow-xs"
@@ -355,12 +400,12 @@ export default function Home() {
                   >
                     {isFollowing ? (
                       <>
-                        <Check className="w-3 h-3 text-emerald-500" />
+                        <Check className="w-3.5 h-3.5 text-emerald-500" />
                         <span>Đang theo dõi</span>
                       </>
                     ) : (
                       <>
-                        <UserPlus className="w-3 h-3" />
+                        <UserPlus className="w-3.5 h-3.5" />
                         <span>Theo dõi</span>
                       </>
                     )}
