@@ -1,5 +1,6 @@
+import { Link } from "react-router-dom";
 import { useMusic } from "../context/MusicContext";
-import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Disc3, Radio } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Disc3, Radio, ExternalLink } from "lucide-react";
 
 export default function MiniMusicPlayer() {
   const {
@@ -40,15 +41,23 @@ export default function MiniMusicPlayer() {
           <div className="absolute -top-12 -right-12 w-28 h-28 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-2xl pointer-events-none" />
         )}
 
-        {/* Header Tag */}
+        {/* Header Tag with Link to Full Radio */}
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">
+          <Link
+            to="/radio"
+            className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition group/link"
+            title="Mở phòng nghe nhạc Radio toàn màn hình"
+          >
             <Radio className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
             <span>Mini Music Player</span>
-          </div>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+            <ExternalLink className="w-3 h-3 text-zinc-400 group-hover/link:text-indigo-500 opacity-0 group-hover/link:opacity-100 transition" />
+          </Link>
+          <Link
+            to="/radio"
+            className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+          >
             {currentTrack.genre}
-          </span>
+          </Link>
         </div>
 
         {/* Track Info & Vinyl Animation */}

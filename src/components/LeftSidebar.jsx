@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Home, Compass, Users, Bookmark, BarChart2, Shield, Hash, Sparkles } from "lucide-react";
+import { Home, Compass, Users, Bookmark, BarChart2, Shield, Hash, Sparkles, Radio } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
 import friendService from "../services/friendService";
@@ -140,6 +140,7 @@ export default function LeftSidebar() {
         {[
           { to: "/", label: "Bảng tin trang chủ", icon: Home },
           { to: "/trending", label: "Khám phá xu hướng", icon: Compass },
+          { to: "/radio", label: "Phòng nhạc & Radio", icon: Radio },
           { to: "/friends", label: "Bạn bè & Kết nối", icon: Users },
           { to: "/saved", label: "Bài viết đã lưu", icon: Bookmark },
           { to: "/dashboard", label: "Bảng điều khiển", icon: BarChart2 },
