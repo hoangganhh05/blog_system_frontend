@@ -64,17 +64,27 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Scroll to Top Listener (Passive listener for 60fps performance)
+  // Scroll to Top Listener (Handles both independent main column and window scroll)
+  const mainRef = useRef(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const handleMainScroll = (e) => {
+    const top = e?.target?.scrollTop ?? 0;
+    setShowScrollTop(top > 350 || window.scrollY > 350);
+  };
+
   useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 380);
+    const handleWindowScroll = () => {
+      setShowScrollTop((window.scrollY || mainRef.current?.scrollTop || 0) > 350);
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleWindowScroll);
   }, []);
 
   const scrollToTop = () => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -305,21 +315,26 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       </header>
 
       {/* ======================================================================
-          3-COLUMN SYMMETRIC SOCIAL LAYOUT (Left Sidebar | Feed | Right Sidebar)
+          3-COLUMN INDEPENDENT SCROLLABLE SOCIAL LAYOUT
+          (Left Sidebar | Main Feed Center | Right Sidebar)
           ====================================================================== */}
-      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 pb-28 md:pb-8 flex-1 flex justify-center items-start gap-6">
-        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (Desktop XL - Absolute zero-shift sticky) */}
-        <aside className="hidden xl:block w-64 shrink-0 sticky top-14 pt-4 sm:pt-6 h-[calc(100vh-3.5rem)] overflow-y-auto custom-scrollbar pb-6">
+      <div className="w-full flex-1 h-[calc(100vh-3.5rem)] max-w-7xl mx-auto px-2 sm:px-4 md:px-6 flex justify-center items-stretch gap-4 lg:gap-6 overflow-hidden">
+        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (Independent Scrollable Column) */}
+        <aside className="hidden xl:block w-64 xl:w-72 shrink-0 h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
           <LeftSidebar />
         </aside>
 
-        {/* CENTER COLUMN: Main Content Feed (Aligned padding, natural window scroll) */}
-        <main className="w-full flex-1 max-w-full lg:max-w-[640px] min-w-0 flex flex-col gap-4 pt-4 sm:pt-6 pb-12">
+        {/* CENTER COLUMN: Main Content Feed (Independent Scrollable Center Column) */}
+        <main
+          ref={mainRef}
+          onScroll={handleMainScroll}
+          className="w-full flex-1 max-w-full lg:max-w-[680px] h-full overflow-y-auto custom-scrollbar px-1 sm:px-3 pt-4 pb-28 md:pb-16 flex flex-col gap-4"
+        >
           {children}
         </main>
 
-        {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (Desktop LG/XL - Absolute zero-shift sticky) */}
-        <aside className="hidden lg:block w-72 shrink-0 sticky top-14 pt-4 sm:pt-6 h-[calc(100vh-3.5rem)] overflow-y-auto custom-scrollbar pb-6">
+        {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (Independent Scrollable Column) */}
+        <aside className="hidden lg:block w-72 xl:w-80 shrink-0 h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
           <RightSidebar />
         </aside>
       </div>
