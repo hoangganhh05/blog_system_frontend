@@ -380,7 +380,8 @@ export default function StoryViewerModal({
               <img
                 src={activeStory.mediaUrl}
                 alt=""
-                className="w-full h-full object-cover md:object-contain"
+                className="w-full h-full object-cover md:object-contain sharp-img"
+                loading="eager"
               />
             )
           ) : (

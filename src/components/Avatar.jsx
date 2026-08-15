@@ -91,7 +91,8 @@ export default function Avatar({
             src={imageSrc}
             alt={displayName}
             onError={() => setImgError(true)}
-            className="w-full h-full rounded-full object-cover shrink-0 block aspect-square bg-transparent"
+            className="w-full h-full rounded-full object-cover shrink-0 block aspect-square bg-transparent sharp-img"
+            loading="eager"
             style={{ width: "100%", height: "100%", objectFit: "cover", aspectRatio: "1 / 1" }}
           />
         ) : (

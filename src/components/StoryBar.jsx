@@ -94,7 +94,8 @@ function StoryBar() {
                 <img
                   src={backgroundMedia}
                   alt={displayName}
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 sharp-img"
+                  loading="eager"
                 />
               ) : (
                 <div
@@ -121,7 +122,8 @@ function StoryBar() {
                     <img
                       src={userAvatar}
                       alt={displayName}
-                      className="w-full h-full rounded-full object-cover"
+                      className="w-full h-full rounded-full object-cover sharp-img"
+                      loading="eager"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
                         if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
