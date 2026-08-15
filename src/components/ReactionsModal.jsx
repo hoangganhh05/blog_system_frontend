@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { X, Loader2, UserPlus, Heart, Users, UserCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -164,7 +165,7 @@ export default function ReactionsModal({
       } else {
         await followService.followUser(targetId);
         setFollowingIds((prev) => [...prev, targetId]);
-        toast.success(`Đang theo dõi ${targetName}!`);
+        toast.success(`Đang theo dõi`);
       }
     } catch {
       toast.error("Không thể thay đổi trạng thái theo dõi lúc này!");
@@ -173,8 +174,10 @@ export default function ReactionsModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
       <div className="w-full max-w-md bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
         {/* Header Modal */}
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -201,7 +204,7 @@ export default function ReactionsModal({
           </button>
         </div>
 
-        {/* Danh sách người thả tim (Ưu tiên bạn bè lên đầu) */}
+        {/* Danh sách người thả tim */}
         <div className="flex-1 overflow-y-auto p-2 divide-y divide-slate-100 dark:divide-slate-800/60 custom-scrollbar">
           {loading ? (
             <div className="p-8 flex flex-col items-center justify-center gap-2 text-zinc-400">
@@ -218,79 +221,65 @@ export default function ReactionsModal({
               const isMe = targetId === Number(currentUserId);
               const isFriend = friendIds.has(targetId);
               const isFollowing = followingIds.includes(targetId);
-              const isFollowLoading = followLoadingMap[targetId];
+              const isFollowLoading = !!followLoadingMap[targetId];
 
               return (
                 <div
                   key={user.id || idx}
-                  className="flex items-center justify-between p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-2xl transition gap-3"
+                  className="p-2.5 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/60 rounded-2xl transition"
                 >
-                  {/* User Profile Info */}
                   <div
                     onClick={() => {
-                      onClose?.();
+                      onClose();
                       navigate(`/profile/${user.id}`);
                     }}
-                    className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
+                    className="flex items-center gap-3 cursor-pointer group flex-1 min-w-0"
                   >
-                    {/* Avatar with Heart badge */}
-                    <div className="relative shrink-0">
-                      <Avatar
-                        userId={user.id}
-                        src={user.avatarUrl}
-                        name={user.fullName || user.username}
-                        username={user.username}
-                        avatarColor={user.avatarColor}
-                        size="md"
-                        onClick={() => onClose?.()}
-                        className="border border-slate-200 dark:border-slate-700"
-                      />
-
-                      {/* Small heart badge on avatar */}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-rose-500 border border-white dark:border-[#111827] flex items-center justify-center shadow-xs pointer-events-none">
-                        <Heart className="w-2.5 h-2.5 fill-white text-white" />
-                      </div>
-                    </div>
-
+                    <Avatar
+                      userId={user.id}
+                      src={user.avatarUrl}
+                      name={user.fullName || user.username}
+                      username={user.username}
+                      avatarColor={user.avatarColor}
+                      size="w-10 h-10"
+                      className="border border-slate-200 dark:border-slate-800 shrink-0"
+                    />
                     <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate hover:underline">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 group-hover:underline truncate">
                           {user.fullName || user.username}
                         </span>
-                        {isMe && (
-                          <span className="px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] font-semibold text-zinc-500 shrink-0">
-                            Bạn
-                          </span>
-                        )}
-                        {isFriend && !isMe && (
-                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/60 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50 shrink-0">
+                        {isFriend && (
+                          <span className="text-[9px] font-bold bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 px-1.5 py-0.2 rounded-md flex items-center gap-0.5 shrink-0">
                             <Users className="w-2.5 h-2.5" />
                             Bạn bè
                           </span>
                         )}
                       </div>
-                      <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                      <span className="text-[11px] text-zinc-400 truncate">
                         @{user.username}
                       </span>
                     </div>
                   </div>
 
-                  {/* Follow Button */}
-                  {!isMe && currentUserId && (
+                  {!isMe && (
                     <button
                       type="button"
                       disabled={isFollowLoading}
-                      onClick={() => handleToggleFollow(user)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer ${
+                      onClick={() => handleToggleFollow(targetId)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer ${
                         isFollowing
-                          ? "bg-slate-100 dark:bg-slate-800 text-zinc-700 dark:text-zinc-300 border border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 hover:border-rose-200"
-                          : "bg-black dark:bg-white text-white dark:text-black hover:opacity-90 active:scale-95 shadow-xs"
+                          ? "bg-slate-100 dark:bg-slate-800 text-zinc-700 dark:text-zinc-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
+                          : "bg-black text-white dark:bg-white dark:text-black hover:opacity-90 shadow-2xs"
                       }`}
                     >
                       {isFollowLoading ? (
                         <Loader2 className="w-3 h-3 animate-spin" />
                       ) : isFollowing ? (
-                        <span>Đang theo dõi</span>
+                        <>
+                          <UserCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                          <span>Đang theo dõi</span>
+                        </>
                       ) : (
                         <>
                           <UserPlus className="w-3 h-3" />
@@ -305,6 +294,7 @@ export default function ReactionsModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

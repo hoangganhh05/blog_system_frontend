@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Sparkles, Trash2, HelpCircle, X } from "lucide-react";
 
 /**
@@ -8,6 +9,7 @@ export function AiPromptModal({ isOpen, onClose, onSubmit, loading }) {
   const [promptText, setPromptText] = useState("");
 
   if (!isOpen) return null;
+  if (typeof document === "undefined") return null;
 
   const SUGGESTED_TOPICS = [
     "🏖️ Chuyến du lịch Đà Nẵng tuyệt vời",
@@ -23,9 +25,9 @@ export function AiPromptModal({ isOpen, onClose, onSubmit, loading }) {
     setPromptText("");
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
@@ -110,10 +112,11 @@ export function AiPromptModal({ isOpen, onClose, onSubmit, loading }) {
  */
 export function ConfirmModal({ isOpen, title, message, confirmText = "Xác nhận", confirmVariant = "danger", onClose, onConfirm }) {
   if (!isOpen) return null;
+  if (typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
@@ -163,6 +166,7 @@ export function ConfirmModal({ isOpen, title, message, confirmText = "Xác nhậ
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
