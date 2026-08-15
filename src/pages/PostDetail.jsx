@@ -31,9 +31,11 @@ export default function PostDetail() {
   const [replyText, setReplyText] = useState("");
   const [selectedGif, setSelectedGif] = useState(null);
   const [showGifPicker, setShowGifPicker] = useState(false);
+  const [pickerPlacement, setPickerPlacement] = useState("top"); // "top" | "bottom"
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const replyInputRef = useRef(null);
+  const composerRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -147,9 +149,13 @@ export default function PostDetail() {
 
       {/* Reply Composer Box with GIF Support */}
       {currentUser && (
-        <div className="relative mb-3">
+        <div ref={composerRef} className="relative mb-3">
           {showGifPicker && (
-            <div className="absolute bottom-full right-0 mb-2 z-50 shadow-2xl">
+            <div
+              className={`absolute right-0 z-50 shadow-2xl ${
+                pickerPlacement === "bottom" ? "top-full mt-2" : "bottom-full mb-2"
+              }`}
+            >
               <GifPicker
                 onSelectGif={(url) => {
                   setSelectedGif(url);
@@ -206,7 +212,18 @@ export default function PostDetail() {
               {/* GIF Button */}
               <button
                 type="button"
-                onClick={() => setShowGifPicker((prev) => !prev)}
+                onClick={() => {
+                  if (!showGifPicker && composerRef.current) {
+                    const rect = composerRef.current.getBoundingClientRect();
+                    // If less than 360px above the comment box, open downwards
+                    if (rect.top < 360) {
+                      setPickerPlacement("bottom");
+                    } else {
+                      setPickerPlacement("top");
+                    }
+                  }
+                  setShowGifPicker((prev) => !prev);
+                }}
                 className={`px-2 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
                   showGifPicker || selectedGif
                     ? "bg-amber-500 text-black shadow-xs"
