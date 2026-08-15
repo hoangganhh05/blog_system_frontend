@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Image, Smile, Tag, Globe, Lock, X, Loader2 } from "lucide-react";
+import { Image, Smile, Tag, Globe, Lock, X, Loader2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import postService from "../services/postService";
@@ -183,21 +183,21 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
         )}
 
         {/* Divider */}
-        <div className="border-t border-zinc-100 dark:border-zinc-800 my-2" />
+        <div className="border-t border-slate-100 dark:border-zinc-800/80 my-2.5" />
 
         {/* Responsive Bottom Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5">
-          {/* Left Action Group (Ảnh, Chủ đề, Quyền riêng tư - Tối giản không khung xám thô) */}
-          <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-            {/* Image Attach Button */}
+        <div className="flex items-center justify-between gap-2 pt-0.5">
+          {/* Left Action Group (Ảnh, Chọn chủ đề, Quyền riêng tư - Căn chỉnh khít đều, không thưa) */}
+          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+            {/* Nút chọn ảnh / media */}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-1.5 sm:p-2 rounded-xl text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition cursor-pointer shrink-0 active:scale-95 flex items-center gap-1 text-xs font-semibold"
+              className="flex items-center space-x-1.5 text-slate-600 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer"
               title="Đính kèm ảnh"
             >
-              <Image className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span className="hidden xs:inline text-zinc-600 dark:text-zinc-300">Ảnh</span>
+              <Image className="w-5 h-5 text-emerald-500 shrink-0" />
+              <span className="text-sm font-medium hidden sm:inline">Ảnh</span>
             </button>
             <input
               ref={fileInputRef}
@@ -208,12 +208,12 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
               className="hidden"
             />
 
-            {/* Category Select Dropdown */}
+            {/* Dropdown chọn chủ đề */}
             {categories.length > 0 && (
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="text-xs py-1.5 px-2 rounded-xl bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer font-medium max-w-[105px] xs:max-w-[130px] sm:max-w-[160px] truncate transition border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700"
+                className="bg-transparent text-sm font-medium text-slate-700 dark:text-zinc-200 focus:outline-none cursor-pointer py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800 transition max-w-[110px] xs:max-w-[140px] sm:max-w-[170px] truncate"
               >
                 <option value="" className="dark:bg-zinc-900">Chủ đề...</option>
                 {categories.map((c) => (
@@ -224,28 +224,29 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
               </select>
             )}
 
-            {/* Privacy Mode Button */}
+            {/* Nút chọn quyền riêng tư */}
             <button
               type="button"
               onClick={() => setPrivacy(privacy === "PUBLIC" ? "FRIENDS" : "PUBLIC")}
-              className="flex items-center gap-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer shrink-0 active:scale-95"
+              className="flex items-center space-x-1.5 text-slate-600 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800 text-sm font-medium cursor-pointer"
               title={privacy === "PUBLIC" ? "Quyền riêng tư: Công khai" : "Quyền riêng tư: Bạn bè"}
             >
               {privacy === "PUBLIC" ? (
                 <>
-                  <Globe className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                  <span className="hidden sm:inline">Công khai</span>
+                  <Globe className="w-4 h-4 text-blue-500 shrink-0" />
+                  <span>Công khai</span>
                 </>
               ) : (
                 <>
-                  <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <span className="hidden sm:inline">Bạn bè</span>
+                  <Lock className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>Bạn bè</span>
                 </>
               )}
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </button>
           </div>
 
-          {/* Right Action Group (Nút Đăng tách biệt hoàn toàn bên phải với trạng thái active/inactive rõ ràng) */}
+          {/* Right Action Group (Nút Đăng cố định bên phải với trạng thái active/inactive rõ ràng) */}
           <div className="ml-auto flex items-center">
             <button
               type="button"
@@ -254,7 +255,7 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
               className={`px-5 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-150 cursor-pointer shadow-xs ${
                 content.trim() || images.length > 0
                   ? "bg-[#0866ff] hover:bg-[#0756d6] text-white active:scale-95 shadow-md hover:shadow-lg"
-                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed opacity-70"
+                  : "bg-slate-100 dark:bg-zinc-800 text-slate-400 dark:text-zinc-500 cursor-not-allowed opacity-70"
               }`}
             >
               {isSubmitting ? (
