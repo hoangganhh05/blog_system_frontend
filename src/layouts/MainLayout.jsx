@@ -95,20 +95,20 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   ];
 
   return (
-    <div className="w-full min-h-screen bg-[#f8fafc] dark:bg-[#0b0f19] text-zinc-900 dark:text-[#f1f5f9] flex flex-col transition-colors duration-200">
+    <div className="w-full min-h-screen bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col transition-colors duration-200">
       {/* ======================================================================
           STICKY TOP HEADER (h-14, Full-width Fluid Navbar, Crisp border-b)
           ====================================================================== */}
-      <header className="w-full bg-white/95 dark:bg-[#111827]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 sticky top-0 z-50">
+      <header className="w-full bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50">
         <div className="w-full h-14 px-4 sm:px-6 md:px-8 lg:px-12 flex items-center justify-between gap-4">
 
           {/* LEFT: Minimalist Logo + Nav Links */}
           <div className="flex items-center gap-6 shrink-0">
             <Link to="/" className="flex items-center gap-2 shrink-0 group">
-              <div className="w-8 h-8 rounded-lg bg-black dark:bg-white flex items-center justify-center font-black text-white dark:text-black text-sm tracking-tighter">
+              <div className="w-8 h-8 rounded-lg bg-[#0866ff] flex items-center justify-center font-black text-white text-sm tracking-tighter shadow-xs">
                 BV
               </div>
-              <span className="font-extrabold text-base tracking-tight text-zinc-900 dark:text-zinc-100 hidden sm:inline">
+              <span className="font-extrabold text-base tracking-tight text-[#050505] dark:text-[#e4e6eb] hidden sm:inline">
                 BlogViet
               </span>
             </Link>
@@ -121,13 +121,13 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                   <NavLink
                     key={to}
                     to={to}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                       active
-                        ? "text-black dark:text-white bg-zinc-100 dark:bg-zinc-800"
-                        : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
+                        ? "text-[#0866ff] bg-[#0866ff]/10 dark:bg-[#0866ff]/20"
+                        : "text-[#65676b] hover:text-[#050505] dark:text-[#b0b3b8] dark:hover:text-[#e4e6eb] hover:bg-slate-100 dark:hover:bg-[#303031]"
                     }`}
                   >
-                    <Icon strokeWidth={active ? 2.2 : 1.75} className="w-4 h-4" />
+                    <Icon strokeWidth={active ? 2.4 : 1.75} className="w-4 h-4" />
                     <span>{label}</span>
                   </NavLink>
                 );
@@ -144,7 +144,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 placeholder="Tìm kiếm bài viết, tác giả..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-zinc-100 dark:bg-zinc-800 border border-transparent focus:border-zinc-300 dark:focus:border-zinc-700 rounded-full py-1.5 pl-8 pr-3 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none transition"
+                className="w-full bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-transparent focus:border-[#0866ff] rounded-full py-1.5 pl-8 pr-3 text-xs text-[#050505] dark:text-[#e4e6eb] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none transition"
               />
             </div>
           </form>
@@ -155,7 +155,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black text-xs font-semibold transition active:scale-95 cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
             >
               <Plus strokeWidth={2.5} className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Đăng bài</span>
@@ -334,14 +334,14 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       {/* ======================================================================
           MOBILE BOTTOM NAVIGATION (Fixed Instagram-style, md:hidden)
           ====================================================================== */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 h-14 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-around px-2 md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 h-14 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-t border-[#e4e6eb] dark:border-[#393a3b] flex items-center justify-around px-2 md:hidden">
         {/* 1. Trang chủ */}
         <NavLink
           to="/"
           end
           className={({ isActive }) =>
             `flex flex-col items-center justify-center p-2 transition ${
-              isActive ? "text-black dark:text-white font-bold" : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
             }`
           }
           title="Trang chủ"
@@ -354,7 +354,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           to="/trending"
           className={({ isActive }) =>
             `flex flex-col items-center justify-center p-2 transition ${
-              isActive ? "text-black dark:text-white font-bold" : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
             }`
           }
           title="Khám phá"
@@ -372,7 +372,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               setIsCreateModalOpen(true);
             }
           }}
-          className="w-10 h-10 rounded-xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-sm active:scale-95 transition cursor-pointer"
+          className="w-10 h-10 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white flex items-center justify-center shadow-md active:scale-95 transition cursor-pointer"
           title="Tạo bài viết mới"
         >
           <Plus strokeWidth={2.5} className="w-5 h-5" />
