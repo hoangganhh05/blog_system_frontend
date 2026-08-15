@@ -1,83 +1,24 @@
-import { useState, useRef, useEffect } from "react";
-import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Disc3, Radio, Music } from "lucide-react";
+import { useMusic } from "../context/MusicContext";
+import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Disc3, Radio } from "lucide-react";
 
-const PLAYLIST = [
-  {
-    id: 1,
-    title: "Vinahouse Night Fever 2026",
-    artist: "BlogViet DJ Team",
-    genre: "Vinahouse / EDM",
-    duration: "03:45",
-    cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80",
-    src: "https://actions.google.com/sounds/v1/science_fiction/space_ambience.ogg",
-  },
-  {
-    id: 2,
-    title: "Deep Coding & Focus Chill",
-    artist: "Lofi Developer Beats",
-    genre: "Lofi Chill",
-    duration: "02:30",
-    cover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&auto=format&fit=crop&q=80",
-    src: "https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg",
-  },
-  {
-    id: 3,
-    title: "Cyber Sunset Synthwave",
-    artist: "Retro Wave Studio",
-    genre: "Synthwave",
-    duration: "04:12",
-    cover: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&auto=format&fit=crop&q=80",
-    src: "https://actions.google.com/sounds/v1/science_fiction/laser_room_hum.ogg",
-  },
-];
-
-export default function MiniMusicPlayer({ variant = "all" }) {
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
-
-  const audioRef = useRef(null);
-  const currentTrack = PLAYLIST[currentTrackIndex];
-
-  useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.play().catch(() => setIsPlaying(false));
-      } else {
-        audioRef.current.pause();
-      }
-    }
-  }, [isPlaying, currentTrackIndex]);
-
-  const togglePlay = () => {
-    setIsPlaying((prev) => !prev);
-  };
-
-  const handleNext = () => {
-    setCurrentTrackIndex((prev) => (prev + 1) % PLAYLIST.length);
-    setIsPlaying(true);
-  };
-
-  const handlePrev = () => {
-    setCurrentTrackIndex((prev) => (prev - 1 + PLAYLIST.length) % PLAYLIST.length);
-    setIsPlaying(true);
-  };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-      setDuration(audioRef.current.duration || 0);
-    }
-  };
+export default function MiniMusicPlayer() {
+  const {
+    playlist,
+    currentTrack,
+    currentTrackIndex,
+    isPlaying,
+    currentTime,
+    duration,
+    isMuted,
+    togglePlay,
+    nextTrack,
+    prevTrack,
+    seek,
+    toggleMute,
+  } = useMusic();
 
   const handleSeek = (e) => {
-    const seekTime = Number(e.target.value);
-    if (audioRef.current) {
-      audioRef.current.currentTime = seekTime;
-      setCurrentTime(seekTime);
-    }
+    seek(Number(e.target.value));
   };
 
   const formatTime = (secs) => {
@@ -160,12 +101,7 @@ export default function MiniMusicPlayer({ variant = "all" }) {
         <div className="flex items-center justify-between pt-1">
           <button
             type="button"
-            onClick={() => {
-              if (audioRef.current) {
-                audioRef.current.muted = !isMuted;
-                setIsMuted(!isMuted);
-              }
-            }}
+            onClick={toggleMute}
             className="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition cursor-pointer"
             title={isMuted ? "Bật âm thanh" : "Tắt tiếng"}
           >
@@ -175,7 +111,7 @@ export default function MiniMusicPlayer({ variant = "all" }) {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={handlePrev}
+              onClick={prevTrack}
               className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
               title="Bài trước"
             >
@@ -197,7 +133,7 @@ export default function MiniMusicPlayer({ variant = "all" }) {
 
             <button
               type="button"
-              onClick={handleNext}
+              onClick={nextTrack}
               className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
               title="Bài tiếp theo"
             >
@@ -206,13 +142,13 @@ export default function MiniMusicPlayer({ variant = "all" }) {
           </div>
 
           <div className="text-[10px] font-mono text-zinc-400">
-            {currentTrackIndex + 1}/{PLAYLIST.length}
+            {currentTrackIndex + 1}/{playlist.length}
           </div>
         </div>
       </div>
 
       {/* ======================================================================
-          2. MOBILE FLOATING MUSIC BAR (Fixed above Mobile Bottom Nav, md:hidden)
+          2. MOBILE FLOATING MUSIC BAR (Fixed above Mobile Bottom Nav, lg:hidden)
           ====================================================================== */}
       <div className="lg:hidden fixed bottom-14 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 px-3 py-2 flex items-center justify-between shadow-md">
         {/* Top Progress Line */}
@@ -260,21 +196,13 @@ export default function MiniMusicPlayer({ variant = "all" }) {
           </button>
           <button
             type="button"
-            onClick={handleNext}
+            onClick={nextTrack}
             className="p-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
           >
             <SkipForward className="w-4 h-4" />
           </button>
         </div>
       </div>
-
-      {/* Audio element */}
-      <audio
-        ref={audioRef}
-        src={currentTrack.src}
-        onTimeUpdate={handleTimeUpdate}
-        onEnded={handleNext}
-      />
     </>
   );
 }
