@@ -170,7 +170,7 @@ export default function NotificationsPage() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="p-2 -ml-1 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0"
+            className="hidden sm:flex p-2 -ml-1 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0"
             title="Quay lại"
           >
             <ArrowLeft className="w-5 h-5" />
