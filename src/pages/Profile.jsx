@@ -525,7 +525,7 @@ export default function Profile() {
       {/* 2. Header Info (Avatar + Action Buttons) */}
       <div className="px-3 sm:px-4 -mt-12 sm:-mt-14 mb-3 flex flex-col">
         <div className="flex justify-between items-end gap-3 mb-2">
-          {/* Avatar với nút camera tải ảnh */}
+          {/* Avatar với nút camera tải ảnh ở chính giữa */}
           <div className="relative shrink-0 group">
             <Avatar
               userId={user.id}
@@ -536,36 +536,38 @@ export default function Profile() {
               size="3xl"
               isOnline={user.isOnline}
               lastActiveAt={user.lastActiveAt}
-              showActiveStatus={user.showActiveStatus}
+              showActiveStatus={!isMe && user.showActiveStatus !== false}
+              hideStatus={isMe}
               disableLink={true}
-              onClick={() => setLightboxUrl(user.avatarUrl)}
-              className="cursor-pointer hover:opacity-90 transition ring-4 ring-white dark:ring-zinc-900 bg-white dark:bg-zinc-900 shadow-md"
+              onClick={() => {
+                if (isMe) {
+                  avatarInputRef.current?.click();
+                } else if (user.avatarUrl) {
+                  setLightboxUrl(user.avatarUrl);
+                }
+              }}
+              className="cursor-pointer transition ring-4 ring-white dark:ring-zinc-900 bg-white dark:bg-zinc-900 shadow-md rounded-full overflow-hidden"
             />
 
-            {/* Chấm tròn trạng thái hoạt động trên Avatar Profile */}
-            {user.showActiveStatus !== false && (
-              <span
-                className={`absolute ${isMe ? "top-1 right-1" : "bottom-1 right-1"} w-4 h-4 rounded-full border-2 border-white dark:border-zinc-900 shadow-xs transition-colors ${
-                  isUserOnline(user) ? "bg-emerald-500" : "bg-zinc-400"
-                }`}
-                title={formatLastActive(user)}
-              />
-            )}
-
-            {/* Nút Camera trên avatar chính chủ */}
+            {/* Nút Camera ở chính giữa avatar chính chủ */}
             {isMe && (
               <>
                 <button
                   type="button"
                   onClick={() => avatarInputRef.current?.click()}
                   disabled={isUploadingAvatar}
-                  className="absolute bottom-0 right-0 p-1.5 rounded-full bg-black dark:bg-white text-white dark:text-black border-2 border-white dark:border-zinc-900 shadow-md hover:scale-110 transition cursor-pointer"
-                  title="Đổi ảnh đại diện"
+                  className="absolute inset-0 m-auto rounded-full bg-black/40 hover:bg-black/60 text-white flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer backdrop-blur-[1px] opacity-90 hover:opacity-100 z-10 select-none"
+                  title="Thay đổi ảnh đại diện"
                 >
                   {isUploadingAvatar ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-6 h-6 animate-spin text-white" />
                   ) : (
-                    <Camera className="w-3.5 h-3.5" />
+                    <>
+                      <Camera className="w-6 h-6 stroke-[2] drop-shadow-md text-white" />
+                      <span className="text-[10px] font-bold text-white drop-shadow-md hidden sm:inline">
+                        Đổi ảnh
+                      </span>
+                    </>
                   )}
                 </button>
                 <input
