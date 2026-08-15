@@ -69,9 +69,28 @@ export default function NotificationsPage() {
   const fetchNotifications = async () => {
     if (!currentUserId) return;
     try {
-      const res = await notificationService.getUserNotifications(currentUserId);
-      const raw = res.data?.content || res.data || [];
-      const interactionsOnly = raw.filter((n) => !isMessageNotification(n));
+      const [notifRes, friendsRes] = await Promise.all([
+        notificationService.getUserNotifications(currentUserId).catch(() => ({ data: [] })),
+        friendService.getFriendsList(currentUserId).catch(() => ({ data: [] })),
+      ]);
+
+      const raw = notifRes.data?.content || notifRes.data || [];
+      const rawFriends = friendsRes.data || [];
+      const acceptedFriendIds = new Set(
+        rawFriends.map((f) => Number(f.id || f.userId || f.user?.id || f.friend?.id)).filter(Boolean)
+      );
+
+      const interactionsOnly = raw
+        .filter((n) => !isMessageNotification(n))
+        .map((n) => {
+          const senderId = Number(n.sender?.id);
+          const isAlreadyFriend = senderId && acceptedFriendIds.has(senderId);
+          if (isAlreadyFriend && isFriendRequest(n)) {
+            return { ...n, isFriendAccepted: true };
+          }
+          return n;
+        });
+
       setNotifications(interactionsOnly);
     } catch {
       setNotifications([]);
@@ -111,34 +130,34 @@ export default function NotificationsPage() {
   const handleAcceptFriendInNotif = async (e, n) => {
     e.stopPropagation();
     if (!n.sender?.id || !currentUserId) return;
+    // Optimistic Update
+    setNotifications((prev) =>
+      prev.map((item) =>
+        item.id === n.id ? { ...item, read: true, isFriendAccepted: true } : item
+      )
+    );
     try {
       await friendService.acceptRequest(currentUserId, n.sender.id);
       toast.success(`Đã chấp nhận lời mời kết bạn của ${n.sender.fullName || n.sender.username}!`);
-      setNotifications((prev) =>
-        prev.map((item) =>
-          item.id === n.id ? { ...item, read: true, isFriendAccepted: true } : item
-        )
-      );
-      await notificationService.markAsRead(n.id);
+      notificationService.markAsRead(n.id).catch(() => {});
     } catch {
       toast.error("Không thể chấp nhận lời mời lúc này!");
+      fetchNotifications();
     }
   };
 
   const handleDeclineFriendInNotif = async (e, n) => {
     e.stopPropagation();
     if (!n.sender?.id || !currentUserId) return;
+    // Optimistic Removal
+    setNotifications((prev) => prev.filter((item) => item.id !== n.id));
     try {
       await friendService.removeFriendship(currentUserId, n.sender.id);
       toast.info("Đã từ chối lời mời kết bạn");
-      setNotifications((prev) =>
-        prev.map((item) =>
-          item.id === n.id ? { ...item, read: true, isFriendDeclined: true } : item
-        )
-      );
-      await notificationService.markAsRead(n.id);
+      notificationService.deleteNotification(n.id).catch(() => {});
     } catch {
       toast.error("Không thể từ chối lời mời lúc này!");
+      fetchNotifications();
     }
   };
 
