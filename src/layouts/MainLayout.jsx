@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Bell, Plus, ChevronDown, LogOut,
   Sun, Moon, Shield, User, Settings, Home,
-  Compass, Bookmark, Users, BarChart2, X, Sparkles, Hash,
+  Compass, Bookmark, Users, BarChart2, X, Sparkles, Hash, ArrowUp,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import notificationService from "../services/notificationService";
@@ -63,6 +63,20 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
+
+  // Scroll to Top Listener (Passive listener for 60fps performance)
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 380);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -426,6 +440,18 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         isOpen={isAiModalOpen}
         onClose={() => setIsAiModalOpen(false)}
       />
+
+      {/* Scroll to Top Floating Button (Smooth 60fps glassmorphism) */}
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="fixed bottom-28 lg:bottom-8 right-4 lg:right-8 z-40 w-10 h-10 rounded-full bg-white/90 dark:bg-zinc-900/90 text-zinc-700 dark:text-zinc-200 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md flex items-center justify-center hover:scale-110 active:scale-95 transition-all animate-in fade-in zoom-in-90 duration-200 cursor-pointer"
+          title="Cuộn lên đầu trang"
+        >
+          <ArrowUp className="w-4 h-4 stroke-[2.5]" />
+        </button>
+      )}
     </div>
   );
 }

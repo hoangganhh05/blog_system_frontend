@@ -467,6 +467,21 @@ export default function Home() {
           </button>
         </div>
       )}
+
+      {/* Feed End Marker (Đã xem hết tất cả bài viết mới) */}
+      {!hasMore && !loading && displayedPosts.length > 0 && (
+        <div className="py-8 flex flex-col items-center justify-center gap-2 text-zinc-400 dark:text-zinc-500 animate-in fade-in duration-300">
+          <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-indigo-500 shadow-xs">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+            Bạn đã xem hết các bài viết mới ✨
+          </span>
+          <span className="text-[11px] text-zinc-500 dark:text-zinc-400 text-center max-w-xs leading-relaxed">
+            Hãy khám phá thêm chủ đề hoặc kết nối thêm bạn bè để nhận thêm nội dung hấp dẫn.
+          </span>
+        </div>
+      )}
     </div>
   );
 }

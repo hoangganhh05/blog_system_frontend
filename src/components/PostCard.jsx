@@ -78,6 +78,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   const [isCopied, setIsCopied] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState(null);
+  const [isPopping, setIsPopping] = useState(false);
 
   // Load preview names when hovering over like section
   const handleLikeMouseEnter = () => {
@@ -162,6 +163,11 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
     }
     const prevLiked = liked;
     const prevCount = likeCount;
+
+    if (!prevLiked) {
+      setIsPopping(true);
+      setTimeout(() => setIsPopping(false), 500);
+    }
 
     setLiked(!prevLiked);
     setLikeCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
@@ -487,8 +493,16 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
               }`}
               title={liked ? "Bỏ thích" : "Thích bài viết"}
             >
-              <div className="p-1.5 rounded-full hover:bg-rose-50 dark:hover:bg-rose-950/30 transition">
-                <Heart strokeWidth={1.8} className={`w-4 h-4 transition ${liked ? "fill-rose-500 scale-110" : ""}`} />
+              <div className="relative p-1.5 rounded-full hover:bg-rose-50 dark:hover:bg-rose-950/30 transition flex items-center justify-center">
+                <Heart
+                  strokeWidth={1.8}
+                  className={`w-4 h-4 transition duration-150 ${
+                    liked ? "fill-rose-500 text-rose-500" : ""
+                  } ${isPopping ? "animate-heart-pop" : ""}`}
+                />
+                {isPopping && (
+                  <div className="absolute inset-0 rounded-full border border-rose-400 dark:border-rose-400 animate-heart-burst pointer-events-none" />
+                )}
               </div>
             </button>
 

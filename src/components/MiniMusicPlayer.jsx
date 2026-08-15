@@ -358,30 +358,55 @@ export default function MiniMusicPlayer() {
         </div>
 
         {/* Right: Quick Controls & Expand Button */}
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
-            onClick={togglePlay}
-            className="w-7 h-7 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center shadow-xs active:scale-95 transition cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              prevTrack();
+            }}
+            className="p-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+            title="Bài trước"
+          >
+            <SkipBack className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlay();
+            }}
+            className="w-8 h-8 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center shadow-xs active:scale-95 transition cursor-pointer"
+            title={isPlaying ? "Tạm dừng" : "Phát"}
           >
             {isPlaying ? (
-              <Pause className="w-3 h-3 fill-current" />
+              <Pause className="w-3.5 h-3.5 fill-current" />
             ) : (
-              <Play className="w-3 h-3 fill-current ml-0.5" />
+              <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
             )}
           </button>
+
           <button
             type="button"
-            onClick={nextTrack}
+            onClick={(e) => {
+              e.stopPropagation();
+              nextTrack();
+            }}
             className="p-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+            title="Bài tiếp theo"
           >
-            <SkipForward className="w-4 h-4" />
+            <SkipForward className="w-3.5 h-3.5" />
           </button>
+
           <button
             type="button"
-            onClick={() => setShowMobileModal(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowMobileModal(true);
+            }}
             className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition cursor-pointer"
-            title="Mở rộng trình phát nhạc"
+            title="Mở rộng"
           >
             <ChevronUp className="w-4 h-4" />
           </button>
