@@ -654,9 +654,9 @@ export default function FloatingChatWidget() {
           type="button"
           onClick={() => setIsOpen(true)}
           title="Nhắn tin với bạn bè"
-          className="fixed bottom-28 lg:bottom-6 right-4 lg:right-6 z-50 w-12 h-12 md:w-14 md:h-14 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-2xl transition-transform active:scale-95 cursor-pointer border border-zinc-200/20"
+          className="fixed bottom-[4.25rem] sm:bottom-6 right-3.5 sm:right-6 z-40 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-2xl transition-transform active:scale-95 cursor-pointer border border-zinc-200/20"
         >
-          <span className="text-xl md:text-2xl">💬</span>
+          <span className="text-lg sm:text-2xl">💬</span>
           {unreadChatCount > 0 && (
             <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] md:text-[11px] font-black rounded-full min-w-5 h-5 flex items-center justify-center px-1 border-2 border-white dark:border-zinc-900 shadow-lg animate-pulse">
               {unreadChatCount > 99 ? "99+" : unreadChatCount}

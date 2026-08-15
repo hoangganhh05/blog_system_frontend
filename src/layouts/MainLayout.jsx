@@ -388,9 +388,9 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           3-COLUMN INDEPENDENT SCROLLABLE SOCIAL LAYOUT
           (Left Sidebar | Main Feed Center | Right Sidebar)
           ====================================================================== */}
-      <div className="w-full flex-1 min-h-0 h-[calc(100dvh-3.5rem)] max-w-7xl mx-auto px-1.5 sm:px-4 md:px-6 flex justify-center items-stretch gap-4 lg:gap-6 overflow-hidden">
+      <div className="w-full flex-1 min-h-0 h-[calc(100dvh-3.5rem)] max-w-7xl mx-auto px-2 sm:px-4 md:px-6 flex justify-center items-stretch gap-4 lg:gap-6 overflow-hidden">
         {/* LEFT COLUMN: Shortcuts & Profile Sidebar (Independent Scrollable Column) */}
-        <aside className="hidden xl:block w-64 xl:w-72 shrink-0 min-h-0 h-full max-h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
+        <aside className="hidden lg:block w-60 xl:w-72 shrink-0 min-h-0 h-full max-h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
           <LeftSidebar />
         </aside>
 
@@ -398,7 +398,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className="w-full flex-1 min-h-0 max-w-full lg:max-w-[680px] h-full max-h-full overflow-y-auto custom-scrollbar px-1 sm:px-3 pt-3 sm:pt-4 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4"
+          className="w-full flex-1 min-h-0 max-w-full lg:max-w-[620px] xl:max-w-[680px] h-full max-h-full overflow-y-auto custom-scrollbar px-1 sm:px-3 pt-3 sm:pt-4 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4"
         >
           {children}
         </main>

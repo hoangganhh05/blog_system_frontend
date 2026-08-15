@@ -351,7 +351,7 @@ export default function Home() {
 
       {/* Mobile Suggested Friends Carousel (Đồng bộ 100% tính năng gợi ý theo dõi lên Mobile) */}
       {suggestedUsers.length > 0 && activeTab === "forYou" && (
-        <div className="lg:hidden p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs my-3 flex flex-col gap-2">
+        <div className="lg:hidden p-3.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs my-3 flex flex-col gap-2.5 overflow-hidden">
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
@@ -365,16 +365,16 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1">
+          <div className="flex gap-4 overflow-x-auto no-scrollbar py-2 px-1 scroll-smooth touch-pan-x overscroll-x-contain">
             {suggestedUsers.map((user) => {
               const isFollowing = followingIds.includes(Number(user.id));
               const name = user.fullName || user.username;
               return (
                 <div
                   key={user.id}
-                  className="w-36 shrink-0 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/60 dark:border-zinc-700/60 flex flex-col items-center text-center gap-2"
+                  className="w-36 min-w-[140px] shrink-0 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/70 dark:border-zinc-700/60 flex flex-col items-center text-center gap-2.5 shadow-2xs"
                 >
-                  <Link to={`/profile/${user.id}`} className="flex flex-col items-center gap-1.5">
+                  <Link to={`/profile/${user.id}`} className="flex flex-col items-center gap-1.5 w-full">
                     <Avatar
                       userId={user.id}
                       src={user.avatarUrl}
@@ -382,20 +382,25 @@ export default function Home() {
                       username={user.username}
                       avatarColor={user.avatarColor}
                       size="md"
-                      className="shrink-0"
+                      className="shrink-0 shadow-xs"
                     />
-                    <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-[110px]">
-                      {name}
-                    </span>
+                    <div className="flex flex-col items-center w-full px-0.5">
+                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate w-full text-center">
+                        {name}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 truncate w-full text-center">
+                        @{user.username}
+                      </span>
+                    </div>
                   </Link>
 
                   <button
                     type="button"
                     onClick={() => handleToggleFollow(user)}
-                    className={`w-full py-2 min-h-[38px] rounded-full text-[11px] font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                    className={`w-full py-2 min-h-[36px] rounded-full text-[11px] font-bold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs ${
                       isFollowing
                         ? "bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-rose-100 dark:hover:bg-rose-950/40 hover:text-rose-600"
-                        : "bg-black text-white dark:bg-white dark:text-black hover:opacity-90 active:scale-95 shadow-xs"
+                        : "bg-black text-white dark:bg-white dark:text-black hover:opacity-90"
                     }`}
                   >
                     {isFollowing ? (

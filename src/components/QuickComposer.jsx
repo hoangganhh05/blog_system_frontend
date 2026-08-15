@@ -185,12 +185,12 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
         {/* Divider */}
         <div className="border-t border-zinc-100 dark:border-zinc-800 my-2" />
 
-        <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
-          <div className="flex items-center gap-1.5 text-zinc-500 flex-wrap">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-x-auto no-scrollbar py-0.5">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white transition cursor-pointer"
+              className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition cursor-pointer shrink-0"
               title="Đính kèm ảnh"
             >
               <Image className="w-4 h-4" />
@@ -201,7 +201,7 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="text-xs min-h-[38px] bg-zinc-100 dark:bg-zinc-800 border-none rounded-full px-3.5 py-1.5 text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer font-medium"
+                className="text-xs min-h-[36px] bg-zinc-100 dark:bg-zinc-800 border-none rounded-full px-3 py-1 text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer font-medium shrink-0"
               >
                 <option value="">Chủ đề...</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -211,7 +211,7 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
             <button
               type="button"
               onClick={() => setPrivacy(privacy === "PUBLIC" ? "FRIENDS" : "PUBLIC")}
-              className="flex items-center gap-1.5 text-xs min-h-[38px] px-3 py-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 transition cursor-pointer font-medium"
+              className="flex items-center gap-1 text-xs min-h-[36px] px-2.5 py-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 transition cursor-pointer font-medium shrink-0"
               title="Quyền riêng tư"
             >
               {privacy === "PUBLIC" ? (<><Globe className="w-3.5 h-3.5" /><span>Công khai</span></>) : (<><Lock className="w-3.5 h-3.5" /><span>Bạn bè</span></>)}
@@ -222,7 +222,7 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
             type="button"
             onClick={handleSubmit}
             disabled={(!content.trim() && images.length === 0) || isSubmitting || isUploading}
-            className="px-5 py-2 min-h-[40px] rounded-full text-xs font-bold text-white dark:text-black bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs ml-auto"
+            className="px-5 py-2 min-h-[36px] rounded-full text-xs font-bold text-white dark:text-black bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs shrink-0 ml-1"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Đăng"}
           </button>
