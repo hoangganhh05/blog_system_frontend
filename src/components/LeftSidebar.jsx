@@ -144,7 +144,6 @@ export default function LeftSidebar() {
           { to: "/friends", label: "Bạn bè & Kết nối", icon: Users },
           { to: "/saved", label: "Bài viết đã lưu", icon: Bookmark },
           { to: "/dashboard", label: "Bảng điều khiển", icon: BarChart2 },
-          { to: "/security", label: "Cài đặt & Bảo mật", icon: Shield },
         ].map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}

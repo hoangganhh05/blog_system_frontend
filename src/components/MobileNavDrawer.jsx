@@ -137,7 +137,6 @@ export default function MobileNavDrawer({ isOpen, onClose, isDark, onToggleTheme
     { to: "/friends", label: "Bạn bè & Kết nối", icon: Users },
     { to: "/bookmarks", label: "Bài viết đã lưu", icon: Bookmark },
     { to: "/dashboard", label: "Bảng điều khiển", icon: BarChart2 },
-    { to: "/security", label: "Cài đặt & Bảo mật", icon: Shield },
   ];
 
   return (

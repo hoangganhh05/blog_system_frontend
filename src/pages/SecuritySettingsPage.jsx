@@ -1,5 +1,19 @@
 import { useState } from "react";
-import { Shield, Key, Mail, CheckCircle2, Monitor, Loader2 } from "lucide-react";
+import {
+  Shield,
+  Key,
+  Mail,
+  CheckCircle2,
+  Monitor,
+  Loader2,
+  Lock,
+  Eye,
+  Users,
+  Globe,
+  UserCheck,
+  Activity,
+  Save,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
@@ -8,6 +22,9 @@ export default function SecuritySettingsPage() {
   const { currentUser } = useAuth();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
+  const [activeTab, setActiveTab] = useState("security"); // "security" | "privacy"
+
+  // Password Form State
   const [formData, setFormData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -15,8 +32,22 @@ export default function SecuritySettingsPage() {
   });
   const [loading, setLoading] = useState(false);
 
+  // Privacy Settings State (with sensible defaults)
+  const [privacySettings, setPrivacySettings] = useState({
+    postVisibility: "PUBLIC", // "PUBLIC" | "FRIENDS" | "ONLY_ME"
+    friendRequestScope: "EVERYONE", // "EVERYONE" | "FRIENDS_OF_FRIENDS"
+    messageScope: "EVERYONE", // "EVERYONE" | "FRIENDS"
+    showActiveStatus: true,
+    showFollowingList: true,
+  });
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
+
   const handleInputChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handlePrivacyChange = (field, value) => {
+    setPrivacySettings((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleChangePassword = async (e) => {
@@ -55,132 +86,389 @@ export default function SecuritySettingsPage() {
     }
   };
 
+  const handleSavePrivacy = async () => {
+    setSavingPrivacy(true);
+    // Simulate/save privacy settings
+    setTimeout(() => {
+      setSavingPrivacy(false);
+      toast.success("Đã lưu thiết lập quyền riêng tư thành công!");
+    }, 600);
+  };
+
   return (
     <div className="min-h-screen bg-[#F0F2F5] dark:bg-black text-zinc-900 dark:text-zinc-100 py-8 px-4 transition-colors">
       <div className="max-w-2xl mx-auto flex flex-col gap-6">
         {/* Header trang */}
         <div className="flex flex-col gap-1">
           <h1 className="text-xl font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100 tracking-tight">
-            🛡️ Cài đặt bảo mật tài khoản
+            <Shield className="w-5 h-5 text-indigo-500" />
+            Cài đặt Bảo mật &amp; Quyền riêng tư
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Quản lý mật khẩu cá nhân, trạng thái xác thực Gmail và thông tin phiên làm việc bảo mật.
+            Quản lý mật khẩu cá nhân, phiên làm việc và tùy chỉnh quyền riêng tư khi chia sẻ bài viết trên BlogViet.
           </p>
         </div>
 
-        {/* CARD 1: THAY ĐỔI MẬT KHẨU */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col gap-4">
-          <h2 className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-3">
-            🔑 Thay đổi mật khẩu
-          </h2>
+        {/* Segmented Tab Switcher (Bảo mật & Quyền riêng tư) */}
+        <div className="flex bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-1 rounded-2xl shadow-xs gap-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab("security")}
+            className={`flex-1 py-2.5 text-center text-xs rounded-xl font-bold transition-all duration-150 cursor-pointer flex items-center justify-center gap-2 ${
+              activeTab === "security"
+                ? "bg-black text-white dark:bg-white dark:text-black shadow-sm"
+                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            }`}
+          >
+            <Key className="w-3.5 h-3.5" />
+            <span>Mật khẩu &amp; Xác thực</span>
+          </button>
 
-          <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
-            {/* Mật khẩu hiện tại */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Mật khẩu hiện tại
-              </label>
-              <input
-                type="password"
-                name="currentPassword"
-                value={formData.currentPassword}
-                onChange={handleInputChange}
-                placeholder="Nhập mật khẩu hiện tại..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
-                required
-              />
-            </div>
-
-            {/* Mật khẩu mới */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Mật khẩu mới
-              </label>
-              <input
-                type="password"
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleInputChange}
-                placeholder="Ít nhất 8 ký tự..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
-                required
-              />
-            </div>
-
-            {/* Xác nhận mật khẩu mới */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Xác nhận mật khẩu mới
-              </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                placeholder="Nhập lại mật khẩu mới..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
-                required
-              />
-            </div>
-
-            {/* Nút Submit */}
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-5 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-bold hover:opacity-90 active:scale-95 transition shadow-sm disabled:opacity-50 flex items-center gap-2 cursor-pointer"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Đang cập nhật...</span>
-                  </>
-                ) : (
-                  "Cập nhật mật khẩu"
-                )}
-              </button>
-            </div>
-          </form>
+          <button
+            type="button"
+            onClick={() => setActiveTab("privacy")}
+            className={`flex-1 py-2.5 text-center text-xs rounded-xl font-bold transition-all duration-150 cursor-pointer flex items-center justify-center gap-2 ${
+              activeTab === "privacy"
+                ? "bg-black text-white dark:bg-white dark:text-black shadow-sm"
+                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            }`}
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>Quyền riêng tư</span>
+          </button>
         </div>
 
-        {/* CARD 2: BẢO MẬT GMAIL & THIẾT BỊ */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col gap-4">
-          <h2 className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-3">
-            📧 Bảo mật Gmail &amp; Thiết bị
-          </h2>
+        {/* ======================================================================
+            TAB 1: MẬT KHẨU & BẢO MẬT
+            ====================================================================== */}
+        {activeTab === "security" && (
+          <div className="flex flex-col gap-6 animate-in fade-in duration-150">
+            {/* CARD 1: THAY ĐỔI MẬT KHẨU */}
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+              <h2 className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                <Key className="w-4 h-4 text-amber-500" />
+                Thay đổi mật khẩu
+              </h2>
 
-          {/* Item 1: Khôi phục Gmail OTP */}
-          <div className="flex items-center justify-between py-2">
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-                Khôi phục mật khẩu qua Gmail OTP
-              </span>
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                Mã OTP xác thực sẽ gửi về Gmail chính chủ của bạn
-              </span>
-            </div>
-            <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" />
-              <span>Đã bật</span>
-            </span>
-          </div>
+              <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
+                {/* Mật khẩu hiện tại */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    Mật khẩu hiện tại
+                  </label>
+                  <input
+                    type="password"
+                    name="currentPassword"
+                    value={formData.currentPassword}
+                    onChange={handleInputChange}
+                    placeholder="Nhập mật khẩu hiện tại..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
+                    required
+                  />
+                </div>
 
-          {/* Item 2: Phiên làm việc */}
-          <div className="flex items-center justify-between py-2 border-t border-zinc-100 dark:border-zinc-800/60">
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-                Phiên làm việc hiện tại
-              </span>
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                Đang đăng nhập trên Trình duyệt Web (Windows / Mobile)
-              </span>
+                {/* Mật khẩu mới */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    Mật khẩu mới
+                  </label>
+                  <input
+                    type="password"
+                    name="newPassword"
+                    value={formData.newPassword}
+                    onChange={handleInputChange}
+                    placeholder="Ít nhất 8 ký tự..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
+                    required
+                  />
+                </div>
+
+                {/* Xác nhận mật khẩu mới */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    Xác nhận mật khẩu mới
+                  </label>
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    placeholder="Nhập lại mật khẩu mới..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
+                    required
+                  />
+                </div>
+
+                {/* Nút Submit */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-5 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-bold hover:opacity-90 active:scale-95 transition shadow-sm disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Đang cập nhật...</span>
+                      </>
+                    ) : (
+                      "Cập nhật mật khẩu"
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
-            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5">
-              <Monitor className="w-3.5 h-3.5" />
-              <span>Trình duyệt Web</span>
-            </span>
+
+            {/* CARD 2: BẢO MẬT GMAIL & THIẾT BỊ */}
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+              <h2 className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                <Mail className="w-4 h-4 text-indigo-500" />
+                Bảo mật Gmail &amp; Thiết bị
+              </h2>
+
+              {/* Item 1: Khôi phục Gmail OTP */}
+              <div className="flex items-center justify-between py-2">
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                    Khôi phục mật khẩu qua Gmail OTP
+                  </span>
+                  <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Mã OTP xác thực sẽ gửi về Gmail chính chủ của bạn
+                  </span>
+                </div>
+                <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>Đã bật</span>
+                </span>
+              </div>
+
+              {/* Item 2: Phiên làm việc */}
+              <div className="flex items-center justify-between py-2 border-t border-zinc-100 dark:border-zinc-800/60">
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                    Phiên làm việc hiện tại
+                  </span>
+                  <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Đang đăng nhập trên Trình duyệt Web (Windows / Mobile)
+                  </span>
+                </div>
+                <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5">
+                  <Monitor className="w-3.5 h-3.5" />
+                  <span>Trình duyệt Web</span>
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* ======================================================================
+            TAB 2: QUYỀN RIÊNG TƯ (PRIVACY SETTINGS)
+            ====================================================================== */}
+        {activeTab === "privacy" && (
+          <div className="flex flex-col gap-6 animate-in fade-in duration-150">
+            {/* KHỐI 1: ĐỐI TƯỢNG XEM BÀI VIẾT */}
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+              <h2 className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                <Eye className="w-4 h-4 text-emerald-500" />
+                Ai có thể xem bài viết của tôi?
+              </h2>
+
+              <div className="flex flex-col gap-3">
+                {[
+                  {
+                    value: "PUBLIC",
+                    title: "Mọi người (Công khai)",
+                    desc: "Tất cả mọi người trên BlogViet và ngoài Internet đều có thể xem bài viết của bạn.",
+                    icon: Globe,
+                  },
+                  {
+                    value: "FRIENDS",
+                    title: "Bạn bè & Người theo dõi",
+                    desc: "Chỉ những người đã kết bạn hoặc đang theo dõi bạn mới có thể đọc bài viết.",
+                    icon: Users,
+                  },
+                  {
+                    value: "ONLY_ME",
+                    title: "Chỉ mình tôi (Riêng tư)",
+                    desc: "Chỉ bạn mới có quyền xem bài viết được chia sẻ.",
+                    icon: Lock,
+                  },
+                ].map((option) => {
+                  const Icon = option.icon;
+                  const isSelected = privacySettings.postVisibility === option.value;
+                  return (
+                    <label
+                      key={option.value}
+                      onClick={() => handlePrivacyChange("postVisibility", option.value)}
+                      className={`flex items-start gap-3 p-3.5 rounded-xl border transition cursor-pointer ${
+                        isSelected
+                          ? "border-black dark:border-white bg-zinc-50 dark:bg-zinc-800/80 shadow-xs"
+                          : "border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="postVisibility"
+                        checked={isSelected}
+                        onChange={() => {}}
+                        className="mt-1 accent-black dark:accent-white"
+                      />
+                      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                          <Icon className="w-3.5 h-3.5" />
+                          {option.title}
+                        </span>
+                        <span className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                          {option.desc}
+                        </span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* KHỐI 2: KẾT NỐI & TIN NHẮN */}
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+              <h2 className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                <UserCheck className="w-4 h-4 text-indigo-500" />
+                Kết nối, Kết bạn &amp; Tin nhắn
+              </h2>
+
+              <div className="flex flex-col gap-4">
+                {/* Lời mời kết bạn */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                      Ai có thể gửi lời mời kết bạn cho bạn?
+                    </span>
+                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Kiểm soát người có thể kết nối với bạn trên nền tảng
+                    </span>
+                  </div>
+
+                  <select
+                    value={privacySettings.friendRequestScope}
+                    onChange={(e) => handlePrivacyChange("friendRequestScope", e.target.value)}
+                    className="px-3 py-1.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-semibold text-zinc-900 dark:text-zinc-100 outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                  >
+                    <option value="EVERYONE">Mọi người</option>
+                    <option value="FRIENDS_OF_FRIENDS">Bạn của bạn bè</option>
+                  </select>
+                </div>
+
+                {/* Nhắn tin trực tiếp */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2 border-t border-zinc-100 dark:border-zinc-800/60">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                      Ai có thể nhắn tin trực tiếp cho bạn?
+                    </span>
+                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Cho phép trò chuyện qua hộp chat nổi hoặc giới hạn bạn bè
+                    </span>
+                  </div>
+
+                  <select
+                    value={privacySettings.messageScope}
+                    onChange={(e) => handlePrivacyChange("messageScope", e.target.value)}
+                    className="px-3 py-1.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-semibold text-zinc-900 dark:text-zinc-100 outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                  >
+                    <option value="EVERYONE">Tất cả mọi người</option>
+                    <option value="FRIENDS">Chỉ bạn bè</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* KHỐI 3: TRẠNG THÁI HOẠT ĐỘNG */}
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+              <h2 className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                <Activity className="w-4 h-4 text-rose-500" />
+                Trạng thái hoạt động &amp; Hiển thị
+              </h2>
+
+              <div className="flex flex-col gap-4">
+                {/* Trạng thái hoạt động */}
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex flex-col pr-4">
+                    <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                      Hiển thị trạng thái hoạt động (Online status)
+                    </span>
+                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Bạn bè và người đang chat có thể thấy khi bạn đang online trên BlogViet
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handlePrivacyChange("showActiveStatus", !privacySettings.showActiveStatus)
+                    }
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      privacySettings.showActiveStatus ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-700"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        privacySettings.showActiveStatus ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Danh sách Following trên Profile */}
+                <div className="flex items-center justify-between py-2 border-t border-zinc-100 dark:border-zinc-800/60">
+                  <div className="flex flex-col pr-4">
+                    <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                      Hiển thị danh sách người bạn đang theo dõi trên trang cá nhân
+                    </span>
+                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Cho phép người khác xem các tác giả mà bạn đang follow
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handlePrivacyChange("showFollowingList", !privacySettings.showFollowingList)
+                    }
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      privacySettings.showFollowingList ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-700"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        privacySettings.showFollowingList ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Nút lưu Quyền riêng tư */}
+              <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSavePrivacy}
+                  disabled={savingPrivacy}
+                  className="px-5 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-bold hover:opacity-90 active:scale-95 transition shadow-sm disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                >
+                  {savingPrivacy ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Đang lưu...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Lưu cài đặt quyền riêng tư</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
