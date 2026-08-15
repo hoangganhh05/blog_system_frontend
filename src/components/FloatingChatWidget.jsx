@@ -170,9 +170,9 @@ export default function FloatingChatWidget() {
     fetchFriends();
   }, [currentUserId]);
 
-  // 2. Poll unread summaries
+  // 2. Poll unread summaries (Luôn cập nhật số đếm tin nhắn chưa đọc dù widget đang đóng hay mở)
   useEffect(() => {
-    if (!currentUserId || friends.length <= 1 || !isOpen) return;
+    if (!currentUserId || friends.length <= 1) return;
 
     const fetchAllSummaries = async () => {
       const realFriends = friends.filter((f) => f && !f.isAi);
@@ -195,7 +195,7 @@ export default function FloatingChatWidget() {
 
           const lastMsg = history[history.length - 1];
           const unreadCount = history.filter(
-            (m) => String(m.senderId || m.sender?.id) === String(friend.id) && !m.read
+            (m) => String(m.senderId || m.sender?.id) === String(friend.id) && !m.read && !m.isRead
           ).length;
 
           const isCurrentActive = isOpen && String(activeFriend?.id) === String(friend.id);
@@ -219,7 +219,7 @@ export default function FloatingChatWidget() {
     };
 
     fetchAllSummaries();
-    const interval = setInterval(fetchAllSummaries, 30000);
+    const interval = setInterval(fetchAllSummaries, 12000);
     return () => clearInterval(interval);
   }, [currentUserId, friends, isOpen, activeFriend?.id]);
 
@@ -665,16 +665,16 @@ export default function FloatingChatWidget() {
         >
           <span className="text-xl md:text-2xl">💬</span>
           {unreadChatCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] md:text-[11px] font-black rounded-full min-w-4.5 h-4.5 md:min-w-5 md:h-5 flex items-center justify-center px-1 border-2 border-white dark:border-zinc-900 shadow-md animate-pulse">
+            <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] md:text-[11px] font-black rounded-full min-w-5 h-5 flex items-center justify-center px-1 border-2 border-white dark:border-zinc-900 shadow-lg animate-pulse">
               {unreadChatCount > 99 ? "99+" : unreadChatCount}
             </span>
           )}
         </button>
       )}
 
-      {/* Chat Window: Fixed bottom: 20px, max-height calc(100vh-100px) */}
+      {/* Chat Window: Fixed bottom responsive, max-height calc(100dvh-80px) */}
       {isOpen && (
-        <div className="fixed bottom-16 lg:bottom-6 right-3 lg:right-6 left-3 sm:left-auto sm:w-96 md:w-88 h-[520px] max-h-[calc(100vh-120px)] z-[99999] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-3xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed bottom-14 sm:bottom-16 lg:bottom-6 right-2 sm:right-4 lg:right-6 left-2 sm:left-auto sm:w-96 md:w-88 h-[520px] max-h-[calc(100dvh-80px)] z-[99999] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-3xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
           {/* Header */}
           <div className="px-4 py-3 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0 text-zinc-900 dark:text-zinc-100">
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
@@ -827,8 +827,8 @@ export default function FloatingChatWidget() {
                         </div>
 
                         {unread > 0 && (
-                          <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 ml-2">
-                            {unread > 9 ? "9+" : unread}
+                          <span className="min-w-5 h-5 px-1.5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 ml-2 shadow-xs">
+                            {unread > 99 ? "99+" : unread}
                           </span>
                         )}
                       </div>
@@ -1000,31 +1000,36 @@ export default function FloatingChatWidget() {
                           )}
                         </div>
 
-                        {/* Timestamp */}
-                        <span className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 px-1 font-normal">
-                          {formatTime(msg.createdAt)}
-                        </span>
+                        {/* Timestamp & Read Receipt */}
+                        <div className={`flex items-center gap-1.5 mt-1 px-1 ${isMe ? "justify-end" : "justify-start"}`}>
+                          <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-normal">
+                            {formatTime(msg.createdAt)}
+                          </span>
 
-                        {/* Read Receipt Avatar Badge (Chỉ hiện dưới tin nhắn cuối cùng đối phương đã đọc) */}
-                        {isLastRead && (
-                          <div className="flex items-center justify-end mt-0.5 pr-0.5 animate-in fade-in zoom-in-75 duration-150">
-                            {friendAvatar ? (
-                              <img
-                                src={friendAvatar}
-                                alt="Đã xem"
-                                title={`Đã xem lúc ${formatTime(msg.readAt || msg.createdAt)}`}
-                                className="w-3.5 h-3.5 rounded-full object-cover border border-white dark:border-zinc-900 shadow-xs ring-1 ring-zinc-200 dark:ring-zinc-700"
-                              />
-                            ) : (
-                              <div
-                                title={`Đã xem lúc ${formatTime(msg.readAt || msg.createdAt)}`}
-                                className="w-3.5 h-3.5 rounded-full bg-zinc-800 text-white font-bold text-[8px] flex items-center justify-center border border-white dark:border-zinc-900 shadow-xs"
-                              >
-                                {getInitials(friendName)}
-                              </div>
-                            )}
-                          </div>
-                        )}
+                          {/* Read Receipt Avatar Badge (Chỉ hiện dưới tin nhắn cuối cùng đối phương đã đọc) */}
+                          {isLastRead && (
+                            <div
+                              className="inline-flex items-center gap-1 animate-in fade-in zoom-in-75 duration-150"
+                              title={`Đã xem lúc ${formatTime(msg.readAt || msg.createdAt)}`}
+                            >
+                              {friendAvatar ? (
+                                <img
+                                  src={friendAvatar}
+                                  alt="Đã xem"
+                                  className="w-3.5 h-3.5 rounded-full object-cover border border-white dark:border-zinc-900 shadow-2xs ring-1 ring-zinc-300 dark:ring-zinc-600"
+                                />
+                              ) : (
+                                <div
+                                  title={`Đã xem lúc ${formatTime(msg.readAt || msg.createdAt)}`}
+                                  className="w-3.5 h-3.5 rounded-full bg-zinc-800 text-white font-bold text-[8px] flex items-center justify-center border border-white dark:border-zinc-900 shadow-2xs"
+                                >
+                                  {getInitials(friendName)}
+                                </div>
+                              )}
+                              <span className="text-[9px] text-zinc-400 font-medium hidden sm:inline">Đã xem</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   })
@@ -1084,22 +1089,22 @@ export default function FloatingChatWidget() {
 
           {/* Input Footer */}
           {activeFriend && (
-            <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2.5 shrink-0">
+            <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-2 py-2 sm:p-2.5 shrink-0">
               {isRecording ? (
                 /* Active Recording State */
-                <div className="flex items-center justify-between gap-3 animate-in fade-in duration-100">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-rose-500">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+                <div className="flex items-center justify-between gap-2 animate-in fade-in duration-100 min-w-0">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-500 min-w-0 truncate">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping shrink-0" />
                     <span className="font-mono">{formatRecTime(recordingSeconds)}</span>
-                    <span className="text-[11px] text-zinc-400 font-normal">Đang ghi âm...</span>
+                    <span className="text-[11px] text-zinc-400 font-normal hidden sm:inline">Đang ghi âm...</span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     {/* Cancel Recording */}
                     <button
                       type="button"
                       onClick={handleCancelRecording}
-                      className="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-xs font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition cursor-pointer"
+                      className="px-2.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-xs font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition cursor-pointer"
                     >
                       Hủy
                     </button>
@@ -1108,93 +1113,97 @@ export default function FloatingChatWidget() {
                     <button
                       type="button"
                       onClick={handleStopAndSendVoice}
-                      className="px-3.5 py-1.5 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-bold flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition cursor-pointer shadow-sm"
+                      className="px-3 py-1.5 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-bold flex items-center gap-1 hover:opacity-90 active:scale-95 transition cursor-pointer shadow-xs"
                     >
                       <Send className="w-3 h-3" />
-                      <span>Gửi voice</span>
+                      <span>Gửi</span>
                     </button>
                   </div>
                 </div>
               ) : (
                 /* Standard Message Input Form */
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                  {/* Sticker Toggle */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowStickers((v) => !v);
-                      setShowGifPicker(false);
-                    }}
-                    className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
-                    title="Sticker & Emoji"
-                  >
-                    <Smile className="w-4 h-4" />
-                  </button>
+                <form onSubmit={handleSendMessage} className="flex items-center gap-1 sm:gap-1.5 w-full min-w-0">
+                  {/* Left media actions bar */}
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    {/* Sticker Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowStickers((v) => !v);
+                        setShowGifPicker(false);
+                      }}
+                      className="p-1 sm:p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition cursor-pointer"
+                      title="Sticker & Emoji"
+                    >
+                      <Smile className="w-4 h-4" />
+                    </button>
 
-                  {/* GIF Picker Toggle */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowGifPicker((v) => !v);
-                      setShowStickers(false);
-                    }}
-                    className={`px-1.5 py-0.5 rounded-md text-[10px] font-black transition cursor-pointer ${
-                      showGifPicker
-                        ? "bg-amber-500 text-black shadow-xs"
-                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                    }`}
-                    title="Kho ảnh GIF động"
-                  >
-                    GIF
-                  </button>
+                    {/* GIF Picker Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowGifPicker((v) => !v);
+                        setShowStickers(false);
+                      }}
+                      className={`px-1 py-0.5 rounded text-[10px] font-black transition cursor-pointer ${
+                        showGifPicker
+                          ? "bg-amber-500 text-black shadow-xs"
+                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      }`}
+                      title="Kho ảnh GIF động"
+                    >
+                      GIF
+                    </button>
 
-                  {/* Image Select */}
-                  <button
-                    type="button"
-                    onClick={() => imageInputRef.current?.click()}
-                    disabled={uploadingImage || isUploadingVoice}
-                    className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
-                    title="Gửi hình ảnh"
-                  >
-                    {uploadingImage ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Image className="w-4 h-4" />
-                    )}
-                  </button>
-                  <input
-                    ref={imageInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageSelect}
-                  />
+                    {/* Image Select */}
+                    <button
+                      type="button"
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={uploadingImage || isUploadingVoice}
+                      className="p-1 sm:p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition cursor-pointer disabled:opacity-50"
+                      title="Gửi hình ảnh"
+                    >
+                      {uploadingImage ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-[#0866ff]" />
+                      ) : (
+                        <Image className="w-4 h-4" />
+                      )}
+                    </button>
+                    <input
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageSelect}
+                    />
 
-                  {/* Mic / Voice Record Button */}
-                  <button
-                    type="button"
-                    onClick={handleStartRecording}
-                    disabled={isUploadingVoice || uploadingImage}
-                    className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition cursor-pointer"
-                    title="Ghi âm tin nhắn thoại (Voice Message)"
-                  >
-                    <Mic className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
-                  </button>
+                    {/* Mic / Voice Record Button */}
+                    <button
+                      type="button"
+                      onClick={handleStartRecording}
+                      disabled={isUploadingVoice || uploadingImage}
+                      className="p-1 sm:p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition cursor-pointer disabled:opacity-50"
+                      title="Ghi âm tin nhắn thoại (Voice Message)"
+                    >
+                      <Mic className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+                    </button>
+                  </div>
 
-                  {/* Input text */}
+                  {/* Input text with min-w-0 for flex containment */}
                   <input
                     type="text"
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     placeholder="Nhập tin nhắn..."
-                    className="flex-1 px-3.5 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 border border-zinc-200 dark:border-zinc-700 outline-none focus:ring-1 focus:ring-black dark:focus:ring-white transition"
+                    className="flex-1 min-w-0 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 border border-zinc-200 dark:border-zinc-700 outline-none focus:ring-1 focus:ring-black dark:focus:ring-white transition"
                   />
 
                   {/* Send Button */}
                   <button
                     type="submit"
                     disabled={!inputMessage.trim()}
-                    className="w-8 h-8 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer disabled:opacity-40 shrink-0"
+                    className="w-8 h-8 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer disabled:opacity-30 shrink-0 shadow-xs"
+                    title="Gửi tin nhắn"
                   >
                     <Send className="w-3.5 h-3.5" />
                   </button>
