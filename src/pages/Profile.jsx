@@ -522,247 +522,70 @@ export default function Profile() {
         )}
       </div>
 
-      {/* 2. Header Info (Avatar + Action Buttons) */}
-      <div className="px-3 sm:px-4 -mt-12 sm:-mt-14 mb-3 flex flex-col">
-        <div className="flex justify-between items-end gap-3 mb-2">
-          {/* Avatar với nút camera tải ảnh ở chính giữa */}
-          <div className="relative shrink-0 group">
-            <Avatar
-              userId={user.id}
-              src={user.avatarUrl}
-              name={user.fullName || user.username}
-              username={user.username}
-              avatarColor={user.avatarColor}
-              size="3xl"
-              isOnline={user.isOnline}
-              lastActiveAt={user.lastActiveAt}
-              showActiveStatus={!isMe && user.showActiveStatus !== false}
-              hideStatus={isMe}
-              disableLink={true}
-              onClick={() => {
-                if (isMe) {
-                  avatarInputRef.current?.click();
-                } else if (user.avatarUrl) {
-                  setLightboxUrl(user.avatarUrl);
-                }
-              }}
-              className="cursor-pointer transition ring-4 ring-white dark:ring-zinc-900 bg-white dark:bg-zinc-900 shadow-md rounded-full overflow-hidden"
-            />
+      {/* 2. Header Info (Avatar + Name + Bio + Stats + Action Buttons centered) */}
+      <div className="px-3 sm:px-6 -mt-14 sm:-mt-16 md:-mt-20 mb-4 flex flex-col items-center justify-center text-center">
+        {/* Avatar với nút camera tải ảnh ở chính giữa */}
+        <div className="relative shrink-0 group mb-3">
+          <Avatar
+            userId={user.id}
+            src={user.avatarUrl}
+            name={user.fullName || user.username}
+            username={user.username}
+            avatarColor={user.avatarColor}
+            size="3xl"
+            isOnline={user.isOnline}
+            lastActiveAt={user.lastActiveAt}
+            showActiveStatus={!isMe && user.showActiveStatus !== false}
+            hideStatus={isMe}
+            disableLink={true}
+            onClick={() => {
+              if (isMe) {
+                avatarInputRef.current?.click();
+              } else if (user.avatarUrl) {
+                setLightboxUrl(user.avatarUrl);
+              }
+            }}
+            className="cursor-pointer transition ring-4 ring-white dark:ring-zinc-900 bg-white dark:bg-zinc-900 shadow-lg rounded-full overflow-hidden"
+          />
 
-            {/* Nút Camera ở chính giữa avatar chính chủ */}
-            {isMe && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => avatarInputRef.current?.click()}
-                  disabled={isUploadingAvatar}
-                  className="absolute inset-0 m-auto rounded-full bg-black/40 hover:bg-black/60 text-white flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer backdrop-blur-[1px] opacity-90 hover:opacity-100 z-10 select-none"
-                  title="Thay đổi ảnh đại diện"
-                >
-                  {isUploadingAvatar ? (
-                    <Loader2 className="w-6 h-6 animate-spin text-white" />
-                  ) : (
-                    <>
-                      <Camera className="w-6 h-6 stroke-[2] drop-shadow-md text-white" />
-                      <span className="text-[10px] font-bold text-white drop-shadow-md hidden sm:inline">
-                        Đổi ảnh
-                      </span>
-                    </>
-                  )}
-                </button>
-                <input
-                  ref={avatarInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleDirectAvatarUpload}
-                  className="hidden"
-                />
-              </>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 shrink-0 pb-1 justify-end max-w-[240px] sm:max-w-none">
-            {isMe ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="px-4 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition cursor-pointer"
-                >
-                  Chỉnh sửa hồ sơ
-                </button>
-
-                {/* Nút Kho lưu trữ tin */}
-                <button
-                  type="button"
-                  onClick={() => setIsStoryArchiveOpen(true)}
-                  className="px-3.5 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition flex items-center gap-1.5 cursor-pointer"
-                  title="Kho lưu trữ tin 24h"
-                >
-                  <Archive className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Kho lưu trữ</span>
-                </button>
-              </>
-            ) : (
-              <>
-                {/* Nút Theo dõi / Hủy theo dõi (Độc lập, lưu vào Database) */}
-                <button
-                  type="button"
-                  onClick={handleToggleFollow}
-                  disabled={followLoading}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                    isFollowing
-                      ? "bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
-                      : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-100 shadow-xs active:scale-95"
-                  }`}
-                >
-                  {followLoading ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : isFollowing ? (
-                    <span>Đang theo dõi</span>
-                  ) : (
-                    <>
-                      <UserPlus className="w-3.5 h-3.5" />
-                      <span>Theo dõi</span>
-                    </>
-                  )}
-                </button>
-
-                {/* Nút Kết bạn / Lời mời kết bạn */}
-                {friendshipStatus === "PENDING_RECEIVED" ? (
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={handleAcceptFriendRequest}
-                      disabled={friendLoading}
-                      className="px-3.5 py-1.5 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs active:scale-95 cursor-pointer disabled:opacity-50"
-                      title="Chấp nhận lời mời kết bạn"
-                    >
-                      {friendLoading ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <>
-                          <UserCheck className="w-3.5 h-3.5" />
-                          <span>Chấp nhận</span>
-                        </>
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleDeclineFriendRequest}
-                      disabled={friendLoading}
-                      className="px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-95 cursor-pointer disabled:opacity-50"
-                      title="Xóa/Từ chối lời mời"
-                    >
-                      <span>Từ chối</span>
-                    </button>
-                  </div>
-                ) : friendshipStatus === "PENDING_SENT" ? (
-                  <button
-                    type="button"
-                    onClick={handleCancelFriendRequest}
-                    disabled={friendLoading}
-                    className="px-3.5 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 text-xs font-semibold hover:border-rose-300 hover:text-rose-600 transition cursor-pointer"
-                    title="Nhấp để hủy lời mời đã gửi"
-                  >
-                    {friendLoading ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <span>Đã gửi lời mời</span>
-                    )}
-                  </button>
-                ) : friendshipStatus === "ACCEPTED" ? (
-                  <button
-                    type="button"
-                    onClick={handleUnfriend}
-                    disabled={friendLoading}
-                    className="px-3.5 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-semibold hover:border-rose-300 hover:text-rose-600 transition flex items-center gap-1.5 cursor-pointer"
-                    title="Bạn bè (Nhấp để hủy kết bạn)"
-                  >
-                    {friendLoading ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <>
-                        <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Bạn bè</span>
-                      </>
-                    )}
-                  </button>
+          {/* Nút Camera ở chính giữa avatar chính chủ */}
+          {isMe && (
+            <>
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+                className="absolute inset-0 m-auto rounded-full bg-black/40 hover:bg-black/60 text-white flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer backdrop-blur-[1px] opacity-90 hover:opacity-100 z-10 select-none"
+                title="Thay đổi ảnh đại diện"
+              >
+                {isUploadingAvatar ? (
+                  <Loader2 className="w-6 h-6 animate-spin text-white" />
                 ) : (
-                  <button
-                    type="button"
-                    onClick={handleSendFriendRequest}
-                    disabled={friendLoading}
-                    className="px-3.5 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
-                    title="Gửi lời mời kết bạn"
-                  >
-                    {friendLoading ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <>
-                        <UserPlus className="w-3.5 h-3.5" />
-                        <span>Kết bạn</span>
-                      </>
-                    )}
-                  </button>
+                  <>
+                    <Camera className="w-6 h-6 stroke-[2] drop-shadow-md text-white" />
+                    <span className="text-[10px] font-bold text-white drop-shadow-md hidden sm:inline">
+                      Đổi ảnh
+                    </span>
+                  </>
                 )}
-
-                {/* Nút Nhắn tin */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.dispatchEvent(
-                      new CustomEvent("open_chat_user", { detail: { friend: user } })
-                    );
-                  }}
-                  className="p-2 rounded-full border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
-                  title="Nhắn tin"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                </button>
-              </>
-            )}
-          </div>
+              </button>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleDirectAvatarUpload}
+                className="hidden"
+              />
+            </>
+          )}
         </div>
 
-        {/* Banner thông báo lời mời kết bạn nếu đang chờ phản hồi */}
-        {!isMe && friendshipStatus === "PENDING_RECEIVED" && (
-          <div className="mb-3 p-3 bg-blue-50/90 dark:bg-[#0866ff]/15 border border-[#0866ff]/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 animate-in fade-in duration-200">
-            <div className="flex items-center gap-2 text-xs text-zinc-900 dark:text-zinc-100">
-              <UserPlus className="w-4 h-4 text-[#0866ff] shrink-0" />
-              <span>
-                <strong>{user.fullName || user.username}</strong> đã gửi lời mời kết bạn cho bạn.
-              </span>
-            </div>
-            <div className="flex items-center gap-2 self-end sm:self-auto">
-              <button
-                type="button"
-                disabled={friendLoading}
-                onClick={handleAcceptFriendRequest}
-                className="px-3.5 py-1.5 rounded-xl bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                Chấp nhận
-              </button>
-              <button
-                type="button"
-                disabled={friendLoading}
-                onClick={handleDeclineFriendRequest}
-                className="px-3 py-1.5 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold transition active:scale-95 cursor-pointer disabled:opacity-50"
-              >
-                Từ chối
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Typography */}
-        <div className="flex flex-col mt-1.5 sm:mt-2">
-          <h1 className="font-bold text-lg sm:text-xl text-zinc-900 dark:text-zinc-100 tracking-tight">
+        {/* Name & Handle & Active Status (Căn giữa) */}
+        <div className="flex flex-col items-center justify-center text-center">
+          <h1 className="font-extrabold text-xl sm:text-2xl text-zinc-900 dark:text-zinc-100 tracking-tight">
             {user.fullName || user.username}
           </h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-2 mt-0.5">
             <span className="text-xs text-zinc-500 font-medium">
               @{user.username}
             </span>
@@ -778,18 +601,19 @@ export default function Profile() {
           </div>
         </div>
 
+        {/* Bio (Căn giữa) */}
         {user.bio ? (
-          <p className="text-xs leading-relaxed text-zinc-700 dark:text-zinc-300 mt-2 whitespace-pre-line">
+          <p className="text-xs leading-relaxed text-zinc-700 dark:text-zinc-300 mt-2 max-w-lg text-center whitespace-pre-line">
             {user.bio}
           </p>
         ) : isMe ? (
-          <p className="text-xs text-zinc-400 italic mt-2">
+          <p className="text-xs text-zinc-400 italic mt-2 text-center max-w-lg">
             Chưa có tiểu sử. Bấm "Chỉnh sửa hồ sơ" để thêm giới thiệu về bạn!
           </p>
         ) : null}
 
-        {/* Stats */}
-        <div className="flex items-center gap-3 text-xs text-zinc-500 mt-2 pb-2">
+        {/* Stats (Căn giữa) */}
+        <div className="flex items-center justify-center gap-3 text-xs text-zinc-500 mt-2.5 pb-2">
           <span
             onClick={() => setActiveTab("followers")}
             className="cursor-pointer hover:underline"
@@ -814,6 +638,181 @@ export default function Profile() {
             <strong className="text-zinc-900 dark:text-zinc-100 font-bold">{posts.length}</strong> bài viết
           </span>
         </div>
+
+        {/* Action Buttons (Căn giữa) */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-2 w-full max-w-md">
+          {isMe ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(true)}
+                className="px-5 py-2 rounded-full border border-zinc-300 dark:border-zinc-700 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition cursor-pointer shadow-2xs active:scale-95"
+              >
+                Chỉnh sửa hồ sơ
+              </button>
+
+              {/* Nút Kho lưu trữ tin */}
+              <button
+                type="button"
+                onClick={() => setIsStoryArchiveOpen(true)}
+                className="px-4 py-2 rounded-full border border-zinc-300 dark:border-zinc-700 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
+                title="Kho lưu trữ tin 24h"
+              >
+                <Archive className="w-3.5 h-3.5" />
+                <span>Kho lưu trữ</span>
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Nút Theo dõi / Hủy theo dõi (Độc lập, lưu vào Database) */}
+              <button
+                type="button"
+                onClick={handleToggleFollow}
+                disabled={followLoading}
+                className={`px-5 py-2 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  isFollowing
+                    ? "bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
+                    : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-100 shadow-xs active:scale-95"
+                }`}
+              >
+                {followLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : isFollowing ? (
+                  <span>Đang theo dõi</span>
+                ) : (
+                  <>
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>Theo dõi</span>
+                  </>
+                )}
+              </button>
+
+              {/* Nút Kết bạn / Lời mời kết bạn */}
+              {friendshipStatus === "PENDING_RECEIVED" ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAcceptFriendRequest}
+                    disabled={friendLoading}
+                    className="px-4 py-2 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs active:scale-95 cursor-pointer disabled:opacity-50"
+                    title="Chấp nhận lời mời kết bạn"
+                  >
+                    {friendLoading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <>
+                        <UserCheck className="w-3.5 h-3.5" />
+                        <span>Chấp nhận</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleDeclineFriendRequest}
+                    disabled={friendLoading}
+                    className="px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-95 cursor-pointer disabled:opacity-50"
+                    title="Xóa/Từ chối lời mời"
+                  >
+                    <span>Từ chối</span>
+                  </button>
+                </div>
+              ) : friendshipStatus === "PENDING_SENT" ? (
+                <button
+                  type="button"
+                  onClick={handleCancelFriendRequest}
+                  disabled={friendLoading}
+                  className="px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 text-xs font-semibold hover:border-rose-300 hover:text-rose-600 transition cursor-pointer"
+                  title="Nhấp để hủy lời mời đã gửi"
+                >
+                  {friendLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <span>Đã gửi lời mời</span>
+                  )}
+                </button>
+              ) : friendshipStatus === "ACCEPTED" ? (
+                <button
+                  type="button"
+                  onClick={handleUnfriend}
+                  disabled={friendLoading}
+                  className="px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-semibold hover:border-rose-300 hover:text-rose-600 transition flex items-center gap-1.5 cursor-pointer"
+                  title="Bạn bè (Nhấp để hủy kết bạn)"
+                >
+                  {friendLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <>
+                      <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Bạn bè</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSendFriendRequest}
+                  disabled={friendLoading}
+                  className="px-4 py-2 rounded-full border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
+                  title="Gửi lời mời kết bạn"
+                >
+                  {friendLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <>
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Kết bạn</span>
+                    </>
+                  )}
+                </button>
+              )}
+
+              {/* Nút Nhắn tin */}
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent("open_chat_user", { detail: { friend: user } })
+                  );
+                }}
+                className="p-2.5 rounded-full border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer shadow-2xs"
+                title="Nhắn tin"
+              >
+                <MessageCircle className="w-4 h-4" />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Banner thông báo lời mời kết bạn nếu đang chờ phản hồi */}
+        {!isMe && friendshipStatus === "PENDING_RECEIVED" && (
+          <div className="mt-3 p-3 bg-blue-50/90 dark:bg-[#0866ff]/15 border border-[#0866ff]/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-2.5 animate-in fade-in duration-200 w-full max-w-md">
+            <div className="flex items-center gap-2 text-xs text-zinc-900 dark:text-zinc-100">
+              <UserPlus className="w-4 h-4 text-[#0866ff] shrink-0" />
+              <span>
+                <strong>{user.fullName || user.username}</strong> đã gửi lời mời kết bạn cho bạn.
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={friendLoading}
+                onClick={handleAcceptFriendRequest}
+                className="px-3.5 py-1.5 rounded-xl bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                Chấp nhận
+              </button>
+              <button
+                type="button"
+                disabled={friendLoading}
+                onClick={handleDeclineFriendRequest}
+                className="px-3 py-1.5 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold transition active:scale-95 cursor-pointer disabled:opacity-50"
+              >
+                Từ chối
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tabs: Chia đều các cột với thanh active tối giản */}
