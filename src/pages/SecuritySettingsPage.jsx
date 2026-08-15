@@ -167,24 +167,28 @@ export default function SecuritySettingsPage() {
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b0f19] text-zinc-900 dark:text-[#f1f5f9] py-8 px-4 transition-colors">
       <div className="max-w-2xl mx-auto flex flex-col gap-6">
-        {/* Header trang */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="p-2 -ml-1 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0"
-            title="Quay lại"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="flex flex-col gap-0.5">
-            <h1 className="text-xl font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100 tracking-tight">
-              <Shield className="w-5 h-5 text-indigo-500" />
-              Cài đặt &amp; Trợ năng
-            </h1>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Quản lý bảo mật tài khoản, quyền riêng tư và tùy chỉnh chế độ hiển thị màn hình trên BlogViet.
-            </p>
+        {/* Unified Header */}
+        <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="p-2 -ml-1 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0"
+              title="Quay lại"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-indigo-500 shrink-0 shadow-2xs">
+              <Shield className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
+                Cài đặt &amp; Trợ năng
+              </h1>
+              <p className="text-[11px] sm:text-xs text-zinc-500 truncate">
+                Quản lý bảo mật tài khoản, quyền riêng tư và giao diện.
+              </p>
+            </div>
           </div>
         </div>
 

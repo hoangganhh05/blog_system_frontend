@@ -83,34 +83,34 @@ export default function FriendsPage() {
   };
 
   return (
-    <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-sm">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-zinc-100 dark:border-zinc-800 mb-4">
-        <div className="flex items-center gap-2.5">
+    <div className="w-full flex flex-col gap-5">
+      {/* Unified Header */}
+      <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
+        <div className="flex items-center gap-2.5 min-w-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="p-2 -ml-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+            className="p-2 -ml-1 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0"
             title="Quay lại"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
+          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 shadow-2xs">
             <Users className="w-5 h-5" />
           </div>
-          <div>
-            <h1 className="text-base font-bold text-zinc-900 dark:text-white">
+          <div className="flex flex-col min-w-0">
+            <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
               Bạn bè & Kết nối
             </h1>
-            <p className="text-xs text-zinc-500">
-              Quản lý danh sách bạn bè và lời mời kết nối
+            <p className="text-[11px] sm:text-xs text-zinc-500 truncate">
+              Quản lý danh sách bạn bè và lời mời kết nối.
             </p>
           </div>
         </div>
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex items-center gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-4 overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-2 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 overflow-x-auto no-scrollbar">
         <button
           type="button"
           onClick={() => setActiveTab("friends")}

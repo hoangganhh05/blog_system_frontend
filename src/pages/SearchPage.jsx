@@ -55,31 +55,36 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="w-full min-h-full flex flex-col">
-      {/* Page Header with Search Input */}
-      <div className="flex items-center gap-3 pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition text-zinc-700 dark:text-zinc-300 shrink-0 cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-
-        <form onSubmit={handleSubmit} className="flex-1 relative">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Tìm bài viết, tác giả..."
-            value={inputVal}
-            onChange={(e) => setInputVal(e.target.value)}
-            className="w-full bg-zinc-100 dark:bg-zinc-800 border border-transparent focus:border-zinc-300 dark:focus:border-zinc-700 rounded-full py-1.5 pl-10 pr-4 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none"
-          />
-        </form>
+    <div className="w-full flex flex-col gap-5">
+      {/* Unified Header with Search Input */}
+      <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-2 -ml-1 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0"
+            title="Quay lại"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-indigo-500 shrink-0 shadow-2xs">
+            <Search className="w-5 h-5" />
+          </div>
+          <form onSubmit={handleSubmit} className="flex-1 relative min-w-0">
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm bài viết, bạn bè, tác giả..."
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              className="w-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 focus:border-[#0866ff] rounded-2xl py-2 pl-10 pr-4 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none transition shadow-2xs"
+            />
+          </form>
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800 mb-4 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
+      <div className="flex border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 gap-2 overflow-x-auto no-scrollbar shrink-0">
         <button
           type="button"
           onClick={() => setActiveTab("posts")}

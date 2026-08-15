@@ -45,26 +45,29 @@ export default function TrendingPage() {
   }, [filter]);
 
   return (
-    <div className="w-full min-h-full flex flex-col">
-      {/* Page Header with Filters */}
-      <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-        <div className="flex items-center gap-2">
+    <div className="w-full flex flex-col gap-5">
+      {/* Unified Header with Filters */}
+      <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
+        <div className="flex items-center gap-2.5 min-w-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+            className="p-2 -ml-1 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0"
             title="Quay lại"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          {filter === "trending" ? (
-            <TrendingUp className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
-          ) : (
-            <Clock className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
-          )}
-          <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">
-            Khám phá
-          </span>
+          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-rose-500 shrink-0 shadow-2xs">
+            {filter === "trending" ? <TrendingUp className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
+              Khám phá xu hướng
+            </h1>
+            <p className="text-[11px] sm:text-xs text-zinc-500 truncate">
+              Các bài viết nổi bật, thảo luận sôi nổi và mới nhất.
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-xl text-xs font-semibold">

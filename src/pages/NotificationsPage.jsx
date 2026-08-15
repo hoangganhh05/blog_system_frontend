@@ -163,30 +163,39 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="w-full min-h-full flex flex-col">
-      {/* Page Header */}
-      <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-        <div className="flex items-center gap-2">
+    <div className="w-full flex flex-col gap-5">
+      {/* Unified Header */}
+      <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
+        <div className="flex items-center gap-2.5 min-w-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+            className="p-2 -ml-1 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0"
             title="Quay lại"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">
-            Thông báo
-          </span>
+          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-blue-500 shrink-0 shadow-2xs">
+            <Bell className="w-5 h-5" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
+              Thông báo
+            </h1>
+            <p className="text-[11px] sm:text-xs text-zinc-500 truncate">
+              Cập nhật hoạt động, tương tác và kết nối mới của bạn.
+            </p>
+          </div>
         </div>
+
         {notifications.some((n) => !n.read) && (
           <button
             type="button"
             onClick={markAllRead}
-            className="text-xs font-semibold hover:underline flex items-center gap-1 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-bold transition active:scale-95 cursor-pointer shrink-0"
           >
-            <CheckCheck className="w-3.5 h-3.5" />
-            <span>Đọc tất cả</span>
+            <CheckCheck className="w-4 h-4" />
+            <span className="hidden xs:inline">Đọc tất cả</span>
           </button>
         )}
       </div>

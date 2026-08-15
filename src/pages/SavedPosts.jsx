@@ -29,19 +29,30 @@ export default function SavedPosts() {
   }, [currentUserId]);
 
   return (
-    <div className="w-full min-h-full flex flex-col">
-      {/* Page Header */}
-      <div className="flex items-center gap-3 pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition text-zinc-700 dark:text-zinc-300 cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">
-          Đã lưu
-        </span>
+    <div className="w-full flex flex-col gap-5">
+      {/* Unified Header */}
+      <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-2 -ml-1 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0"
+            title="Quay lại"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-amber-500 shrink-0 shadow-2xs">
+            <Bookmark className="w-5 h-5 fill-amber-500/20" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
+              Bài viết đã lưu
+            </h1>
+            <p className="text-[11px] sm:text-xs text-zinc-500 truncate">
+              Kho lưu trữ những bài viết và nội dung yêu thích của bạn.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Saved Posts List */}
