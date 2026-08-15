@@ -47,7 +47,7 @@ export default function TrendingPage() {
   return (
     <div className="w-full flex flex-col gap-5">
       {/* Unified Header with Filters */}
-      <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
         <div className="flex items-center gap-2.5 min-w-0">
           <button
             type="button"
@@ -61,22 +61,22 @@ export default function TrendingPage() {
             {filter === "trending" ? <TrendingUp className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
           </div>
           <div className="flex flex-col min-w-0">
-            <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
+            <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
               Khám phá xu hướng
             </h1>
-            <p className="text-[11px] sm:text-xs text-zinc-500 truncate">
+            <p className="text-[11px] sm:text-xs text-zinc-500">
               Các bài viết nổi bật, thảo luận sôi nổi và mới nhất.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-xl text-xs font-semibold">
+        <div className="flex items-center justify-between sm:justify-end gap-1 bg-zinc-100 dark:bg-zinc-800/90 p-1 rounded-2xl text-xs font-semibold self-start sm:self-auto w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setFilter("trending")}
-            className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1 ${
+            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
               filter === "trending"
-                ? "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xs font-bold"
+                ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-2xs font-bold"
                 : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
             }`}
           >
@@ -86,9 +86,9 @@ export default function TrendingPage() {
           <button
             type="button"
             onClick={() => setFilter("recent")}
-            className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1 ${
+            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
               filter === "recent"
-                ? "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xs font-bold"
+                ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-2xs font-bold"
                 : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
             }`}
           >

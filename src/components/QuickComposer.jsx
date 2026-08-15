@@ -186,13 +186,13 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
         <div className="border-t border-zinc-100 dark:border-zinc-800 my-2" />
 
         {/* Responsive Bottom Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2 pt-1">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
             {/* Image Attach Button */}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-zinc-800/80 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition cursor-pointer shrink-0 border border-zinc-200/60 dark:border-zinc-700/60"
+              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800/90 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0 border border-zinc-200/50 dark:border-zinc-700/50 active:scale-95"
               title="Đính kèm ảnh"
             >
               <Image className="w-4 h-4 text-emerald-500" />
@@ -211,7 +211,7 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="text-xs min-h-[36px] bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700/60 rounded-full px-2.5 sm:px-3 py-1 text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer font-medium max-w-[115px] sm:max-w-[160px] truncate"
+                className="text-[11px] sm:text-xs h-8 sm:h-9 bg-zinc-100 dark:bg-zinc-800/90 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl px-2 sm:px-2.5 text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer font-medium max-w-[95px] xs:max-w-[130px] sm:max-w-[160px] truncate"
               >
                 <option value="">Chủ đề...</option>
                 {categories.map((c) => (
@@ -226,19 +226,13 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
             <button
               type="button"
               onClick={() => setPrivacy(privacy === "PUBLIC" ? "FRIENDS" : "PUBLIC")}
-              className="flex items-center gap-1.5 text-xs min-h-[36px] px-2.5 sm:px-3 py-1 rounded-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700/60 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition cursor-pointer font-medium shrink-0"
-              title="Quyền riêng tư"
+              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800/90 border border-zinc-200/50 dark:border-zinc-700/50 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition cursor-pointer shrink-0 active:scale-95"
+              title={privacy === "PUBLIC" ? "Quyền riêng tư: Công khai" : "Quyền riêng tư: Bạn bè"}
             >
               {privacy === "PUBLIC" ? (
-                <>
-                  <Globe className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                  <span className="hidden xs:inline">Công khai</span>
-                </>
+                <Globe className="w-3.5 h-3.5 text-blue-500" />
               ) : (
-                <>
-                  <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <span className="hidden xs:inline">Bạn bè</span>
-                </>
+                <Lock className="w-3.5 h-3.5 text-amber-500" />
               )}
             </button>
           </div>
@@ -248,7 +242,7 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
             type="button"
             onClick={handleSubmit}
             disabled={(!content.trim() && images.length === 0) || isSubmitting || isUploading}
-            className="px-4 sm:px-5 py-2 min-h-[36px] rounded-full text-xs font-bold text-white dark:text-black bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs shrink-0 ml-auto"
+            className="px-3.5 sm:px-4 py-1.5 h-8 sm:h-9 rounded-xl text-xs font-bold text-white bg-[#0866ff] hover:bg-[#0756d6] transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs shrink-0"
           >
             {isSubmitting ? (
               <div className="flex items-center gap-1.5">

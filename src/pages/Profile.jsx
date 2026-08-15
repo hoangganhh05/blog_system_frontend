@@ -599,26 +599,7 @@ export default function Profile() {
                   <span>Bài viết đã lưu</span>
                 </button>
 
-                {/* 4. Bật/Tắt trạng thái hoạt động */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const nextState = !isUserActiveStatusEnabled(currentUserId);
-                    setUserActiveStatusEnabled(currentUserId, nextState);
-                    toast.success(nextState ? "Đã bật trạng thái hoạt động (Online)" : "Đã tắt trạng thái hoạt động (Ngoại tuyến)");
-                  }}
-                  className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className={`w-2.5 h-2.5 rounded-full ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
-                    <span>Trạng thái hoạt động</span>
-                  </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"}`}>
-                    {isUserActiveStatusEnabled(currentUserId) ? "Bật" : "Tắt"}
-                  </span>
-                </button>
-
-                {/* 5. Cài đặt & Quyền riêng tư */}
+                {/* 4. Cài đặt & Quyền riêng tư */}
                 <button
                   type="button"
                   onClick={() => {
@@ -633,7 +614,7 @@ export default function Profile() {
 
                 <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-0.5" />
 
-                {/* 6. Sao chép liên kết trang cá nhân */}
+                {/* 5. Sao chép liên kết trang cá nhân */}
                 <button
                   type="button"
                   onClick={() => {
@@ -645,19 +626,6 @@ export default function Profile() {
                 >
                   <Copy className="w-4 h-4 text-emerald-500" />
                   <span>Sao chép liên kết</span>
-                </button>
-
-                {/* 7. Đăng xuất */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMoreMenuOpen(false);
-                    setIsLogoutConfirmOpen(true);
-                  }}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition w-full text-left cursor-pointer"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Đăng xuất</span>
                 </button>
               </div>
             )}
