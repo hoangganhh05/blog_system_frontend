@@ -105,11 +105,11 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   ];
 
   return (
-    <div className="w-full min-h-screen bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col transition-colors duration-200">
+    <div className="w-full h-screen max-h-screen bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col overflow-hidden transition-colors duration-200">
       {/* ======================================================================
           STICKY TOP HEADER (h-14, Full-width Fluid Navbar, Crisp border-b)
           ====================================================================== */}
-      <header className="w-full bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50">
+      <header className="w-full h-14 shrink-0 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50">
         <div className="w-full h-14 px-4 sm:px-6 md:px-8 lg:px-12 flex items-center justify-between gap-4">
 
           {/* LEFT: Minimalist Logo + Nav Links */}
@@ -318,9 +318,9 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           3-COLUMN INDEPENDENT SCROLLABLE SOCIAL LAYOUT
           (Left Sidebar | Main Feed Center | Right Sidebar)
           ====================================================================== */}
-      <div className="w-full flex-1 h-[calc(100dvh-3.5rem)] max-w-7xl mx-auto px-1.5 sm:px-4 md:px-6 flex justify-center items-stretch gap-4 lg:gap-6 overflow-hidden">
+      <div className="w-full flex-1 h-[calc(100vh-3.5rem)] max-w-7xl mx-auto px-1.5 sm:px-4 md:px-6 flex justify-center items-stretch gap-4 lg:gap-6 overflow-hidden">
         {/* LEFT COLUMN: Shortcuts & Profile Sidebar (Independent Scrollable Column) */}
-        <aside className="hidden xl:block w-64 xl:w-72 shrink-0 h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
+        <aside className="hidden xl:block w-64 xl:w-72 shrink-0 h-full max-h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
           <LeftSidebar />
         </aside>
 
@@ -328,13 +328,13 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className="w-full flex-1 max-w-full lg:max-w-[680px] h-full overflow-y-auto custom-scrollbar px-1 sm:px-3 pt-3 sm:pt-4 pb-36 md:pb-16 flex flex-col gap-4"
+          className="w-full flex-1 max-w-full lg:max-w-[680px] h-full max-h-full overflow-y-auto custom-scrollbar px-1 sm:px-3 pt-3 sm:pt-4 pb-36 md:pb-16 flex flex-col gap-4"
         >
           {children}
         </main>
 
         {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (Independent Scrollable Column) */}
-        <aside className="hidden lg:block w-72 xl:w-80 shrink-0 h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
+        <aside className="hidden lg:block w-72 xl:w-80 shrink-0 h-full max-h-full overflow-y-auto custom-scrollbar pt-4 pb-20 select-none">
           <RightSidebar />
         </aside>
       </div>
