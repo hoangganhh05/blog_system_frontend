@@ -313,9 +313,9 @@ export default function Home() {
   }, [posts, activeTab, followingIds, currentUserId]);
 
   return (
-    <div className="w-full min-h-full flex flex-col">
-      {/* Sticky Top Header with 2 Tabs (Segmented Pill Style) */}
-      <div className="flex bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 p-1 rounded-2xl mb-3 shrink-0 shadow-xs gap-1">
+    <div className="w-full flex flex-col gap-4">
+      {/* Top Header with 2 Tabs (Segmented Pill Style) */}
+      <div className="flex bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 p-1 rounded-2xl shrink-0 shadow-xs gap-1">
         <button
           type="button"
           onClick={() => handleTabChange("forYou")}
@@ -351,7 +351,7 @@ export default function Home() {
 
       {/* Mobile Suggested Friends Carousel (Đồng bộ 100% tính năng gợi ý theo dõi lên Mobile) */}
       {suggestedUsers.length > 0 && activeTab === "forYou" && (
-        <div className="lg:hidden p-3.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs my-3 flex flex-col gap-2.5 overflow-hidden">
+        <div className="lg:hidden p-3.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs flex flex-col gap-2.5 overflow-hidden">
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
