@@ -1,20 +1,11 @@
 import { createContext, useContext, useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
+import songService from "../services/songService";
 
 export const VIETNAMESE_PLAYLIST = [
   {
     id: 1,
-    title: "Nàng Thơ",
-    artist: "Hoàng Dũng",
-    genre: "Pop Ballad",
-    genreColor: "bg-pink-100 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300",
-    cover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&auto=format&fit=crop&q=80",
-    src: "https://streams.ilovemusic.de/iloveradio10.mp3",
-    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-  },
-  {
-    id: 2,
-    title: "Vinahouse Đỉnh Nóc Kịch Trần 2026",
+    title: "Vinahouse Club Night 2026",
     artist: "DJ BlogViet & Phong Max",
     genre: "Vinahouse",
     genreColor: "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
@@ -23,17 +14,7 @@ export const VIETNAMESE_PLAYLIST = [
     fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
   },
   {
-    id: 3,
-    title: "See Tình (Dance Pop Hit)",
-    artist: "Hoàng Thùy Linh",
-    genre: "Nhạc Trẻ",
-    genreColor: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
-    cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80",
-    src: "https://streams.ilovemusic.de/iloveradio1.mp3",
-    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-  },
-  {
-    id: 4,
+    id: 2,
     title: "Cắt Đôi Nỗi Sầu (Club Remix)",
     artist: "Tăng Duy Tân (DJ Mix)",
     genre: "Remix",
@@ -43,19 +24,29 @@ export const VIETNAMESE_PLAYLIST = [
     fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
   },
   {
-    id: 5,
-    title: "Có Chàng Trai Viết Lên Cây",
-    artist: "Phan Mạnh Quỳnh",
+    id: 3,
+    title: "Nàng Thơ (Acoustic Chill)",
+    artist: "Hoàng Dũng",
     genre: "Pop Ballad",
     genreColor: "bg-pink-100 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300",
-    cover: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=300&auto=format&fit=crop&q=80",
-    src: "https://stream.zeno.fm/f3wvbbqmdg8uv",
-    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+    cover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&auto=format&fit=crop&q=80",
+    src: "https://streams.ilovemusic.de/iloveradio10.mp3",
+    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
   },
   {
-    id: 6,
-    title: "Bên Trên Tầng Lầu (Lofi Chill & Code)",
-    artist: "Tăng Duy Tân (Lofi Beat)",
+    id: 4,
+    title: "See Tình (Dance Pop Hit)",
+    artist: "Hoàng Thùy Linh",
+    genre: "Nhạc Trẻ",
+    genreColor: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
+    cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80",
+    src: "https://streams.ilovemusic.de/iloveradio1.mp3",
+    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+  },
+  {
+    id: 5,
+    title: "Bên Trên Tầng Lầu (Lofi Beat)",
+    artist: "Tăng Duy Tân",
     genre: "Lofi Chill",
     genreColor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
     cover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&auto=format&fit=crop&q=80",
@@ -63,39 +54,9 @@ export const VIETNAMESE_PLAYLIST = [
     fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
   },
   {
-    id: 7,
-    title: "Waiting For You (Synthwave Mix)",
-    artist: "MONO (Onionn Cover)",
-    genre: "Nhạc Trẻ",
-    genreColor: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
-    cover: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&auto=format&fit=crop&q=80",
-    src: "https://streams.ilovemusic.de/iloveradio1.mp3",
-    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-  },
-  {
-    id: 8,
-    title: "Ánh Nắng Của Anh (Piano Acoustic)",
-    artist: "Đức Phúc (Acoustic Ver)",
-    genre: "Pop Ballad",
-    genreColor: "bg-pink-100 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300",
-    cover: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=300&auto=format&fit=crop&q=80",
-    src: "https://stream.zeno.fm/f3wvbbqmdg8uv",
-    fallbackSrc: "https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg",
-  },
-  {
-    id: 9,
-    title: "Chạy Về Khóc Với Anh (Vinahouse Boost)",
-    artist: "ERIK (Club Nonstop)",
-    genre: "Vinahouse",
-    genreColor: "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
-    cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80",
-    src: "https://streams.ilovemusic.de/iloveradio2.mp3",
-    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-  },
-  {
-    id: 10,
-    title: "Nơi Này Có Anh (Raindrops Lofi)",
-    artist: "Sơn Tùng M-TP (Lofi Ver)",
+    id: 6,
+    title: "Nơi Này Có Anh (Piano Rain Lofi)",
+    artist: "Sơn Tùng M-TP",
     genre: "Lofi Chill",
     genreColor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
     cover: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=300&auto=format&fit=crop&q=80",
@@ -104,11 +65,10 @@ export const VIETNAMESE_PLAYLIST = [
   },
 ];
 
-export const PLAYLIST = VIETNAMESE_PLAYLIST;
-
 const MusicContext = createContext(null);
 
 export function MusicProvider({ children }) {
+  const [playlist, setPlaylist] = useState(VIETNAMESE_PLAYLIST);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -119,7 +79,19 @@ export function MusicProvider({ children }) {
 
   const audioRef = useRef(null);
   const retryCountRef = useRef(0);
-  const currentTrack = PLAYLIST[currentTrackIndex];
+  const currentTrack = playlist[currentTrackIndex] || playlist[0] || VIETNAMESE_PLAYLIST[0];
+
+  // Fetch dynamic songs from backend API on mount
+  useEffect(() => {
+    songService
+      .getAll()
+      .then((res) => {
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setPlaylist(res.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Initialize singleton audio element
   useEffect(() => {
@@ -157,7 +129,7 @@ export function MusicProvider({ children }) {
       setIsPlaying(false);
       console.warn("[MUSIC ERROR] Lỗi tải stream:", audio.src);
 
-      const track = PLAYLIST[currentTrackIndex];
+      const track = playlist[currentTrackIndex];
       if (track?.fallbackSrc && retryCountRef.current === 0) {
         retryCountRef.current = 1;
         console.info("[MUSIC FALLBACK] Thử link phụ fallbackSrc:", track.fallbackSrc);
@@ -189,16 +161,16 @@ export function MusicProvider({ children }) {
       audio.removeEventListener("error", onError);
       audioRef.current = null;
     };
-  }, []);
+  }, [playlist]);
 
   // Handle track change
   const playTrack = (index) => {
-    const nextIdx = (index + PLAYLIST.length) % PLAYLIST.length;
+    const nextIdx = (index + playlist.length) % playlist.length;
     setCurrentTrackIndex(nextIdx);
     setHasError(false);
     retryCountRef.current = 0;
     if (audioRef.current) {
-      audioRef.current.src = PLAYLIST[nextIdx].src;
+      audioRef.current.src = playlist[nextIdx].src;
       audioRef.current.currentTime = 0;
       audioRef.current
         .play()
@@ -260,7 +232,7 @@ export function MusicProvider({ children }) {
   return (
     <MusicContext.Provider
       value={{
-        playlist: PLAYLIST,
+        playlist,
         currentTrack,
         currentTrackIndex,
         isPlaying,
