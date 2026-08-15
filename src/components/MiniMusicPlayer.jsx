@@ -17,6 +17,18 @@ import {
   Music2,
 } from "lucide-react";
 
+// Hàm chuẩn hóa tiếng Việt không dấu để tìm kiếm thông minh
+function removeVietnameseTones(str) {
+  if (!str) return "";
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .trim();
+}
+
 export default function MiniMusicPlayer() {
   const {
     playlist,
@@ -50,16 +62,26 @@ export default function MiniMusicPlayer() {
 
   const progressPercent = duration ? (currentTime / duration) * 100 : 0;
 
-  // Filter playlist by search query
+  // Lọc thông minh hỗ trợ cả tiếng Việt có dấu và không dấu
   const filteredPlaylist = useMemo(() => {
     if (!searchQuery.trim()) return playlist;
-    const q = searchQuery.toLowerCase().trim();
-    return playlist.filter(
-      (item) =>
-        item.title.toLowerCase().includes(q) ||
-        item.artist.toLowerCase().includes(q) ||
-        item.genre.toLowerCase().includes(q)
-    );
+    const rawQ = searchQuery.toLowerCase().trim();
+    const normalizedQ = removeVietnameseTones(searchQuery);
+
+    return playlist.filter((item) => {
+      const titleNorm = removeVietnameseTones(item.title);
+      const artistNorm = removeVietnameseTones(item.artist);
+      const genreNorm = removeVietnameseTones(item.genre);
+
+      return (
+        item.title.toLowerCase().includes(rawQ) ||
+        item.artist.toLowerCase().includes(rawQ) ||
+        item.genre.toLowerCase().includes(rawQ) ||
+        titleNorm.includes(normalizedQ) ||
+        artistNorm.includes(normalizedQ) ||
+        genreNorm.includes(normalizedQ)
+      );
+    });
   }, [playlist, searchQuery]);
 
   return (
@@ -69,19 +91,19 @@ export default function MiniMusicPlayer() {
           ====================================================================== */}
       <div className="hidden lg:block w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm relative overflow-hidden group">
         {isPlaying && (
-          <div className="absolute -top-12 -right-12 w-28 h-28 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -top-12 -right-12 w-28 h-28 bg-rose-500/10 dark:bg-rose-500/20 rounded-full blur-2xl pointer-events-none" />
         )}
 
         {/* Header Tag with Link to Full Radio & Playlist Toggle */}
         <div className="flex items-center justify-between mb-3">
           <Link
             to="/radio"
-            className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition group/link"
+            className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-zinc-100 hover:text-rose-600 dark:hover:text-rose-400 transition group/link"
             title="Mở phòng nghe nhạc Radio toàn màn hình"
           >
             <Radio className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
-            <span>Mini Music Player</span>
-            <ExternalLink className="w-3 h-3 text-zinc-400 group-hover/link:text-indigo-500 opacity-0 group-hover/link:opacity-100 transition" />
+            <span>Vinahouse & Chill</span>
+            <ExternalLink className="w-3 h-3 text-zinc-400 group-hover/link:text-rose-500 opacity-0 group-hover/link:opacity-100 transition" />
           </Link>
 
           <div className="flex items-center gap-1">
@@ -113,10 +135,10 @@ export default function MiniMusicPlayer() {
               <Search className="w-3 h-3 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Tìm bài hát, tác giả..."
+                placeholder="Tìm bài hát, ca sĩ (VD: Tang Duy Tan, Vinahouse...)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-7 pr-6 py-1 text-[11px] text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-7 pr-6 py-1 text-[11px] text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-rose-500"
               />
               {searchQuery && (
                 <button
@@ -129,7 +151,7 @@ export default function MiniMusicPlayer() {
               )}
             </div>
 
-            <div className="max-h-36 overflow-y-auto flex flex-col gap-1 pr-1 custom-scrollbar">
+            <div className="max-h-40 overflow-y-auto flex flex-col gap-1 pr-1 custom-scrollbar">
               {filteredPlaylist.map((track) => {
                 const originalIndex = playlist.findIndex((p) => p.id === track.id);
                 const isThisPlaying = currentTrackIndex === originalIndex;
@@ -155,7 +177,7 @@ export default function MiniMusicPlayer() {
                           isThisPlaying ? "opacity-80" : "text-zinc-400"
                         }`}
                       >
-                        {track.artist}
+                        {track.artist} · {track.genre}
                       </span>
                     </div>
                   </button>
@@ -273,7 +295,7 @@ export default function MiniMusicPlayer() {
         {/* Top Progress Line */}
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
           <div
-            className="h-full bg-indigo-600 dark:bg-indigo-400 transition-all duration-200"
+            className="h-full bg-rose-600 dark:bg-rose-400 transition-all duration-200"
             style={{ width: `${progressPercent}%` }}
           />
         </div>

@@ -1,53 +1,73 @@
 import { createContext, useContext, useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
-export const PLAYLIST = [
+export const VIETNAMESE_PLAYLIST = [
   {
     id: 1,
-    title: "Vinahouse Club Night 2026",
-    artist: "BlogViet DJ Team",
-    genre: "Vinahouse / EDM",
-    cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80",
+    title: "Vinahouse Đỉnh Nóc Kịch Trần 2026",
+    artist: "DJ BlogViet & Phong Max",
+    genre: "Vinahouse",
+    cover: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=300&auto=format&fit=crop&q=80",
     src: "https://streams.ilovemusic.de/iloveradio2.mp3",
     fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
   },
   {
     id: 2,
-    title: "Lo-Fi Beats & Study Lounge",
-    artist: "Lofi Developer Beats",
-    genre: "Lofi Chill",
+    title: "Cắt Đôi Nỗi Sầu (Vinahouse Club Remix)",
+    artist: "Tăng Duy Tân (DJ Mix)",
+    genre: "Vinahouse",
+    cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&auto=format&fit=crop&q=80",
+    src: "https://streams.ilovemusic.de/iloveradio9.mp3",
+    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+  },
+  {
+    id: 3,
+    title: "Bên Trên Tầng Lầu (Lofi Chill & Code)",
+    artist: "Tăng Duy Tân (Lofi Beat)",
+    genre: "Lofi Việt",
     cover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&auto=format&fit=crop&q=80",
     src: "https://streams.ilovemusic.de/iloveradio10.mp3",
     fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
   },
   {
-    id: 3,
-    title: "Cyber Sunset Synthwave",
-    artist: "Retro Wave Studio",
-    genre: "Synthwave",
-    cover: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&auto=format&fit=crop&q=80",
-    src: "https://streams.ilovemusic.de/iloveradio9.mp3",
-    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-  },
-  {
     id: 4,
-    title: "Piano & Gentle Raindrop",
-    artist: "Acoustic Melody & Rain",
-    genre: "Acoustic Chill",
+    title: "Nơi Này Có Anh (Piano Rain Lofi)",
+    artist: "Sơn Tùng M-TP (Lofi Ver)",
+    genre: "Lofi Việt",
     cover: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=300&auto=format&fit=crop&q=80",
     src: "https://stream.zeno.fm/f3wvbbqmdg8uv",
     fallbackSrc: "https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg",
   },
   {
     id: 5,
-    title: "Deep Space Focus Ambience",
-    artist: "Cosmic Relax Collective",
-    genre: "Ambient Relax",
-    cover: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=300&auto=format&fit=crop&q=80",
-    src: "https://actions.google.com/sounds/v1/science_fiction/space_ambience.ogg",
+    title: "Waiting For You (Synthwave Lofi Mix)",
+    artist: "MONO (Onionn Cover)",
+    genre: "Nhạc Trẻ",
+    cover: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&auto=format&fit=crop&q=80",
+    src: "https://streams.ilovemusic.de/iloveradio1.mp3",
+    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+  },
+  {
+    id: 6,
+    title: "Ngày Đầu Tiên (Acoustic Coffee Chill)",
+    artist: "Đức Phúc (Acoustic Melody)",
+    genre: "Acoustic Chill",
+    cover: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=300&auto=format&fit=crop&q=80",
+    src: "https://stream.zeno.fm/f3wvbbqmdg8uv",
     fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
   },
+  {
+    id: 7,
+    title: "Chạy Về Khóc Với Anh (Vinahouse Bass Boost)",
+    artist: "ERIK (Club Nonstop)",
+    genre: "Vinahouse",
+    cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80",
+    src: "https://streams.ilovemusic.de/iloveradio2.mp3",
+    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+  },
 ];
+
+export const PLAYLIST = VIETNAMESE_PLAYLIST;
 
 const MusicContext = createContext(null);
 
