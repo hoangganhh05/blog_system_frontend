@@ -659,6 +659,12 @@ export default function FloatingChatWidget() {
         ch.close();
       } catch {}
 
+      window.dispatchEvent(
+        new CustomEvent("chat_typing_event", {
+          detail: { senderId: currentUserId, receiverId: activeFriend.id, isTyping: true },
+        })
+      );
+
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
       typingTimerRef.current = setTimeout(() => {
         try {
@@ -670,7 +676,13 @@ export default function FloatingChatWidget() {
           });
           ch.close();
         } catch {}
-      }, 2500);
+
+        window.dispatchEvent(
+          new CustomEvent("chat_typing_event", {
+            detail: { senderId: currentUserId, receiverId: activeFriend.id, isTyping: false },
+          })
+        );
+      }, 2000);
     }
   };
 
@@ -692,6 +704,12 @@ export default function FloatingChatWidget() {
       });
       ch.close();
     } catch {}
+
+    window.dispatchEvent(
+      new CustomEvent("chat_typing_event", {
+        detail: { senderId: currentUserId, receiverId: activeFriend.id, isTyping: false },
+      })
+    );
 
     try {
       const res = await chatService.sendMessage(currentUserId, activeFriend.id, text);
