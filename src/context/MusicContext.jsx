@@ -159,6 +159,30 @@ export function MusicProvider({ children }) {
   const [isMuted, setIsMuted] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  // Mobile & Global Mini Player visibility toggle state
+  const [isMiniPlayerVisible, setIsMiniPlayerVisible] = useState(() => {
+    const saved = localStorage.getItem("blog_mini_player_visible");
+    return saved !== null ? saved === "true" : true;
+  });
+
+  const hideMiniPlayer = () => {
+    setIsMiniPlayerVisible(false);
+    localStorage.setItem("blog_mini_player_visible", "false");
+  };
+
+  const showMiniPlayer = () => {
+    setIsMiniPlayerVisible(true);
+    localStorage.setItem("blog_mini_player_visible", "true");
+  };
+
+  const toggleMiniPlayer = () => {
+    setIsMiniPlayerVisible((prev) => {
+      const next = !prev;
+      localStorage.setItem("blog_mini_player_visible", String(next));
+      return next;
+    });
+  };
+
   const audioRef = useRef(null);
   const retryCountRef = useRef(0);
 
@@ -318,6 +342,7 @@ export function MusicProvider({ children }) {
     setCurrentTime(0);
     setDuration(0);
     setHasError(false);
+    setIsMiniPlayerVisible(true);
     retryCountRef.current = 0;
 
     if (audioRef.current) {
@@ -456,6 +481,10 @@ export function MusicProvider({ children }) {
         volume,
         isMuted,
         hasError,
+        isMiniPlayerVisible,
+        hideMiniPlayer,
+        showMiniPlayer,
+        toggleMiniPlayer,
         togglePlay,
         nextTrack,
         prevTrack,

@@ -40,6 +40,9 @@ export default function MiniMusicPlayer() {
     currentTime,
     duration,
     isMuted,
+    isMiniPlayerVisible,
+    hideMiniPlayer,
+    showMiniPlayer,
     togglePlay,
     nextTrack,
     prevTrack,
@@ -314,104 +317,130 @@ export default function MiniMusicPlayer() {
       {/* ======================================================================
           2. MOBILE FLOATING MUSIC BAR (Fixed bottom-14 above bottom-nav, z-40)
           ====================================================================== */}
-      <div className="lg:hidden fixed bottom-14 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 px-3 py-2 flex items-center justify-between shadow-md">
-        {/* Top Progress Line */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+      {!isMiniPlayerVisible ? (
+        isPlaying && (
           <div
-            className="h-full bg-rose-600 dark:bg-rose-400 transition-all duration-200"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
+            onClick={() => showMiniPlayer()}
+            className="lg:hidden fixed bottom-16 right-3 z-40 bg-black/90 dark:bg-white/90 text-white dark:text-black p-2 px-2.5 rounded-full shadow-xl border border-white/20 dark:border-black/20 flex items-center gap-1.5 cursor-pointer animate-in zoom-in-95 duration-200 backdrop-blur-md active:scale-95"
+            title="Mở thanh phát nhạc"
+          >
+            <Disc3 className="w-4 h-4 animate-spin text-rose-500" style={{ animationDuration: "3s" }} />
+            <span className="text-[10px] font-bold">Phát nhạc</span>
+          </div>
+        )
+      ) : (
+        <div className="lg:hidden fixed bottom-14 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 px-3 py-2 flex items-center justify-between shadow-md">
+          {/* Top Progress Line */}
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+            <div
+              className="h-full bg-rose-600 dark:bg-rose-400 transition-all duration-200"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
 
-        {/* Left: Mini spinning art & title & genre tag -> Click opens Mobile Full Sheet */}
-        <div
-          onClick={() => setShowMobileModal(true)}
-          className="flex items-center gap-2.5 min-w-0 flex-1 pr-2 cursor-pointer"
-        >
-          <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-xs">
-            <img src={currentTrack.cover} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-              <Disc3
-                className={`w-4 h-4 text-white ${isPlaying ? "animate-spin" : ""}`}
-                style={{ animationDuration: "3s" }}
-              />
+          {/* Left: Mini spinning art & title & genre tag -> Click opens Mobile Full Sheet */}
+          <div
+            onClick={() => setShowMobileModal(true)}
+            className="flex items-center gap-2.5 min-w-0 flex-1 pr-2 cursor-pointer"
+          >
+            <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-xs">
+              <img src={currentTrack.cover} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                <Disc3
+                  className={`w-4 h-4 text-white ${isPlaying ? "animate-spin" : ""}`}
+                  style={{ animationDuration: "3s" }}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                  {currentTrack.title}
+                </span>
+                <span
+                  className={`text-[8px] font-bold px-1 py-0.2 rounded shrink-0 ${
+                    currentTrack.genreColor || "bg-zinc-100 text-zinc-600"
+                  }`}
+                >
+                  {currentTrack.genre}
+                </span>
+              </div>
+              <span className="text-[10px] text-zinc-500 truncate">
+                {currentTrack.artist} · <span className="font-mono">{formatAudioTime(currentTime)}</span>
+              </span>
             </div>
           </div>
 
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                {currentTrack.title}
-              </span>
-              <span
-                className={`text-[8px] font-bold px-1 py-0.2 rounded shrink-0 ${
-                  currentTrack.genreColor || "bg-zinc-100 text-zinc-600"
-                }`}
-              >
-                {currentTrack.genre}
-              </span>
-            </div>
-            <span className="text-[10px] text-zinc-500 truncate">
-              {currentTrack.artist} · <span className="font-mono">{formatTime(currentTime)}</span>
-            </span>
+          {/* Right: Quick Controls & Hide / Expand Button */}
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                prevTrack();
+              }}
+              className="p-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+              title="Bài trước"
+            >
+              <SkipBack className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlay();
+              }}
+              className="w-8 h-8 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center shadow-xs active:scale-95 transition cursor-pointer"
+              title={isPlaying ? "Tạm dừng" : "Phát"}
+            >
+              {isPlaying ? (
+                <Pause className="w-3.5 h-3.5 fill-current" />
+              ) : (
+                <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                nextTrack();
+              }}
+              className="p-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+              title="Bài tiếp theo"
+            >
+              <SkipForward className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMobileModal(true);
+              }}
+              className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition cursor-pointer"
+              title="Mở rộng"
+            >
+              <ChevronUp className="w-4 h-4" />
+            </button>
+
+            {/* Nút Ẩn / Đóng thanh Mini Player */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                hideMiniPlayer();
+              }}
+              className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer ml-0.5"
+              title="Ẩn thanh phát nhạc"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
-
-        {/* Right: Quick Controls & Expand Button */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              prevTrack();
-            }}
-            className="p-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
-            title="Bài trước"
-          >
-            <SkipBack className="w-3.5 h-3.5" />
-          </button>
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              togglePlay();
-            }}
-            className="w-8 h-8 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center shadow-xs active:scale-95 transition cursor-pointer"
-            title={isPlaying ? "Tạm dừng" : "Phát"}
-          >
-            {isPlaying ? (
-              <Pause className="w-3.5 h-3.5 fill-current" />
-            ) : (
-              <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              nextTrack();
-            }}
-            className="p-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
-            title="Bài tiếp theo"
-          >
-            <SkipForward className="w-3.5 h-3.5" />
-          </button>
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowMobileModal(true);
-            }}
-            className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition cursor-pointer"
-            title="Mở rộng"
-          >
-            <ChevronUp className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* ======================================================================
           3. FULL MOBILE MUSIC BOTTOM SHEET / MODAL
