@@ -102,7 +102,7 @@ export default function MiniMusicPlayer() {
             title="Mở phòng nghe nhạc Radio toàn màn hình"
           >
             <Radio className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
-            <span>Vinahouse & Chill</span>
+            <span>V-Pop, Ballad & Remix</span>
             <ExternalLink className="w-3 h-3 text-zinc-400 group-hover/link:text-rose-500 opacity-0 group-hover/link:opacity-100 transition" />
           </Link>
 
@@ -119,12 +119,13 @@ export default function MiniMusicPlayer() {
             >
               <ListMusic className="w-3.5 h-3.5" />
             </button>
-            <Link
-              to="/radio"
-              className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+            <span
+              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                currentTrack.genreColor || "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+              }`}
             >
               {currentTrack.genre}
-            </Link>
+            </span>
           </div>
         </div>
 
@@ -135,7 +136,7 @@ export default function MiniMusicPlayer() {
               <Search className="w-3 h-3 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Tìm bài hát, ca sĩ (VD: Tang Duy Tan, Vinahouse...)"
+                placeholder="Tìm bài hát, ca sĩ, thể loại (Ballad, Remix, Nhạc Trẻ...)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-7 pr-6 py-1 text-[11px] text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-rose-500"
@@ -151,7 +152,7 @@ export default function MiniMusicPlayer() {
               )}
             </div>
 
-            <div className="max-h-40 overflow-y-auto flex flex-col gap-1 pr-1 custom-scrollbar">
+            <div className="max-h-44 overflow-y-auto flex flex-col gap-1 pr-1 custom-scrollbar">
               {filteredPlaylist.map((track) => {
                 const originalIndex = playlist.findIndex((p) => p.id === track.id);
                 const isThisPlaying = currentTrackIndex === originalIndex;
@@ -163,23 +164,33 @@ export default function MiniMusicPlayer() {
                     onClick={() => {
                       playTrack(originalIndex);
                     }}
-                    className={`flex items-center gap-2 p-1.5 rounded-lg text-left transition w-full cursor-pointer ${
+                    className={`flex items-center justify-between gap-2 p-1.5 rounded-lg text-left transition w-full cursor-pointer ${
                       isThisPlaying
                         ? "bg-black text-white dark:bg-white dark:text-black font-semibold"
                         : "hover:bg-zinc-200 dark:hover:bg-zinc-700/60 text-zinc-700 dark:text-zinc-300"
                     }`}
                   >
-                    <Music2 className="w-3 h-3 shrink-0" />
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-[11px] truncate">{track.title}</span>
-                      <span
-                        className={`text-[9px] truncate ${
-                          isThisPlaying ? "opacity-80" : "text-zinc-400"
-                        }`}
-                      >
-                        {track.artist} · {track.genre}
-                      </span>
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <Music2 className="w-3 h-3 shrink-0" />
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="text-[11px] truncate">{track.title}</span>
+                        <span
+                          className={`text-[9px] truncate ${
+                            isThisPlaying ? "opacity-80" : "text-zinc-400"
+                          }`}
+                        >
+                          {track.artist}
+                        </span>
+                      </div>
                     </div>
+
+                    <span
+                      className={`text-[8px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                        track.genreColor || "bg-zinc-200 text-zinc-700"
+                      }`}
+                    >
+                      {track.genre}
+                    </span>
                   </button>
                 );
               })}
@@ -213,10 +224,19 @@ export default function MiniMusicPlayer() {
           </div>
 
           <div className="flex flex-col min-w-0 flex-1">
-            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-              {currentTrack.title}
-            </span>
-            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                {currentTrack.title}
+              </span>
+              <span
+                className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md shrink-0 ${
+                  currentTrack.genreColor || "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                }`}
+              >
+                {currentTrack.genre}
+              </span>
+            </div>
+            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
               {currentTrack.artist}
             </span>
           </div>
@@ -300,7 +320,7 @@ export default function MiniMusicPlayer() {
           />
         </div>
 
-        {/* Left: Mini spinning art & title */}
+        {/* Left: Mini spinning art & title & genre tag */}
         <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
           <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-xs">
             <img src={currentTrack.cover} alt="" className="w-full h-full object-cover" />
@@ -313,9 +333,18 @@ export default function MiniMusicPlayer() {
           </div>
 
           <div className="flex flex-col min-w-0">
-            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-              {currentTrack.title}
-            </span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                {currentTrack.title}
+              </span>
+              <span
+                className={`text-[8px] font-bold px-1 py-0.2 rounded shrink-0 ${
+                  currentTrack.genreColor || "bg-zinc-100 text-zinc-600"
+                }`}
+              >
+                {currentTrack.genre}
+              </span>
+            </div>
             <span className="text-[10px] text-zinc-500 truncate">
               {currentTrack.artist} · <span className="font-mono">{formatTime(currentTime)}</span>
             </span>
