@@ -95,14 +95,14 @@ export default function FriendsPage() {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 shadow-xs border border-indigo-100 dark:border-indigo-900/50">
+          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 shadow-2xs border border-zinc-200/50 dark:border-zinc-700/50">
             <Users className="w-5 h-5" />
           </div>
           <div className="flex flex-col min-w-0">
-            <h1 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
+            <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
               Bạn bè &amp; Kết nối
             </h1>
-            <p className="text-xs sm:text-sm text-zinc-500 truncate">
+            <p className="text-[11px] sm:text-xs text-zinc-500 truncate">
               Quản lý danh sách bạn bè và lời mời kết nối.
             </p>
           </div>
