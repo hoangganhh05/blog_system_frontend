@@ -186,16 +186,18 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
         <div className="border-t border-zinc-100 dark:border-zinc-800 my-2" />
 
         {/* Responsive Bottom Toolbar */}
-        <div className="flex items-center justify-between gap-1.5 sm:gap-2 pt-1">
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5">
+          {/* Left Action Group (Ảnh, Chủ đề, Quyền riêng tư - Tối giản không khung xám thô) */}
+          <div className="flex items-center gap-1 sm:gap-2 min-w-0">
             {/* Image Attach Button */}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800/90 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0 border border-zinc-200/50 dark:border-zinc-700/50 active:scale-95"
+              className="p-1.5 sm:p-2 rounded-xl text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition cursor-pointer shrink-0 active:scale-95 flex items-center gap-1 text-xs font-semibold"
               title="Đính kèm ảnh"
             >
-              <Image className="w-4 h-4 text-emerald-500" />
+              <Image className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span className="hidden xs:inline text-zinc-600 dark:text-zinc-300">Ảnh</span>
             </button>
             <input
               ref={fileInputRef}
@@ -211,11 +213,11 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="text-[11px] sm:text-xs h-8 sm:h-9 bg-zinc-100 dark:bg-zinc-800/90 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl px-2 sm:px-2.5 text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer font-medium max-w-[95px] xs:max-w-[130px] sm:max-w-[160px] truncate"
+                className="text-xs py-1.5 px-2 rounded-xl bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer font-medium max-w-[105px] xs:max-w-[130px] sm:max-w-[160px] truncate transition border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700"
               >
-                <option value="">Chủ đề...</option>
+                <option value="" className="dark:bg-zinc-900">Chủ đề...</option>
                 {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
+                  <option key={c.id} value={c.id} className="dark:bg-zinc-900">
                     {c.name}
                   </option>
                 ))}
@@ -226,33 +228,45 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
             <button
               type="button"
               onClick={() => setPrivacy(privacy === "PUBLIC" ? "FRIENDS" : "PUBLIC")}
-              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800/90 border border-zinc-200/50 dark:border-zinc-700/50 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition cursor-pointer shrink-0 active:scale-95"
+              className="flex items-center gap-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer shrink-0 active:scale-95"
               title={privacy === "PUBLIC" ? "Quyền riêng tư: Công khai" : "Quyền riêng tư: Bạn bè"}
             >
               {privacy === "PUBLIC" ? (
-                <Globe className="w-3.5 h-3.5 text-blue-500" />
+                <>
+                  <Globe className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                  <span className="hidden sm:inline">Công khai</span>
+                </>
               ) : (
-                <Lock className="w-3.5 h-3.5 text-amber-500" />
+                <>
+                  <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span className="hidden sm:inline">Bạn bè</span>
+                </>
               )}
             </button>
           </div>
 
-          {/* Submit Button */}
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={(!content.trim() && images.length === 0) || isSubmitting || isUploading}
-            className="px-3.5 sm:px-4 py-1.5 h-8 sm:h-9 rounded-xl text-xs font-bold text-white bg-[#0866ff] hover:bg-[#0756d6] transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs shrink-0"
-          >
-            {isSubmitting ? (
-              <div className="flex items-center gap-1.5">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Đang đăng...</span>
-              </div>
-            ) : (
-              "Đăng"
-            )}
-          </button>
+          {/* Right Action Group (Nút Đăng tách biệt hoàn toàn bên phải với trạng thái active/inactive rõ ràng) */}
+          <div className="ml-auto flex items-center">
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={(!content.trim() && images.length === 0) || isSubmitting || isUploading}
+              className={`px-5 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-150 cursor-pointer shadow-xs ${
+                content.trim() || images.length > 0
+                  ? "bg-[#0866ff] hover:bg-[#0756d6] text-white active:scale-95 shadow-md hover:shadow-lg"
+                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed opacity-70"
+              }`}
+            >
+              {isSubmitting ? (
+                <div className="flex items-center gap-1.5">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Đang đăng...</span>
+                </div>
+              ) : (
+                "Đăng bài"
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
