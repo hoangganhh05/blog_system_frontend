@@ -33,6 +33,11 @@ const songService = {
     return axiosClient.post("/songs/bulk", songList);
   },
 
+  // Đồng bộ kho nhạc Hot Trend tự động từ Backend
+  syncTrending() {
+    return axiosClient.post("/songs/sync-trending");
+  },
+
   // Cập nhật bài hát
   update(id, songData) {
     return axiosClient.put(`/songs/${id}`, songData);

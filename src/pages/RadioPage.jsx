@@ -78,6 +78,26 @@ export default function RadioPage() {
   const [bulkJsonText, setBulkJsonText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Auto-sync trending charts from Backend
+  const handleSyncTrending = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await songService.syncTrending();
+      const count = res.data?.newAddedCount || 0;
+      if (count > 0) {
+        toast.success(`Đã tự động nạp ${count} bài hát Hot Trend mới vào Database!`);
+      } else {
+        toast.info("Kho nhạc đã được đồng bộ các bài hát Hot Trend mới nhất!");
+      }
+      await reloadPlaylist();
+    } catch {
+      toast.error("Không thể đồng bộ nhạc lúc này. Vui lòng thử lại sau!");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // Extract all unique genres dynamically from Database playlist
   const genres = useMemo(() => {
@@ -400,6 +420,23 @@ export default function RadioPage() {
               className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl py-1.5 pl-8 pr-3 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white transition"
             />
           </div>
+
+          <button
+            type="button"
+            disabled={isSyncing}
+            onClick={handleSyncTrending}
+            className="px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 active:scale-95 transition shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
+            title="Tự động đồng bộ các bài hát Hot Trend từ hệ thống"
+          >
+            {isSyncing ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5" />
+            )}
+            <span className="hidden sm:inline">
+              {isSyncing ? "Đang đồng bộ..." : "Tự động cập nhật Hot Trend"}
+            </span>
+          </button>
 
           <button
             type="button"
