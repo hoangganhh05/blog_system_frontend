@@ -170,7 +170,7 @@ export default function RightSidebar() {
               return (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between gap-2 p-1.5 rounded-xl hover:bg-slate-200/60 dark:hover:bg-zinc-800/60 transition-colors"
+                  className="flex items-center justify-between gap-2 p-1.5 rounded-xl hover:bg-slate-200/60 dark:hover:bg-zinc-800/60 transition-all duration-300 ease-out hover:translate-x-1"
                 >
                   <Link
                     to={`/profile/${user.id}`}

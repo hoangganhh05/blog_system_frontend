@@ -153,7 +153,7 @@ export default function LeftSidebar() {
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-[13.5px] sm:text-sm font-medium transition-colors duration-150 ${
+              `flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-[13.5px] sm:text-sm font-medium transition-all duration-300 ease-out hover:translate-x-1 active:scale-[0.98] ${
                 isActive
                   ? "bg-slate-200/90 dark:bg-zinc-800 text-black dark:text-white font-bold"
                   : "text-slate-700 dark:text-zinc-200 hover:bg-slate-200/60 dark:hover:bg-zinc-800/60 hover:text-black dark:hover:text-white"
@@ -171,7 +171,7 @@ export default function LeftSidebar() {
           onClick={() => {
             window.dispatchEvent(new CustomEvent("open_ai_assistant"));
           }}
-          className="flex items-center justify-between px-3 py-2.5 rounded-xl text-[13.5px] sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 transition cursor-pointer text-left w-full group"
+          className="flex items-center justify-between px-3 py-2.5 rounded-xl text-[13.5px] sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 transition-all duration-300 ease-out hover:translate-x-1 active:scale-[0.98] cursor-pointer text-left w-full group"
         >
           <div className="flex items-center gap-3.5">
             <Sparkles className="w-5 h-5 shrink-0 text-indigo-600 dark:text-indigo-400 group-hover:rotate-12 transition-transform" />

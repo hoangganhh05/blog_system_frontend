@@ -210,27 +210,29 @@ html.dark .custom-scrollbar {
   }
 }
 
-@keyframes heart-burst {
-  0% {
-    transform: scale(0);
-    opacity: 1;
-  }
-  60% {
-    transform: scale(1.6);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(2.2);
+/* ============================================
+   NATURAL MICRO-INTERACTIONS & CARD ENTRANCE
+   ============================================ */
+@keyframes fadeInUp {
+  from {
     opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.animate-heart-pop {
-  animation: heart-pop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+.animate-card {
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.animate-heart-burst {
-  animation: heart-burst 0.5s ease-out forwards;
+.sidebar-link-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sidebar-link-hover:hover {
+  transform: translateX(4px);
 }
 
 /* ============================================
