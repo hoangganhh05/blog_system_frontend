@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useMusic } from "../context/MusicContext";
+import { useMusic, formatAudioTime, formatDurationTime } from "../context/MusicContext";
 import songService from "../services/songService";
 import { toast } from "sonner";
 import {
@@ -345,8 +345,8 @@ export default function RadioPage() {
               className="w-full h-1.5 bg-white/20 rounded-full appearance-none cursor-pointer accent-white"
             />
             <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-              <span>{formatTime(currentTime)}</span>
-              <span>{duration > 0 ? formatTime(duration) : "LIVE"}</span>
+              <span>{formatAudioTime(currentTime)}</span>
+              <span>{formatDurationTime(duration)}</span>
             </div>
           </div>
 

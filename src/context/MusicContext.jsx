@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useRef, useEffect } from "react";
+import { createContext, useContext, useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import songService from "../services/songService";
 
@@ -130,6 +130,23 @@ export const VIETNAMESE_PLAYLIST = [
   },
 ];
 
+// Time Formatting Helpers
+export function formatAudioTime(secs) {
+  if (!secs || isNaN(secs) || secs === 0) return "0:00";
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m}:${s < 10 ? "0" : ""}${s}`;
+}
+
+export function formatDurationTime(duration) {
+  if (!duration || isNaN(duration) || duration === Infinity || duration <= 0) {
+    return "LIVE";
+  }
+  const m = Math.floor(duration / 60);
+  const s = Math.floor(duration % 60);
+  return `${m}:${s < 10 ? "0" : ""}${s}`;
+}
+
 const MusicContext = createContext(null);
 
 export function MusicProvider({ children }) {
@@ -145,7 +162,14 @@ export function MusicProvider({ children }) {
   const audioRef = useRef(null);
   const retryCountRef = useRef(0);
 
-  // Safe Track object with full fallback
+  // References to prevent stale closure in audio event handlers
+  const playlistRef = useRef(playlist);
+  playlistRef.current = playlist;
+
+  const currentTrackIndexRef = useRef(currentTrackIndex);
+  currentTrackIndexRef.current = currentTrackIndex;
+
+  // Safe Current Track object
   const rawTrack = playlist[currentTrackIndex] || playlist[0] || VIETNAMESE_PLAYLIST[0];
   const currentTrack = {
     ...rawTrack,
@@ -163,7 +187,6 @@ export function MusicProvider({ children }) {
       .getAll()
       .then((res) => {
         if (Array.isArray(res.data) && res.data.length > 0) {
-          // Normalize items to ensure .src and .cover exist
           const normalized = res.data.map((item) => ({
             ...item,
             src: item.src || item.audioUrl || VIETNAMESE_PLAYLIST[0].src,
@@ -176,48 +199,68 @@ export function MusicProvider({ children }) {
       .catch(() => {});
   }, []);
 
-  // Initialize singleton audio element
+  // Initialize singleton audio element ONCE
   useEffect(() => {
     const audio = new Audio();
-    audio.preload = "none";
+    audio.preload = "auto";
     audio.src = currentTrack.src;
     audio.volume = volume;
     audioRef.current = audio;
 
+    const updateDuration = () => {
+      const d = audio.duration;
+      if (!isNaN(d) && d > 0 && d !== Infinity) {
+        setDuration(d);
+      } else {
+        setDuration(0);
+      }
+    };
+
     const onTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
-      if (!isNaN(audio.duration) && audio.duration !== Infinity) {
+      if (audio.duration && !isNaN(audio.duration) && audio.duration > 0 && audio.duration !== Infinity) {
         setDuration(audio.duration);
       }
     };
 
     const onLoadedMetadata = () => {
-      if (!isNaN(audio.duration) && audio.duration !== Infinity) {
-        setDuration(audio.duration);
-      }
+      updateDuration();
       setHasError(false);
       retryCountRef.current = 0;
     };
 
+    const onDurationChange = () => {
+      updateDuration();
+    };
+
+    // Auto-Next Queue Trigger
     const onEnded = () => {
-      nextTrack();
+      console.info("[MUSIC QUEUE] Bài hát kết thúc -> Tự động chuyển bài tiếp theo trong hàng đợi.");
+      const curList = playlistRef.current;
+      const curIdx = currentTrackIndexRef.current;
+      if (curList && curList.length > 0) {
+        const nextIdx = (curIdx + 1) % curList.length;
+        playTrackInternal(nextIdx);
+      }
     };
 
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
 
-    // Bắt lỗi stream (403, 404, network) và tự động thử fallback/skip
+    // Fallback & Auto-Skip on Stream error
     const onError = () => {
       setHasError(true);
       setIsPlaying(false);
-      console.warn("[MUSIC ERROR] Lỗi tải stream:", audio.src);
+      console.warn("[MUSIC ERROR] Lỗi phát stream:", audio.src);
 
-      const track = playlist[currentTrackIndex] || currentTrack;
+      const curList = playlistRef.current;
+      const curIdx = currentTrackIndexRef.current;
+      const track = curList[curIdx];
       const fallbackUrl = track?.fallbackSrc || track?.fallbackAudioUrl;
 
       if (fallbackUrl && retryCountRef.current === 0) {
         retryCountRef.current = 1;
-        console.info("[MUSIC FALLBACK] Thử link phụ fallbackSrc:", fallbackUrl);
+        console.info("[MUSIC FALLBACK] Đang thử luồng phụ fallback:", fallbackUrl);
         audio.src = fallbackUrl;
         audio.play().then(() => setIsPlaying(true)).catch(() => {});
         return;
@@ -225,12 +268,17 @@ export function MusicProvider({ children }) {
 
       toast.info(`Bài hát "${track?.title || ""}" đang chuyển sang luồng tiếp theo...`);
       setTimeout(() => {
-        nextTrack();
-      }, 1000);
+        if (curList && curList.length > 0) {
+          const nextIdx = (curIdx + 1) % curList.length;
+          playTrackInternal(nextIdx);
+        }
+      }, 1200);
     };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoadedMetadata);
+    audio.addEventListener("durationchange", onDurationChange);
+    audio.addEventListener("canplay", updateDuration);
     audio.addEventListener("ended", onEnded);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
@@ -240,26 +288,64 @@ export function MusicProvider({ children }) {
       audio.pause();
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+      audio.removeEventListener("durationchange", onDurationChange);
+      audio.removeEventListener("canplay", updateDuration);
       audio.removeEventListener("ended", onEnded);
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
       audio.removeEventListener("error", onError);
       audioRef.current = null;
     };
-  }, [playlist]);
+  }, []);
 
-  // Robust playTrack handling Number (index), Object (song), or ID (string/number)
-  const playTrack = (trackOrIndex) => {
+  // Internal Queue Player
+  const playTrackInternal = (targetIndex) => {
+    const curList = playlistRef.current;
+    if (!curList || curList.length === 0) return;
+
+    const safeIdx = (targetIndex + curList.length) % curList.length;
+    const selectedTrack = curList[safeIdx] || VIETNAMESE_PLAYLIST[0];
+    if (!selectedTrack) return;
+
+    const audioSource =
+      selectedTrack.src ||
+      selectedTrack.audioUrl ||
+      selectedTrack.fallbackSrc ||
+      selectedTrack.fallbackAudioUrl ||
+      VIETNAMESE_PLAYLIST[0].src;
+
+    setCurrentTrackIndex(safeIdx);
+    setCurrentTime(0);
+    setDuration(0);
+    setHasError(false);
+    retryCountRef.current = 0;
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = audioSource;
+      audioRef.current.currentTime = 0;
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch((err) => {
+          console.warn("[MUSIC PLAY ERROR]", err);
+          setIsPlaying(false);
+        });
+    }
+  };
+
+  // Robust public playTrack handler
+  const playTrack = useCallback((trackOrIndex) => {
     if (trackOrIndex === undefined || trackOrIndex === null) return;
-    if (!playlist || playlist.length === 0) return;
+    const curList = playlistRef.current;
+    if (!curList || curList.length === 0) return;
 
     let targetIndex = 0;
 
     if (typeof trackOrIndex === "number") {
-      targetIndex = (trackOrIndex + playlist.length) % playlist.length;
+      targetIndex = (trackOrIndex + curList.length) % curList.length;
     } else if (typeof trackOrIndex === "object") {
-      // Find track by id or src/audioUrl or title
-      const foundIdx = playlist.findIndex(
+      const foundIdx = curList.findIndex(
         (t) =>
           (trackOrIndex.id && t.id === trackOrIndex.id) ||
           (trackOrIndex.src && (t.src === trackOrIndex.src || t.audioUrl === trackOrIndex.src)) ||
@@ -283,36 +369,12 @@ export function MusicProvider({ children }) {
         targetIndex = 0;
       }
     } else if (typeof trackOrIndex === "string") {
-      const idx = playlist.findIndex((t) => String(t.id) === trackOrIndex);
+      const idx = curList.findIndex((t) => String(t.id) === trackOrIndex);
       if (idx !== -1) targetIndex = idx;
     }
 
-    const selectedTrack = playlist[targetIndex] || playlist[0] || VIETNAMESE_PLAYLIST[0];
-    if (!selectedTrack) return;
-
-    const audioSource =
-      selectedTrack.src ||
-      selectedTrack.audioUrl ||
-      selectedTrack.fallbackSrc ||
-      selectedTrack.fallbackAudioUrl ||
-      VIETNAMESE_PLAYLIST[0].src;
-
-    setCurrentTrackIndex(targetIndex);
-    setHasError(false);
-    retryCountRef.current = 0;
-
-    if (audioRef.current) {
-      audioRef.current.src = audioSource;
-      audioRef.current.currentTime = 0;
-      audioRef.current
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch((err) => {
-          console.warn("[MUSIC PLAY ERROR]", err);
-          setIsPlaying(false);
-        });
-    }
-  };
+    playTrackInternal(targetIndex);
+  }, []);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -330,11 +392,17 @@ export function MusicProvider({ children }) {
   };
 
   const nextTrack = () => {
-    playTrack(currentTrackIndex + 1);
+    const curList = playlistRef.current;
+    if (!curList || curList.length === 0) return;
+    const nextIdx = (currentTrackIndexRef.current + 1) % curList.length;
+    playTrackInternal(nextIdx);
   };
 
   const prevTrack = () => {
-    playTrack(currentTrackIndex - 1);
+    const curList = playlistRef.current;
+    if (!curList || curList.length === 0) return;
+    const prevIdx = (currentTrackIndexRef.current - 1 + curList.length) % curList.length;
+    playTrackInternal(prevIdx);
   };
 
   const seek = (timeInSeconds) => {

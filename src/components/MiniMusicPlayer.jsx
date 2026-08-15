@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useMusic } from "../context/MusicContext";
+import { useMusic, formatAudioTime, formatDurationTime } from "../context/MusicContext";
 import {
   Play,
   Pause,
@@ -256,8 +256,8 @@ export default function MiniMusicPlayer() {
             className="w-full h-1 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-black dark:accent-white"
           />
           <div className="flex justify-between text-[10px] text-zinc-400 font-mono">
-            <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(duration)}</span>
+            <span>{formatAudioTime(currentTime)}</span>
+            <span>{formatDurationTime(duration)}</span>
           </div>
         </div>
 
@@ -490,8 +490,8 @@ export default function MiniMusicPlayer() {
                 className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-black dark:accent-white"
               />
               <div className="flex justify-between text-[11px] text-zinc-400 font-mono">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
+                <span>{formatAudioTime(currentTime)}</span>
+                <span>{formatDurationTime(duration)}</span>
               </div>
             </div>
 
