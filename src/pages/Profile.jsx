@@ -14,6 +14,8 @@ import {
   Image as ImageIcon,
   LogOut,
   Users,
+  User,
+  PenSquare,
   Lock,
   Settings,
   Bookmark,
@@ -660,86 +662,91 @@ export default function Profile() {
         {/* Action Buttons (Căn giữa) */}
         <div className="flex flex-wrap items-center justify-center gap-2 mt-2 w-full max-w-md">
           {isMe ? (
-            <>
+            <div className="relative" ref={moreMenuRef}>
               <button
                 type="button"
-                onClick={() => setIsEditModalOpen(true)}
-                className="px-5 py-2 rounded-full border border-zinc-300 dark:border-zinc-700 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition cursor-pointer shadow-2xs active:scale-95"
+                onClick={() => setIsMoreMenuOpen((v) => !v)}
+                className={`p-2.5 px-4 rounded-full border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer shadow-2xs active:scale-95 flex items-center gap-1.5 ${
+                  isMoreMenuOpen ? "bg-zinc-100 dark:bg-zinc-800 ring-2 ring-[#0866ff]/30" : ""
+                }`}
+                title="Tùy chọn trang cá nhân"
               >
-                Chỉnh sửa hồ sơ
+                <MoreHorizontal className="w-5 h-5" />
+                <span className="text-xs font-semibold">Tùy chọn trang cá nhân</span>
               </button>
 
-              {/* Nút Ba chấm Tùy chọn khác (Dropdown menu) */}
-              <div className="relative" ref={moreMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setIsMoreMenuOpen((v) => !v)}
-                  className={`p-2.5 rounded-full border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer shadow-2xs active:scale-95 flex items-center justify-center ${
-                    isMoreMenuOpen ? "bg-zinc-100 dark:bg-zinc-800 ring-2 ring-[#0866ff]/30" : ""
-                  }`}
-                  title="Tùy chọn khác"
-                >
-                  <MoreHorizontal className="w-4 h-4" />
-                </button>
+              {isMoreMenuOpen && (
+                <div className="absolute left-1/2 -translate-x-1/2 top-12 w-60 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-150 text-left">
+                  {/* 1. Chỉnh sửa hồ sơ */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      setIsEditModalOpen(true);
+                    }}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
+                  >
+                    <PenSquare className="w-4 h-4 text-[#0866ff]" />
+                    <span>Chỉnh sửa hồ sơ</span>
+                  </button>
 
-                {isMoreMenuOpen && (
-                  <div className="absolute right-0 sm:left-1/2 sm:-translate-x-1/2 top-11 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-150 text-left">
-                    {/* 1. Kho lưu trữ tin */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMoreMenuOpen(false);
-                        setIsStoryArchiveOpen(true);
-                      }}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
-                    >
-                      <Archive className="w-4 h-4 text-indigo-500" />
-                      <span>Kho lưu trữ tin</span>
-                    </button>
+                  {/* 2. Kho lưu trữ tin */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      setIsStoryArchiveOpen(true);
+                    }}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
+                  >
+                    <Archive className="w-4 h-4 text-indigo-500" />
+                    <span>Kho lưu trữ tin 24h</span>
+                  </button>
 
-                    {/* 2. Bài viết đã lưu */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMoreMenuOpen(false);
-                        navigate("/saved");
-                      }}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
-                    >
-                      <Bookmark className="w-4 h-4 text-amber-500" />
-                      <span>Bài viết đã lưu</span>
-                    </button>
+                  {/* 3. Bài viết đã lưu */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      navigate("/saved");
+                    }}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
+                  >
+                    <Bookmark className="w-4 h-4 text-amber-500" />
+                    <span>Bài viết đã lưu</span>
+                  </button>
 
-                    {/* 3. Cài đặt trang cá nhân */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMoreMenuOpen(false);
-                        navigate("/security");
-                      }}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
-                    >
-                      <Settings className="w-4 h-4 text-zinc-500" />
-                      <span>Cài đặt & Quyền riêng tư</span>
-                    </button>
+                  {/* 4. Cài đặt trang cá nhân */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      navigate("/security");
+                    }}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
+                  >
+                    <Settings className="w-4 h-4 text-zinc-500" />
+                    <span>Cài đặt & Quyền riêng tư</span>
+                  </button>
 
-                    {/* 4. Sao chép liên kết trang cá nhân */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMoreMenuOpen(false);
-                        navigator.clipboard.writeText(window.location.href);
-                        toast.success("Đã sao chép liên kết trang cá nhân!");
-                      }}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
-                    >
-                      <Copy className="w-4 h-4 text-emerald-500" />
-                      <span>Sao chép liên kết</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </>
+                  <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-0.5" />
+
+                  {/* 5. Sao chép liên kết trang cá nhân */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      navigator.clipboard.writeText(window.location.href);
+                      toast.success("Đã sao chép liên kết trang cá nhân!");
+                    }}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
+                  >
+                    <Copy className="w-4 h-4 text-emerald-500" />
+                    <span>Sao chép liên kết</span>
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               {/* Nút Theo dõi / Hủy theo dõi (Độc lập, lưu vào Database) */}
