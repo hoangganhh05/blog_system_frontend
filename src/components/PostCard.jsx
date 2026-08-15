@@ -268,9 +268,9 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   return (
     <article
       onClick={handleCardClick}
-      className={`rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs card-dynamic-hover hover:border-zinc-300 dark:hover:border-zinc-700 flex gap-3.5 ${
-        !isDetailed ? "cursor-pointer" : ""
-      }`}
+      className={`rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs card-dynamic-hover hover:border-zinc-300 dark:hover:border-zinc-700 flex gap-3.5 relative transition-all ${
+        menuOpen ? "z-30" : "z-0"
+      } ${!isDetailed ? "cursor-pointer" : ""}`}
     >
       {/* Avatar */}
       <div className="shrink-0">
@@ -312,14 +312,14 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           </div>
 
           {/* Menu 3 chấm options */}
-          <div className="relative" ref={menuRef}>
+          <div className={`relative ${menuOpen ? "z-50" : "z-10"}`} ref={menuRef}>
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setUserMenuOpen(!menuOpen);
               }}
-              className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+              className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
             >
               <MoreHorizontal className="w-4 h-4" />
             </button>
@@ -327,7 +327,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
             {menuOpen && (
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="absolute right-0 top-7 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-1.5 z-40 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
+                className="absolute right-0 top-8 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
               >
                 <button
                   type="button"
