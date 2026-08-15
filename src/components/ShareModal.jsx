@@ -249,11 +249,11 @@ export default function ShareModal({
               )}
 
               {post.thumbNail && (
-                <div className="rounded-xl overflow-hidden max-h-32 border border-zinc-200 dark:border-zinc-800">
+                <div className="rounded-xl overflow-hidden max-h-48 border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
                   <img
                     src={post.thumbNail}
                     alt=""
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto max-h-48 object-cover object-center block"
                   />
                 </div>
               )}

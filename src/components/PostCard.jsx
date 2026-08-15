@@ -459,8 +459,13 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
             {/* Ảnh bài gốc (nếu có) */}
             {origMedia && (
-              <div className="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 mt-1 max-h-60">
-                <img src={origMedia} alt="" className="max-h-60 w-full object-cover" loading="lazy" />
+              <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 mt-1 max-h-[360px] bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
+                <img
+                  src={origMedia}
+                  alt=""
+                  className="w-full h-auto max-h-[360px] object-cover object-center block"
+                  loading="lazy"
+                />
               </div>
             )}
           </div>
@@ -468,11 +473,11 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
         {/* Adaptive Image Grid (Bài viết thường không phải share) */}
         {!originalPost && post.thumbNail && (
-          <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 my-2 max-h-[480px]">
+          <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100/80 dark:bg-zinc-900/80 my-2 max-h-[540px] flex items-center justify-center">
             <img
               src={post.thumbNail}
               alt=""
-              className="w-full h-full object-cover"
+              className="w-full h-auto max-h-[540px] object-cover object-center block"
               loading="lazy"
             />
           </div>

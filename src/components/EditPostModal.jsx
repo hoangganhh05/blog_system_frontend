@@ -174,8 +174,8 @@ export default function EditPostModal({ isOpen = true, onClose, post, onUpdated 
 
           {/* Current Thumbnail preview */}
           {post.thumbNail && (
-            <div className="mt-3 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 max-h-48">
-              <img src={post.thumbNail} alt="" className="w-full h-full object-cover" />
+            <div className="mt-3 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 max-h-56 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+              <img src={post.thumbNail} alt="" className="w-full h-auto max-h-56 object-cover object-center block" />
             </div>
           )}
         </div>
