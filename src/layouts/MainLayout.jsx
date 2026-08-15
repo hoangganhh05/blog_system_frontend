@@ -112,6 +112,11 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
     }
   };
 
+  const pathname = location.pathname;
+  const is3ColumnFeedPage = pathname === "/" || pathname === "/trending";
+  const isProfilePage = pathname.startsWith("/profile");
+  const isPostDetailPage = pathname.startsWith("/posts/");
+
   const navLinks = [
     { to: "/",                         label: "Trang chủ",  icon: Home },
     { to: "/trending",                  label: "Khám phá",   icon: Compass },
@@ -387,29 +392,48 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       </header>
 
       {/* ======================================================================
-          STICKY INDEPENDENT SCROLLING LAYOUT (2-7-3 Ratio, items-start)
-          (Left Sidebar: col-span-2 | Main Feed: col-span-12 lg:col-span-7 | Right Sidebar: col-span-3)
+          DYNAMIC ADAPTIVE LAYOUT:
+          - Home / Trending: 3-column Facebook layout (Sticky Sidebars + Center Feed)
+          - Profile / Posts / Tools: Balanced Centered Layout (max-w-5xl mx-auto)
           ====================================================================== */}
-      <div className="w-full px-2 md:px-3 min-h-screen grid grid-cols-12 gap-4 items-start">
-        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-2, sticky independent) */}
-        <aside className="hidden lg:block lg:col-span-2 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain no-scrollbar pt-3 pb-8 select-none">
-          <LeftSidebar />
-        </aside>
+      {is3ColumnFeedPage ? (
+        <div className="w-full px-2 md:px-3 min-h-screen grid grid-cols-12 gap-4 items-start">
+          {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-2, sticky independent) */}
+          <aside className="hidden lg:block lg:col-span-2 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain no-scrollbar pt-3 pb-8 select-none">
+            <LeftSidebar />
+          </aside>
 
-        {/* CENTER COLUMN: Main Content Feed (col-span-12 on mobile, lg:col-span-7 on desktop) */}
+          {/* CENTER COLUMN: Main Content Feed (col-span-12 on mobile, lg:col-span-7 on desktop) */}
+          <main
+            ref={mainRef}
+            onScroll={handleMainScroll}
+            className="col-span-12 lg:col-span-7 min-w-0 w-full pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y"
+          >
+            {children}
+          </main>
+
+          {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, sticky independent) */}
+          <aside className="hidden lg:block lg:col-span-3 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain no-scrollbar pt-3 pb-8 select-none">
+            <RightSidebar />
+          </aside>
+        </div>
+      ) : (
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className="col-span-12 lg:col-span-7 min-w-0 w-full pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y"
+          className={`w-full flex-1 px-2 sm:px-4 pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y ${
+            isProfilePage
+              ? "max-w-5xl mx-auto"
+              : isPostDetailPage
+              ? "max-w-3xl mx-auto"
+              : pathname.startsWith("/security") || pathname.startsWith("/notifications")
+              ? "max-w-4xl mx-auto"
+              : "max-w-5xl mx-auto"
+          }`}
         >
           {children}
         </main>
-
-        {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, sticky independent) */}
-        <aside className="hidden lg:block lg:col-span-3 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain no-scrollbar pt-3 pb-8 select-none">
-          <RightSidebar />
-        </aside>
-      </div>
+      )}
 
       {/* ======================================================================
           MOBILE FLOATING MUSIC BAR (Fixed above bottom nav on mobile)

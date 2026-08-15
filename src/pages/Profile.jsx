@@ -484,7 +484,7 @@ export default function Profile() {
       </div>
 
       {/* 1. Cover Banner với nút đổi ảnh bìa */}
-      <div className="h-32 md:h-40 w-full rounded-2xl relative overflow-hidden bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-800 shrink-0 border border-zinc-200 dark:border-zinc-800 group">
+      <div className="h-44 sm:h-56 md:h-64 w-full rounded-2xl md:rounded-3xl relative overflow-hidden bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-800 shrink-0 border border-zinc-200 dark:border-zinc-800 group shadow-xs">
         {user.bannerUrl ? (
           <img
             src={user.bannerUrl}
