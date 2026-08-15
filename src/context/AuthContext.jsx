@@ -113,15 +113,22 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!currentUser?.id) return;
 
-    import("../services/userService").then(({ default: uService }) => {
-      uService.heartbeat().catch(() => {});
-    });
-
-    const interval = setInterval(() => {
-      import("../services/userService").then(({ default: uService }) => {
-        uService.heartbeat().catch(() => {});
+    const performHeartbeat = () => {
+      import("../utils/statusUtils").then(({ isUserActiveStatusEnabled }) => {
+        const isEnabled = isUserActiveStatusEnabled(currentUser.id);
+        import("../services/userService").then(({ default: uService }) => {
+          if (isEnabled) {
+            uService.heartbeat().catch(() => {});
+          } else {
+            uService.setOffline().catch(() => {});
+          }
+        });
       });
-    }, 60000);
+    };
+
+    performHeartbeat();
+
+    const interval = setInterval(performHeartbeat, 60000);
 
     return () => clearInterval(interval);
   }, [currentUser?.id]);

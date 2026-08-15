@@ -6,8 +6,14 @@
  *    This prevents stale `isOnline: true` in DB from showing offline users as online forever.
  */
 
+import userService from "../services/userService";
+
 export function isUserActiveStatusEnabled(userId) {
   if (typeof window === "undefined") return true;
+  const bvSetting = localStorage.getItem("blogviet_user_active_status");
+  if (bvSetting !== null) {
+    return bvSetting === "true";
+  }
   const globalSetting = localStorage.getItem("user_show_active_status");
   if (globalSetting !== null) {
     return globalSetting === "true";
@@ -21,10 +27,19 @@ export function isUserActiveStatusEnabled(userId) {
 
 export function setUserActiveStatusEnabled(userId, enabled) {
   if (typeof window === "undefined") return;
+  localStorage.setItem("blogviet_user_active_status", enabled ? "true" : "false");
   localStorage.setItem("user_show_active_status", enabled ? "true" : "false");
   if (userId) {
     localStorage.setItem(`active_status_disabled_${userId}`, enabled ? "false" : "true");
   }
+
+  // Real-time Backend Sync: Phát tín hiệu online hoặc offline tức thì lên Server
+  if (enabled) {
+    userService.heartbeat().catch(() => {});
+  } else {
+    userService.setOffline().catch(() => {});
+  }
+
   window.dispatchEvent(
     new CustomEvent("active_status_toggle_changed", {
       detail: { userId, enabled },
@@ -34,12 +49,15 @@ export function setUserActiveStatusEnabled(userId, enabled) {
 
 export function isUserOnline(user) {
   if (!user) return false;
+
+  // 1. Nguyên tắc 2 chiều: Nếu chính mình đang tắt trạng thái hoạt động thì ẩn toàn bộ chấm xanh
+  if (!isUserActiveStatusEnabled()) return false;
   
-  // 1. Kiểm tra nếu người dùng đã chủ động tắt trạng thái hoạt động
+  // 2. Kiểm tra nếu đối phương đã chủ động tắt trạng thái hoạt động
   if (user.showActiveStatus === false) return false;
   if (user.id && !isUserActiveStatusEnabled(user.id)) return false;
 
-  // 2. Tính toán thời gian hoạt động thực tế qua timestamp
+  // 3. Tính toán thời gian hoạt động thực tế qua timestamp (chỉ tính trong 3 phút)
   const timeField = user.lastActiveAt || user.lastActive || user.updatedAt;
   if (timeField) {
     let formatted = timeField;
@@ -49,12 +67,11 @@ export function isUserOnline(user) {
     const timestamp = new Date(formatted).getTime();
     if (!isNaN(timestamp)) {
       const diff = Date.now() - timestamp;
-      // Chỉ tính là đang hoạt động nếu có tín hiệu trong vòng 3 phút trở lại
       return diff >= 0 && diff < 3 * 60 * 1000;
     }
   }
 
-  // 3. Nếu không có timestamp cụ thể, kiểm tra flag isOnline
+  // 4. Nếu không có timestamp cụ thể, kiểm tra flag isOnline
   return Boolean(user.isOnline);
 }
 

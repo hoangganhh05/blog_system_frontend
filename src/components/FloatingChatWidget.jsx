@@ -39,6 +39,7 @@ import {
   UserX,
   MessageSquarePlus,
   RefreshCw,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -197,6 +198,30 @@ export default function FloatingChatWidget() {
   const [readReceiptsEnabled, setReadReceiptsEnabled] = useState(() => {
     return localStorage.getItem("blogviet_read_receipts") !== "false";
   });
+
+  // Story / Tin 24h States
+  const [stories, setStories] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("blogviet_user_stories") || "[]");
+      if (saved.length > 0) return saved;
+    } catch {}
+    return [
+      {
+        id: "story_ai",
+        user: { id: "ai_bot", fullName: "BlogViet AI", isAi: true },
+        text: "💡 Khám phá tính năng Studio AI mới và trò chuyện thông minh trên BlogViet nhé!",
+        bg: "from-indigo-600 to-purple-600",
+        createdAt: Date.now() - 3600000,
+      },
+    ];
+  });
+  const [showCreateStoryModal, setShowCreateStoryModal] = useState(false);
+  const [activeViewingStory, setActiveViewingStory] = useState(null);
+  const [storyText, setStoryText] = useState("");
+  const [storyBg, setStoryBg] = useState("from-indigo-600 to-purple-600");
+  const [storyImageUrl, setStoryImageUrl] = useState("");
+  const [isUploadingStoryImage, setIsUploadingStoryImage] = useState(false);
+  const storyImageInputRef = useRef(null);
 
   // Pinned Messages state (persisted per conversation)
   const [pinnedMessages, setPinnedMessages] = useState(() => {
@@ -641,6 +666,57 @@ export default function FloatingChatWidget() {
     setReadReceiptsEnabled(next);
     localStorage.setItem("blogviet_read_receipts", String(next));
     toast.success(next ? "Đã bật hiển thị Đã xem tin nhắn" : "Đã ẩn trạng thái Đã xem tin nhắn");
+  };
+
+  // Handle Story Image Upload
+  const handleUploadStoryImage = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingStoryImage(true);
+    try {
+      const res = await uploadService.uploadFile(file);
+      const url = res.data?.url || res.data?.secureUrl || res.data;
+      setStoryImageUrl(url);
+      toast.success("Tải ảnh tin lên thành công!");
+    } catch {
+      toast.error("Không thể tải ảnh tin lên!");
+    } finally {
+      setIsUploadingStoryImage(false);
+    }
+  };
+
+  // Handle Create Story
+  const handleCreateStory = (e) => {
+    e?.preventDefault();
+    if (!storyText.trim() && !storyImageUrl) {
+      toast.error("Vui lòng nhập nội dung tin hoặc tải lên hình ảnh!");
+      return;
+    }
+    const newStory = {
+      id: `story_${Date.now()}`,
+      user: {
+        id: currentUserId,
+        fullName: currentUser?.fullName || currentUser?.username || "Bạn",
+        username: currentUser?.username,
+        avatarUrl: currentUser?.avatarUrl,
+        avatarColor: currentUser?.avatarColor,
+      },
+      text: storyText.trim(),
+      imageUrl: storyImageUrl,
+      bg: storyBg,
+      createdAt: Date.now(),
+    };
+
+    const updated = [newStory, ...stories.filter((s) => Number(s.user.id) !== Number(currentUserId))];
+    setStories(updated);
+    try {
+      localStorage.setItem("blogviet_user_stories", JSON.stringify(updated));
+    } catch {}
+
+    setStoryText("");
+    setStoryImageUrl("");
+    setShowCreateStoryModal(false);
+    toast.success("Đã đăng tin thành công! Tin sẽ tự động xuất hiện trong 24h.");
   };
 
   // Handle Input Change with Broadcast Typing Indicator
@@ -1449,6 +1525,61 @@ export default function FloatingChatWidget() {
                       <X className="w-3.5 h-3.5" />
                     </button>
                   )}
+                </div>
+
+                {/* Horizontal Stories / Tin 24h Bar */}
+                <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1.5 px-1 shrink-0 border-b border-zinc-100 dark:border-zinc-800/80">
+                  {/* Your Story (Tạo Tin / Tin của bạn) */}
+                  <div
+                    className="flex flex-col items-center gap-1 shrink-0 cursor-pointer group select-none"
+                    onClick={() => setShowCreateStoryModal(true)}
+                  >
+                    <div className="relative">
+                      <Avatar
+                        userId={currentUserId}
+                        src={currentUser?.avatarUrl}
+                        name={currentUser?.fullName || currentUser?.username}
+                        username={currentUser?.username}
+                        avatarColor={currentUser?.avatarColor}
+                        size="md"
+                        disableLink={true}
+                        hideStatus={true}
+                        className="group-hover:scale-105 transition-transform"
+                      />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#0866ff] text-white flex items-center justify-center text-[10px] font-bold border-2 border-white dark:border-zinc-900 shadow-xs">
+                        <Plus className="w-2.5 h-2.5 stroke-[3]" />
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-semibold text-zinc-700 dark:text-zinc-300 max-w-12 truncate text-center">
+                      Tin của bạn
+                    </span>
+                  </div>
+
+                  {/* Stories list from friends */}
+                  {stories.map((st) => (
+                    <div
+                      key={st.id}
+                      onClick={() => setActiveViewingStory(st)}
+                      className="flex flex-col items-center gap-1 shrink-0 cursor-pointer group select-none"
+                    >
+                      <div className="p-0.5 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-500 group-hover:scale-105 transition-transform shadow-2xs">
+                        <Avatar
+                          userId={st.user?.id}
+                          src={st.user?.avatarUrl}
+                          name={st.user?.fullName || st.user?.username}
+                          username={st.user?.username}
+                          avatarColor={st.user?.avatarColor}
+                          size="md"
+                          disableLink={true}
+                          hideStatus={true}
+                          className="border-2 border-white dark:border-zinc-900"
+                        />
+                      </div>
+                      <span className="text-[10px] font-semibold text-zinc-700 dark:text-zinc-300 max-w-12 truncate text-center">
+                        {st.user?.fullName?.split(" ")?.[0] || st.user?.username || "Bạn bè"}
+                      </span>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Messenger Filter Tabs Bar */}
@@ -2439,6 +2570,235 @@ export default function FloatingChatWidget() {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* 1. Quick Create Story Modal (Tạo Tin 24h) */}
+      {showCreateStoryModal && (
+        <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">✨</span>
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  Tạo Tin mới (24h)
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCreateStoryModal(false)}
+                className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleCreateStory} className="p-4 flex flex-col gap-3.5">
+              {/* Preview Box */}
+              <div
+                className={`w-full h-44 rounded-2xl p-4 flex flex-col justify-between text-white relative overflow-hidden shadow-inner bg-gradient-to-tr ${storyBg}`}
+              >
+                {storyImageUrl ? (
+                  <img
+                    src={storyImageUrl}
+                    alt="Story"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : null}
+
+                {/* User info in preview */}
+                <div className="flex items-center gap-2 relative z-10">
+                  <Avatar
+                    userId={currentUserId}
+                    src={currentUser?.avatarUrl}
+                    name={currentUser?.fullName || currentUser?.username}
+                    size="xs"
+                    disableLink={true}
+                    hideStatus={true}
+                  />
+                  <span className="text-xs font-bold drop-shadow-md">
+                    {currentUser?.fullName || currentUser?.username}
+                  </span>
+                </div>
+
+                {/* Text overlay */}
+                <p className="text-sm font-bold relative z-10 leading-snug drop-shadow-md overflow-y-auto max-h-24">
+                  {storyText || "Nhập suy nghĩ hoặc chia sẻ khoảnh khắc của bạn..."}
+                </p>
+
+                {storyImageUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setStoryImageUrl("")}
+                    className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white hover:bg-black/80 transition z-20 cursor-pointer"
+                    title="Xóa ảnh"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Text Input */}
+              <textarea
+                rows={2}
+                placeholder="Bạn đang nghĩ gì thế? Viết vào tin..."
+                value={storyText}
+                onChange={(e) => setStoryText(e.target.value)}
+                className="w-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 rounded-xl p-2.5 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#0866ff] resize-none"
+              />
+
+              {/* Gradient BG Selector */}
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-zinc-500">Màu nền:</span>
+                <div className="flex items-center gap-1.5">
+                  {[
+                    "from-indigo-600 to-purple-600",
+                    "from-rose-500 to-amber-500",
+                    "from-emerald-500 to-teal-700",
+                    "from-blue-600 to-cyan-500",
+                    "from-zinc-800 to-zinc-950",
+                  ].map((bgClass) => (
+                    <button
+                      key={bgClass}
+                      type="button"
+                      onClick={() => setStoryBg(bgClass)}
+                      className={`w-6 h-6 rounded-full bg-gradient-to-tr ${bgClass} transition-transform cursor-pointer ${
+                        storyBg === bgClass ? "scale-110 ring-2 ring-black dark:ring-white ring-offset-1" : ""
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Image attachment action */}
+              <div className="flex items-center justify-between pt-1">
+                <input
+                  type="file"
+                  ref={storyImageInputRef}
+                  accept="image/*"
+                  onChange={handleUploadStoryImage}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => storyImageInputRef.current?.click()}
+                  disabled={isUploadingStoryImage}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                >
+                  <Image className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>{isUploadingStoryImage ? "Đang tải ảnh..." : "Thêm hình ảnh"}</span>
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isUploadingStoryImage || (!storyText.trim() && !storyImageUrl)}
+                  className="px-5 py-2 rounded-xl bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold shadow-xs active:scale-95 transition cursor-pointer disabled:opacity-50"
+                >
+                  Đăng tin
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Story Viewer Modal (Xem Tin của bạn bè) */}
+      {activeViewingStory && (
+        <div className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm h-[520px] rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between p-4 text-white bg-zinc-950">
+            {/* Background Story Content */}
+            {activeViewingStory.imageUrl ? (
+              <img
+                src={activeViewingStory.imageUrl}
+                alt="Story"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              <div
+                className={`absolute inset-0 w-full h-full bg-gradient-to-tr ${activeViewingStory.bg || "from-indigo-600 to-purple-600"}`}
+              />
+            )}
+            <div className="absolute inset-0 bg-black/20" />
+
+            {/* Top Bar: Progress & User Info */}
+            <div className="relative z-10 flex flex-col gap-3">
+              {/* Progress Bar Animation */}
+              <div className="w-full h-1 bg-white/30 rounded-full overflow-hidden">
+                <div className="h-full bg-white rounded-full animate-[progress_5s_linear_forwards]" />
+              </div>
+
+              {/* User Info Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Avatar
+                    userId={activeViewingStory.user?.id}
+                    src={activeViewingStory.user?.avatarUrl}
+                    name={activeViewingStory.user?.fullName || activeViewingStory.user?.username}
+                    size="sm"
+                    disableLink={true}
+                    hideStatus={true}
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold leading-tight drop-shadow-md">
+                      {activeViewingStory.user?.fullName || activeViewingStory.user?.username}
+                    </span>
+                    <span className="text-[10px] text-white/80 drop-shadow-md">
+                      {activeViewingStory.createdAt ? `${Math.max(1, Math.floor((Date.now() - activeViewingStory.createdAt) / 3600000))} giờ trước` : "24h trước"}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveViewingStory(null)}
+                  className="p-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Center Story Text */}
+            <div className="relative z-10 my-auto text-center px-4">
+              <p className="text-lg font-black leading-relaxed drop-shadow-lg">
+                {activeViewingStory.text}
+              </p>
+            </div>
+
+            {/* Bottom Actions: Reply to Messenger */}
+            <div className="relative z-10 flex items-center gap-2 pt-2">
+              <input
+                type="text"
+                placeholder={`Gửi phản hồi cho ${activeViewingStory.user?.fullName?.split(" ")?.[0] || "bạn bè"}...`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && e.target.value.trim()) {
+                    const text = `💬 Phản hồi tin: "${activeViewingStory.text || "Hình ảnh"}" - ${e.target.value.trim()}`;
+                    if (activeViewingStory.user?.id && activeViewingStory.user.id !== currentUserId) {
+                      chatService.sendMessage(currentUserId, activeViewingStory.user.id, text).catch(() => {});
+                      toast.success("Đã gửi phản hồi vào tin nhắn!");
+                    } else {
+                      toast.info("Đã ghi nhận phản hồi!");
+                    }
+                    setActiveViewingStory(null);
+                  }
+                }}
+                className="flex-1 bg-white/20 hover:bg-white/30 focus:bg-white/30 backdrop-blur-md rounded-full px-4 py-2 text-xs text-white placeholder-white/70 outline-none border border-white/30 transition"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  toast.success("❤️ Đã thả tim vào tin!");
+                  setActiveViewingStory(null);
+                }}
+                className="p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-rose-400 hover:text-rose-300 transition cursor-pointer border border-white/30"
+                title="Thả tim tin"
+              >
+                <Heart className="w-5 h-5 fill-rose-500 text-rose-500" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
