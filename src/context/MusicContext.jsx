@@ -119,7 +119,18 @@ export function MusicProvider({ children }) {
 
   const audioRef = useRef(null);
   const retryCountRef = useRef(0);
-  const currentTrack = playlist[currentTrackIndex] || playlist[0] || VIETNAMESE_PLAYLIST[0];
+
+  // Safe Track object with full fallback
+  const rawTrack = playlist[currentTrackIndex] || playlist[0] || VIETNAMESE_PLAYLIST[0];
+  const currentTrack = {
+    ...rawTrack,
+    src: rawTrack?.src || rawTrack?.audioUrl || VIETNAMESE_PLAYLIST[0].src,
+    fallbackSrc: rawTrack?.fallbackSrc || rawTrack?.fallbackAudioUrl || VIETNAMESE_PLAYLIST[0].fallbackSrc,
+    cover: rawTrack?.cover || rawTrack?.coverUrl || VIETNAMESE_PLAYLIST[0].cover,
+    title: rawTrack?.title || "Bài hát trực tuyến",
+    artist: rawTrack?.artist || "BlogViet Streaming",
+    genre: rawTrack?.genre || "Radio",
+  };
 
   // Fetch dynamic songs from backend API on mount
   useEffect(() => {
@@ -127,7 +138,14 @@ export function MusicProvider({ children }) {
       .getAll()
       .then((res) => {
         if (Array.isArray(res.data) && res.data.length > 0) {
-          setPlaylist(res.data);
+          // Normalize items to ensure .src and .cover exist
+          const normalized = res.data.map((item) => ({
+            ...item,
+            src: item.src || item.audioUrl || VIETNAMESE_PLAYLIST[0].src,
+            fallbackSrc: item.fallbackSrc || item.fallbackAudioUrl,
+            cover: item.cover || item.coverUrl || VIETNAMESE_PLAYLIST[0].cover,
+          }));
+          setPlaylist(normalized);
         }
       })
       .catch(() => {});
@@ -169,16 +187,18 @@ export function MusicProvider({ children }) {
       setIsPlaying(false);
       console.warn("[MUSIC ERROR] Lỗi tải stream:", audio.src);
 
-      const track = playlist[currentTrackIndex];
-      if (track?.fallbackSrc && retryCountRef.current === 0) {
+      const track = playlist[currentTrackIndex] || currentTrack;
+      const fallbackUrl = track?.fallbackSrc || track?.fallbackAudioUrl;
+
+      if (fallbackUrl && retryCountRef.current === 0) {
         retryCountRef.current = 1;
-        console.info("[MUSIC FALLBACK] Thử link phụ fallbackSrc:", track.fallbackSrc);
-        audio.src = track.fallbackSrc;
+        console.info("[MUSIC FALLBACK] Thử link phụ fallbackSrc:", fallbackUrl);
+        audio.src = fallbackUrl;
         audio.play().then(() => setIsPlaying(true)).catch(() => {});
         return;
       }
 
-      toast.info(`Bài hát "${track?.title}" đang chuyển sang luồng tiếp theo...`);
+      toast.info(`Bài hát "${track?.title || ""}" đang chuyển sang luồng tiếp theo...`);
       setTimeout(() => {
         nextTrack();
       }, 1000);
@@ -203,14 +223,61 @@ export function MusicProvider({ children }) {
     };
   }, [playlist]);
 
-  // Handle track change
-  const playTrack = (index) => {
-    const nextIdx = (index + playlist.length) % playlist.length;
-    setCurrentTrackIndex(nextIdx);
+  // Robust playTrack handling Number (index), Object (song), or ID (string/number)
+  const playTrack = (trackOrIndex) => {
+    if (trackOrIndex === undefined || trackOrIndex === null) return;
+    if (!playlist || playlist.length === 0) return;
+
+    let targetIndex = 0;
+
+    if (typeof trackOrIndex === "number") {
+      targetIndex = (trackOrIndex + playlist.length) % playlist.length;
+    } else if (typeof trackOrIndex === "object") {
+      // Find track by id or src/audioUrl or title
+      const foundIdx = playlist.findIndex(
+        (t) =>
+          (trackOrIndex.id && t.id === trackOrIndex.id) ||
+          (trackOrIndex.src && (t.src === trackOrIndex.src || t.audioUrl === trackOrIndex.src)) ||
+          (trackOrIndex.audioUrl && (t.src === trackOrIndex.audioUrl || t.audioUrl === trackOrIndex.audioUrl)) ||
+          (trackOrIndex.title && t.title === trackOrIndex.title)
+      );
+
+      if (foundIdx !== -1) {
+        targetIndex = foundIdx;
+      } else {
+        const safeTrack = {
+          id: trackOrIndex.id || Date.now(),
+          title: trackOrIndex.title || "Bài hát trực tuyến",
+          artist: trackOrIndex.artist || "BlogViet Streaming",
+          genre: trackOrIndex.genre || "Radio",
+          cover: trackOrIndex.cover || trackOrIndex.coverUrl || VIETNAMESE_PLAYLIST[0].cover,
+          src: trackOrIndex.src || trackOrIndex.audioUrl || VIETNAMESE_PLAYLIST[0].src,
+          fallbackSrc: trackOrIndex.fallbackSrc || trackOrIndex.fallbackAudioUrl,
+        };
+        setPlaylist((prev) => [safeTrack, ...prev]);
+        targetIndex = 0;
+      }
+    } else if (typeof trackOrIndex === "string") {
+      const idx = playlist.findIndex((t) => String(t.id) === trackOrIndex);
+      if (idx !== -1) targetIndex = idx;
+    }
+
+    const selectedTrack = playlist[targetIndex] || playlist[0] || VIETNAMESE_PLAYLIST[0];
+    if (!selectedTrack) return;
+
+    const audioSource =
+      selectedTrack.src ||
+      selectedTrack.audioUrl ||
+      selectedTrack.fallbackSrc ||
+      selectedTrack.fallbackAudioUrl ||
+      VIETNAMESE_PLAYLIST[0].src;
+
+    setCurrentTrackIndex(targetIndex);
     setHasError(false);
     retryCountRef.current = 0;
+
     if (audioRef.current) {
-      audioRef.current.src = playlist[nextIdx].src;
+      audioRef.current.src = audioSource;
       audioRef.current.currentTime = 0;
       audioRef.current
         .play()
@@ -273,7 +340,13 @@ export function MusicProvider({ children }) {
     try {
       const res = await songService.getAll();
       if (Array.isArray(res.data) && res.data.length > 0) {
-        setPlaylist(res.data);
+        const normalized = res.data.map((item) => ({
+          ...item,
+          src: item.src || item.audioUrl || VIETNAMESE_PLAYLIST[0].src,
+          fallbackSrc: item.fallbackSrc || item.fallbackAudioUrl,
+          cover: item.cover || item.coverUrl || VIETNAMESE_PLAYLIST[0].cover,
+        }));
+        setPlaylist(normalized);
       }
     } catch {}
   };

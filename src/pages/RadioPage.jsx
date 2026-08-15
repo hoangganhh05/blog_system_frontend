@@ -476,7 +476,9 @@ export default function RadioPage() {
       {viewMode === "player" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {paginatedSongs.map((song, index) => {
-            const isSelected = currentTrack.src === song.src;
+            if (!song) return null;
+            const songSrc = song.src || song.audioUrl;
+            const isSelected = Boolean(currentTrack?.src && songSrc && currentTrack.src === songSrc);
             return (
               <div
                 key={song.id || index}
