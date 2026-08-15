@@ -180,9 +180,7 @@ export default function RightSidebar() {
                       username={user.username}
                       avatarColor={user.avatarColor}
                       size="w-9 h-9"
-                      isOnline={user.isOnline}
-                      lastActiveAt={user.lastActiveAt}
-                      showActiveStatus={user.showActiveStatus !== false}
+                      hideStatus={true}
                       className="border border-zinc-200 dark:border-zinc-700 shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200"
                     />
 
@@ -191,7 +189,7 @@ export default function RightSidebar() {
                         {displayName}
                       </span>
                       <span className="text-[10px] text-zinc-400 truncate">
-                        {formatLastActive(user) || `@${user.username}`}
+                        @{user.username}
                       </span>
                     </div>
                   </Link>

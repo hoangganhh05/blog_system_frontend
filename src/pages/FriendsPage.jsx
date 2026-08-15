@@ -291,9 +291,7 @@ export default function FriendsPage() {
                       username={sug.username}
                       avatarColor={sug.avatarColor}
                       size="md"
-                      isOnline={sug.isOnline}
-                      lastActiveAt={sug.lastActiveAt}
-                      showActiveStatus={sug.showActiveStatus}
+                      hideStatus={true}
                       className="shrink-0"
                     />
                     <div className="flex flex-col min-w-0">
@@ -301,7 +299,7 @@ export default function FriendsPage() {
                         {sug.fullName || sug.username}
                       </span>
                       <span className="text-xs text-zinc-400 truncate">
-                        {formatLastActive(sug) || `@${sug.username}`}
+                        @{sug.username}
                       </span>
                     </div>
                   </Link>
