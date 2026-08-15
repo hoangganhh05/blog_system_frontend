@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MoreHorizontal, Trash2, Edit2, Reply, Send, Loader2, X } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit2, Reply, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import commentService from "../services/commentService";
@@ -32,6 +32,22 @@ function timeAgo(dateStr) {
   return `${d}d`;
 }
 
+function parseCommentContent(content) {
+  if (!content) return { text: "", mediaUrl: null };
+  if (content.startsWith("📷 ")) {
+    const url = content.replace("📷 ", "").trim();
+    return { text: "", mediaUrl: url };
+  }
+  const urlRegex = /(https?:\/\/[^\s]+(?:\.gif|\.png|\.jpg|\.jpeg|giphy\.com[^\s]+|tenor\.com[^\s]+))/i;
+  const match = content.match(urlRegex);
+  if (match) {
+    const mediaUrl = match[0];
+    const text = content.replace(mediaUrl, "").trim();
+    return { text, mediaUrl };
+  }
+  return { text: content, mediaUrl: null };
+}
+
 export default function Comment({ comment, onDelete, onReplyCreated }) {
   const { currentUser } = useAuth();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
@@ -47,6 +63,8 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
   const author = comment?.user || {};
   const authorName = author.fullName || author.username || "Người dùng";
   const isOwner = currentUserId && String(author.id) === String(currentUserId);
+
+  const parsed = parseCommentContent(comment.content);
 
   const handleEdit = async () => {
     if (!editText.trim() || isSubmitting) return;
@@ -206,8 +224,23 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
             </div>
           </div>
         ) : (
-          <div className="text-sm leading-relaxed text-zinc-800 dark:text-zinc-200 break-words my-0.5">
-            {comment.content}
+          <div className="flex flex-col gap-1 my-0.5">
+            {parsed.text && (
+              <div className="text-sm leading-relaxed text-zinc-800 dark:text-zinc-200 break-words">
+                {parsed.text}
+              </div>
+            )}
+            {parsed.mediaUrl && (
+              <div className="mt-1 rounded-2xl overflow-hidden max-w-[240px] max-h-[190px] border border-zinc-200 dark:border-zinc-800 shadow-xs">
+                <img
+                  src={parsed.mediaUrl}
+                  alt="GIF"
+                  className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
+                  onClick={() => window.open(parsed.mediaUrl, "_blank")}
+                  loading="lazy"
+                />
+              </div>
+            )}
           </div>
         )}
 

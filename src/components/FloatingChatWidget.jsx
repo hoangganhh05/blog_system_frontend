@@ -25,6 +25,7 @@ import chatService from "../services/chatService";
 import uploadService from "../services/uploadService";
 import aiService from "../services/aiService";
 import AudioMessagePlayer from "./AudioMessagePlayer";
+import GifPicker from "./GifPicker";
 
 const AI_USER = {
   id: "ai_bot",
@@ -115,6 +116,7 @@ export default function FloatingChatWidget() {
   const [activeCall, setActiveCall] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showStickers, setShowStickers] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
   const [activeMsgMenuId, setActiveMsgMenuId] = useState(null);
   const [editingMsgId, setEditingMsgId] = useState(null);
   const [editingText, setEditingText] = useState("");
@@ -441,6 +443,45 @@ export default function FloatingChatWidget() {
       toast.error("Không thể tải ảnh lên!");
     } finally {
       setUploadingImage(false);
+    }
+  };
+
+  // Send Animated GIF
+  const handleSendGif = async (gifUrl) => {
+    if (!gifUrl) return;
+    const text = `📷 ${gifUrl}`;
+
+    if (activeFriend?.isAi) {
+      const userMsgObj = {
+        id: Date.now(),
+        senderId: currentUserId,
+        content: text,
+        createdAt: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, userMsgObj]);
+      setIsAiTyping(true);
+      try {
+        const aiResponse = await aiService.chatWithAI("Tôi vừa gửi một ảnh GIF động vui nhộn cho bạn nè!");
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            senderId: "ai_bot",
+            content: aiResponse,
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+      } catch {
+      } finally {
+        setIsAiTyping(false);
+      }
+    } else if (activeFriend?.id) {
+      try {
+        const resMsg = await chatService.sendMessage(currentUserId, activeFriend.id, text);
+        setMessages((prev) => [...prev, resMsg.data]);
+      } catch {
+        toast.error("Không thể gửi ảnh GIF!");
+      }
     }
   };
 
@@ -1028,6 +1069,19 @@ export default function FloatingChatWidget() {
             </div>
           )}
 
+          {/* GIF Picker Popup */}
+          {showGifPicker && (
+            <div className="p-2 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 flex justify-center">
+              <GifPicker
+                onSelectGif={(url) => {
+                  handleSendGif(url);
+                  setShowGifPicker(false);
+                }}
+                onClose={() => setShowGifPicker(false)}
+              />
+            </div>
+          )}
+
           {/* Input Footer */}
           {activeFriend && (
             <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2.5 shrink-0">
@@ -1067,11 +1121,31 @@ export default function FloatingChatWidget() {
                   {/* Sticker Toggle */}
                   <button
                     type="button"
-                    onClick={() => setShowStickers((v) => !v)}
+                    onClick={() => {
+                      setShowStickers((v) => !v);
+                      setShowGifPicker(false);
+                    }}
                     className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
                     title="Sticker & Emoji"
                   >
                     <Smile className="w-4 h-4" />
+                  </button>
+
+                  {/* GIF Picker Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowGifPicker((v) => !v);
+                      setShowStickers(false);
+                    }}
+                    className={`px-1.5 py-0.5 rounded-md text-[10px] font-black transition cursor-pointer ${
+                      showGifPicker
+                        ? "bg-amber-500 text-black shadow-xs"
+                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    }`}
+                    title="Kho ảnh GIF động"
+                  >
+                    GIF
                   </button>
 
                   {/* Image Select */}
