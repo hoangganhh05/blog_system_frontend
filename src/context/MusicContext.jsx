@@ -4,19 +4,21 @@ import { toast } from "sonner";
 export const PLAYLIST = [
   {
     id: 1,
-    title: "Vinahouse Night Fever 2026",
+    title: "Vinahouse Club Night 2026",
     artist: "BlogViet DJ Team",
     genre: "Vinahouse / EDM",
     cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    src: "https://streams.ilovemusic.de/iloveradio2.mp3",
+    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
   },
   {
     id: 2,
-    title: "Deep Coding & Focus Chill",
+    title: "Lo-Fi Beats & Study Lounge",
     artist: "Lofi Developer Beats",
     genre: "Lofi Chill",
     cover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&auto=format&fit=crop&q=80",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    src: "https://streams.ilovemusic.de/iloveradio10.mp3",
+    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
   },
   {
     id: 3,
@@ -24,23 +26,26 @@ export const PLAYLIST = [
     artist: "Retro Wave Studio",
     genre: "Synthwave",
     cover: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&auto=format&fit=crop&q=80",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    src: "https://streams.ilovemusic.de/iloveradio9.mp3",
+    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
   },
   {
     id: 4,
-    title: "Acoustic Morning Sunrise",
-    artist: "Coffee & Books Melody",
+    title: "Piano & Gentle Raindrop",
+    artist: "Acoustic Melody & Rain",
     genre: "Acoustic Chill",
-    cover: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=300&auto=format&fit=crop&q=80",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+    cover: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=300&auto=format&fit=crop&q=80",
+    src: "https://stream.zeno.fm/f3wvbbqmdg8uv",
+    fallbackSrc: "https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg",
   },
   {
     id: 5,
-    title: "Electronic Dreamscape 2026",
-    artist: "EDM Collective",
-    genre: "EDM / Club",
-    cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&auto=format&fit=crop&q=80",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    title: "Deep Space Focus Ambience",
+    artist: "Cosmic Relax Collective",
+    genre: "Ambient Relax",
+    cover: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=300&auto=format&fit=crop&q=80",
+    src: "https://actions.google.com/sounds/v1/science_fiction/space_ambience.ogg",
+    fallbackSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
   },
 ];
 
@@ -56,26 +61,30 @@ export function MusicProvider({ children }) {
   const [hasError, setHasError] = useState(false);
 
   const audioRef = useRef(null);
+  const retryCountRef = useRef(0);
   const currentTrack = PLAYLIST[currentTrackIndex];
 
   // Initialize singleton audio element
   useEffect(() => {
     const audio = new Audio();
-    audio.preload = "metadata";
+    audio.preload = "none";
     audio.src = currentTrack.src;
     audio.volume = volume;
     audioRef.current = audio;
 
     const onTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
-      if (!isNaN(audio.duration)) {
+      if (!isNaN(audio.duration) && audio.duration !== Infinity) {
         setDuration(audio.duration);
       }
     };
 
     const onLoadedMetadata = () => {
-      setDuration(audio.duration || 0);
+      if (!isNaN(audio.duration) && audio.duration !== Infinity) {
+        setDuration(audio.duration);
+      }
       setHasError(false);
+      retryCountRef.current = 0;
     };
 
     const onEnded = () => {
@@ -85,15 +94,25 @@ export function MusicProvider({ children }) {
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
 
-    // Bắt lỗi stream (403, 404, network) và tự động skip
+    // Bắt lỗi stream (403, 404, network) và tự động thử fallback/skip
     const onError = () => {
       setHasError(true);
       setIsPlaying(false);
-      console.warn("[MUSIC ERROR] Lỗi tải stream audio:", audio.src);
-      toast.error(`Bài hát "${currentTrack.title}" tạm gián đoạn. Đang chuyển bài tiếp theo...`);
+      console.warn("[MUSIC ERROR] Lỗi tải stream:", audio.src);
+
+      const track = PLAYLIST[currentTrackIndex];
+      if (track?.fallbackSrc && retryCountRef.current === 0) {
+        retryCountRef.current = 1;
+        console.info("[MUSIC FALLBACK] Thử link phụ fallbackSrc:", track.fallbackSrc);
+        audio.src = track.fallbackSrc;
+        audio.play().then(() => setIsPlaying(true)).catch(() => {});
+        return;
+      }
+
+      toast.info(`Bài hát "${track?.title}" đang chuyển sang luồng tiếp theo...`);
       setTimeout(() => {
         nextTrack();
-      }, 1200);
+      }, 1000);
     };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
@@ -120,6 +139,7 @@ export function MusicProvider({ children }) {
     const nextIdx = (index + PLAYLIST.length) % PLAYLIST.length;
     setCurrentTrackIndex(nextIdx);
     setHasError(false);
+    retryCountRef.current = 0;
     if (audioRef.current) {
       audioRef.current.src = PLAYLIST[nextIdx].src;
       audioRef.current.currentTime = 0;
@@ -157,7 +177,7 @@ export function MusicProvider({ children }) {
   };
 
   const seek = (timeInSeconds) => {
-    if (audioRef.current) {
+    if (audioRef.current && !isNaN(timeInSeconds)) {
       audioRef.current.currentTime = timeInSeconds;
       setCurrentTime(timeInSeconds);
     }
