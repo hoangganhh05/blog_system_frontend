@@ -275,6 +275,19 @@ export default function FloatingChatWidget() {
             }
             prevMsgLengthRef.current = list.length;
             setMessages(list);
+
+            // Chỉ đánh dấu đã đọc khi người nhận đang thực sự mở và xem đoạn chat này
+            if (isOpen && activeFriend?.id) {
+              const hasUnreadFromFriend = list.some(
+                (m) =>
+                  Number(m.senderId || m.sender?.id) === Number(activeFriend.id) &&
+                  !m.read &&
+                  !m.isRead
+              );
+              if (hasUnreadFromFriend) {
+                markConversationAsRead(activeFriend.id);
+              }
+            }
           })
           .catch(() => {});
       };
