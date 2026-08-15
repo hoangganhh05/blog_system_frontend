@@ -249,11 +249,11 @@ export default function RadioPage() {
 ]`;
 
   return (
-    <div className="w-full max-w-full flex flex-col gap-4 overflow-hidden">
+    <div className="w-full max-w-full flex flex-col gap-4">
       {/* ======================================================================
           1. HERO FEATURED PLAYER (Sleek Glassmorphism Banner)
           ====================================================================== */}
-      <div className="relative rounded-3xl overflow-hidden p-5 sm:p-7 bg-gradient-to-br from-slate-950 via-[#111827] to-[#0b0f19] text-white border border-slate-800 shadow-xl flex flex-col md:flex-row items-center justify-between gap-5">
+      <div className="relative w-full shrink-0 rounded-3xl overflow-hidden p-5 sm:p-6 bg-gradient-to-br from-slate-950 via-[#111827] to-[#0b0f19] text-white border border-slate-800 shadow-xl flex flex-col md:flex-row items-center justify-between gap-5">
         {/* Glow ambient */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
