@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import notificationService from "../services/notificationService";
+import friendService from "../services/friendService";
+import { toast } from "sonner";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -146,6 +148,52 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
     }
   };
 
+  const isFriendRequest = (n) => {
+    if (!n) return false;
+    const msg = String(n.message || n.content || "").toLowerCase();
+    const type = String(n.type || "").toUpperCase();
+    return (
+      type === "FRIEND_REQUEST" ||
+      (msg.includes("lời mời kết bạn") && !msg.includes("chấp nhận"))
+    );
+  };
+
+  const handleAcceptFriendInNotif = async (e, n) => {
+    e.stopPropagation();
+    if (!n.sender?.id || !currentUserId) return;
+    try {
+      await friendService.acceptRequest(currentUserId, n.sender.id);
+      toast.success(`Đã chấp nhận lời mời kết bạn của ${n.sender.fullName || n.sender.username}!`);
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item.id === n.id ? { ...item, read: true, isFriendAccepted: true } : item
+        )
+      );
+      await notificationService.markAsRead(n.id);
+      fetchUnreadCount();
+    } catch {
+      toast.error("Không thể chấp nhận lời mời lúc này!");
+    }
+  };
+
+  const handleDeclineFriendInNotif = async (e, n) => {
+    e.stopPropagation();
+    if (!n.sender?.id || !currentUserId) return;
+    try {
+      await friendService.removeFriendship(currentUserId, n.sender.id);
+      toast.info("Đã từ chối lời mời kết bạn");
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item.id === n.id ? { ...item, read: true, isFriendDeclined: true } : item
+        )
+      );
+      await notificationService.markAsRead(n.id);
+      fetchUnreadCount();
+    } catch {
+      toast.error("Không thể từ chối lời mời lúc này!");
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -225,13 +273,15 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
         ) : (
           notifications.map((n) => {
             const senderName = n.sender?.fullName || n.sender?.username || "Hệ thống";
+            const isFriendReq = isFriendRequest(n);
+
             return (
               <div
                 key={n.id}
                 onClick={() => handleItemClick(n)}
                 style={{
                   display: "flex",
-                  alignItems: "center",
+                  alignItems: "flex-start",
                   gap: 12,
                   padding: "10px 16px",
                   cursor: "pointer",
@@ -248,7 +298,7 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
               >
                 {/* Sender Avatar */}
                 <div
-                  style={{ position: "relative", cursor: "pointer" }}
+                  style={{ position: "relative", cursor: "pointer", marginTop: 2 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (n.sender?.id) {
@@ -292,7 +342,62 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
                     <strong style={{ fontWeight: 700 }}>{senderName} </strong>
                     <span>{n.message}</span>
                   </div>
-                  <span style={{ fontSize: 11, color: n.read ? "var(--text-muted)" : "var(--primary)", fontWeight: n.read ? 400 : 600 }}>
+
+                  {/* Inline Friend Request Actions */}
+                  {isFriendReq && (
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {n.isFriendAccepted ? (
+                        <span style={{ fontSize: 11.5, fontWeight: 700, color: "#10b981" }}>
+                          ✓ Đã trở thành bạn bè
+                        </span>
+                      ) : n.isFriendDeclined ? (
+                        <span style={{ fontSize: 11.5, color: "var(--text-muted)" }}>
+                          Đã xóa lời mời
+                        </span>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={(e) => handleAcceptFriendInNotif(e, n)}
+                            style={{
+                              padding: "4px 12px",
+                              borderRadius: 8,
+                              background: "#0866ff",
+                              color: "#fff",
+                              border: "none",
+                              fontSize: 11.5,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              transition: "opacity 0.2s",
+                            }}
+                          >
+                            Chấp nhận
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeclineFriendInNotif(e, n)}
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: 8,
+                              background: "rgba(0,0,0,0.06)",
+                              color: "var(--text-primary)",
+                              border: "none",
+                              fontSize: 11.5,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Xóa
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  <span style={{ fontSize: 11, color: n.read ? "var(--text-muted)" : "var(--primary)", fontWeight: n.read ? 400 : 600, marginTop: 2 }}>
                     {timeAgo(n.createdAt)}
                   </span>
                 </div>
@@ -306,6 +411,7 @@ function NotificationDrawer({ currentUser, isOpen, onClose, onUnreadCountChange 
                       borderRadius: "50%",
                       background: "var(--primary)",
                       flexShrink: 0,
+                      marginTop: 4,
                     }}
                   />
                 )}

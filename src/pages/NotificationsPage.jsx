@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, CheckCheck, Loader2, Heart, MessageCircle, UserPlus, Sparkles } from "lucide-react";
+import { Bell, CheckCheck, Loader2, Heart, MessageCircle, UserPlus, Sparkles, UserCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import notificationService from "../services/notificationService";
+import friendService from "../services/friendService";
+import { toast } from "sonner";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -54,6 +56,16 @@ export default function NotificationsPage() {
     );
   };
 
+  const isFriendRequest = (n) => {
+    if (!n) return false;
+    const msg = String(n.message || n.content || "").toLowerCase();
+    const type = String(n.type || "").toUpperCase();
+    return (
+      type === "FRIEND_REQUEST" ||
+      (msg.includes("lời mời kết bạn") && !msg.includes("chấp nhận"))
+    );
+  };
+
   const fetchNotifications = async () => {
     if (!currentUserId) return;
     try {
@@ -96,6 +108,40 @@ export default function NotificationsPage() {
     }
   };
 
+  const handleAcceptFriendInNotif = async (e, n) => {
+    e.stopPropagation();
+    if (!n.sender?.id || !currentUserId) return;
+    try {
+      await friendService.acceptRequest(currentUserId, n.sender.id);
+      toast.success(`Đã chấp nhận lời mời kết bạn của ${n.sender.fullName || n.sender.username}!`);
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item.id === n.id ? { ...item, read: true, isFriendAccepted: true } : item
+        )
+      );
+      await notificationService.markAsRead(n.id);
+    } catch {
+      toast.error("Không thể chấp nhận lời mời lúc này!");
+    }
+  };
+
+  const handleDeclineFriendInNotif = async (e, n) => {
+    e.stopPropagation();
+    if (!n.sender?.id || !currentUserId) return;
+    try {
+      await friendService.removeFriendship(currentUserId, n.sender.id);
+      toast.info("Đã từ chối lời mời kết bạn");
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item.id === n.id ? { ...item, read: true, isFriendDeclined: true } : item
+        )
+      );
+      await notificationService.markAsRead(n.id);
+    } catch {
+      toast.error("Không thể từ chối lời mời lúc này!");
+    }
+  };
+
   return (
     <div className="w-full min-h-full flex flex-col">
       {/* Page Header */}
@@ -135,6 +181,7 @@ export default function NotificationsPage() {
           notifications.map((n) => {
             const sender = n.sender || {};
             const senderName = sender.fullName || sender.username || "Hệ thống";
+            const isFriendReq = isFriendRequest(n);
 
             return (
               <div
@@ -145,7 +192,14 @@ export default function NotificationsPage() {
                 }`}
               >
                 {/* Avatar / Icon */}
-                <div className="relative shrink-0">
+                <div
+                  className="relative shrink-0 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (sender.id) navigate(`/profile/${sender.id}`);
+                  }}
+                  title={`Xem trang cá nhân của ${senderName}`}
+                >
                   {sender.avatarUrl ? (
                     <img
                       src={sender.avatarUrl}
@@ -168,7 +222,13 @@ export default function NotificationsPage() {
                 {/* Content */}
                 <div className="flex-1 min-w-0 flex flex-col">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="font-bold text-sm text-zinc-900 dark:text-white truncate">
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (sender.id) navigate(`/profile/${sender.id}`);
+                      }}
+                      className="font-bold text-sm text-zinc-900 dark:text-white hover:text-[#0866ff] truncate cursor-pointer"
+                    >
                       {senderName}
                     </span>
                     <span className="text-xs text-zinc-400 shrink-0">
@@ -178,6 +238,41 @@ export default function NotificationsPage() {
                   <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5 leading-relaxed break-words">
                     {n.message || n.content}
                   </p>
+
+                  {/* Inline Friend Request Actions */}
+                  {isFriendReq && (
+                    <div
+                      className="flex items-center gap-2 mt-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {n.isFriendAccepted ? (
+                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                          ✓ Đã trở thành bạn bè
+                        </span>
+                      ) : n.isFriendDeclined ? (
+                        <span className="text-xs text-zinc-400">
+                          Đã xóa lời mời
+                        </span>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={(e) => handleAcceptFriendInNotif(e, n)}
+                            className="px-3.5 py-1.5 rounded-xl bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer"
+                          >
+                            Chấp nhận
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeclineFriendInNotif(e, n)}
+                            className="px-3.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold transition active:scale-95 cursor-pointer"
+                          >
+                            Xóa
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             );

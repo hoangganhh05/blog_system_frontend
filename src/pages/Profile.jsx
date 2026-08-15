@@ -106,7 +106,14 @@ export default function Profile() {
     // Load Friendship status & Friend count
     if (!isMe && currentUserId) {
       friendService.getStatus(currentUserId, targetUserId)
-        .then((res) => setFriendshipStatus(res.data?.status || "NONE"))
+        .then((res) => {
+          const s = res.data?.status || "NONE";
+          if (s === "FRIENDS" || s === "ACCEPTED") setFriendshipStatus("ACCEPTED");
+          else if (s === "PENDING_SENT") setFriendshipStatus("PENDING_SENT");
+          else if (s === "PENDING_RECEIVED") setFriendshipStatus("PENDING_RECEIVED");
+          else if (s === "PENDING") setFriendshipStatus("PENDING_SENT");
+          else setFriendshipStatus("NONE");
+        })
         .catch(() => {});
 
       followService.checkFollowStatus(targetUserId)
@@ -200,43 +207,107 @@ export default function Profile() {
     }
   };
 
-  // Optimistic Friend / Follow Toggle
-  const handleToggleFriend = async () => {
+  // Accept incoming friend request
+  const handleAcceptFriendRequest = async () => {
     if (!currentUserId) {
       navigate("/login");
       return;
     }
     if (friendLoading) return;
 
-    const prevStatus = friendshipStatus;
-    const prevCount = friendCount;
+    setFriendLoading(true);
+    setFriendshipStatus("ACCEPTED");
+    setFriendCount((prev) => prev + 1);
+    setIsFollowing(true);
 
-    // Optimistic UI state update
-    if (prevStatus === "NONE") {
-      setFriendshipStatus("PENDING");
-      toast.success("Đã gửi lời mời kết bạn");
-    } else if (prevStatus === "PENDING" || prevStatus === "ACCEPTED") {
-      setFriendshipStatus("NONE");
-      if (prevStatus === "ACCEPTED") {
-        setFriendCount((prev) => Math.max(0, prev - 1));
-        toast.info("Đã hủy kết bạn");
-      } else {
-        toast.info("Đã hủy lời mời kết bạn");
-      }
+    try {
+      await friendService.acceptRequest(currentUserId, targetUserId);
+      toast.success(`Đã chấp nhận lời mời kết bạn của ${user?.fullName || user?.username}!`);
+    } catch {
+      setFriendshipStatus("PENDING_RECEIVED");
+      setFriendCount((prev) => Math.max(0, prev - 1));
+      toast.error("Không thể chấp nhận lời mời lúc này!");
+    } finally {
+      setFriendLoading(false);
     }
+  };
+
+  // Decline incoming friend request
+  const handleDeclineFriendRequest = async () => {
+    if (!currentUserId) return;
+    if (friendLoading) return;
 
     setFriendLoading(true);
+    setFriendshipStatus("NONE");
+
     try {
-      if (prevStatus === "NONE") {
-        await friendService.sendFriendRequest(currentUserId, targetUserId);
-      } else {
-        await friendService.removeFriendship(currentUserId, targetUserId);
-      }
+      await friendService.removeFriendship(currentUserId, targetUserId);
+      toast.info("Đã từ chối lời mời kết bạn");
     } catch {
-      // Revert state on error
-      setFriendshipStatus(prevStatus);
-      setFriendCount(prevCount);
-      toast.error("Thao tác thất bại. Vui lòng thử lại!");
+      setFriendshipStatus("PENDING_RECEIVED");
+      toast.error("Không thể từ chối lời mời lúc này!");
+    } finally {
+      setFriendLoading(false);
+    }
+  };
+
+  // Send friend request
+  const handleSendFriendRequest = async () => {
+    if (!currentUserId) {
+      navigate("/login");
+      return;
+    }
+    if (friendLoading) return;
+
+    setFriendLoading(true);
+    setFriendshipStatus("PENDING_SENT");
+
+    try {
+      await friendService.sendFriendRequest(currentUserId, targetUserId);
+      toast.success("Đã gửi lời mời kết bạn!");
+    } catch {
+      setFriendshipStatus("NONE");
+      toast.error("Không thể gửi lời mời kết bạn lúc này!");
+    } finally {
+      setFriendLoading(false);
+    }
+  };
+
+  // Cancel sent friend request
+  const handleCancelFriendRequest = async () => {
+    if (!currentUserId) return;
+    if (friendLoading) return;
+
+    setFriendLoading(true);
+    setFriendshipStatus("NONE");
+
+    try {
+      await friendService.removeFriendship(currentUserId, targetUserId);
+      toast.info("Đã hủy lời mời kết bạn");
+    } catch {
+      setFriendshipStatus("PENDING_SENT");
+      toast.error("Không thể hủy lời mời lúc này!");
+    } finally {
+      setFriendLoading(false);
+    }
+  };
+
+  // Unfriend
+  const handleUnfriend = async () => {
+    if (!currentUserId) return;
+    if (friendLoading) return;
+
+    setFriendLoading(true);
+    setFriendshipStatus("NONE");
+    setFriendCount((prev) => Math.max(0, prev - 1));
+
+    try {
+      await friendService.removeFriendship(currentUserId, targetUserId);
+      toast.info("Đã hủy kết bạn");
+    } catch {
+      setFriendshipStatus("ACCEPTED");
+      setFriendCount((prev) => prev + 1);
+      toast.error("Không thể hủy kết bạn lúc này!");
     } finally {
       setFriendLoading(false);
     }
@@ -463,32 +534,85 @@ export default function Profile() {
                   )}
                 </button>
 
-                {/* Nút Kết bạn / Bạn bè */}
-                <button
-                  type="button"
-                  onClick={handleToggleFriend}
-                  disabled={friendLoading}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
-                    friendshipStatus === "ACCEPTED"
-                      ? "bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
-                      : friendshipStatus === "PENDING"
-                      ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                      : "border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200"
-                  }`}
-                >
-                  {friendLoading ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : friendshipStatus === "ACCEPTED" ? (
-                    <>
-                      <UserCheck className="w-3.5 h-3.5" />
-                      <span>Bạn bè</span>
-                    </>
-                  ) : friendshipStatus === "PENDING" ? (
-                    <span>Đã gửi lời mời</span>
-                  ) : (
-                    <span>+ Kết bạn</span>
-                  )}
-                </button>
+                {/* Nút Kết bạn / Lời mời kết bạn */}
+                {friendshipStatus === "PENDING_RECEIVED" ? (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handleAcceptFriendRequest}
+                      disabled={friendLoading}
+                      className="px-3.5 py-1.5 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs active:scale-95 cursor-pointer disabled:opacity-50"
+                      title="Chấp nhận lời mời kết bạn"
+                    >
+                      {friendLoading ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <>
+                          <UserCheck className="w-3.5 h-3.5" />
+                          <span>Chấp nhận</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleDeclineFriendRequest}
+                      disabled={friendLoading}
+                      className="px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-95 cursor-pointer disabled:opacity-50"
+                      title="Xóa/Từ chối lời mời"
+                    >
+                      <span>Từ chối</span>
+                    </button>
+                  </div>
+                ) : friendshipStatus === "PENDING_SENT" ? (
+                  <button
+                    type="button"
+                    onClick={handleCancelFriendRequest}
+                    disabled={friendLoading}
+                    className="px-3.5 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 text-xs font-semibold hover:border-rose-300 hover:text-rose-600 transition cursor-pointer"
+                    title="Nhấp để hủy lời mời đã gửi"
+                  >
+                    {friendLoading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <span>Đã gửi lời mời</span>
+                    )}
+                  </button>
+                ) : friendshipStatus === "ACCEPTED" ? (
+                  <button
+                    type="button"
+                    onClick={handleUnfriend}
+                    disabled={friendLoading}
+                    className="px-3.5 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-semibold hover:border-rose-300 hover:text-rose-600 transition flex items-center gap-1.5 cursor-pointer"
+                    title="Bạn bè (Nhấp để hủy kết bạn)"
+                  >
+                    {friendLoading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <>
+                        <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Bạn bè</span>
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSendFriendRequest}
+                    disabled={friendLoading}
+                    className="px-3.5 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
+                    title="Gửi lời mời kết bạn"
+                  >
+                    {friendLoading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <>
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>Kết bạn</span>
+                      </>
+                    )}
+                  </button>
+                )}
 
                 {/* Nút Nhắn tin */}
                 <button
@@ -507,6 +631,36 @@ export default function Profile() {
             )}
           </div>
         </div>
+
+        {/* Banner thông báo lời mời kết bạn nếu đang chờ phản hồi */}
+        {!isMe && friendshipStatus === "PENDING_RECEIVED" && (
+          <div className="mb-3 p-3 bg-blue-50/90 dark:bg-[#0866ff]/15 border border-[#0866ff]/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 animate-in fade-in duration-200">
+            <div className="flex items-center gap-2 text-xs text-zinc-900 dark:text-zinc-100">
+              <UserPlus className="w-4 h-4 text-[#0866ff] shrink-0" />
+              <span>
+                <strong>{user.fullName || user.username}</strong> đã gửi lời mời kết bạn cho bạn.
+              </span>
+            </div>
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <button
+                type="button"
+                disabled={friendLoading}
+                onClick={handleAcceptFriendRequest}
+                className="px-3.5 py-1.5 rounded-xl bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                Chấp nhận
+              </button>
+              <button
+                type="button"
+                disabled={friendLoading}
+                onClick={handleDeclineFriendRequest}
+                className="px-3 py-1.5 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold transition active:scale-95 cursor-pointer disabled:opacity-50"
+              >
+                Từ chối
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Typography */}
         <div className="flex flex-col">
