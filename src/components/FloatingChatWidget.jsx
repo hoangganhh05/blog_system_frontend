@@ -620,7 +620,7 @@ export default function FloatingChatWidget() {
           type="button"
           onClick={() => setIsOpen(true)}
           title="Nhắn tin với bạn bè"
-          className="fixed bottom-20 md:bottom-6 right-5 md:right-6 z-40 w-12 h-12 md:w-14 md:h-14 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xl transition-transform active:scale-95 cursor-pointer border border-zinc-200/20"
+          className="fixed bottom-28 lg:bottom-6 right-4 lg:right-6 z-50 w-12 h-12 md:w-14 md:h-14 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-2xl transition-transform active:scale-95 cursor-pointer border border-zinc-200/20"
         >
           <span className="text-xl md:text-2xl">💬</span>
           {unreadChatCount > 0 && (
@@ -633,7 +633,7 @@ export default function FloatingChatWidget() {
 
       {/* Chat Window: Fixed bottom: 20px, max-height calc(100vh-100px) */}
       {isOpen && (
-        <div className="fixed bottom-5 md:bottom-6 right-3 md:right-6 left-3 sm:left-auto sm:w-96 md:w-88 h-[520px] max-h-[calc(100vh-100px)] z-[99999] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-3xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed bottom-16 lg:bottom-6 right-3 lg:right-6 left-3 sm:left-auto sm:w-96 md:w-88 h-[520px] max-h-[calc(100vh-120px)] z-[99999] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-3xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
           {/* Header */}
           <div className="px-4 py-3 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0 text-zinc-900 dark:text-zinc-100">
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
