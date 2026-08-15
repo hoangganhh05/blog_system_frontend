@@ -395,19 +395,19 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       {/* ======================================================================
           3-COLUMN SYMMETRIC SOCIAL LAYOUT (Left Sidebar | Feed | Right Sidebar)
           ====================================================================== */}
-      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 py-4 sm:py-6 pb-24 md:pb-6 flex-1 flex justify-center items-start gap-6">
-        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (Desktop XL - Sticky & Independent Scroll) */}
-        <aside className="hidden xl:block w-64 shrink-0 sticky top-16 h-[calc(100vh-4.5rem)] overflow-y-auto custom-scrollbar pb-6">
+      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 pb-24 md:pb-6 flex-1 flex justify-center items-start gap-6">
+        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (Desktop XL - Absolute zero-shift sticky) */}
+        <aside className="hidden xl:block w-64 shrink-0 sticky top-14 pt-4 sm:pt-6 h-[calc(100vh-3.5rem)] overflow-y-auto custom-scrollbar pb-6">
           <LeftSidebar />
         </aside>
 
-        {/* CENTER COLUMN: Main Content Feed (Full-width on mobile, max 640px on desktop - natural window scroll) */}
-        <main className="w-full max-w-full lg:max-w-[640px] shrink-0 min-w-0 flex flex-col gap-4 pb-12">
+        {/* CENTER COLUMN: Main Content Feed (Aligned padding, natural window scroll) */}
+        <main className="w-full max-w-full lg:max-w-[640px] shrink-0 min-w-0 flex flex-col gap-4 pt-4 sm:pt-6 pb-12">
           {children}
         </main>
 
-        {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (Desktop LG/XL - Sticky & Independent Scroll) */}
-        <aside className="hidden lg:block w-72 shrink-0 sticky top-16 h-[calc(100vh-4.5rem)] overflow-y-auto custom-scrollbar pb-6">
+        {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (Desktop LG/XL - Absolute zero-shift sticky) */}
+        <aside className="hidden lg:block w-72 shrink-0 sticky top-14 pt-4 sm:pt-6 h-[calc(100vh-3.5rem)] overflow-y-auto custom-scrollbar pb-6">
           <RightSidebar />
         </aside>
       </div>
