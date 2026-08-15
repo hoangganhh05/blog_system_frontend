@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
+import { setUserActiveStatusEnabled } from "../utils/statusUtils";
 
 export default function SecuritySettingsPage() {
   const { currentUser } = useAuth();
@@ -156,6 +157,7 @@ export default function SecuritySettingsPage() {
         showActiveStatus: privacySettings.showActiveStatus,
         showFollowingList: privacySettings.showFollowingList,
       });
+      setUserActiveStatusEnabled(currentUserId, privacySettings.showActiveStatus);
       toast.success("Đã lưu thiết lập quyền riêng tư vào cơ sở dữ liệu!");
     } catch {
       toast.error("Không thể lưu cài đặt quyền riêng tư lúc này!");
