@@ -810,9 +810,9 @@ export default function FloatingChatWidget() {
         </button>
       )}
 
-      {/* Chat Window: Fixed bottom responsive, max-height calc(100dvh-72px) */}
+      {/* Chat Window: Full-screen on Mobile, Floating popup on Tablet/Desktop */}
       {isOpen && (
-        <div className="fixed inset-x-2 sm:inset-x-auto bottom-16 sm:bottom-6 sm:right-6 sm:left-auto sm:w-96 md:w-88 h-[520px] max-h-[calc(100dvh-75px)] z-[999] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-3xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 sm:inset-auto sm:bottom-6 sm:right-6 sm:left-auto sm:w-96 md:w-88 h-[100dvh] sm:h-[540px] max-h-[100dvh] sm:max-h-[calc(100dvh-75px)] z-[9999] bg-white dark:bg-zinc-950 border-0 sm:border sm:border-zinc-200 sm:dark:border-zinc-800 shadow-2xl rounded-none sm:rounded-3xl overflow-hidden flex flex-col animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 duration-200">
           {/* Header */}
           <div className="px-4 py-3 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0 text-zinc-900 dark:text-zinc-100">
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
@@ -824,10 +824,10 @@ export default function FloatingChatWidget() {
                       if (isRecording) handleCancelRecording();
                       setActiveFriend(null);
                     }}
-                    className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+                    className="p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
                     title="Quay lại danh sách"
                   >
-                    <ArrowLeft className="w-4 h-4" />
+                    <ArrowLeft className="w-5 h-5 sm:w-4 sm:h-4" />
                   </button>
                   <div
                     onClick={() =>
@@ -890,10 +890,22 @@ export default function FloatingChatWidget() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-between w-full pr-2">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between w-full pr-1">
+                  <div className="flex items-center gap-1.5">
+                    {/* Nút Quay lại / Đóng chat trên Mobile */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isRecording) handleCancelRecording();
+                        setIsOpen(false);
+                      }}
+                      className="sm:hidden p-1.5 -ml-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+                      title="Quay lại"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
                     <span className="text-base">💬</span>
-                    <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                    <span className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100">
                       Tin nhắn bạn bè
                     </span>
                   </div>
@@ -929,7 +941,7 @@ export default function FloatingChatWidget() {
               className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer ml-1"
               title="Đóng chat"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
           </div>
 
@@ -1637,9 +1649,9 @@ export default function FloatingChatWidget() {
             </div>
           )}
 
-          {/* Input Footer */}
+          {/* Input Footer with Mobile Safe-Area Padding */}
           {activeFriend && (
-            <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-2 py-2 sm:p-2.5 shrink-0">
+            <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-2.5 py-2 sm:p-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] shrink-0">
               {isRecording ? (
                 /* Active Recording State */
                 <div className="flex items-center justify-between gap-2 animate-in fade-in duration-100 min-w-0">
