@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import postService from "../services/postService";
 import CreatePostModal from "../components/CreatePostModal";
 import { ConfirmModal } from "../components/CustomModal";
+import AnalyticsChart from "../components/AnalyticsChart";
 
 export default function Dashboard() {
   const { currentUser } = useAuth();
@@ -171,6 +172,15 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* 2.5. Analytics Line Chart (Interactive Trend Over Time) */}
+      <AnalyticsChart
+        totalViews={realTotalViews}
+        totalLikes={realTotalLikes}
+        totalComments={realTotalComments}
+        followersCount={realFollowersCount}
+        posts={posts}
+      />
 
       {/* 3. Post Management Table / List */}
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-4 flex flex-col gap-3">
