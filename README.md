@@ -1,16 +1,17 @@
-# 🌐 BlogViet — Nền Tảng Mạng Xã Hội & Chia Sẻ Nội Dung
+# 🌐 BlogViet — Nền Tảng Mạng Xã Hội & Sáng Tạo Nội Dung Trực Tuyến
 
 <div align="center">
 
-**BlogViet** là nền tảng mạng xã hội và chia sẻ nội dung hiện đại, được xây dựng hoàn toàn từ đầu với kiến trúc độc lập — không sao chép bất kỳ nền tảng nào. Giao diện tối giản, trực quan với chế độ **Sáng/Tối** linh hoạt, hệ thống logo tự thích ứng màu sắc, và trải nghiệm mượt mà trên mọi thiết bị.
+**BlogViet** là nền tảng mạng xã hội và sáng tạo nội dung trực tuyến thế hệ mới, được kiến trúc và phát triển độc lập từ đầu (End-to-End). Dự án kết hợp sức mạnh xử lý của **Spring Boot 4 / Java 21**, giao diện người dùng siêu mượt mà của **React 19 / Vite 8 / Tailwind CSS 4**, cùng hệ thống **Trợ lý Trí tuệ Nhân tạo Gemini AI 3.7 Flash** và giao thức truyền thông thời gian thực **WebSocket & WebRTC**.
 
-[![Live Demo](https://img.shields.io/badge/🌍_Live_Demo-anhhoangg.id.vn-000000?style=for-the-badge)](https://anhhoangg.id.vn/)
+[![Live Demo](https://img.shields.io/badge/🌍_Live_Demo-anhhoangg.id.vn-0866ff?style=for-the-badge&logo=googlechrome&logoColor=white)](https://anhhoangg.id.vn/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.0-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Java](https://img.shields.io/badge/Java-21_LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.2-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Gemini AI](https://img.shields.io/badge/Gemini_AI-3.7_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
 </div>
 
@@ -18,312 +19,258 @@
 
 ## 📑 Mục Lục
 
-- [Tổng Quan](#-tổng-quan)
-- [Công Nghệ Sử Dụng](#-công-nghệ-sử-dụng)
-- [Tính Năng Cốt Lõi](#-tính-năng-cốt-lõi)
-- [Kiến Trúc Hệ Thống](#-kiến-trúc-hệ-thống)
-- [Cài Đặt & Chạy Dự Án](#-cài-đặt--chạy-dự-án)
-- [Biến Môi Trường](#-biến-môi-trường)
-- [Triển Khai Production](#-triển-khai-production)
-- [Quy Tắc Build & Deploy](#-quy-tắc-build--deploy)
-- [Tác Giả](#-tác-giả)
+- [🎯 Điểm Nổi Bật & Triết Lý Thiết Kế](#-điểm-nổi-bật--triết-lý-thiết-kế)
+- [✨ Hệ Thống Tính Năng Toàn Diện](#-hệ-thống-tính-năng-toàn-diện)
+  - [1. Mạng Xã Hội & Sáng Tạo Bài Viết](#1-mạng-xã-hội--sáng-tạo-bài-viết)
+  - [2. Tin 24h (Stories) Đa Nền Tảng & Đồng Bộ Real-time](#2-tin-24h-stories-đa-nền-tảng--đồng-bộ-real-time)
+  - [3. Messenger Thời Gian Thực & WebRTC HD Call](#3-messenger-thời-gian-thực--webrtc-hd-call)
+  - [4. Bảo Mật Quyền Riêng Tư Trạng Thái Hoạt Động](#4-bảo-mật-quyền-riêng-tư-trạng-thái-hoạt-động)
+  - [5. Trợ Lý AI Thông Minh (Gemini 3.7 Flash)](#5-trợ-lý-ai-thông-minh-gemini-37-flash)
+  - [6. Phòng Nhạc Studio & Mini Player](#6-phòng-nhạc-studio--mini-player)
+  - [7. Tối Ưu Hóa Giao Diện Mobile & Desktop (UX/UI)](#7-tối-ưu-hóa-giao-diện-mobile--desktop-uxui)
+- [🛠 Công Nghệ & Kiến Trúc Kỹ Thuật](#-công-nghệ--kiến-trúc-kỹ-thuật)
+- [📁 Cấu Trúc Thư Mục Dự Án](#-cấu-trúc-thư-mục-dự-án)
+- [🚀 Hướng Dẫn Cài Đặt & Chạy Local](#-hướng-dẫn-cài-đặt--chạy-local)
+- [🔐 Biến Môi Trường (Environment Variables)](#-biến-môi-trường-environment-variables)
+- [🐳 Triển Khai Production & Docker](#-triển-khai-production--docker)
+- [📋 Quy Chuẩn Build & Commit Code](#-quy-chuẩn-build--commit-code)
+- [👤 Tác Giả](#-tác-giả)
 
 ---
 
-## 🎯 Tổng Quan
+## 🎯 Điểm Nổi Bật & Triết Lý Thiết Kế
 
-BlogViet ra đời với sứ mệnh mang đến một không gian chia sẻ nội dung thuần Việt — nơi người dùng có thể sáng tạo bài viết, kết nối bạn bè, trò chuyện thời gian thực, thưởng thức âm nhạc và tương tác với trợ lý AI thông minh, tất cả trong một giao diện duy nhất.
-
-### Điểm nổi bật
-
-| | Đặc điểm | Mô tả |
-|---|---|---|
-| 🎨 | **Giao diện tối giản** | Layout 3 cột cuộn độc lập, responsive mượt mà từ Desktop đến Mobile |
-| 🌓 | **Light/Dark Mode** | Chế độ sáng/tối linh hoạt: Bật thủ công, Tắt, hoặc Tự động theo hệ thống |
-| 🔒 | **Bảo mật End-to-End** | Mã hóa AES-256 toàn bộ Request/Response qua Filter Layer |
-| 🤖 | **Trợ lý AI Gemini** | Tích hợp Gemini 3.7 Flash — trợ lý AI thế hệ mới nhất hỗ trợ tương tác trực tiếp |
-| 🎵 | **Phòng nhạc tích hợp** | Mini Player, danh sách phát tuần tự, hỗ trợ nhiều thể loại nhạc Việt |
-| ⚡ | **Real-time** | Chat trực tiếp, thông báo, trạng thái "Đã xem" và số đếm tin nhắn chưa đọc |
-
----
-
-## 🛠 Công Nghệ Sử Dụng
-
-### Backend
-
-| Công nghệ | Phiên bản | Vai trò |
-|---|---|---|
-| **Spring Boot** | 4.1.0 | Framework ứng dụng chính |
-| **Java** | 21 (LTS) | Ngôn ngữ lập trình |
-| **Spring Data JPA** | — | ORM & truy vấn dữ liệu |
-| **Spring Security** | — | Xác thực JWT & phân quyền |
-| **Spring WebSocket** | — | Giao tiếp thời gian thực |
-| **PostgreSQL** | — | Cơ sở dữ liệu quan hệ (Production) |
-| **Lombok** | — | Giảm boilerplate code |
-| **Gemini API** | 3.7 Flash | Trợ lý AI thông minh |
-| **AES-256 Filter** | — | Mã hóa End-to-End Request/Response |
-
-### Frontend
-
-| Công nghệ | Phiên bản | Vai trò |
-|---|---|---|
-| **React** | 19.2 | Thư viện UI chính |
-| **Vite** | 8.2 | Build tool & Dev server |
-| **Tailwind CSS** | 4.3 | Styling framework |
-| **Axios** | 1.19 | HTTP Client cho API |
-| **Lucide React** | 1.31 | Icon system |
-| **React Router** | 7.18 | Điều hướng SPA |
-| **Sonner** | 2.0 | Toast notifications |
-
-### DevOps & Triển Khai
-
-| Công nghệ | Vai trò |
+| Đặc điểm | Chi tiết triển khai |
 |---|---|
-| **Docker** | Containerization (Nginx + Node.js Alpine) |
-| **Nginx** | Reverse Proxy & Static file serving |
-| **Vercel / Netlify** | Frontend hosting |
+| 🎨 **Thiết kế Tinh Giản & Cao Cấp** | Loại bỏ hoàn toàn các khung nền thô xám, card nổi đa tầng mượt mà, hỗ trợ **Light/Dark Mode** tự thích ứng theo hệ thống. |
+| ⚡ **Hiệu Năng & Tối Ưu Render** | Vite 8 + Tailwind CSS 4 với cơ chế Hardware Accelerated Rendering (`image-rendering: -webkit-optimize-contrast`, `translateZ(0)`). |
+| 🔒 **Bảo Mật Quyền Riêng Tư Đa Tầng** | Kiểm soát trạng thái hoạt động theo ngữ cảnh (chỉ người đã nhắn tin mới thấy online), mã hóa Request/Response End-to-End. |
+| 🔄 **Đồng Bộ Dữ Liệu Tức Thì** | Sử dụng `BroadcastChannel` kết hợp `WebSocket (STOMP)` đồng bộ đa tab, đa thiết bị không cần F5. |
+| 🤖 **AI Assistant Thế Hệ Mới** | Tích hợp Google Gemini 3.7 Flash hỗ trợ viết bài, tóm tắt nội dung, giải đáp thắc mắc và tạo cảm hứng sáng tạo. |
 
 ---
 
-## ✨ Tính Năng Cốt Lõi
+## ✨ Hệ Thống Tính Năng Toàn Diện
 
-### 📝 Nền Tảng Nội Dung
+### 1. Mạng Xã Hội & Sáng Tạo Bài Viết
+- **Khung Đăng Bài (QuickComposer):** Bố cục 2 nhóm tinh giản — nhóm bên trái chọn ảnh, chủ đề, quyền riêng tư; nhóm bên phải là nút "Đăng bài" trực quan với 2 trạng thái Active/Inactive rõ rệt.
+- **Trình soạn thảo bài viết:** Hỗ trợ văn bản phong phú, tải nhiều ảnh phân bổ lưới (Grid) 1-4 ảnh thông minh, gắn thẻ chủ đề (Tags/Categories).
+- **Hệ thống Cảm xúc Đa Dạng (Reactions):** Thả tim, Thích, Haha, Wow, Buồn, Phẫn nộ với danh sách thống kê người tương tác chi tiết.
+- **Bình luận & Phản hồi đa tầng:** Hỗ trợ bình luận văn bản và kho ảnh động GIF sinh động.
+- **Chia sẻ & Lưu trữ (Bookmarks):** Trích dẫn bài viết (Quote Post), chia sẻ trực tiếp vào box chat bạn bè, hoặc lưu vào kho cá nhân.
 
-- **Đăng bài viết** với tiêu đề, ảnh bìa, chủ đề hashtag và trình soạn nội dung
-- **Thả cảm xúc** đa dạng (Thích, Yêu thích, Haha, Wow, Buồn, Phẫn nộ) với bảng phân loại chi tiết
-- **Bình luận** kèm hỗ trợ gửi GIF động sống động
-- **Chia sẻ** bài viết: Quote kèm suy nghĩ cá nhân, gửi qua tin nhắn, hoặc sao chép liên kết
-- **Lưu bài** (Bookmark) để đọc lại sau
-- **Tóm tắt AI** — nút ✨ tự động tóm tắt ý chính bài viết dài
+### 2. Tin 24h (Stories) Đa Nền Tảng & Đồng Bộ Real-time
+- **Tạo tin linh hoạt:** Đăng tin ảnh kèm hiệu ứng chữ hoặc tạo tin chữ trên nền Gradient nghệ thuật.
+- **Đồng bộ hóa 2 chiều:** Đăng tin ở Trang chủ thì thanh Story trong Messenger lập tức cập nhật thông qua `useStories` và `BroadcastChannel`.
+- **Trình chiếu Tin (Story Viewer Responsive):**
+  - **Trên Mobile:** Trải nghiệm toàn màn hình tràn viền (`Fullscreen Modal`) chuẩn Instagram/Facebook.
+  - **Trên Máy tính (PC):** Giao diện khung chiếu nổi bật ở trung tâm màn hình, có thanh thời lượng chạy tự động 5s, nút thả tim và ô gửi phản hồi trực tiếp vào tin nhắn.
+- **Hiển thị tinh gọn:** Thanh tin trong Messenger chỉ hiển thị tin của bạn bè, loại bỏ mục "Tin của bạn" để tập trung tối đa cho việc giao tiếp.
 
-### 💬 Mạng Xã Hội Thời Gian Thực
+### 3. Messenger Thời Gian Thực & WebRTC HD Call
+- **Chat Real-time:** Nhắn tin tức thì với bạn bè qua WebSocket, hiển thị trạng thái "Đang gõ...", "Đã gửi" và "Đã xem" (Read Receipts).
+- **Cuộc gọi Thoại & Video HD:** Tích hợp công nghệ truyền thông WebRTC Peer-to-Peer trực tiếp trên trình duyệt.
+- **Tin nhắn thoại (Voice Notes):** Ghi âm trực tiếp và phát lại với thanh sóng âm trực quan.
+- **Hộp thư nổi (Floating Chat Widget):** Thu gọn/mở rộng linh hoạt, quản lý nhiều cuộc trò chuyện cùng lúc mà không gián đoạn việc lướt web.
 
-- **Chat trực tiếp** (Real-time) với bạn bè qua WebSocket
-- **Gọi thoại & Video HD** tích hợp sẵn
-- **Tin nhắn thoại** (Voice note) — ghi âm và gửi trực tiếp
-- **Gửi hình ảnh & GIF động** trong cuộc trò chuyện
-- **Số đếm tin nhắn chưa đọc** (Unread badge) trên icon chat
-- **Trạng thái "Đã xem"** (Read receipt) cho từng tin nhắn
-- **Kết bạn & Theo dõi** — hệ thống quan hệ xã hội đầy đủ
-- **Story 24h** — đăng tin tạm thời với kho lưu trữ riêng
+### 4. Bảo Mật Quyền Riêng Tư Trạng Thái Hoạt Động
+- **Nguyên tắc cốt lõi:** Người lạ hoàn toàn không thể xem trạng thái trực tuyến/ngoại tuyến của bạn ở bất kỳ đâu (Tab Gợi ý kết bạn, Sidebar, Tìm kiếm).
+- **Kiểm tra thông minh:** Chỉ khi hai người dùng **đã từng có lịch sử gửi tin nhắn cho nhau**, trạng thái Online và thời gian hoạt động mới được giải mã hiển thị theo cấu hình riêng tư của người dùng.
 
-### 🤖 Trợ Lý AI Tích Hợp (Gemini 3.7 Flash)
+### 5. Trợ Lý AI Thông Minh (Gemini 3.7 Flash)
+- **Trợ lý AI BlogViet:** Tích hợp sẵn trên thanh Header và Chat Widget để đồng hành cùng người dùng 24/7.
+- **Tính năng AI nổi bật:**
+  - ✨ **Tóm tắt bài viết dài:** Nắm bắt nhanh nội dung bài viết chỉ trong 3 giây.
+  - ✍️ **Hỗ trợ viết & sửa bài:** Gợi ý tiêu đề cuốn hút, hoàn thiện dàn ý và chau chuốt từ ngữ.
+  - 💡 **Sáng tạo nội dung:** Hỏi đáp kiến thức lập trình, văn hóa, đời sống với ngữ cảnh thời gian thực chính xác.
 
-- **Trò chuyện trực tiếp** với AI qua popup modal hoặc chat widget
-- **Gợi ý ý tưởng** viết bài, sáng tác thơ, tóm tắt nội dung
-- **Thời gian thực** — System Prompt được truyền động mốc thời gian hiện tại
-- **Fallback thông minh** — tự động chuyển đổi model nếu endpoint chính gặp sự cố (3.7 → 3.6 → 2.5 → 2.0)
+### 6. Phòng Nhạc Studio & Mini Player
+- **Trình phát nhạc Mini:** Tích hợp cố định góc màn hình hoặc sidebar, phát nhạc nền êm dịu khi đọc bài viết.
+- **Danh sách phát tự động (Auto-next):** Kho nhạc phong phú nhiều thể loại (Acoustic, Lofi, Pop Ballad, EDM).
+- **Điều khiển tiện lợi:** Tùy chỉnh âm lượng, tua bài, chuyển đổi chế độ thu gọn hoặc mở toàn màn hình.
 
-### 🎵 Phòng Nhạc & Radio
-
-- **Mini Music Player** tích hợp trên sidebar — nghe nhạc ngay khi lướt web
-- **Sidebar Player** toàn màn hình với visual đẹp mắt
-- **Danh sách phát tuần tự** (Queue/Auto-next) — chuyển bài tự động
-- **Tùy chọn ẩn/hiện player** — không làm phiền khi không cần
-- **Đa thể loại** — Pop Ballad, Vinahouse, Nhạc Trẻ, Lofi
-- **Phòng nhạc & Radio** trên Mobile qua Burger Menu
-
-### 🖥 Giao Diện & Trải Nghiệm
-
-- **Layout 3 cột** cuộn độc lập trên Desktop — mỗi cột hoạt động riêng biệt
-- **Responsive hoàn chỉnh** — tối ưu cho Mobile với Menu 3 gạch (Burger Menu)
-- **Light/Dark Mode** — 3 chế độ: Sáng, Tối, Tự động theo hệ thống
-- **Chế độ thu gọn giao diện** (Compact mode)
-- **Lightbox xem ảnh** — nhấp vào ảnh đại diện/ảnh bìa để phóng to sắc nét
-- **Logo tự thích ứng** — hệ thống logo chuyển đổi màu sắc theo theme
+### 7. Tối Ưu Hóa Giao Diện Mobile & Desktop (UX/UI)
+- **Bottom Navigation Mobile:** Thanh điều hướng 4 nút chuẩn ngón tay cái (*Trang chủ, Khám phá, Tạo bài, Thông báo*).
+- **Menu 3 gạch (`☰`) Tập trung:** Đưa toàn bộ lối tắt quản lý tài khoản, Hồ sơ, Cài đặt, Chế độ sáng/tối vào một ngăn kéo trượt mượt mà.
+- **Trang Cài đặt độc lập (`/settings`):** Khu vực quản lý tập trung: Cài đặt tài khoản, Bảo mật & Quyền riêng tư, Công tắc Trạng thái hoạt động.
+- **Trang Bạn bè & Kết nối (`/friends`):** Cấu trúc tiêu đề nổi độc lập bên ngoài thẻ danh sách, phân tab trực quan (*Bạn bè, Lời mời kết bạn, Gợi ý*).
 
 ---
 
-## 🏗 Kiến Trúc Hệ Thống
+## 🛠 Công Nghệ & Kiến Trúc Kỹ Thuật
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                      CLIENT LAYER                       │
-│  React 19 + Vite 8 + Tailwind CSS 4 + Axios Client     │
-│  (SPA — Vercel / Netlify / Nginx)                       │
-└──────────────────────┬──────────────────────────────────┘
-                       │ HTTPS / REST API
-                       │ AES-256 Encrypted Request/Response
-                       ▼
-┌─────────────────────────────────────────────────────────┐
-│                    API GATEWAY LAYER                     │
-│  Spring Boot 4.1 — Controller → Service → Repository    │
-│  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐ │
-│  │ JWT Auth    │  │ AES-256      │  │ CORS Filter    │ │
-│  │ Filter      │  │ Crypto       │  │ Config         │ │
-│  └─────────────┘  └──────────────┘  └────────────────┘ │
-└──────────┬──────────────┬───────────────┬───────────────┘
-           │              │               │
-           ▼              ▼               ▼
-┌────────────────┐ ┌─────────────┐ ┌──────────────────┐
-│  PostgreSQL    │ │  WebSocket  │ │  Gemini AI API   │
-│  Database      │ │  Real-time  │ │  (3.7 Flash)     │
-└────────────────┘ └─────────────┘ └──────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                      CLIENT APPLICATION                     │
+│  React 19.2 • Vite 8.2 • Tailwind CSS 4 • React Router 7    │
+│  (SPA — Responsive Desktop / Tablet / Mobile)               │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ HTTPS / RESTful API (JSON)
+                               │ WebSocket (STOMP Protocol)
+                               │ WebRTC (Media Stream P2P)
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     BACKEND MICROSERVICES                   │
+│  Spring Boot 4.1 • Spring Security • Spring Data JPA        │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌────────────┐ │
+│  │ JWT Auth Filter  │  │ Privacy Guardian │  │ WebSocket  │ │
+│  │ (Role & Token)   │  │ (Message History)│  │ Broker     │ │
+│  └──────────────────┘  └──────────────────┘  └────────────┘ │
+└──────────────┬──────────────────┬─────────────────┬─────────┘
+               │                  │                 │
+               ▼                  ▼                 ▼
+     ┌──────────────────┐ ┌───────────────┐ ┌───────────────┐
+     │    PostgreSQL    │ │ Cloudinary /  │ │ Google Gemini │
+     │  Database (RDBMS)│ │ Local Storage │ │   3.7 Flash   │
+     └──────────────────┘ └───────────────┘ └───────────────┘
 ```
 
 ---
 
-## 🚀 Cài Đặt & Chạy Dự Án
+## 📁 Cấu Trúc Thư Mục Dự Án
 
-### Yêu Cầu Hệ Thống
+```
+blog_system_frontend/
+├── public/                 # Favicon, Assets tĩnh, Âm thanh thông báo
+├── src/
+│   ├── assets/             # Hình ảnh logo, icons minh họa
+│   ├── components/         # Các UI component tái sử dụng
+│   │   ├── Avatar.jsx          # Component ảnh đại diện kèm chấm trạng thái
+│   │   ├── FloatingChatWidget.jsx # Hộp thư nổi Messenger & WebRTC Call
+│   │   ├── StoryBar.jsx        # Thanh Tin 24h dạng card phong cách Instagram
+│   │   ├── StoryViewerModal.jsx # Trình chiếu Story toàn màn hình / Modal
+│   │   ├── QuickComposer.jsx   # Khung đăng bài viết tinh chỉnh hiện đại
+│   │   ├── PostCard.jsx        # Thẻ bài viết với Reaction & Comment
+│   │   └── MobileNavDrawer.jsx # Ngăn kéo điều hướng Menu 3 gạch trên mobile
+│   ├── context/            # React Context (AuthContext, ThemeContext, SocketContext)
+│   ├── hooks/              # Custom Hooks (useStories, useChat, useTheme)
+│   ├── layouts/            # MainLayout (Header, Sidebar, BottomNav)
+│   ├── pages/              # Các trang chính
+│   │   ├── Home.jsx            # Bảng tin trang chủ
+│   │   ├── Profile.jsx         # Trang cá nhân người dùng
+│   │   ├── FriendsPage.jsx     # Trang Bạn bè & Kết nối
+│   │   ├── SettingsPage.jsx    # Trang Cài đặt & Quyền riêng tư độc lập
+│   │   ├── TrendingPage.jsx    # Trang Khám phá & Thịnh hành
+│   │   └── SearchPage.jsx      # Trang Tìm kiếm thông minh
+│   ├── services/           # Axios Client gọi API Backend (api.js, chatService, etc.)
+│   ├── utils/              # Tiện ích hỗ trợ (statusUtils, formatters)
+│   ├── App.jsx             # Định tuyến SPA Routes
+│   ├── index.css           # Cấu hình Tailwind CSS 4 & Tối ưu GPU Image Rendering
+│   └── main.jsx            # Entry point ứng dụng
+├── package.json            # Danh sách dependencies & Scripts
+└── vite.config.js          # Cấu hình Vite Dev Server & Build Output
+```
 
-| Yêu cầu | Phiên bản tối thiểu |
-|---|---|
-| Java JDK | 21+ |
-| Node.js | 20+ |
-| Maven | 3.9+ (hoặc dùng Maven Wrapper `mvnw`) |
-| PostgreSQL | 15+ |
-| Git | 2.40+ |
+---
 
-### 1. Clone Repository
+## 🚀 Hướng Dẫn Cài Đặt & Chạy Local
+
+### Yêu Cầu Môi Trường
+- **Node.js:** `>= 20.0.0`
+- **Java JDK:** `>= 21.0.0` (Khuyên dùng OpenJDK hoặc Oracle JDK 21)
+- **Maven:** `>= 3.9.0` (hoặc sử dụng sẵn script `./mvnw`)
+- **PostgreSQL:** `>= 15.0`
+
+---
+
+### 1. Khởi Chạy Backend (Spring Boot)
 
 ```bash
-# Frontend
-git clone https://github.com/hoangganhh05/blog_system_frontend.git
-cd blog_system_frontend
+# Di chuyển vào thư mục backend
+cd "e:/JAVA_INTERN/Blog System"
 
-# Backend
-git clone https://github.com/hoangganhh05/blog_system_backend.git
-cd blog_system_backend
-```
-
-### 2. Cấu Hình Backend
-
-```bash
-cd blog_system_backend
-
-# Tạo file biến môi trường (hoặc cấu hình trực tiếp trong application.properties)
-# Xem mục "Biến Môi Trường" bên dưới để biết các biến cần thiết
-
-# Biên dịch dự án (kiểm tra lỗi)
+# Kiểm tra biên dịch mã nguồn
 ./mvnw clean compile -Dmaven.test.skip=true
 
-# Chạy ứng dụng
+# Khởi chạy server Backend
 ./mvnw spring-boot:run
 ```
+> Server Backend mặc định lắng nghe tại: `http://localhost:8080`
 
-> Mặc định backend chạy tại: `http://localhost:8080`
+---
 
-### 3. Cấu Hình Frontend
+### 2. Khởi Chạy Frontend (React + Vite)
 
 ```bash
-cd blog_system_frontend
+# Di chuyển vào thư mục frontend
+cd "e:/JAVA_INTERN/blog_system_frontend"
 
-# Cài đặt dependencies
+# Cài đặt gói thư viện
 npm install
 
-# Tạo file .env từ template
-cp .env.example .env
-
-# Chạy môi trường phát triển
+# Khởi chạy máy chủ phát triển
 npm run dev
-
-# Hoặc build production bundle
-npm run build
 ```
-
-> Mặc định frontend dev server chạy tại: `http://localhost:5173`
+> Ứng dụng Frontend sẵn sàng truy cập tại: `http://localhost:5173`
 
 ---
 
-## 🔐 Biến Môi Trường
+## 🔐 Biến Môi Trường (Environment Variables)
 
-### Backend (`application.properties` / Environment Variables)
-
-| Biến | Mô tả | Bắt buộc |
-|---|---|---|
-| `DB_URL` | JDBC URL kết nối PostgreSQL | ✅ |
-| `DB_USER` | Username database | ✅ |
-| `DB_PASSWORD` | Password database | ✅ |
-| `JWT_SECRET` | Secret key cho JWT Authentication | ✅ |
-| `GEMINI_API_KEY` | API Key của Google Gemini AI | ✅ |
-| `GEMINI_MODEL` | Tên model Gemini (mặc định: `gemini-3.7-flash`) | ❌ |
-| `PORT` | Port server (mặc định: `8080`) | ❌ |
-| `CORS_ALLOWED_ORIGINS` | Danh sách domain được phép gọi API | ❌ |
+### Backend (`application.properties`)
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/blog_system
+spring.datasource.username=postgres
+spring.datasource.password=your_password
+jwt.secret=your_super_secret_jwt_key_here
+gemini.api.key=your_google_gemini_api_key_here
+gemini.model=gemini-3.7-flash
+server.port=8080
+```
 
 ### Frontend (`.env`)
-
-| Biến | Mô tả | Bắt buộc |
-|---|---|---|
-| `VITE_API_URL` | Base URL cho API (mặc định: `/api`) | ✅ |
+```env
+VITE_API_URL=http://localhost:8080/api
+VITE_WS_URL=http://localhost:8080/ws
+```
 
 ---
 
-## 🐳 Triển Khai Production
+## 🐳 Triển Khai Production & Docker
 
-### Docker (Frontend)
-
+### Build Docker Container cho Frontend
 ```bash
-# Build Docker image
-docker build -t blogviet-frontend .
-
-# Chạy container
-docker run -d -p 80:80 blogviet-frontend
+docker build -t blogviet-frontend:latest .
+docker run -d -p 80:80 --name blogviet-fe blogviet-frontend:latest
 ```
-
-### Docker Compose (Full Stack)
-
-```bash
-docker-compose up -d
-```
-
-### Vercel / Netlify (Frontend)
-
-Dự án đã được cấu hình sẵn cho cả Vercel (`vercel.json`) và Netlify (`netlify.toml`):
-
-- **Build command:** `npm run build`
-- **Output directory:** `dist`
-- **Framework:** Vite
 
 ---
 
-## 📋 Quy Tắc Build & Deploy
+## 📋 Quy Chuẩn Build & Commit Code
 
-> **⚠️ BẮT BUỘC:** Mọi thay đổi code PHẢI vượt qua kiểm tra build trên local với **0 errors** trước khi commit và push lên GitHub.
-
-### Checklist trước khi Push
+> **⚠️ QUY TẮC BẮT BUỘC:** Trước khi commit và push lên GitHub, BẮT BUỘC phải chạy lệnh build test trên local đảm bảo **0 lỗi (0 errors)**:
 
 ```bash
-# 1. Backend — Biên dịch kiểm tra (0 errors)
-cd blog_system_backend
+# 1. Kiểm tra Backend
+cd "Blog System"
 ./mvnw clean compile -Dmaven.test.skip=true
-# ✅ Kết quả mong đợi: BUILD SUCCESS
+# Kết quả yêu cầu: [INFO] BUILD SUCCESS
 
-# 2. Frontend — Build production (0 errors)
-cd blog_system_frontend
+# 2. Kiểm tra Frontend
+cd "blog_system_frontend"
 npm run build
-# ✅ Kết quả mong đợi: ✓ built in Xs
+# Kết quả yêu cầu: ✓ built in Xs (0 errors)
 
 # 3. Commit & Push
 git add .
-git commit -m "feat/fix/refactor: mô tả ngắn gọn thay đổi"
+git commit -m "loại_thay_đổi(phạm_vi): mô tả rõ ràng nội dung cập nhật"
 git push origin main
 ```
-
-### Quy Ước Commit Message
-
-| Prefix | Sử dụng khi |
-|---|---|
-| `feat:` | Thêm tính năng mới |
-| `fix:` | Sửa lỗi |
-| `upgrade:` | Nâng cấp dependency hoặc model |
-| `refactor:` | Tái cấu trúc code (không thay đổi hành vi) |
-| `docs:` | Cập nhật tài liệu |
-| `style:` | Thay đổi giao diện / CSS |
 
 ---
 
 ## 👤 Tác Giả
 
-**Hoàng Anh** — Full-stack Developer
+**Hoàng Anh** — *Full-stack Software Engineer*
 
-- 🌐 Website: [anhhoangg.id.vn](https://anhhoangg.id.vn/)
+- 🌐 Website / Portfolio: [anhhoangg.id.vn](https://anhhoangg.id.vn/)
 - 💻 GitHub: [@hoangganhh05](https://github.com/hoangganhh05)
+- 📧 Email: `hoanganh.dev@gmail.com`
 
 ---
 
 <div align="center">
 
-Được xây dựng với ❤️ bằng **Spring Boot**, **React** và **Gemini AI**
+Dự án được xây dựng và phát triển với trọn vẹn tâm huyết ❤️ bằng **Spring Boot**, **React** và **Gemini AI**.
 
 </div>
