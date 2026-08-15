@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Heart,
@@ -74,8 +75,9 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   const [likersPreview, setLikersPreview] = useState(null);
   const [isHoveringLike, setIsHoveringLike] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
-  const [commentCount, setCommentCount] = useState(currentPost?.commentsCount || 0);
   const [menuOpen, setUserMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
+  const buttonRef = useRef(null);
   const [isCopied, setIsCopied] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState(null);
@@ -312,11 +314,19 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           </div>
 
           {/* Menu 3 chấm options */}
-          <div className={`relative ${menuOpen ? "z-50" : "z-10"}`} ref={menuRef}>
+          <div className="relative" ref={menuRef}>
             <button
+              ref={buttonRef}
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
+                if (!menuOpen && buttonRef.current) {
+                  const rect = buttonRef.current.getBoundingClientRect();
+                  setMenuPos({
+                    top: rect.bottom + 6,
+                    right: Math.max(16, window.innerWidth - rect.right),
+                  });
+                }
                 setUserMenuOpen(!menuOpen);
               }}
               className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
@@ -324,58 +334,71 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
               <MoreHorizontal className="w-4 h-4" />
             </button>
 
-            {menuOpen && (
+            {menuOpen && typeof document !== "undefined" && createPortal(
               <div
-                onClick={(e) => e.stopPropagation()}
-                className="absolute right-0 top-8 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
+                className="fixed inset-0 z-[999999] bg-transparent"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setUserMenuOpen(false);
+                }}
               >
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left transition"
+                <div
+                  style={{
+                    top: `${menuPos.top}px`,
+                    right: `${menuPos.right}px`,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="fixed w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-[999999] flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
                 >
-                  {isCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                  <span>{isCopied ? "Đã sao chép" : "Sao chép liên kết"}</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left transition cursor-pointer"
+                  >
+                    {isCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                    <span>{isCopied ? "Đã sao chép" : "Sao chép liên kết"}</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={handleAiSummarize}
-                  disabled={isSummarizing}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-indigo-600 dark:text-indigo-400 w-full text-left transition"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>{isSummarizing ? "Đang tóm tắt..." : summary ? "Ẩn tóm tắt" : "Tóm tắt với AI"}</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleAiSummarize}
+                    disabled={isSummarizing}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-indigo-600 dark:text-indigo-400 w-full text-left transition cursor-pointer"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>{isSummarizing ? "Đang tóm tắt..." : summary ? "Ẩn tóm tắt" : "Tóm tắt với AI"}</span>
+                  </button>
 
-                {isOwner && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setUserMenuOpen(false);
-                        setIsEditModalOpen(true);
-                      }}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left transition cursor-pointer"
-                    >
-                      <Edit className="w-4 h-4" />
-                      <span>Chỉnh sửa bài viết</span>
-                    </button>
+                  {isOwner && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setUserMenuOpen(false);
+                          setIsEditModalOpen(true);
+                        }}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left transition cursor-pointer"
+                      >
+                        <Edit className="w-4 h-4" />
+                        <span>Chỉnh sửa bài viết</span>
+                      </button>
 
-                    <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-0.5" />
+                      <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-0.5" />
 
-                    <button
-                      type="button"
-                      onClick={handleDelete}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 w-full text-left transition"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>Xóa bài viết</span>
-                    </button>
-                  </>
-                )}
-              </div>
+                      <button
+                        type="button"
+                        onClick={handleDelete}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 w-full text-left transition cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Xóa bài viết</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>,
+              document.body
             )}
           </div>
         </div>
