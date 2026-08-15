@@ -706,7 +706,7 @@ export default function FloatingChatWidget() {
                       <span className="font-bold text-xs truncate text-zinc-900 dark:text-zinc-100 group-hover:underline">
                         {activeFriend.fullName || activeFriend.username}
                       </span>
-                      <span className="text-[10px] text-zinc-400 truncate">
+                      <span className={`text-[10px] truncate ${!activeFriend.isAi && isUserOnline(activeFriend) ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-zinc-400"}`}>
                         {activeFriend.isAi ? "Trợ lý AI" : (formatLastActive(activeFriend) || "Ngoại tuyến")}
                       </span>
                     </div>

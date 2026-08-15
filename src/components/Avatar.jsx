@@ -75,33 +75,39 @@ export default function Avatar({
     <div
       onClick={handleClick}
       title={title || activeTooltip}
-      className={`relative shrink-0 rounded-full select-none aspect-square overflow-hidden flex items-center justify-center ${
+      className={`relative shrink-0 select-none ${
         isClickable ? "cursor-pointer hover:opacity-90 active:scale-95 transition-all" : ""
       } ${sizeConfig.box} ${className}`}
       style={{ aspectRatio: "1 / 1" }}
     >
-      {imageSrc && !imgError ? (
-        <img
-          src={imageSrc}
-          alt={displayName}
-          onError={() => setImgError(true)}
-          className="w-full h-full rounded-full object-cover shrink-0 block aspect-square"
-          style={{ width: "100%", height: "100%", objectFit: "cover", aspectRatio: "1 / 1" }}
-        />
-      ) : (
-        <div
-          className={`w-full h-full rounded-full flex items-center justify-center font-bold text-white uppercase shrink-0 aspect-square shadow-xs ${sizeConfig.text}`}
-          style={{ backgroundColor: avatarColor || "#0866ff", width: "100%", height: "100%", aspectRatio: "1 / 1" }}
-        >
-          {userInitials}
-        </div>
-      )}
+      <div
+        className="w-full h-full rounded-full overflow-hidden flex items-center justify-center aspect-square"
+        style={{ width: "100%", height: "100%", aspectRatio: "1 / 1" }}
+      >
+        {imageSrc && !imgError ? (
+          <img
+            src={imageSrc}
+            alt={displayName}
+            onError={() => setImgError(true)}
+            className="w-full h-full rounded-full object-cover shrink-0 block aspect-square"
+            style={{ width: "100%", height: "100%", objectFit: "cover", aspectRatio: "1 / 1" }}
+          />
+        ) : (
+          <div
+            className={`w-full h-full rounded-full flex items-center justify-center font-bold text-white uppercase shrink-0 aspect-square shadow-xs ${sizeConfig.text}`}
+            style={{ backgroundColor: avatarColor || "#0866ff", width: "100%", height: "100%", aspectRatio: "1 / 1" }}
+          >
+            {userInitials}
+          </div>
+        )}
+      </div>
 
-      {showActiveStatus && (
+      {showActiveStatus && online && (
         <span
-          className={`absolute bottom-0 right-0 rounded-full border-2 border-white dark:border-zinc-900 ${
+          className={`absolute bottom-0 right-0 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900 ${
             sizeConfig.dot
-          } ${online ? "bg-emerald-500" : "bg-zinc-400"}`}
+          }`}
+          title="Đang hoạt động"
         />
       )}
     </div>

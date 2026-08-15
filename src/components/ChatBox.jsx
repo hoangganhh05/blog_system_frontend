@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import friendService from "../services/friendService";
 import chatService from "../services/chatService";
 import Avatar from "./Avatar";
+import { isUserOnline, formatLastActive } from "../utils/statusUtils";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -180,15 +181,16 @@ function ChatBox() {
                         onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-secondary)"}
                         onMouseLeave={(e) => e.currentTarget.style.background = "none"}
                       >
-                                                <Avatar
+                        <Avatar
                           userId={f.id}
                           src={f.avatarUrl}
                           name={name}
                           username={f.username}
                           avatarColor={f.avatarColor}
                           size="sm"
-                          isOnline={true}
-                          showActiveStatus={true}
+                          isOnline={f.isOnline}
+                          lastActiveAt={f.lastActiveAt}
+                          showActiveStatus={f.showActiveStatus !== false}
                           className="border-2 border-[var(--bg-card)]"
                         />
                         <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>{name}</span>
@@ -231,22 +233,25 @@ function ChatBox() {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <Avatar
+              <Avatar
                 userId={activeFriend.id}
                 src={activeFriend.avatarUrl}
                 name={activeFriend.fullName || activeFriend.username}
                 username={activeFriend.username}
                 avatarColor={activeFriend.avatarColor}
                 size="sm"
-                isOnline={true}
-                showActiveStatus={true}
+                isOnline={activeFriend.isOnline}
+                lastActiveAt={activeFriend.lastActiveAt}
+                showActiveStatus={activeFriend.showActiveStatus !== false}
                 className="border-2 border-[var(--bg-card)]"
               />
               <div>
                 <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>
                   {activeFriend.fullName || activeFriend.username}
                 </div>
-                <div style={{ fontSize: 11, color: "#31a24c", fontWeight: 600 }}>Đang hoạt động</div>
+                <div style={{ fontSize: 11, color: isUserOnline(activeFriend) ? "#31a24c" : "var(--text-muted)", fontWeight: 600 }}>
+                  {formatLastActive(activeFriend) || "Ngoại tuyến"}
+                </div>
               </div>
             </div>
 

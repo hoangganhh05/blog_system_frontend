@@ -272,12 +272,12 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 )}
               </NavLink>
 
-              {/* Profile Dropdown (Desktop only - Mobile uses bottom nav profile tab) */}
-              <div className="relative hidden md:block" ref={profileMenuRef}>
+              {/* Profile Dropdown (Visible on Desktop & Mobile for fast profile/settings access) */}
+              <div className="relative block" ref={profileMenuRef}>
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen((v) => !v)}
-                className="flex items-center gap-1 p-1 min-w-[40px] min-h-[40px] justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-150 cursor-pointer"
+                className="flex items-center gap-1 p-1 min-w-[36px] min-h-[36px] sm:min-w-[40px] sm:min-h-[40px] justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-150 cursor-pointer"
                 title="Tài khoản cá nhân"
               >
                 <Avatar
