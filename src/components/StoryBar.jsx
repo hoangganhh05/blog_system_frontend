@@ -74,8 +74,15 @@ function StoryBar() {
         {/* 2. DANH SÁCH THẺ DỌC: "TIN CỦA BẠN" & TIN CỦA BẠN BÈ */}
         {groupedStories.map((group, idx) => {
           const user = group.user || {};
-          const isMyStory = currentUserId && (Number(user.id) === Number(currentUserId) || Number(user.id) === Number(currentUser?.id));
-          const displayName = isMyStory ? "Tin của bạn" : user.fullName || user.username || "Người dùng";
+          const isMyStory = Boolean(
+            currentUserId &&
+            user.id &&
+            (Number(user.id) === Number(currentUserId) || Number(user.id) === Number(currentUser?.id))
+          );
+          const realUserName = isMyStory
+            ? (currentUser?.fullName || currentUser?.username || "Bạn")
+            : (user.fullName || user.username || "Người dùng");
+          const displayName = isMyStory ? "Tin của bạn" : realUserName;
           const latestStory = group.stories?.[group.stories.length - 1];
           const storyMedia = latestStory?.mediaUrl || latestStory?.imageUrl;
           const userAvatar = isMyStory ? (currentUser?.avatarUrl || user.avatarUrl) : user.avatarUrl;
@@ -107,7 +114,7 @@ function StoryBar() {
                       {latestStory.textContent}
                     </span>
                   ) : (
-                    getInitials(displayName)
+                    getInitials(realUserName)
                   )}
                 </div>
               )}
@@ -137,7 +144,7 @@ function StoryBar() {
                       display: userAvatar ? "none" : "flex",
                     }}
                   >
-                    {getInitials(displayName)}
+                    {getInitials(realUserName)}
                   </div>
                 </div>
               </div>
