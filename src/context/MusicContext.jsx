@@ -269,6 +269,15 @@ export function MusicProvider({ children }) {
     }
   };
 
+  const reloadPlaylist = async () => {
+    try {
+      const res = await songService.getAll();
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        setPlaylist(res.data);
+      }
+    } catch {}
+  };
+
   return (
     <MusicContext.Provider
       value={{
@@ -288,6 +297,7 @@ export function MusicProvider({ children }) {
         toggleMute,
         changeVolume,
         playTrack,
+        reloadPlaylist,
       }}
     >
       {children}
