@@ -36,7 +36,7 @@ import uploadService from "../services/uploadService";
 import AudioMessagePlayer from "./AudioMessagePlayer";
 import GifPicker from "./GifPicker";
 import EmojiPicker from "./EmojiPicker";
-import { isUserOnline, formatLastActive } from "../utils/statusUtils";
+import { isUserOnline, formatLastActive, isUserActiveStatusEnabled, setUserActiveStatusEnabled } from "../utils/statusUtils";
 import StickerPicker from "./StickerPicker";
 import Avatar from "./Avatar";
 
@@ -174,6 +174,7 @@ export default function FloatingChatWidget() {
   const localVideoRef = useRef(null);
   const callStreamRef = useRef(null);
   const prevMsgLengthRef = useRef(0);
+  const typingTimerRef = useRef(null);
 
   // MediaRecorder Refs
   const mediaRecorderRef = useRef(null);
@@ -345,6 +346,48 @@ export default function FloatingChatWidget() {
     }
   }, [messages, isAiTyping]);
 
+  // Real-time Live Typing Broadcast Listener (Across Tabs & Windows)
+  useEffect(() => {
+    let channel;
+    const handleBroadcastTyping = (e) => {
+      const { senderId, receiverId, isTyping } = e.data || {};
+      if (
+        activeFriend?.id &&
+        currentUserId &&
+        Number(senderId) === Number(activeFriend.id) &&
+        Number(receiverId) === Number(currentUserId)
+      ) {
+        setIsFriendTyping(Boolean(isTyping));
+      }
+    };
+
+    try {
+      channel = new BroadcastChannel("blogviet_chat_typing");
+      channel.addEventListener("message", handleBroadcastTyping);
+    } catch {}
+
+    const handleCustomTyping = (e) => {
+      const { senderId, receiverId, isTyping } = e.detail || {};
+      if (
+        activeFriend?.id &&
+        currentUserId &&
+        Number(senderId) === Number(activeFriend.id) &&
+        Number(receiverId) === Number(currentUserId)
+      ) {
+        setIsFriendTyping(Boolean(isTyping));
+      }
+    };
+    window.addEventListener("chat_typing_event", handleCustomTyping);
+
+    return () => {
+      if (channel) {
+        channel.removeEventListener("message", handleBroadcastTyping);
+        channel.close();
+      }
+      window.removeEventListener("chat_typing_event", handleCustomTyping);
+    };
+  }, [activeFriend, currentUserId]);
+
   useEffect(() => {
     userScrolledUpRef.current = false;
     setShowScrollBottom(false);
@@ -423,12 +466,55 @@ export default function FloatingChatWidget() {
 
   if (!currentUser) return null;
 
+  // Handle Input Change with Broadcast Typing Indicator
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInputMessage(val);
+
+    if (activeFriend?.id && currentUserId) {
+      try {
+        const ch = new BroadcastChannel("blogviet_chat_typing");
+        ch.postMessage({
+          senderId: currentUserId,
+          receiverId: activeFriend.id,
+          isTyping: true,
+        });
+        ch.close();
+      } catch {}
+
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = setTimeout(() => {
+        try {
+          const ch = new BroadcastChannel("blogviet_chat_typing");
+          ch.postMessage({
+            senderId: currentUserId,
+            receiverId: activeFriend.id,
+            isTyping: false,
+          });
+          ch.close();
+        } catch {}
+      }, 2500);
+    }
+  };
+
   // Send Message
   const handleSendMessage = async (e) => {
     e?.preventDefault();
     if (!inputMessage.trim() || !currentUserId || !activeFriend?.id) return;
     const text = inputMessage.trim();
     setInputMessage("");
+
+    // Dừng phát tín hiệu đang soạn tin ngay khi bấm gửi
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    try {
+      const ch = new BroadcastChannel("blogviet_chat_typing");
+      ch.postMessage({
+        senderId: currentUserId,
+        receiverId: activeFriend.id,
+        isTyping: false,
+      });
+      ch.close();
+    } catch {}
 
     try {
       const res = await chatService.sendMessage(currentUserId, activeFriend.id, text);
@@ -792,11 +878,32 @@ export default function FloatingChatWidget() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <span className="text-base">💬</span>
-                  <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
-                    Tin nhắn bạn bè
-                  </span>
+                <div className="flex items-center justify-between w-full pr-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">💬</span>
+                    <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                      Tin nhắn bạn bè
+                    </span>
+                  </div>
+
+                  {/* Active Status Quick Toggle */}
+                  {currentUserId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextState = !isUserActiveStatusEnabled(currentUserId);
+                        setUserActiveStatusEnabled(currentUserId, nextState);
+                        toast.success(nextState ? "Đã bật trạng thái hoạt động (Trực tuyến)" : "Đã tắt trạng thái hoạt động (Ẩn)");
+                      }}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition cursor-pointer active:scale-95 shadow-2xs"
+                      title="Bật/Tắt trạng thái hoạt động của bạn"
+                    >
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
+                      <span className="text-zinc-700 dark:text-zinc-300 font-medium">
+                        {isUserActiveStatusEnabled(currentUserId) ? "Trực tuyến" : "Đang ẩn"}
+                      </span>
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -1640,7 +1747,7 @@ export default function FloatingChatWidget() {
                   <input
                     type="text"
                     value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
+                    onChange={handleInputChange}
                     placeholder="Nhập tin nhắn..."
                     className="flex-1 min-w-0 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 border border-zinc-200 dark:border-zinc-700 outline-none focus:ring-1 focus:ring-black dark:focus:ring-white transition"
                   />
