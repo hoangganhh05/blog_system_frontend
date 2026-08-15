@@ -71,61 +71,121 @@ function StoryBar() {
   };
 
   return (
-    <div className="w-full bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-3.5 mb-4 shadow-sm">
-      <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-1">
-        {/* 1. NÚT TẠO TIN (Tối giản, nhỏ gọn) */}
+    <div className="w-full bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-3 mb-4 shadow-sm overflow-hidden">
+      <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1 scroll-smooth">
+        {/* 1. THẺ TẠO TIN (DẠNG DỌC CHUẨN FACEBOOK/INSTAGRAM) */}
         {currentUser && (
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="flex flex-col items-center gap-1.5 flex-shrink-0 group cursor-pointer focus:outline-none"
+            className="w-28 h-44 sm:w-32 sm:h-48 rounded-2xl relative overflow-hidden flex-shrink-0 flex flex-col justify-between border border-zinc-200 dark:border-zinc-800 group cursor-pointer shadow-xs hover:shadow-md transition-all duration-300 select-none bg-zinc-100 dark:bg-zinc-800/90 text-left focus:outline-none"
           >
-            <div className="relative w-14 h-14 rounded-full border-2 border-dashed border-zinc-300 dark:border-zinc-700 flex items-center justify-center bg-zinc-50 dark:bg-zinc-800 group-hover:border-black dark:group-hover:border-white transition">
-              <Plus className="w-5 h-5 text-zinc-600 dark:text-zinc-300 group-hover:scale-110 transition-transform stroke-[2.5]" />
+            {/* Nửa trên: Ảnh đại diện/ảnh bìa user */}
+            <div className="relative w-full h-[68%] overflow-hidden bg-zinc-200 dark:bg-zinc-700">
+              {currentUser.avatarUrl ? (
+                <img
+                  src={currentUser.avatarUrl}
+                  alt={currentUser.fullName || currentUser.username}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center font-bold text-white text-2xl group-hover:scale-105 transition-transform duration-300"
+                  style={{ backgroundColor: currentUser.avatarColor || "#4f46e5" }}
+                >
+                  {getInitials(currentUser.fullName || currentUser.username)}
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
             </div>
-            <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
-              Tạo tin
-            </span>
+
+            {/* Nửa dưới: Nút tạo + text */}
+            <div className="relative w-full h-[32%] bg-white dark:bg-zinc-800 flex flex-col items-center justify-end pb-2 px-1">
+              <div className="absolute -top-4.5 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-indigo-600 dark:bg-indigo-500 text-white flex items-center justify-center border-4 border-white dark:border-zinc-800 shadow-md group-hover:scale-110 group-hover:bg-indigo-700 transition-all duration-200">
+                <Plus className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <span className="text-[12px] font-bold text-zinc-900 dark:text-zinc-100 truncate text-center">
+                Tạo tin
+              </span>
+            </div>
           </button>
         )}
 
-        {/* 2. DANH SÁCH TIN CỦA BẠN BÈ & NGƯỜI DÙNG (Hiển thị thumbnail story hoặc Avatar) */}
+        {/* 2. DANH SÁCH THẺ DỌC: "TIN CỦA BẠN" & TIN CỦA BẠN BÈ */}
         {groupedStories.map((group, idx) => {
           const user = group.user || {};
           const isMyStory = currentUserId && (Number(user.id) === Number(currentUserId) || Number(user.id) === Number(currentUser?.id));
           const displayName = isMyStory ? "Tin của bạn" : user.fullName || user.username || "Người dùng";
           const latestStory = group.stories?.[group.stories.length - 1];
           const storyMedia = latestStory?.mediaUrl || latestStory?.imageUrl;
-          const avatarUrl = isMyStory ? (currentUser?.avatarUrl || user.avatarUrl) : user.avatarUrl;
-          const thumbnailSrc = storyMedia || avatarUrl;
+          const userAvatar = isMyStory ? (currentUser?.avatarUrl || user.avatarUrl) : user.avatarUrl;
+          const userColor = isMyStory ? (currentUser?.avatarColor || user.avatarColor) : user.avatarColor;
+          const backgroundMedia = storyMedia || userAvatar;
 
           return (
             <button
               key={user.id || idx}
               type="button"
               onClick={() => setViewerIndex(idx)}
-              className="flex flex-col items-center gap-1.5 flex-shrink-0 group cursor-pointer focus:outline-none"
+              className="w-28 h-44 sm:w-32 sm:h-48 rounded-2xl relative overflow-hidden flex-shrink-0 flex flex-col justify-between border border-zinc-200/80 dark:border-zinc-800 group cursor-pointer shadow-xs hover:shadow-md transition-all duration-300 select-none bg-zinc-900 text-left focus:outline-none"
             >
-              {/* Vòng viền nổi bật báo hiệu tin */}
-              <div className="p-0.5 rounded-full ring-2 ring-indigo-500 dark:ring-white group-hover:scale-105 transition-transform">
-                {thumbnailSrc ? (
-                  <img
-                    src={thumbnailSrc}
-                    alt={displayName}
-                    className="w-13 h-13 rounded-full object-cover border-2 border-white dark:border-zinc-900 shadow-xs"
-                  />
-                ) : (
+              {/* Ảnh nền / Media Thumbnail chiếm trọn khung */}
+              {backgroundMedia ? (
+                <img
+                  src={backgroundMedia}
+                  alt={displayName}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div
+                  className="absolute inset-0 w-full h-full flex items-center justify-center font-bold text-white text-3xl group-hover:scale-105 transition-transform duration-300"
+                  style={{ backgroundColor: latestStory?.bgColor || userColor || "#4f46e5" }}
+                >
+                  {latestStory?.textContent ? (
+                    <span className="p-3 text-xs text-center font-medium line-clamp-4">
+                      {latestStory.textContent}
+                    </span>
+                  ) : (
+                    getInitials(displayName)
+                  )}
+                </div>
+              )}
+
+              {/* Lớp phủ Gradient mờ tối để làm nổi bật Avatar và Tên */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/80 pointer-events-none group-hover:from-black/60 group-hover:to-black/90 transition-colors" />
+
+              {/* Avatar ở góc trên cùng bên trái với viền sáng nhận diện tin */}
+              <div className="relative z-10 p-2.5">
+                <div className="w-9 h-9 rounded-full ring-2 ring-indigo-500 dark:ring-white p-0.5 bg-black/20 backdrop-blur-xs flex items-center justify-center overflow-hidden shadow-md">
+                  {userAvatar ? (
+                    <img
+                      src={userAvatar}
+                      alt={displayName}
+                      className="w-full h-full rounded-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                      }}
+                    />
+                  ) : null}
                   <div
-                    className="w-13 h-13 rounded-full text-white font-bold text-xs flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-xs"
-                    style={{ backgroundColor: user.avatarColor || (isMyStory ? currentUser?.avatarColor : "#4f46e5") || "#4f46e5" }}
+                    className="w-full h-full rounded-full flex items-center justify-center font-bold text-white text-[11px]"
+                    style={{
+                      backgroundColor: userColor || "#4f46e5",
+                      display: userAvatar ? "none" : "flex",
+                    }}
                   >
-                    {getInitials(isMyStory ? (currentUser?.fullName || currentUser?.username) : (user.fullName || user.username))}
+                    {getInitials(displayName)}
                   </div>
-                )}
+                </div>
               </div>
-              <span className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300 max-w-[64px] truncate">
-                {displayName}
-              </span>
+
+              {/* Tên người dùng / "Tin của bạn" ở góc dưới */}
+              <div className="relative z-10 p-2.5">
+                <span className="text-white text-xs font-bold drop-shadow-md truncate block leading-tight">
+                  {displayName}
+                </span>
+              </div>
             </button>
           );
         })}

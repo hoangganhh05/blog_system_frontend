@@ -78,7 +78,14 @@ export default function Profile() {
   const [isStoryArchiveOpen, setIsStoryArchiveOpen] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState(null);
-  const [editForm, setEditForm] = useState({ fullName: "", bio: "", avatarUrl: "", bannerUrl: "" });
+  const [editForm, setEditForm] = useState({
+    fullName: "",
+    bio: "",
+    avatarUrl: "",
+    bannerUrl: "",
+    friendListPrivacy: "PUBLIC",
+    followerListPrivacy: "PUBLIC",
+  });
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
@@ -100,7 +107,9 @@ export default function Profile() {
           fullName: userData.fullName || "",
           bio: userData.bio || "",
           avatarUrl: userData.avatarUrl || "",
-          bannerUrl: userData.bannerUrl || ""
+          bannerUrl: userData.bannerUrl || "",
+          friendListPrivacy: userData.friendListPrivacy || (userData.showFriendsList === false ? "PRIVATE" : "PUBLIC"),
+          followerListPrivacy: userData.followerListPrivacy || (userData.showFollowingList === false ? "PRIVATE" : "PUBLIC"),
         });
       })
       .catch(() => {})
@@ -251,11 +260,16 @@ export default function Profile() {
 
     setIsUpdating(true);
     try {
-      const res = await userService.update(currentUserId, editForm);
+      const payload = {
+        ...editForm,
+        showFriendsList: editForm.friendListPrivacy === "PUBLIC",
+        showFollowingList: editForm.followerListPrivacy === "PUBLIC",
+      };
+      const res = await userService.update(currentUserId, payload);
       setUser(res.data);
       if (updateUser) updateUser(res.data);
       setIsEditModalOpen(false);
-      toast.success("Đã lưu thông tin hồ sơ thành công!");
+      toast.success("Đã lưu thông tin hồ sơ và quyền riêng tư thành công!");
     } catch {
       toast.error("Không thể lưu thông tin hồ sơ!");
     } finally {
@@ -1149,6 +1163,44 @@ export default function Profile() {
                   placeholder="Viết một vài dòng giới thiệu về bạn..."
                   className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 resize-none focus:outline-none"
                 />
+              </div>
+
+              {/* Privacy Settings Section */}
+              <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-3">
+                <div className="flex items-center gap-1.5 text-zinc-900 dark:text-white font-bold text-xs">
+                  <Lock className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Quyền riêng tư danh sách</span>
+                </div>
+
+                {/* Friend List Privacy */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                    Ai có thể xem danh sách bạn bè của tôi?
+                  </label>
+                  <select
+                    value={editForm.friendListPrivacy}
+                    onChange={(e) => setEditForm({ ...editForm, friendListPrivacy: e.target.value })}
+                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none cursor-pointer"
+                  >
+                    <option value="PUBLIC">🌐 Công khai (Mọi người đều có thể xem)</option>
+                    <option value="PRIVATE">🔒 Chỉ mình tôi (Ẩn danh sách bạn bè)</option>
+                  </select>
+                </div>
+
+                {/* Follower List Privacy */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                    Ai có thể xem danh sách người theo dõi của tôi?
+                  </label>
+                  <select
+                    value={editForm.followerListPrivacy}
+                    onChange={(e) => setEditForm({ ...editForm, followerListPrivacy: e.target.value })}
+                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none cursor-pointer"
+                  >
+                    <option value="PUBLIC">🌐 Công khai (Mọi người đều có thể xem)</option>
+                    <option value="PRIVATE">🔒 Chỉ mình tôi (Ẩn danh sách người theo dõi)</option>
+                  </select>
+                </div>
               </div>
 
               {/* Action buttons */}
