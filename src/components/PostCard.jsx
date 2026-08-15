@@ -70,12 +70,48 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(currentPost?.likesCount || 0);
+  const [likersPreview, setLikersPreview] = useState(null);
+  const [isHoveringLike, setIsHoveringLike] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [commentCount, setCommentCount] = useState(currentPost?.commentsCount || 0);
   const [menuOpen, setUserMenuOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState(null);
+
+  // Load preview names when hovering over like section
+  const handleLikeMouseEnter = () => {
+    setIsHoveringLike(true);
+    if (likeCount > 0 && !likersPreview && post?.id) {
+      likeService
+        .getReactionsList(post.id)
+        .then((res) => {
+          let list = [];
+          if (Array.isArray(res.data)) list = res.data;
+          else if (res.data?.content) list = res.data.content;
+          else if (res.data?.data) list = res.data.data;
+
+          const names = list
+            .map((item) => item.fullName || item.username || item.user?.fullName || item.user?.username)
+            .filter(Boolean);
+
+          if (names.length === 0) {
+            setLikersPreview(`${likeCount} người đã thích bài viết`);
+          } else if (names.length === 1) {
+            setLikersPreview(names[0]);
+          } else if (names.length === 2) {
+            setLikersPreview(`${names[0]} và ${names[1]}`);
+          } else if (names.length === 3) {
+            setLikersPreview(`${names[0]}, ${names[1]} và ${names[2]}`);
+          } else {
+            setLikersPreview(`${names[0]}, ${names[1]} và ${names.length - 2} người khác`);
+          }
+        })
+        .catch(() => {
+          setLikersPreview(`${likeCount} người đã thích`);
+        });
+    }
+  };
 
   const menuRef = useRef(null);
 
@@ -437,20 +473,25 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between text-zinc-500 pt-2 mt-1 max-w-[380px]">
-          {/* Like */}
-          <div className="flex items-center gap-1">
+          {/* Like & Reaction section with Hover Tooltip & Click Modal */}
+          <div
+            className="relative flex items-center gap-1 group/like"
+            onMouseEnter={handleLikeMouseEnter}
+            onMouseLeave={() => setIsHoveringLike(false)}
+          >
             <button
               type="button"
               onClick={handleToggleLike}
-              className={`flex items-center gap-1.5 text-xs font-medium group transition cursor-pointer ${
+              className={`flex items-center gap-1.5 text-xs font-medium transition cursor-pointer ${
                 liked ? "text-rose-500" : "hover:text-rose-500"
               }`}
-              title="Thích"
+              title={liked ? "Bỏ thích" : "Thích bài viết"}
             >
-              <div className="p-1.5 rounded-full group-hover:bg-rose-50 dark:group-hover:bg-rose-950/30 transition">
+              <div className="p-1.5 rounded-full hover:bg-rose-50 dark:hover:bg-rose-950/30 transition">
                 <Heart strokeWidth={1.8} className={`w-4 h-4 transition ${liked ? "fill-rose-500 scale-110" : ""}`} />
               </div>
             </button>
+
             {likeCount > 0 && (
               <button
                 type="button"
@@ -458,11 +499,29 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                   e.stopPropagation();
                   setIsReactionsModalOpen(true);
                 }}
-                className="text-xs text-zinc-500 dark:text-zinc-400 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer font-medium px-0.5"
-                title="Xem danh sách người thả tim"
+                className="text-xs text-zinc-500 dark:text-zinc-400 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer font-semibold px-1 py-0.5"
+                title="Bấm để xem danh sách chi tiết"
               >
                 {likeCount}
               </button>
+            )}
+
+            {/* Hover Tooltip Popup (Hiển thị danh sách nhanh khi rê chuột) */}
+            {isHoveringLike && likeCount > 0 && (
+              <div className="absolute bottom-full left-0 mb-2 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 px-3.5 py-2.5 rounded-xl shadow-2xl z-50 pointer-events-none whitespace-nowrap backdrop-blur-md border border-white/10 dark:border-zinc-300 animate-in fade-in zoom-in-95 duration-100 flex flex-col gap-1">
+                <div className="flex items-center gap-1.5 text-xs font-bold leading-none">
+                  <span>❤️</span>
+                  <span>{likeCount} lượt thích</span>
+                </div>
+                {likersPreview && (
+                  <span className="text-[11px] text-zinc-300 dark:text-zinc-600 font-normal leading-snug max-w-[220px] truncate">
+                    {likersPreview}
+                  </span>
+                )}
+                <span className="text-[9px] text-zinc-400 dark:text-zinc-500 italic leading-none pt-0.5">
+                  Nhấp chuột để xem danh sách đầy đủ
+                </span>
+              </div>
             )}
           </div>
 
