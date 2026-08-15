@@ -32,13 +32,15 @@ const POEMS_DATA = {
 
 const aiService = {
   /**
-   * Trò chuyện thông minh với Trợ lý AI qua Backend Spring Boot (Bảo mật 100% API Key)
+   * Trò chuyện thông minh với Trợ lý AI qua Backend Spring Boot (Bảo mật 100% API Key, hỗ trợ đính kèm hình ảnh)
    * @param {string} userMessage 
+   * @param {string} [imageBase64]
+   * @param {string} [imageMimeType]
    * @returns {Promise<string>}
    */
-  async chatWithAI(userMessage) {
+  async chatWithAI(userMessage, imageBase64 = null, imageMimeType = null) {
     const msg = (userMessage || "").trim();
-    if (!msg) return "Bạn hãy nhập nội dung để trò chuyện với Trợ lý AI nhé! ✨";
+    if (!msg && !imageBase64) return "Bạn hãy nhập nội dung hoặc đính kèm ảnh để trò chuyện với Trợ lý AI nhé! ✨";
 
     try {
       // Truyền mốc thời gian thực tế của hệ thống vào prompt để AI luôn biết ngày giờ hiện tại
@@ -56,9 +58,15 @@ const aiService = {
       });
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const systemTimeContext = `[Thời gian thực tế hiện tại của hệ thống: ${currentDateTime} (Múi giờ: ${timeZone}). Hãy luôn sử dụng mốc thời gian này khi người dùng hỏi về ngày, giờ, thời gian hiện tại.]\n\n`;
-      const promptWithTime = systemTimeContext + msg;
+      const promptWithTime = systemTimeContext + (msg || "Hãy phân tích hình ảnh này giúp tôi.");
 
-      const response = await axiosClient.post("/ai/chat", { prompt: promptWithTime });
+      const payload = {
+        prompt: promptWithTime,
+        imageBase64: imageBase64 || null,
+        imageMimeType: imageMimeType || null,
+      };
+
+      const response = await axiosClient.post("/ai/chat", payload);
       if (response.data && response.data.reply) {
         return response.data.reply;
       }

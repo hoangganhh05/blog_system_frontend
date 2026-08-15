@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, Sparkles, Send, Loader2, Bot, Trash2, Copy, Check } from "lucide-react";
+import { X, Sparkles, Send, Loader2, Bot, Trash2, Copy, Check, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import aiService from "../services/aiService";
 
@@ -17,16 +17,18 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
       id: "ai-intro",
       role: "ai",
       content:
-        "Xin chào! Mình là **Trợ lý BlogViet** được hỗ trợ bởi trí tuệ nhân tạo Gemini 3.7 Flash ✨.\n\nMình có thể giúp bạn lên ý tưởng, viết bài blog, tóm tắt nội dung hay trò chuyện giải đáp bất kỳ chủ đề nào. Hãy nhắn cho mình nhé!",
+        "Xin chào! Mình là **Trợ lý BlogViet** được hỗ trợ bởi trí tuệ nhân tạo Gemini 3.7 Flash ✨.\n\nMình có thể giúp bạn lên ý tưởng, viết bài blog, tóm tắt nội dung, giải đáp thắc mắc và phân tích hình ảnh (ảnh chụp màn hình, ảnh lỗi, v.v.). Hãy nhắn hoặc gửi ảnh cho mình nhé!",
       time: new Date(),
     },
   ]);
   const [inputText, setInputText] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null); // { file, previewUrl, base64, mimeType }
   const [isThinking, setIsThinking] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -55,23 +57,64 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
   if (!isOpen) return null;
   if (typeof document === "undefined") return null;
 
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Vui lòng chọn file hình ảnh hợp lệ (PNG, JPG, JPEG, WEBP)");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Dung lượng ảnh tối đa là 5MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setSelectedImage({
+        file,
+        previewUrl: event.target.result,
+        base64: event.target.result,
+        mimeType: file.type || "image/jpeg",
+      });
+      toast.success("Đã đính kèm ảnh thành công!");
+    };
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSendMessage = async (textToSend) => {
     const text = (textToSend || inputText).trim();
-    if (!text || isThinking) return;
+    if ((!text && !selectedImage) || isThinking) return;
+
+    const currentImage = selectedImage;
 
     const userMsg = {
       id: `user-${Date.now()}`,
       role: "user",
       content: text,
+      image: currentImage?.previewUrl || null,
       time: new Date(),
     };
 
     setMessages((prev) => [...prev, userMsg]);
     setInputText("");
+    setSelectedImage(null);
     setIsThinking(true);
 
     try {
-      const reply = await aiService.chatWithAI(text);
+      const reply = await aiService.chatWithAI(
+        text,
+        currentImage?.base64,
+        currentImage?.mimeType
+      );
       const aiMsg = {
         id: `ai-${Date.now()}`,
         role: "ai",
@@ -99,10 +142,11 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
       {
         id: "ai-intro-new",
         role: "ai",
-        content: "Đã làm mới đoạn hội thoại! Bạn muốn khám phá chủ đề gì tiếp theo? ✨",
+        content: "Đã làm mới đoạn hội thoại! Bạn muốn khám phá hoặc phân tích hình ảnh gì tiếp theo? ✨",
         time: new Date(),
       },
     ]);
+    setSelectedImage(null);
     toast.info("Đã xóa lịch sử trò chuyện với AI");
   };
 
@@ -132,7 +176,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
               </div>
               <span className="text-[10px] text-emerald-500 font-medium flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Sẵn sàng giải đáp 24/7
+                Sẵn sàng giải đáp &amp; Phân tích ảnh 24/7
               </span>
             </div>
           </div>
@@ -178,13 +222,24 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
                   )}
 
                   <div
-                    className={`px-4 py-2.5 text-xs font-normal leading-relaxed whitespace-pre-wrap break-words rounded-2xl ${
+                    className={`px-4 py-2.5 text-xs font-normal leading-relaxed whitespace-pre-wrap break-words rounded-2xl flex flex-col gap-2 ${
                       isUser
                         ? "bg-black text-white dark:bg-white dark:text-black rounded-br-xs shadow-sm"
                         : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200/80 dark:border-zinc-700/60 rounded-bl-xs shadow-sm"
                     }`}
                   >
-                    {msg.content}
+                    {/* User Attached Image Thumbnail */}
+                    {msg.image && (
+                      <div className="rounded-xl overflow-hidden max-w-[220px] max-h-52 border border-black/10 dark:border-white/10">
+                        <img
+                          src={msg.image}
+                          alt="Ảnh đính kèm"
+                          className="w-full h-auto object-cover"
+                        />
+                      </div>
+                    )}
+
+                    {msg.content && <span>{msg.content}</span>}
                   </div>
 
                   {!isUser && (
@@ -218,7 +273,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
         </div>
 
         {/* Quick Suggestion Chips */}
-        {messages.length <= 2 && !isThinking && (
+        {messages.length <= 2 && !isThinking && !selectedImage && (
           <div className="px-4 py-2 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
             {QUICK_SUGGESTIONS.map((sug, i) => (
               <button
@@ -233,6 +288,43 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
           </div>
         )}
 
+        {/* Image Preview Thumbnail (Above Input) */}
+        {selectedImage && (
+          <div className="px-4 pt-2.5 pb-1 bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-150">
+            <div className="relative group w-12 h-12 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 shrink-0 shadow-2xs">
+              <img
+                src={selectedImage.previewUrl}
+                alt="Xem trước ảnh"
+                className="w-full h-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition cursor-pointer"
+                title="Xóa ảnh"
+              >
+                <X className="w-2.5 h-2.5" />
+              </button>
+            </div>
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                {selectedImage.file?.name || "Ảnh đính kèm"}
+              </span>
+              <span className="text-[10px] text-zinc-400">
+                {(selectedImage.file?.size ? (selectedImage.file.size / 1024).toFixed(1) + " KB" : "")} · Sẵn sàng gửi để AI phân tích
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="p-1 rounded-lg text-zinc-400 hover:text-rose-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+              title="Hủy đính kèm"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* Input Footer */}
         <form
           onSubmit={(e) => {
@@ -241,18 +333,40 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
           }}
           className="p-3 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center gap-2"
         >
+          {/* Nút chọn ảnh / Upload Image Button */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isThinking}
+            className="p-2.5 rounded-xl text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer disabled:opacity-40 shrink-0"
+            title="Đính kèm hình ảnh để AI phân tích"
+          >
+            <ImageIcon className="w-4 h-4" />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="hidden"
+          />
+
           <input
             ref={inputRef}
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Hỏi bất kỳ điều gì với Trợ lý BlogViet..."
+            placeholder={
+              selectedImage
+                ? "Nhập câu hỏi về hình ảnh này (hoặc bấm gửi để AI phân tích)..."
+                : "Hỏi bất kỳ điều gì với Trợ lý BlogViet..."
+            }
             disabled={isThinking}
             className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-1 focus:ring-black dark:focus:ring-white transition"
           />
           <button
             type="submit"
-            disabled={!inputText.trim() || isThinking}
+            disabled={(!inputText.trim() && !selectedImage) || isThinking}
             className="w-9 h-9 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer disabled:opacity-40 shrink-0"
           >
             {isThinking ? (
