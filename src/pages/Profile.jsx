@@ -58,6 +58,11 @@ export default function Profile() {
   const [isFriendsPrivate, setIsFriendsPrivate] = useState(false);
   const [friendsLoading, setFriendsLoading] = useState(false);
 
+  // Public Followers List
+  const [profileFollowers, setProfileFollowers] = useState([]);
+  const [isFollowersPrivate, setIsFollowersPrivate] = useState(false);
+  const [followersLoading, setFollowersLoading] = useState(false);
+
   // Friendship
   const [friendshipStatus, setFriendshipStatus] = useState("NONE");
   const [friendCount, setFriendCount] = useState(0);
@@ -166,6 +171,28 @@ export default function Profile() {
           setProfileFriends([]);
         })
         .finally(() => setFriendsLoading(false));
+    }
+  }, [activeTab, targetUserId]);
+
+  // Load Followers List when viewing the Followers Tab
+  useEffect(() => {
+    if (activeTab === "followers" && targetUserId) {
+      setFollowersLoading(true);
+      setIsFollowersPrivate(false);
+      followService.getFollowers(targetUserId)
+        .then((res) => {
+          if (res.data?.isPrivate) {
+            setIsFollowersPrivate(true);
+            setProfileFollowers([]);
+          } else {
+            const list = Array.isArray(res.data) ? res.data : (res.data?.content || []);
+            setProfileFollowers(list);
+          }
+        })
+        .catch(() => {
+          setProfileFollowers([]);
+        })
+        .finally(() => setFollowersLoading(false));
     }
   }, [activeTab, targetUserId]);
 
@@ -713,7 +740,11 @@ export default function Profile() {
 
         {/* Stats */}
         <div className="flex items-center gap-3 text-xs text-zinc-500 mt-2 pb-2">
-          <span>
+          <span
+            onClick={() => setActiveTab("followers")}
+            className="cursor-pointer hover:underline"
+            title="Xem danh sách người theo dõi"
+          >
             <strong className="text-zinc-900 dark:text-zinc-100 font-bold">{followerCount}</strong> người theo dõi
           </span>
           <span>·</span>
@@ -736,7 +767,7 @@ export default function Profile() {
       </div>
 
       {/* Tabs: Chia đều các cột với thanh active tối giản */}
-      <div className={`grid ${isMe ? "grid-cols-4" : "grid-cols-3"} text-center border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs`}>
+      <div className={`grid ${isMe ? "grid-cols-5" : "grid-cols-4"} text-center border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs`}>
         <button
           type="button"
           onClick={() => setActiveTab("posts")}
@@ -776,6 +807,20 @@ export default function Profile() {
         >
           Bạn bè ({friendCount})
           {activeTab === "friends" && (
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-black dark:bg-white rounded-full" />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("followers")}
+          className={`py-3 text-xs font-semibold transition cursor-pointer relative ${
+            activeTab === "followers"
+              ? "text-black dark:text-white"
+              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+          }`}
+        >
+          Theo dõi ({followerCount})
+          {activeTab === "followers" && (
             <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-black dark:bg-white rounded-full" />
           )}
         </button>
@@ -909,6 +954,88 @@ export default function Profile() {
                     )}
                     <Link
                       to={`/profile/${f.id}`}
+                      className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+                    >
+                      Xem trang
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        ) : activeTab === "followers" ? (
+          followersLoading ? (
+            <div className="p-12 text-center flex justify-center text-zinc-400">
+              <Loader2 className="w-6 h-6 animate-spin" />
+            </div>
+          ) : isFollowersPrivate ? (
+            <div className="p-12 text-center text-zinc-400 flex flex-col items-center gap-2">
+              <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
+                <Lock className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                Danh sách người theo dõi đang ở chế độ riêng tư
+              </span>
+              <span className="text-[11px] text-zinc-500 max-w-xs text-center">
+                Người dùng này đã thiết lập ẩn danh sách người theo dõi theo quyền riêng tư.
+              </span>
+            </div>
+          ) : profileFollowers.length === 0 ? (
+            <div className="p-12 text-center text-zinc-400 text-xs">
+              Chưa có người theo dõi nào được hiển thị.
+            </div>
+          ) : (
+            <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900">
+              {profileFollowers.map((fl) => (
+                <div
+                  key={fl.id}
+                  className="p-3.5 sm:p-4 flex items-center justify-between gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition"
+                >
+                  <Link
+                    to={`/profile/${fl.id}`}
+                    className="flex items-center gap-3 min-w-0 flex-1 group"
+                  >
+                    {fl.avatarUrl ? (
+                      <img
+                        src={fl.avatarUrl}
+                        alt=""
+                        className="w-11 h-11 rounded-full object-cover shrink-0"
+                      />
+                    ) : (
+                      <div
+                        className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
+                        style={{ backgroundColor: fl.avatarColor || "#0866ff" }}
+                      >
+                        {getInitials(fl.fullName || fl.username)}
+                      </div>
+                    )}
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-bold text-sm text-zinc-900 dark:text-white group-hover:underline truncate">
+                        {fl.fullName || fl.username}
+                      </span>
+                      <span className="text-xs text-zinc-400 truncate">
+                        @{fl.username}
+                      </span>
+                    </div>
+                  </Link>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {currentUserId && Number(currentUserId) !== Number(fl.id) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(
+                            new CustomEvent("open_chat_user", { detail: { friend: fl } })
+                          );
+                        }}
+                        className="p-2 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                        title="Nhắn tin"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </button>
+                    )}
+                    <Link
+                      to={`/profile/${fl.id}`}
                       className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
                     >
                       Xem trang

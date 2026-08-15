@@ -89,11 +89,15 @@ function StoryBar() {
           </button>
         )}
 
-        {/* 2. DANH SÁCH TIN CỦA BẠN BÈ & NGƯỜI DÙNG (Avatar tròn viền nét mảnh) */}
+        {/* 2. DANH SÁCH TIN CỦA BẠN BÈ & NGƯỜI DÙNG (Hiển thị thumbnail story hoặc Avatar) */}
         {groupedStories.map((group, idx) => {
           const user = group.user || {};
-          const isMyStory = currentUserId && user.id === currentUserId;
+          const isMyStory = currentUserId && (Number(user.id) === Number(currentUserId) || Number(user.id) === Number(currentUser?.id));
           const displayName = isMyStory ? "Tin của bạn" : user.fullName || user.username || "Người dùng";
+          const latestStory = group.stories?.[group.stories.length - 1];
+          const storyMedia = latestStory?.mediaUrl || latestStory?.imageUrl;
+          const avatarUrl = isMyStory ? (currentUser?.avatarUrl || user.avatarUrl) : user.avatarUrl;
+          const thumbnailSrc = storyMedia || avatarUrl;
 
           return (
             <button
@@ -102,21 +106,24 @@ function StoryBar() {
               onClick={() => setViewerIndex(idx)}
               className="flex flex-col items-center gap-1.5 flex-shrink-0 group cursor-pointer focus:outline-none"
             >
-              {/* Vòng viền đen/trắng (hoặc gradient mảnh) báo hiệu tin */}
-              <div className="p-0.5 rounded-full ring-2 ring-black dark:ring-white group-hover:scale-105 transition-transform">
-                {user.avatarUrl ? (
+              {/* Vòng viền nổi bật báo hiệu tin */}
+              <div className="p-0.5 rounded-full ring-2 ring-indigo-500 dark:ring-white group-hover:scale-105 transition-transform">
+                {thumbnailSrc ? (
                   <img
-                    src={user.avatarUrl}
+                    src={thumbnailSrc}
                     alt={displayName}
-                    className="w-13 h-13 rounded-full object-cover border-2 border-white dark:border-zinc-900"
+                    className="w-13 h-13 rounded-full object-cover border-2 border-white dark:border-zinc-900 shadow-xs"
                   />
                 ) : (
-                  <div className="w-13 h-13 rounded-full bg-zinc-800 dark:bg-zinc-700 text-white font-bold text-xs flex items-center justify-center border-2 border-white dark:border-zinc-900">
-                    {getInitials(user.fullName || user.username)}
+                  <div
+                    className="w-13 h-13 rounded-full text-white font-bold text-xs flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-xs"
+                    style={{ backgroundColor: user.avatarColor || (isMyStory ? currentUser?.avatarColor : "#4f46e5") || "#4f46e5" }}
+                  >
+                    {getInitials(isMyStory ? (currentUser?.fullName || currentUser?.username) : (user.fullName || user.username))}
                   </div>
                 )}
               </div>
-              <span className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300 max-w-[62px] truncate">
+              <span className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300 max-w-[64px] truncate">
                 {displayName}
               </span>
             </button>
