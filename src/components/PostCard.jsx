@@ -77,8 +77,6 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   const [bookmarked, setBookmarked] = useState(false);
   const [commentCount, setCommentCount] = useState(currentPost?.commentsCount || post?.commentsCount || 0);
   const [menuOpen, setUserMenuOpen] = useState(false);
-  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
-  const buttonRef = useRef(null);
   const [isCopied, setIsCopied] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState(null);
@@ -333,17 +331,10 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           {/* Menu 3 chấm options */}
           <div className="relative" ref={menuRef}>
             <button
-              ref={buttonRef}
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                if (!menuOpen && buttonRef.current) {
-                  const rect = buttonRef.current.getBoundingClientRect();
-                  setMenuPos({
-                    top: rect.bottom + 6,
-                    right: Math.max(16, window.innerWidth - rect.right),
-                  });
-                }
+                e.preventDefault();
                 setUserMenuOpen(!menuOpen);
               }}
               className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
@@ -351,11 +342,11 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
               <MoreHorizontal className="w-4 h-4" />
             </button>
 
-            {menuOpen && typeof document !== "undefined" && document.body && createPortal(
+            {menuOpen && (
               <>
-                {/* 1. Backdrop tàng hình để đóng khi click ra ngoài (z-index thấp hơn menu) */}
+                {/* 1. Backdrop tàng hình để đóng khi click ra ngoài */}
                 <div
-                  className="fixed inset-0 z-[999998] bg-transparent cursor-default"
+                  className="fixed inset-0 z-40 bg-transparent cursor-default"
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
@@ -363,16 +354,12 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                   }}
                 />
 
-                {/* 2. Menu Popup thực tế (z-index cao nhất, pointer-events-auto độc lập) */}
+                {/* 2. Menu Popup */}
                 <div
-                  style={{
-                    top: `${menuPos.top}px`,
-                    right: `${menuPos.right}px`,
-                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
-                  className="fixed w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-[999999] pointer-events-auto flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
+                  className="absolute right-0 top-8 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-50 pointer-events-auto flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
                 >
                   <button
                     type="button"
