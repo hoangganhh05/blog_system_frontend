@@ -1,8 +1,8 @@
 import axios from "axios";
 import { toast } from "sonner";
+import { encryptData, decryptData } from "../utils/cryptoUtil";
 
-// Sử dụng đường dẫn tương đối qua biến môi trường hoặc mặc định '/api/v1'
-// Tất cả API request sẽ đi qua Reverse Proxy để ẩn domain backend thật trên F12 Network
+// Sử dụng đường dẫn tương đối qua biến môi trường hoặc mặc định '/api'
 const apiBaseUrl = import.meta.env.VITE_API_URL || "/api";
 
 const axiosClient = axios.create({
@@ -23,35 +23,72 @@ const isPublicAuthRequest = (url = "") =>
   PUBLIC_AUTH_PATHS.some((path) => url.includes(path));
 
 // =============================================
-// REQUEST INTERCEPTOR
-// Chạy trước mỗi request — tự động gắn token
+// REQUEST INTERCEPTOR: Token & Payload Encryption
 // =============================================
 axiosClient.interceptors.request.use(
-  (config) => {
-    // Đọc token từ localStorage
+  async (config) => {
+    // 1. Gắn Token xác thực
     const token = localStorage.getItem("blog_token");
     const requestUrl = `${config.url || ""}`;
 
     if (token && !isPublicAuthRequest(requestUrl)) {
-      // Gắn vào header Authorization
-      // Backend JwtFilter sẽ đọc header Authorization
       config.headers = config.headers || {};
       config.headers.Authorization = "Bearer " + token;
     }
 
-    return config; // tiếp tục gửi request
+    // 2. Tự động mã hóa Payload Request (AES-256)
+    const method = (config.method || "get").toLowerCase();
+    const isMutation = ["post", "put", "patch"].includes(method);
+    const isFormData = typeof FormData !== "undefined" && config.data instanceof FormData;
+
+    // Không mã hóa FormData (File Uploads) hoặc request rỗng
+    if (isMutation && config.data && !isFormData) {
+      try {
+        const cipherText = await encryptData(config.data);
+        config.data = { encryptedData: cipherText };
+        config.headers = config.headers || {};
+        config.headers["X-Encrypted"] = "true";
+      } catch (err) {
+        console.warn("[AXIOS ENCRYPT WARNING]", err);
+      }
+    }
+
+    return config;
   },
-  (error) => Promise.reject(error),
+  (error) => Promise.reject(error)
 );
 
 // =============================================
-// RESPONSE INTERCEPTOR
-// Xử lý lỗi chung từ server
+// RESPONSE INTERCEPTOR: Payload Decryption & Errors
 // =============================================
 axiosClient.interceptors.response.use(
-  (response) => response, // thành công → trả thẳng response
+  async (response) => {
+    // Tự động giải mã Payload Response nếu có mã hóa
+    const isEncrypted =
+      response.headers?.["x-encrypted"] === "true" ||
+      (response.data && typeof response.data === "object" && Boolean(response.data.encryptedData));
 
-  (error) => {
+    if (isEncrypted) {
+      try {
+        const cipherText = response.data?.encryptedData || response.data;
+        const decrypted = await decryptData(cipherText);
+        response.data = decrypted;
+      } catch (err) {
+        console.warn("[AXIOS DECRYPT WARNING]", err);
+      }
+    }
+
+    return response;
+  },
+
+  async (error) => {
+    // Nếu Error response cũng bị mã hóa, giải mã để lấy error message
+    if (error.response?.data?.encryptedData) {
+      try {
+        error.response.data = await decryptData(error.response.data.encryptedData);
+      } catch {}
+    }
+
     const status = error.response?.status;
     const requestUrl = error.config?.url || "";
     const errorMessage =
@@ -61,14 +98,9 @@ axiosClient.interceptors.response.use(
         ? "Không thể kết nối đến máy chủ. Vui lòng thử lại!"
         : error.message || "Đã có lỗi xảy ra");
 
-    // Nếu server/hosting trả về HTML thay vì JSON, chuẩn hóa lại data để UI hiển thị thông báo sạch
+    // Nếu server/hosting trả về HTML thay vì JSON
     if (typeof error.response?.data === "string" && error.response.data.includes("<!DOCTYPE")) {
       error.response.data = { message: errorMessage };
-    }
-
-    // 400 (Bad Request) - In chi tiết dữ liệu validation từ Backend
-    if (status === 400) {
-      console.error("400 Backend Response:", error.response?.data);
     }
 
     // 401 (Unauthorized) - tự động logout
@@ -89,23 +121,9 @@ axiosClient.interceptors.response.use(
         window.location.href = "/login";
       }
     }
-    // 403 (Forbidden)
-    else if (status === 403 && !isPublicAuthRequest(requestUrl)) {
-      console.warn(
-        "Forbidden API request (permission denied):",
-        requestUrl,
-        errorMessage,
-      );
-    }
 
-    console.error("API Error:", {
-      status,
-      url: requestUrl,
-      data: error.response?.data,
-      message: errorMessage,
-    });
     return Promise.reject(error);
-  },
+  }
 );
 
 export default axiosClient;
