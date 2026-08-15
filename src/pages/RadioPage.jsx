@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMusic, formatAudioTime, formatDurationTime } from "../context/MusicContext";
 import songService from "../services/songService";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ import {
   ExternalLink,
   Layers,
   Headphones,
+  ArrowLeft,
 } from "lucide-react";
 
 // Helper remove Vietnamese tones
@@ -39,6 +41,7 @@ function removeVietnameseTones(str) {
 }
 
 export default function RadioPage() {
+  const navigate = useNavigate();
   const {
     playlist,
     currentTrack,
@@ -258,8 +261,16 @@ export default function RadioPage() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Left: Spinning Vinyl Cover + Info */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 z-10 text-center sm:text-left min-w-0 w-full md:w-auto">
+        {/* Left: Back Button + Spinning Vinyl Cover + Info */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 z-10 text-center sm:text-left min-w-0 w-full md:w-auto">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-2 -ml-1 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer self-start sm:self-center"
+            title="Quay lại"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           <div className="relative w-24 h-24 sm:w-28 sm:h-28 shrink-0 group">
             {currentTrack?.cover ? (
               <img

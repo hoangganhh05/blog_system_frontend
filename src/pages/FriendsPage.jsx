@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Users, UserCheck, UserPlus, X, Check, Loader2, MessageCircle } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Users, UserCheck, UserPlus, X, Check, Loader2, MessageCircle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import friendService from "../services/friendService";
@@ -10,6 +10,7 @@ import Avatar from "../components/Avatar";
 
 export default function FriendsPage() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
   const [activeTab, setActiveTab] = useState("friends"); // "friends" | "requests" | "suggestions"
@@ -86,6 +87,14 @@ export default function FriendsPage() {
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-zinc-100 dark:border-zinc-800 mb-4">
         <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-2 -ml-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+            title="Quay lại"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
             <Users className="w-5 h-5" />
           </div>

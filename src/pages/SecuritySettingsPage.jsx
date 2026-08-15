@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Shield,
   Key,
@@ -18,6 +19,7 @@ import {
   Maximize2,
   Minimize2,
   Sparkles,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -25,6 +27,7 @@ import userService from "../services/userService";
 
 export default function SecuritySettingsPage() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
   const [activeTab, setActiveTab] = useState("security"); // "security" | "privacy" | "display"
@@ -165,14 +168,24 @@ export default function SecuritySettingsPage() {
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b0f19] text-zinc-900 dark:text-[#f1f5f9] py-8 px-4 transition-colors">
       <div className="max-w-2xl mx-auto flex flex-col gap-6">
         {/* Header trang */}
-        <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100 tracking-tight">
-            <Shield className="w-5 h-5 text-indigo-500" />
-            Cài đặt &amp; Trợ năng
-          </h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Quản lý bảo mật tài khoản, quyền riêng tư và tùy chỉnh chế độ hiển thị màn hình trên BlogViet.
-          </p>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-2 -ml-1 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0"
+            title="Quay lại"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="flex flex-col gap-0.5">
+            <h1 className="text-xl font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100 tracking-tight">
+              <Shield className="w-5 h-5 text-indigo-500" />
+              Cài đặt &amp; Trợ năng
+            </h1>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Quản lý bảo mật tài khoản, quyền riêng tư và tùy chỉnh chế độ hiển thị màn hình trên BlogViet.
+            </p>
+          </div>
         </div>
 
         {/* Segmented Tab Switcher (Bảo mật, Quyền riêng tư & Màn hình) */}

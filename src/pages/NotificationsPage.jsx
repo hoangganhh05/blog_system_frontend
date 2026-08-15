@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, CheckCheck, Loader2, Heart, MessageCircle, UserPlus, Sparkles, UserCheck } from "lucide-react";
+import { Bell, CheckCheck, Loader2, Heart, MessageCircle, UserPlus, Sparkles, UserCheck, ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import notificationService from "../services/notificationService";
 import friendService from "../services/friendService";
@@ -166,9 +166,19 @@ export default function NotificationsPage() {
     <div className="w-full min-h-full flex flex-col">
       {/* Page Header */}
       <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-        <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">
-          Thông báo
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+            title="Quay lại"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">
+            Thông báo
+          </span>
+        </div>
         {notifications.some((n) => !n.read) && (
           <button
             type="button"

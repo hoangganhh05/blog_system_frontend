@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2, KeyRound, Mail, ShieldCheck } from "lucide-react";
+import { Loader2, KeyRound, Mail, ShieldCheck, ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
 
@@ -107,7 +107,17 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#f8fafc] dark:bg-[#0b0f19] px-4 py-12 transition-colors">
-      <div className="w-full max-w-md bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800/80 p-8 shadow-sm">
+      <div className="w-full max-w-md bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800/80 p-8 shadow-sm relative">
+        {/* Back Button */}
+        <button
+          type="button"
+          onClick={() => (step > 1 ? setStep((prev) => prev - 1) : navigate(-1))}
+          className="absolute top-6 left-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+          title="Quay lại"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+
         {/* Header Form */}
         <div className="flex flex-col items-center text-center mb-6">
           <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center mb-3">

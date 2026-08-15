@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Sparkles, Clock, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { TrendingUp, Sparkles, Clock, Loader2, ArrowLeft } from "lucide-react";
 import postService from "../services/postService";
 import PostCard from "../components/PostCard";
 
 export default function TrendingPage() {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("trending"); // "trending" | "recent"
@@ -47,6 +49,14 @@ export default function TrendingPage() {
       {/* Page Header with Filters */}
       <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+            title="Quay lại"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           {filter === "trending" ? (
             <TrendingUp className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
           ) : (

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import aiService from "../services/aiService";
 
@@ -69,9 +70,32 @@ function AiCreatorPage() {
           color: "#fff",
           marginBottom: 32,
           boxShadow: "0 16px 36px rgba(236, 72, 153, 0.25)",
+          position: "relative",
           textAlign: "center"
         }}
       >
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          style={{
+            position: "absolute",
+            top: "24px",
+            left: "24px",
+            background: "rgba(255, 255, 255, 0.2)",
+            border: "none",
+            borderRadius: "50%",
+            padding: "8px",
+            color: "#fff",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "background 0.2s",
+          }}
+          title="Quay lại"
+        >
+          <ArrowLeft style={{ width: 20, height: 20 }} />
+        </button>
         <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.9, marginBottom: 4 }}>
           🎨 Studio Sáng Tạo Nghệ Thuật
         </div>

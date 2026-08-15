@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import postService from "../services/postService";
 import { isVideoUrl } from "../utils/mediaUtils";
@@ -6,6 +8,7 @@ import PostCard from "../components/PostCard";
 import CreatePostModal from "../components/CreatePostModal";
 
 function VideosPage() {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [posts, setPosts] = useState([]);
   const [allVideoPosts, setAllVideoPosts] = useState([]);
@@ -79,15 +82,37 @@ function VideosPage() {
             boxShadow: "0 12px 30px rgba(24, 119, 242, 0.25)",
           }}
         >
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, color: "#fff" }}>
-                BlogViet Video Feeds
-              </h1>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              style={{
+                background: "rgba(255, 255, 255, 0.2)",
+                border: "none",
+                borderRadius: "50%",
+                padding: "8px",
+                color: "#fff",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginTop: "2px",
+                flexShrink: 0,
+              }}
+              title="Quay lại"
+            >
+              <ArrowLeft style={{ width: 20, height: 20 }} />
+            </button>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, color: "#fff" }}>
+                  BlogViet Video Feeds
+                </h1>
+              </div>
+              <p style={{ fontSize: 14.5, margin: 0, opacity: 0.9, lineHeight: 1.4 }}>
+                Không gian đăng tải và thưởng thức các thước phim Video trực tiếp từ cộng đồng người dùng.
+              </p>
             </div>
-            <p style={{ fontSize: 14.5, margin: 0, opacity: 0.9, lineHeight: 1.4 }}>
-              Không gian đăng tải và thưởng thức các thước phim Video trực tiếp từ cộng đồng người dùng.
-            </p>
           </div>
 
           <button

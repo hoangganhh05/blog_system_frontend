@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import {
   Eye, Heart, MessageSquare, Users, FileText, Plus,
   Search, Edit3, Trash2, TrendingUp, CheckCircle,
-  BarChart3, Sparkles, Filter, Loader2,
+  BarChart3, Sparkles, Filter, Loader2, ArrowLeft,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import postService from "../services/postService";
@@ -91,12 +91,20 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-200 dark:border-zinc-800">
         <div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+              title="Quay lại"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
             <BarChart3 className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
             <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
               Bảng điều khiển
             </h1>
           </div>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <p className="text-xs text-zinc-500 mt-0.5 ml-8 sm:ml-8">
             Theo dõi hiệu quả thực tế và quản lý bài viết của bạn.
           </p>
         </div>
