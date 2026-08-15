@@ -7,6 +7,7 @@ import {
   Video,
   Send,
   Image,
+  Camera,
   Smile,
   Copy,
   Trash2,
@@ -24,6 +25,8 @@ import {
   CheckCheck,
   Clock,
   Search,
+  Heart,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -137,6 +140,23 @@ export default function FloatingChatWidget() {
       return {};
     }
   });
+
+  // Message Reactions state (persisted in localStorage: { [msgId]: { [userId]: emoji } })
+  const [messageReactions, setMessageReactions] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("chat_message_reactions") || "{}");
+    } catch {
+      return {};
+    }
+  });
+  const [reactionPickerMsgId, setReactionPickerMsgId] = useState(null);
+
+  // Image Upload Preview state
+  const [previewImageFile, setPreviewImageFile] = useState(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState("");
+
+  // Typing state
+  const [isFriendTyping, setIsFriendTyping] = useState(false);
 
   // Scroll to bottom states
   const [showScrollBottom, setShowScrollBottom] = useState(false);
@@ -432,15 +452,54 @@ export default function FloatingChatWidget() {
     }
   };
 
-  // Image Upload
-  const handleImageSelect = async (e) => {
+  // Toggle Reaction on Message (❤️, 👍, 😂, 😮, 😢, 🔥)
+  const handleToggleReaction = (msgId, emoji) => {
+    if (!msgId || !currentUserId) return;
+    setMessageReactions((prev) => {
+      const msgReacts = prev[msgId] || {};
+      const currentReact = msgReacts[currentUserId];
+      const updatedMsgReacts = { ...msgReacts };
+      if (currentReact === emoji) {
+        delete updatedMsgReacts[currentUserId];
+      } else {
+        updatedMsgReacts[currentUserId] = emoji;
+      }
+      const updatedAll = { ...prev, [msgId]: updatedMsgReacts };
+      try {
+        localStorage.setItem("chat_message_reactions", JSON.stringify(updatedAll));
+      } catch {}
+      return updatedAll;
+    });
+    setReactionPickerMsgId(null);
+  };
+
+  // Image Upload with Instant Preview
+  const handleImageSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file || !activeFriend?.id) return;
+    setPreviewImageFile(file);
+    setPreviewImageUrl(URL.createObjectURL(file));
+  };
+
+  const handleCancelPreviewImage = () => {
+    if (previewImageUrl) {
+      try { URL.revokeObjectURL(previewImageUrl); } catch {}
+    }
+    setPreviewImageFile(null);
+    setPreviewImageUrl("");
+  };
+
+  const handleConfirmSendPreviewImage = async () => {
+    if (!previewImageFile || !activeFriend?.id || uploadingImage) return;
+    const file = previewImageFile;
+    const fileCaption = inputMessage.trim();
+    setInputMessage("");
     setUploadingImage(true);
+    handleCancelPreviewImage();
     try {
       const res = await uploadService.uploadFile(file);
       const imageUrl = res.data.url || res.data;
-      const text = `📷 ${imageUrl}`;
+      const text = fileCaption ? `📷 ${imageUrl}\n${fileCaption}` : `📷 ${imageUrl}`;
 
       const resMsg = await chatService.sendMessage(currentUserId, activeFriend.id, text);
       setMessages((prev) => [...prev, resMsg.data]);
@@ -1044,8 +1103,21 @@ export default function FloatingChatWidget() {
                             </div>
                           )}
 
-                          {/* Quick Options Button & 3-Dot Dropdown */}
-                          <div className="relative opacity-0 group-hover:opacity-100 transition shrink-0">
+                          {/* Quick Options Button & Reactions Trigger */}
+                          <div className="relative opacity-0 group-hover:opacity-100 transition shrink-0 flex items-center gap-0.5">
+                            {/* Quick Reaction Button */}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setReactionPickerMsgId(reactionPickerMsgId === msg.id ? null : msg.id)
+                              }
+                              className="p-1 text-zinc-400 hover:text-amber-500 transition cursor-pointer hover:scale-110"
+                              title="Thả cảm xúc"
+                            >
+                              <Smile className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Options 3-Dot Button */}
                             <button
                               type="button"
                               onClick={() =>
@@ -1056,6 +1128,27 @@ export default function FloatingChatWidget() {
                             >
                               <MoreHorizontal className="w-3.5 h-3.5" />
                             </button>
+
+                            {/* Floating Reactions Bar Popover */}
+                            {reactionPickerMsgId === msg.id && (
+                              <div
+                                className={`absolute -top-9 z-50 flex items-center gap-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full px-2 py-1 shadow-xl animate-in zoom-in-95 duration-100 ${
+                                  isMe ? "right-0" : "left-0"
+                                }`}
+                              >
+                                {["❤️", "👍", "😂", "😮", "😢", "🔥"].map((emo) => (
+                                  <button
+                                    key={emo}
+                                    type="button"
+                                    onClick={() => handleToggleReaction(msg.id, emo)}
+                                    className="hover:scale-130 active:scale-95 transition-transform text-sm cursor-pointer p-0.5"
+                                    title={`Thả ${emo}`}
+                                  >
+                                    {emo}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
 
                             {activeMsgMenuId === msg.id && (
                               <div
@@ -1147,74 +1240,96 @@ export default function FloatingChatWidget() {
                           </div>
 
                           {/* Message Bubble: Text / Image / Sticker / Voice */}
-                          {isEditingThis ? (
-                            <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700">
-                              <input
-                                type="text"
-                                value={editingText}
-                                onChange={(e) => setEditingText(e.target.value)}
-                                className="px-2 py-1 text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg outline-none"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handleEditMessage(msg.id)}
-                                className="p-1 rounded-md bg-emerald-500 text-white text-xs cursor-pointer"
+                          <div className="relative flex flex-col">
+                            {isEditingThis ? (
+                              <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700">
+                                <input
+                                  type="text"
+                                  value={editingText}
+                                  onChange={(e) => setEditingText(e.target.value)}
+                                  className="px-2 py-1 text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg outline-none"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleEditMessage(msg.id)}
+                                  className="p-1 rounded-md bg-emerald-500 text-white text-xs cursor-pointer"
+                                >
+                                  <Check className="w-3 h-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingMsgId(null)}
+                                  className="p-1 rounded-md bg-zinc-400 text-white text-xs cursor-pointer"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ) : isVoice ? (
+                              <AudioMessagePlayer src={msg.content} isMe={isMe} />
+                            ) : msg.content?.startsWith("🏷️ http") ? (
+                              <div className="p-1 max-w-[140px] max-h-[140px] flex items-center justify-center">
+                                <img
+                                  src={msg.content.replace("🏷️ ", "").trim()}
+                                  alt="Sticker"
+                                  className="w-24 h-24 sm:w-28 sm:h-28 object-contain cursor-pointer hover:scale-110 active:scale-95 transition-transform duration-150"
+                                  onClick={() =>
+                                    window.open(msg.content.replace("🏷️ ", "").trim(), "_blank")
+                                  }
+                                  loading="lazy"
+                                />
+                              </div>
+                            ) : msg.content?.startsWith("📷 http") ? (
+                              <div className="rounded-2xl overflow-hidden max-w-[220px] max-h-[220px] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                                <img
+                                  src={msg.content.replace("📷 ", "").trim()}
+                                  alt=""
+                                  className="w-full h-full object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                                  onClick={() =>
+                                    window.open(msg.content.replace("📷 ", "").trim(), "_blank")
+                                  }
+                                  loading="lazy"
+                                />
+                              </div>
+                            ) : (
+                              <div
+                                className={`px-3.5 py-2 text-xs font-medium leading-relaxed shadow-xs break-words ${
+                                  isMe
+                                    ? "max-w-[100%] rounded-2xl rounded-br-xs bg-black text-white dark:bg-white dark:text-black shadow-sm"
+                                    : "max-w-[100%] rounded-2xl rounded-bl-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200/80 dark:border-zinc-700/60 shadow-sm"
+                                }`}
                               >
-                                <Check className="w-3 h-3" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setEditingMsgId(null)}
-                                className="p-1 rounded-md bg-zinc-400 text-white text-xs cursor-pointer"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ) : isVoice ? (
-                            <AudioMessagePlayer src={msg.content} isMe={isMe} />
-                          ) : msg.content?.startsWith("🏷️ http") ? (
-                            <div className="p-1 max-w-[140px] max-h-[140px] flex items-center justify-center">
-                              <img
-                                src={msg.content.replace("🏷️ ", "").trim()}
-                                alt="Sticker"
-                                className="w-24 h-24 sm:w-28 sm:h-28 object-contain cursor-pointer hover:scale-110 active:scale-95 transition-transform duration-150"
-                                onClick={() =>
-                                  window.open(msg.content.replace("🏷️ ", "").trim(), "_blank")
-                                }
-                                loading="lazy"
-                              />
-                            </div>
-                          ) : msg.content?.startsWith("📷 http") ? (
-                            <div className="rounded-2xl overflow-hidden max-w-[220px] max-h-[220px] border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                              <img
-                                src={msg.content.replace("📷 ", "").trim()}
-                                alt=""
-                                className="w-full h-full object-cover cursor-pointer"
-                                onClick={() =>
-                                  window.open(msg.content.replace("📷 ", "").trim(), "_blank")
-                                }
-                                loading="lazy"
-                              />
-                            </div>
-                          ) : (
-                            <div
-                              className={`px-3.5 py-2 text-xs font-medium leading-relaxed shadow-xs break-words ${
-                                isMe
-                                  ? "max-w-[100%] rounded-2xl rounded-br-xs bg-black text-white dark:bg-white dark:text-black shadow-sm"
-                                  : "max-w-[100%] rounded-2xl rounded-bl-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200/80 dark:border-zinc-700/60 shadow-sm"
-                              }`}
-                            >
-                              {msg.content?.trim() ? (
-                                msg.content
-                              ) : (
-                                <div className="flex items-center gap-1 py-0.5">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.3s]" />
-                                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.15s]" />
-                                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" />
+                                {msg.content?.trim() ? (
+                                  msg.content
+                                ) : (
+                                  <div className="flex items-center gap-1 py-0.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.3s]" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.15s]" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" />
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Message Reaction Badges */}
+                            {messageReactions[msg.id] && Object.keys(messageReactions[msg.id]).length > 0 && (
+                              <div className={`flex items-center -mt-2 z-10 animate-in zoom-in-75 duration-150 ${isMe ? "justify-end mr-1" : "justify-start ml-1"}`}>
+                                <div
+                                  onClick={() => setReactionPickerMsgId(reactionPickerMsgId === msg.id ? null : msg.id)}
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-xs text-[11px] cursor-pointer hover:scale-105 active:scale-95 transition-transform select-none"
+                                  title="Cảm xúc tin nhắn"
+                                >
+                                  {Array.from(new Set(Object.values(messageReactions[msg.id]))).slice(0, 3).map((emo, eIdx) => (
+                                    <span key={eIdx}>{emo}</span>
+                                  ))}
+                                  {Object.keys(messageReactions[msg.id]).length > 1 && (
+                                    <span className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">
+                                      {Object.keys(messageReactions[msg.id]).length}
+                                    </span>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          )}
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {/* Timestamp & Read Receipt */}
@@ -1254,7 +1369,7 @@ export default function FloatingChatWidget() {
 
                 {/* Uploading Voice Indicator */}
                 {isUploadingVoice && (
-                  <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 self-end">
+                  <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 self-end animate-fade-in-up">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />
                     <span>Đang tải lên tin nhắn thoại...</span>
                   </div>
@@ -1262,9 +1377,30 @@ export default function FloatingChatWidget() {
 
                 {/* AI Typing Indicator */}
                 {isAiTyping && (
-                  <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                  <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 animate-fade-in-up">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
                     <span>Trợ lý BlogViet đang phản hồi...</span>
+                  </div>
+                )}
+
+                {/* Friend Typing Indicator (Ba chấm động sống động) */}
+                {isFriendTyping && (
+                  <div className="flex items-end gap-2 animate-fade-in-up">
+                    <Avatar
+                      userId={activeFriend?.id}
+                      src={activeFriend?.avatarUrl}
+                      name={activeFriend?.fullName || activeFriend?.username}
+                      username={activeFriend?.username}
+                      avatarColor={activeFriend?.avatarColor}
+                      size="xs"
+                      isOnline={activeFriend?.isOnline}
+                      showActiveStatus={false}
+                    />
+                    <div className="px-3 py-2 rounded-2xl rounded-bl-xs bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/60 shadow-xs flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.3s]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.15s]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" />
+                    </div>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -1291,6 +1427,50 @@ export default function FloatingChatWidget() {
             </div>
             )}
           </div>
+
+          {/* Image Upload Preview Banner */}
+          {previewImageUrl && (
+            <div className="p-2 bg-zinc-100 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-3 animate-in slide-in-from-bottom-2 duration-150">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <img
+                  src={previewImageUrl}
+                  alt="Xem trước"
+                  className="w-12 h-12 object-cover rounded-xl border border-zinc-300 dark:border-zinc-700 shadow-2xs shrink-0"
+                />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                    {previewImageFile?.name || "Hình ảnh"}
+                  </span>
+                  <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                    {(previewImageFile?.size ? (previewImageFile.size / 1024).toFixed(0) : 0)} KB · Sẵn sàng gửi
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleCancelPreviewImage}
+                  className="p-1.5 rounded-xl bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition cursor-pointer"
+                  title="Hủy ảnh"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmSendPreviewImage}
+                  disabled={uploadingImage}
+                  className="px-3 py-1.5 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-xs active:scale-95 disabled:opacity-50"
+                >
+                  {uploadingImage ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
+                  <span>Gửi ảnh</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Emoji Picker Popup */}
           {showEmojiPicker && (
@@ -1422,18 +1602,18 @@ export default function FloatingChatWidget() {
                       GIF
                     </button>
 
-                    {/* Image Select */}
+                    {/* Image / Camera Select */}
                     <button
                       type="button"
                       onClick={() => imageInputRef.current?.click()}
                       disabled={uploadingImage || isUploadingVoice}
                       className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition cursor-pointer disabled:opacity-50"
-                      title="Gửi hình ảnh"
+                      title="Đính kèm hình ảnh hoặc chụp ảnh"
                     >
                       {uploadingImage ? (
                         <Loader2 className="w-4 h-4 animate-spin text-[#0866ff]" />
                       ) : (
-                        <Image className="w-4 h-4" />
+                        <Camera className="w-4 h-4" />
                       )}
                     </button>
                     <input
@@ -1468,7 +1648,7 @@ export default function FloatingChatWidget() {
                   {/* Send Button */}
                   <button
                     type="submit"
-                    disabled={!inputMessage.trim()}
+                    disabled={!inputMessage.trim() && !previewImageFile}
                     className="w-8 h-8 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center hover:opacity-90 active:scale-95 transition cursor-pointer disabled:opacity-30 shrink-0 shadow-xs"
                     title="Gửi tin nhắn"
                   >
