@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
-import { X, Loader2, UserPlus, Heart } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { X, Loader2, UserPlus, Heart, Users, UserCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import likeService from "../services/likeService";
 import followService from "../services/followService";
+import friendService from "../services/friendService";
 import { toast } from "sonner";
 
 function getInitials(name) {
@@ -28,6 +29,7 @@ export default function ReactionsModal({
 
   const [reactionsList, setReactionsList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [friendIds, setFriendIds] = useState(new Set());
   const [followingIds, setFollowingIds] = useState([]);
   const [followLoadingMap, setFollowLoadingMap] = useState({});
 
@@ -37,7 +39,7 @@ export default function ReactionsModal({
     let cancelled = false;
     setLoading(true);
 
-    // Fetch likers
+    // 1. Fetch likers
     likeService
       .getReactionsList(postId)
       .then((resLikes) => {
@@ -62,8 +64,21 @@ export default function ReactionsModal({
         if (!cancelled) setLoading(false);
       });
 
-    // Fetch user following IDs from Database
+    // 2. Fetch friend IDs from Database to prioritize friends at the top
     if (currentUserId) {
+      friendService
+        .getFriendsList(currentUserId)
+        .then((res) => {
+          if (!cancelled && Array.isArray(res.data)) {
+            const ids = new Set(
+              res.data.map((f) => Number(f.id || f.friendId || f.userId)).filter(Boolean)
+            );
+            setFriendIds(ids);
+          }
+        })
+        .catch(() => {});
+
+      // 3. Fetch user following IDs from Database
       followService
         .getFollowingIds(currentUserId)
         .then((res) => {
@@ -101,7 +116,32 @@ export default function ReactionsModal({
     };
   };
 
-  const normalizedList = reactionsList.map(getUserData);
+  // Sắp xếp ưu tiên: 1. Chính mình -> 2. Bạn bè (Friends) -> 3. Đang theo dõi -> 4. Người khác
+  const sortedList = useMemo(() => {
+    const list = reactionsList.map(getUserData);
+    return [...list].sort((a, b) => {
+      const aId = Number(a.id);
+      const bId = Number(b.id);
+
+      // 1. Chính mình lên đầu
+      if (aId === Number(currentUserId)) return -1;
+      if (bId === Number(currentUserId)) return 1;
+
+      // 2. ƯU TIÊN BẠN BÈ (Friends) LÊN TRÊN CÙNG
+      const aIsFriend = friendIds.has(aId);
+      const bIsFriend = friendIds.has(bId);
+      if (aIsFriend && !bIsFriend) return -1;
+      if (!aIsFriend && bIsFriend) return 1;
+
+      // 3. Ưu tiên người đang theo dõi
+      const aIsFollowing = followingIds.includes(aId);
+      const bIsFollowing = followingIds.includes(bId);
+      if (aIsFollowing && !bIsFollowing) return -1;
+      if (!aIsFollowing && bIsFollowing) return 1;
+
+      return 0;
+    });
+  }, [reactionsList, friendIds, followingIds, currentUserId]);
 
   const handleToggleFollow = async (targetUser) => {
     if (!currentUserId) {
@@ -135,7 +175,7 @@ export default function ReactionsModal({
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
       <div className="w-full max-w-md bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
-        {/* Header Modal Tối giản */}
+        {/* Header Modal */}
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-500 flex items-center justify-center">
@@ -146,7 +186,7 @@ export default function ReactionsModal({
                 Người đã thả tim
               </h3>
               <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                {normalizedList.length || totalLikeCount} lượt thích
+                {sortedList.length || totalLikeCount} lượt thích
               </span>
             </div>
           </div>
@@ -160,22 +200,24 @@ export default function ReactionsModal({
           </button>
         </div>
 
-        {/* Danh sách người thả tim */}
+        {/* Danh sách người thả tim (Ưu tiên bạn bè lên đầu) */}
         <div className="flex-1 overflow-y-auto p-2 divide-y divide-slate-100 dark:divide-slate-800/60 custom-scrollbar">
           {loading ? (
             <div className="p-8 flex flex-col items-center justify-center gap-2 text-zinc-400">
               <Loader2 className="w-5 h-5 animate-spin" />
               <span className="text-xs">Đang tải danh sách...</span>
             </div>
-          ) : normalizedList.length === 0 ? (
+          ) : sortedList.length === 0 ? (
             <div className="p-8 text-center text-zinc-400 text-xs">
               Chưa có ai thả tim bài viết này.
             </div>
           ) : (
-            normalizedList.map((user, idx) => {
-              const isMe = Number(user.id) === Number(currentUserId);
-              const isFollowing = followingIds.includes(Number(user.id));
-              const isFollowLoading = followLoadingMap[Number(user.id)];
+            sortedList.map((user, idx) => {
+              const targetId = Number(user.id);
+              const isMe = targetId === Number(currentUserId);
+              const isFriend = friendIds.has(targetId);
+              const isFollowing = followingIds.includes(targetId);
+              const isFollowLoading = followLoadingMap[targetId];
 
               return (
                 <div
@@ -216,9 +258,22 @@ export default function ReactionsModal({
                     </div>
 
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate hover:underline">
-                        {user.fullName || user.username}
-                      </span>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate hover:underline">
+                          {user.fullName || user.username}
+                        </span>
+                        {isMe && (
+                          <span className="px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] font-semibold text-zinc-500 shrink-0">
+                            Bạn
+                          </span>
+                        )}
+                        {isFriend && !isMe && (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/60 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50 shrink-0">
+                            <Users className="w-2.5 h-2.5" />
+                            Bạn bè
+                          </span>
+                        )}
+                      </div>
                       <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
                         @{user.username}
                       </span>
