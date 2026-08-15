@@ -83,9 +83,9 @@ export default function FriendsPage() {
   };
 
   return (
-    <div className="w-full flex flex-col gap-5">
-      {/* Unified Header */}
-      <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
+    <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm p-4 sm:p-6 mb-6 flex flex-col gap-4">
+      {/* Header inside Card */}
+      <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-zinc-100 dark:border-zinc-800">
         <div className="flex items-center gap-2.5 min-w-0">
           <button
             type="button"
@@ -100,7 +100,7 @@ export default function FriendsPage() {
           </div>
           <div className="flex flex-col min-w-0">
             <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
-              Bạn bè & Kết nối
+              Bạn bè &amp; Kết nối
             </h1>
             <p className="text-[11px] sm:text-xs text-zinc-500 truncate">
               Quản lý danh sách bạn bè và lời mời kết nối.
@@ -109,10 +109,8 @@ export default function FriendsPage() {
         </div>
       </div>
 
-      {/* Elevated White Content Card */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl shadow-sm p-4 sm:p-6 flex flex-col gap-4">
-        {/* Tabs Switcher */}
-        <div className="flex items-center gap-2 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 overflow-x-auto no-scrollbar">
+      {/* Tabs Switcher */}
+      <div className="flex items-center gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-2 overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setActiveTab("friends")}
@@ -322,6 +320,5 @@ export default function FriendsPage() {
           )}
         </div>
       </div>
-    </div>
   );
 }
