@@ -1530,48 +1530,25 @@ export default function FloatingChatWidget() {
                   )}
                 </div>
 
-                {/* Horizontal Stories / Tin 24h Bar */}
+                {/* Horizontal Stories / Tin 24h Bar (Hiển thị tin của bạn bè) */}
                 <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1.5 px-1 shrink-0 border-b border-zinc-100 dark:border-zinc-800/80">
-                  {/* Your Story (Tạo Tin / Tin của bạn) */}
-                  <div
-                    className="flex flex-col items-center gap-1 shrink-0 cursor-pointer group select-none"
-                    onClick={() => setShowCreateStoryModal(true)}
-                  >
-                    <div className="relative">
-                      <Avatar
-                        userId={currentUserId}
-                        src={currentUser?.avatarUrl}
-                        name={currentUser?.fullName || currentUser?.username}
-                        username={currentUser?.username}
-                        avatarColor={currentUser?.avatarColor}
-                        size="md"
-                        disableLink={true}
-                        hideStatus={true}
-                        className="group-hover:scale-105 transition-transform"
-                      />
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#0866ff] text-white flex items-center justify-center text-[10px] font-bold border-2 border-white dark:border-zinc-900 shadow-xs">
-                        <Plus className="w-2.5 h-2.5 stroke-[3]" />
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-semibold text-zinc-700 dark:text-zinc-300 max-w-12 truncate text-center">
-                      Tin của bạn
-                    </span>
-                  </div>
-
-                  {/* Stories list from backend & friends */}
-                  {(rawStories && rawStories.length > 0 ? rawStories : [
+                  {/* Stories list from friends */}
+                  {(rawStories?.filter(s => Number(s.user?.id) !== Number(currentUserId)).length > 0
+                    ? rawStories.filter(s => Number(s.user?.id) !== Number(currentUserId))
+                    : [
                     {
                       id: "story_ai",
                       user: { id: "ai_bot", fullName: "BlogViet AI", username: "ai" },
-                      text: "💡 Studio AI và tính năng Tin 24h đã được đồng bộ toàn diện trên BlogViet!",
-                      bg: "from-indigo-600 to-purple-600",
-                      createdAt: Date.now() - 3600000,
+                      textContent: "💡 Studio AI và tính năng Tin 24h đã được đồng bộ toàn diện trên BlogViet!",
+                      bgColor: "from-indigo-600 to-purple-600",
+                      createdAt: new Date().toISOString(),
                     }
                   ]).map((st) => (
-                    <div
+                    <button
                       key={st.id}
+                      type="button"
                       onClick={() => setActiveViewingStory(st)}
-                      className="flex flex-col items-center gap-1 shrink-0 cursor-pointer group select-none"
+                      className="flex flex-col items-center gap-1 shrink-0 cursor-pointer group select-none bg-transparent border-none p-0 focus:outline-none"
                     >
                       <div className="p-0.5 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-500 group-hover:scale-105 transition-transform shadow-2xs">
                         <Avatar
@@ -1583,13 +1560,13 @@ export default function FloatingChatWidget() {
                           size="md"
                           disableLink={true}
                           hideStatus={true}
-                          className="border-2 border-white dark:border-zinc-900"
+                          className="border-2 border-white dark:border-zinc-900 pointer-events-none"
                         />
                       </div>
-                      <span className="text-[10px] font-semibold text-zinc-700 dark:text-zinc-300 max-w-12 truncate text-center">
+                      <span className="text-[10px] font-semibold text-zinc-700 dark:text-zinc-300 max-w-12 truncate text-center pointer-events-none">
                         {st.user?.fullName?.split(" ")?.[0] || st.user?.username || "Bạn bè"}
                       </span>
-                    </div>
+                    </button>
                   ))}
                 </div>
 
@@ -2715,10 +2692,16 @@ export default function FloatingChatWidget() {
         </div>
       )}
 
-      {/* 2. Story Viewer Modal (Xem Tin của bạn bè) */}
+      {/* 2. Story Viewer Modal (Xem Tin của bạn bè - Responsive Fullscreen on Mobile / Centered on PC) */}
       {activeViewingStory && (
-        <div className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm h-[520px] rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between p-4 text-white bg-zinc-950">
+        <div
+          className="fixed inset-0 z-[999999] bg-black/90 sm:backdrop-blur-md flex items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+          onClick={() => setActiveViewingStory(null)}
+        >
+          <div
+            className="relative w-full h-full sm:h-[580px] sm:max-w-sm md:max-w-md sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between p-4 text-white bg-zinc-950"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Background Story Content */}
             {activeViewingStory.mediaUrl || activeViewingStory.imageUrl ? (
               <img
@@ -2731,7 +2714,7 @@ export default function FloatingChatWidget() {
                 className={`absolute inset-0 w-full h-full bg-gradient-to-tr ${activeViewingStory.bgColor || activeViewingStory.bg || "from-indigo-600 to-purple-600"}`}
               />
             )}
-            <div className="absolute inset-0 bg-black/20" />
+            <div className="absolute inset-0 bg-black/25" />
 
             {/* Top Bar: Progress & User Info */}
             <div className="relative z-10 flex flex-col gap-3">
@@ -2764,16 +2747,17 @@ export default function FloatingChatWidget() {
                 <button
                   type="button"
                   onClick={() => setActiveViewingStory(null)}
-                  className="p-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm transition cursor-pointer"
+                  className="p-1.5 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm transition cursor-pointer"
+                  title="Đóng tin"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </div>
 
             {/* Center Story Text */}
             <div className="relative z-10 my-auto text-center px-4">
-              <p className="text-lg font-black leading-relaxed drop-shadow-lg">
+              <p className="text-lg sm:text-xl font-black leading-relaxed drop-shadow-lg">
                 {activeViewingStory.textContent || activeViewingStory.text}
               </p>
             </div>
@@ -2785,8 +2769,8 @@ export default function FloatingChatWidget() {
                 placeholder={`Gửi phản hồi cho ${activeViewingStory.user?.fullName?.split(" ")?.[0] || "bạn bè"}...`}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && e.target.value.trim()) {
-                    const text = `💬 Phản hồi tin: "${activeViewingStory.text || "Hình ảnh"}" - ${e.target.value.trim()}`;
-                    if (activeViewingStory.user?.id && activeViewingStory.user.id !== currentUserId) {
+                    const text = `💬 Phản hồi tin: "${activeViewingStory.textContent || activeViewingStory.text || "Hình ảnh"}" - ${e.target.value.trim()}`;
+                    if (activeViewingStory.user?.id && Number(activeViewingStory.user.id) !== Number(currentUserId)) {
                       chatService.sendMessage(currentUserId, activeViewingStory.user.id, text).catch(() => {});
                       toast.success("Đã gửi phản hồi vào tin nhắn!");
                     } else {
