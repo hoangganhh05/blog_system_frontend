@@ -352,24 +352,35 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
             </button>
 
             {menuOpen && typeof document !== "undefined" && createPortal(
-              <div
-                className="fixed inset-0 z-[999999] bg-transparent"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setUserMenuOpen(false);
-                }}
-              >
+              <>
+                {/* 1. Backdrop tàng hình để đóng khi click ra ngoài (z-index thấp hơn menu) */}
+                <div
+                  className="fixed inset-0 z-[999998] bg-transparent cursor-default"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setUserMenuOpen(false);
+                  }}
+                />
+
+                {/* 2. Menu Popup thực tế (z-index cao nhất, pointer-events-auto độc lập) */}
                 <div
                   style={{
                     top: `${menuPos.top}px`,
                     right: `${menuPos.right}px`,
                   }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="fixed w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-[999999] flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  className="fixed w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-[999999] pointer-events-auto flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
                 >
                   <button
                     type="button"
-                    onClick={handleCopyLink}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      handleCopyLink(e);
+                    }}
                     className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left transition cursor-pointer"
                   >
                     {isCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
@@ -378,7 +389,11 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
                   <button
                     type="button"
-                    onClick={handleAiSummarize}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      handleAiSummarize(e);
+                    }}
                     disabled={isSummarizing}
                     className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-indigo-600 dark:text-indigo-400 w-full text-left transition cursor-pointer"
                   >
@@ -390,7 +405,13 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                     <>
                       <button
                         type="button"
-                        onClick={handleEdit}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          console.log("👉 [PostCard] Bấm nút SỬA cho post:", post?.id);
+                          setUserMenuOpen(false);
+                          setIsEditModalOpen(true);
+                        }}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left transition cursor-pointer"
                       >
                         <Edit className="w-4 h-4" />
@@ -401,7 +422,13 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
                       <button
                         type="button"
-                        onClick={handleDelete}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          console.log("👉 [PostCard] Bấm nút XÓA cho post:", post?.id);
+                          setUserMenuOpen(false);
+                          setIsDeleteModalOpen(true);
+                        }}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 w-full text-left transition cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -410,8 +437,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                     </>
                   )}
                 </div>
-              </div>,
-              document.body
+              </>
             )}
           </div>
         </div>
