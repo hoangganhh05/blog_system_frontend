@@ -1396,7 +1396,7 @@ export default function Profile() {
       )}
 
       {/* Image Lightbox Modal (Avatar / Cover Photo) */}
-      {lightboxUrl && createPortal(
+      {lightboxUrl && typeof document !== "undefined" && document.body && createPortal(
         <div
           className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/85 backdrop-blur-sm animate-in fade-in duration-150 cursor-zoom-out"
           onClick={() => setLightboxUrl(null)}

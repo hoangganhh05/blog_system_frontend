@@ -49,8 +49,7 @@ export default function ShareModal({
     }
   }, [isOpen, currentUserId]);
 
-  if (!isOpen || !post) return null;
-  if (typeof document === "undefined") return null;
+  if (!isOpen || !post || typeof document === "undefined" || !document.body) return null;
 
   const author = post.user || {};
   const authorName = author.fullName || author.username || "Người dùng";

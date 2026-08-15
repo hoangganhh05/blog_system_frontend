@@ -351,7 +351,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
               <MoreHorizontal className="w-4 h-4" />
             </button>
 
-            {menuOpen && typeof document !== "undefined" && createPortal(
+            {menuOpen && typeof document !== "undefined" && document.body && createPortal(
               <>
                 {/* 1. Backdrop tàng hình để đóng khi click ra ngoài (z-index thấp hơn menu) */}
                 <div

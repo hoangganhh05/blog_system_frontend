@@ -201,7 +201,7 @@ export default function MobileNavDrawer({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined" || !document.body) return null;
 
   const navLinks = [
     { to: "/", label: "Bảng tin trang chủ", icon: Home },

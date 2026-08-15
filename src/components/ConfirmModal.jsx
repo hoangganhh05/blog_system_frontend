@@ -11,8 +11,7 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
 }) {
-  if (!isOpen) return null;
-  if (typeof document === "undefined") return null;
+  if (!isOpen || typeof document === "undefined" || !document.body) return null;
 
   return createPortal(
     <div

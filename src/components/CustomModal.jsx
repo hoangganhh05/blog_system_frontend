@@ -38,45 +38,52 @@ export function AiPromptModal({ isOpen, onClose, onSubmit, loading }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100 font-bold">
-              <Sparkles className="w-4 h-4 text-amber-500" />
+              AI
             </div>
             <div>
               <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                Trợ lý gợi ý viết bài
+                Tạo bài viết với AI
               </h3>
-              <p className="text-[11px] text-zinc-500">
-                Nhập chủ đề để trợ lý khơi nguồn ý tưởng
+              <p className="text-xs text-zinc-500">
+                Gợi ý chủ đề hoặc nhập ý tưởng của bạn
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+            className="p-1 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <input
-            type="text"
-            placeholder="VD: Kinh nghiệm du lịch, học lập trình..."
-            value={promptText}
-            onChange={(e) => setPromptText(e.target.value)}
-            autoFocus
-            className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-black dark:focus:border-white"
-          />
-
-          {/* Suggested topics */}
+        {/* Content / Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-semibold text-zinc-400">Gợi ý chủ đề nhanh:</span>
+            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              Bạn muốn viết về điều gì?
+            </label>
+            <textarea
+              rows={3}
+              value={promptText}
+              onChange={(e) => setPromptText(e.target.value)}
+              placeholder="Nhập chủ đề hoặc ý tưởng bài viết..."
+              className="w-full text-xs p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 resize-none transition"
+              autoFocus
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-medium text-zinc-500">
+              Gợi ý nhanh:
+            </span>
             <div className="flex flex-wrap gap-1.5">
-              {SUGGESTED_TOPICS.map((topic, idx) => (
+              {SUGGESTED_TOPICS.map((topic) => (
                 <button
-                  key={idx}
+                  key={topic}
                   type="button"
-                  onClick={() => setPromptText(topic.replace(/^[^\s]+\s/, ""))}
+                  onClick={() => setPromptText(topic)}
                   className="text-xs px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition cursor-pointer"
                 >
                   {topic}
@@ -103,7 +110,8 @@ export function AiPromptModal({ isOpen, onClose, onSubmit, loading }) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -111,8 +119,7 @@ export function AiPromptModal({ isOpen, onClose, onSubmit, loading }) {
  * Modern Custom Confirm Dialog
  */
 export function ConfirmModal({ isOpen, title, message, confirmText = "Xác nhận", confirmVariant = "danger", onClose, onConfirm }) {
-  if (!isOpen) return null;
-  if (typeof document === "undefined") return null;
+  if (!isOpen || typeof document === "undefined" || !document.body) return null;
 
   return createPortal(
     <div

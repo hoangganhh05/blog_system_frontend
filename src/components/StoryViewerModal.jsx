@@ -237,6 +237,8 @@ export default function StoryViewerModal({
     }
   };
 
+  if (typeof document === "undefined" || !document.body) return null;
+
   return createPortal(
     <div className="fixed inset-0 z-[99999] bg-black flex items-center justify-center select-none overflow-hidden animate-in fade-in duration-150">
       {/* Floating Emojis Animation */}

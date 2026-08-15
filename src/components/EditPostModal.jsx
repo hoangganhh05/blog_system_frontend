@@ -95,6 +95,8 @@ export default function EditPostModal({ isOpen = true, onClose, post, onUpdated 
     }
   };
 
+  if (typeof document === "undefined" || !document.body) return null;
+
   return createPortal(
     <div className="fixed inset-0 z-[999999] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
       <div

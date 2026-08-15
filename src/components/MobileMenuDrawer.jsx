@@ -13,7 +13,7 @@ export default function MobileMenuDrawer({ isOpen, onClose, isDark, onToggleThem
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined" || !document.body) return null;
 
   const handleLogout = () => {
     logout();

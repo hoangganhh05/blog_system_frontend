@@ -260,6 +260,8 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
     toast.info("Đã xóa lịch sử trò chuyện với AI");
   };
 
+  if (!isOpen || typeof document === "undefined" || !document.body) return null;
+
   return createPortal(
     <div
       className="fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150"

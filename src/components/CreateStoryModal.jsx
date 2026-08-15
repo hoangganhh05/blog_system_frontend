@@ -93,6 +93,8 @@ export default function CreateStoryModal({ isOpen = true, onClose, onCreated, on
     }
   };
 
+  if (!isOpen || typeof document === "undefined" || !document.body) return null;
+
   return createPortal(
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150"
