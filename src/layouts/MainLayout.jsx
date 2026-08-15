@@ -451,26 +451,26 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           to="/"
           end
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition ${
+            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition-all duration-150 active:scale-90 ${
               isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
             }`
           }
           title="Trang chủ"
         >
-          {({ isActive }) => <Home strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5" />}
+          {({ isActive }) => <Home strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />}
         </NavLink>
 
         {/* 2. Khám phá / Tìm kiếm */}
         <NavLink
           to="/trending"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition ${
+            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition-all duration-150 active:scale-90 ${
               isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
             }`
           }
           title="Khám phá"
         >
-          {({ isActive }) => <Compass strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5" />}
+          {({ isActive }) => <Compass strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />}
         </NavLink>
 
         {/* 3. Tạo bài viết (Nút cộng ở giữa nổi bật) */}
@@ -483,7 +483,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               setIsCreateModalOpen(true);
             }
           }}
-          className="w-11 h-11 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white flex items-center justify-center shadow-md active:scale-95 transition cursor-pointer shrink-0"
+          className="w-11 h-11 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white flex items-center justify-center shadow-md active:scale-90 hover:scale-105 transition-all duration-150 cursor-pointer shrink-0"
           title="Tạo bài viết mới"
         >
           <Plus strokeWidth={2.5} className="w-5 h-5" />
@@ -493,7 +493,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <NavLink
           to="/notifications"
           className={({ isActive }) =>
-            `relative flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition ${
+            `relative flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition-all duration-150 active:scale-90 ${
               isActive ? "text-black dark:text-white font-bold" : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
             }`
           }
@@ -501,9 +501,9 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         >
           {({ isActive }) => (
             <>
-              <Bell strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5" />
+              <Bell strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />
               {unreadNotifs > 0 && (
-                <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
+                <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black animate-pulse" />
               )}
             </>
           )}
@@ -513,8 +513,8 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <NavLink
           to={currentUserId ? `/profile/${currentUserId}` : "/login"}
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1 rounded-full transition ${
-              isActive ? "ring-2 ring-black dark:ring-white" : ""
+            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1 rounded-full transition-all duration-150 active:scale-90 ${
+              isActive ? "ring-2 ring-[#0866ff]" : ""
             }`
           }
           title="Trang cá nhân"

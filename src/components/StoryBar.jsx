@@ -78,7 +78,7 @@ function StoryBar() {
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="w-26 h-40 sm:w-28 sm:h-44 rounded-2xl relative overflow-hidden flex-shrink-0 flex flex-col justify-between border border-zinc-200 dark:border-zinc-800 group cursor-pointer shadow-xs hover:shadow-md transition-all duration-300 select-none bg-zinc-100 dark:bg-zinc-800/90 text-left focus:outline-none"
+            className="w-26 h-40 sm:w-28 sm:h-44 rounded-2xl relative overflow-hidden flex-shrink-0 flex flex-col justify-between border border-zinc-200 dark:border-zinc-800 group cursor-pointer shadow-xs hover:shadow-md active:scale-95 transition-all duration-200 select-none bg-zinc-100 dark:bg-zinc-800/90 text-left focus:outline-none"
           >
             {/* Nửa trên: Ảnh đại diện/ảnh bìa user */}
             <div className="relative w-full h-[66%] overflow-hidden bg-zinc-200 dark:bg-zinc-700">
@@ -127,7 +127,7 @@ function StoryBar() {
               key={user.id || idx}
               type="button"
               onClick={() => setViewerIndex(idx)}
-              className="w-26 h-40 sm:w-28 sm:h-44 rounded-2xl relative overflow-hidden flex-shrink-0 flex flex-col justify-between border border-zinc-200/80 dark:border-zinc-800 group cursor-pointer shadow-xs hover:shadow-md transition-all duration-300 select-none bg-zinc-900 text-left focus:outline-none"
+              className="w-26 h-40 sm:w-28 sm:h-44 rounded-2xl relative overflow-hidden flex-shrink-0 flex flex-col justify-between border border-zinc-200/80 dark:border-zinc-800 group cursor-pointer shadow-xs hover:shadow-md active:scale-95 transition-all duration-200 select-none bg-zinc-900 text-left focus:outline-none"
             >
               {/* Ảnh nền / Media Thumbnail chiếm trọn khung */}
               {backgroundMedia ? (
