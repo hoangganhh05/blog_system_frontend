@@ -16,18 +16,31 @@ export function AuthProvider({ children }) {
   // Khôi phục user từ localStorage khi load trang và lắng nghe sự thay đổi thiết bị đăng nhập
   useEffect(() => {
     const savedUser = localStorage.getItem("blog_user");
-    if (savedUser) {
+    const savedToken = localStorage.getItem("blog_token");
+
+    // Dọn sạch token rác nếu có
+    if (!savedToken || savedToken === "undefined" || savedToken === "null") {
+      localStorage.removeItem("blog_token");
+      localStorage.removeItem("blog_user");
+      localStorage.removeItem("blog_session_id");
+      setCurrentUser(null);
+    } else if (savedUser) {
       try {
         const parsed = JSON.parse(savedUser);
-        const normalizedUser = {
-          ...parsed,
-          id: parsed.id || parsed.userId,
-        };
-        setCurrentUser(normalizedUser);
+        if (parsed && typeof parsed === "object") {
+          const normalizedUser = {
+            ...parsed,
+            id: parsed.id || parsed.userId,
+          };
+          setCurrentUser(normalizedUser);
+        } else {
+          throw new Error("Invalid user json");
+        }
       } catch {
         localStorage.removeItem("blog_user");
         localStorage.removeItem("blog_token");
         localStorage.removeItem("blog_session_id");
+        setCurrentUser(null);
       }
     }
     setLoading(false);
@@ -55,7 +68,18 @@ export function AuthProvider({ children }) {
 
   // userData = { token, userId, username, fullName, role }
   const login = (userData) => {
-    const { token, ...user } = userData;
+    if (!userData || typeof userData !== "object") {
+      console.error("[AUTH LOGIN ERROR] Dữ liệu người dùng không hợp lệ:", userData);
+      return;
+    }
+
+    const token = userData.token || userData.accessToken || userData.jwt;
+    if (!token || token === "undefined" || token === "null") {
+      console.error("[AUTH LOGIN ERROR] Thiếu mã Token xác thực:", userData);
+      throw new Error("Máy chủ không trả về mã xác thực hợp lệ!");
+    }
+
+    const { token: _, ...user } = userData;
     const sessionToken = "sess_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9);
     const normalizedUser = {
       ...user,

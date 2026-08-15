@@ -1,5 +1,5 @@
 /**
- * Web Crypto API AES-256-CBC Encryption Utility
+ * Robust Web Crypto AES-256-CBC Encryption Utility with Graceful Fallback
  * Compatible with Spring Boot Java Cipher: AES/CBC/PKCS5Padding
  */
 
@@ -7,6 +7,10 @@ const SECRET_KEY_STR = "BlogVietSecureKey2026AES256Secret"; // 32 bytes (256 bit
 const INIT_VECTOR_STR = "BlogVietInitVec1"; // 16 bytes (128 bits)
 
 let cachedKey = null;
+
+function hasSubtleCrypto() {
+  return typeof window !== "undefined" && window.crypto && Boolean(window.crypto.subtle);
+}
 
 // Helper Base64 encode/decode
 function bufferToBase64(buffer) {
@@ -19,7 +23,8 @@ function bufferToBase64(buffer) {
 }
 
 function base64ToBuffer(base64) {
-  const binary = window.atob(base64.trim());
+  const cleaned = base64.trim().replace(/\s/g, "");
+  const binary = window.atob(cleaned);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
@@ -29,25 +34,43 @@ function base64ToBuffer(base64) {
 
 async function getCryptoKey() {
   if (cachedKey) return cachedKey;
-  const keyBytes = new TextEncoder().encode(SECRET_KEY_STR);
-  cachedKey = await window.crypto.subtle.importKey(
-    "raw",
-    keyBytes,
-    { name: "AES-CBC" },
-    false,
-    ["encrypt", "decrypt"]
-  );
-  return cachedKey;
+  if (!hasSubtleCrypto()) return null;
+
+  try {
+    const keyBytes = new TextEncoder().encode(SECRET_KEY_STR);
+    cachedKey = await window.crypto.subtle.importKey(
+      "raw",
+      keyBytes,
+      { name: "AES-CBC" },
+      false,
+      ["encrypt", "decrypt"]
+    );
+    return cachedKey;
+  } catch (e) {
+    console.warn("[CRYPTO KEY IMPORT ERROR]", e);
+    return null;
+  }
 }
 
 /**
- * Encrypt plaintext string into Base64 ciphertext (AES-256-CBC)
+ * Encrypt plaintext into Base64 ciphertext (AES-256-CBC)
+ * Returns { success: boolean, data: string }
  */
 export async function encryptData(plainText) {
-  if (plainText === null || plainText === undefined) return plainText;
+  if (plainText === null || plainText === undefined) {
+    return { success: false, data: plainText };
+  }
+
+  if (!hasSubtleCrypto()) {
+    // Subtle Crypto not available (e.g. non-https or older mobile webview)
+    return { success: false, data: plainText };
+  }
+
   try {
-    const textToEncrypt = typeof plainText === "object" ? JSON.stringify(plainText) : String(plainText);
     const key = await getCryptoKey();
+    if (!key) return { success: false, data: plainText };
+
+    const textToEncrypt = typeof plainText === "object" ? JSON.stringify(plainText) : String(plainText);
     const ivBytes = new TextEncoder().encode(INIT_VECTOR_STR);
     const encodedData = new TextEncoder().encode(textToEncrypt);
 
@@ -57,10 +80,11 @@ export async function encryptData(plainText) {
       encodedData
     );
 
-    return bufferToBase64(encryptedBuffer);
+    const base64 = bufferToBase64(encryptedBuffer);
+    return { success: true, data: base64 };
   } catch (err) {
-    console.warn("[CRYPTO ERROR] Lỗi mã hóa payload:", err);
-    return plainText;
+    console.warn("[CRYPTO ENCRYPT ERROR]", err);
+    return { success: false, data: plainText };
   }
 }
 
@@ -69,8 +93,24 @@ export async function encryptData(plainText) {
  */
 export async function decryptData(cipherText) {
   if (!cipherText || typeof cipherText !== "string") return cipherText;
+
+  // If text is not Base64-like, return as is
+  if (cipherText.trim().startsWith("{") || cipherText.trim().startsWith("[")) {
+    try {
+      return JSON.parse(cipherText);
+    } catch {
+      return cipherText;
+    }
+  }
+
+  if (!hasSubtleCrypto()) {
+    return cipherText;
+  }
+
   try {
     const key = await getCryptoKey();
+    if (!key) return cipherText;
+
     const ivBytes = new TextEncoder().encode(INIT_VECTOR_STR);
     const cipherBuffer = base64ToBuffer(cipherText);
 
@@ -87,7 +127,7 @@ export async function decryptData(cipherText) {
       return decodedString;
     }
   } catch (err) {
-    console.warn("[CRYPTO WARNING] Không thể giải mã chuỗi:", err);
+    console.warn("[CRYPTO DECRYPT WARNING]", err);
     return cipherText;
   }
 }
@@ -95,4 +135,5 @@ export async function decryptData(cipherText) {
 export default {
   encryptData,
   decryptData,
+  hasSubtleCrypto,
 };

@@ -27,27 +27,28 @@ const isPublicAuthRequest = (url = "") =>
 // =============================================
 axiosClient.interceptors.request.use(
   async (config) => {
-    // 1. Gắn Token xác thực
+    // 1. Gắn Token xác thực (Bỏ qua nếu token rác / null / undefined)
     const token = localStorage.getItem("blog_token");
     const requestUrl = `${config.url || ""}`;
 
-    if (token && !isPublicAuthRequest(requestUrl)) {
+    if (token && token !== "undefined" && token !== "null" && !isPublicAuthRequest(requestUrl)) {
       config.headers = config.headers || {};
       config.headers.Authorization = "Bearer " + token;
     }
 
-    // 2. Tự động mã hóa Payload Request (AES-256)
+    // 2. Tự động mã hóa Payload Request (AES-256) nếu môi trường hỗ trợ
     const method = (config.method || "get").toLowerCase();
     const isMutation = ["post", "put", "patch"].includes(method);
     const isFormData = typeof FormData !== "undefined" && config.data instanceof FormData;
 
-    // Không mã hóa FormData (File Uploads) hoặc request rỗng
     if (isMutation && config.data && !isFormData) {
       try {
-        const cipherText = await encryptData(config.data);
-        config.data = { encryptedData: cipherText };
-        config.headers = config.headers || {};
-        config.headers["X-Encrypted"] = "true";
+        const result = await encryptData(config.data);
+        if (result && result.success && result.data) {
+          config.data = { encryptedData: result.data };
+          config.headers = config.headers || {};
+          config.headers["X-Encrypted"] = "true";
+        }
       } catch (err) {
         console.warn("[AXIOS ENCRYPT WARNING]", err);
       }
@@ -63,15 +64,17 @@ axiosClient.interceptors.request.use(
 // =============================================
 axiosClient.interceptors.response.use(
   async (response) => {
-    // Tự động giải mã Payload Response nếu có mã hóa
-    const isEncrypted =
-      response.headers?.["x-encrypted"] === "true" ||
-      (response.data && typeof response.data === "object" && Boolean(response.data.encryptedData));
-
-    if (isEncrypted) {
+    // Tự động giải mã Payload Response nếu máy chủ trả về encryptedData
+    if (response.data && typeof response.data === "object" && response.data.encryptedData) {
       try {
-        const cipherText = response.data?.encryptedData || response.data;
-        const decrypted = await decryptData(cipherText);
+        const decrypted = await decryptData(response.data.encryptedData);
+        response.data = decrypted;
+      } catch (err) {
+        console.warn("[AXIOS DECRYPT WARNING]", err);
+      }
+    } else if (typeof response.data === "string" && response.headers?.["x-encrypted"] === "true") {
+      try {
+        const decrypted = await decryptData(response.data);
         response.data = decrypted;
       } catch (err) {
         console.warn("[AXIOS DECRYPT WARNING]", err);
@@ -103,7 +106,7 @@ axiosClient.interceptors.response.use(
       error.response.data = { message: errorMessage };
     }
 
-    // 401 (Unauthorized) - tự động logout
+    // 401 (Unauthorized) - tự động logout và dọn sạch session rác
     if (status === 401 && !isPublicAuthRequest(requestUrl)) {
       localStorage.removeItem("blog_token");
       localStorage.removeItem("blog_user");
