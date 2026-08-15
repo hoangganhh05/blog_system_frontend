@@ -1,35 +1,46 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Sparkles, RefreshCw, Loader2, MessageSquare, UserPlus, Users, Compass } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import postService from "../services/postService";
 import categoryService from "../services/categoryService";
 import friendService from "../services/friendService";
+import { useAuth } from "../context/AuthContext";
 import PostCard from "../components/PostCard";
-import QuickComposer from "../components/QuickComposer";
 import StoryBar from "../components/StoryBar";
+import QuickComposer from "../components/QuickComposer";
+import {
+  Loader2,
+  MessageSquare,
+  Users,
+  UserPlus,
+  Compass,
+} from "lucide-react";
+
+const PAGE_SIZE = 15;
 
 function PostSkeleton() {
   return (
-    <div className="p-4 border-b border-zinc-100 dark:border-zinc-900 flex gap-3 animate-pulse">
-      <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0" />
-      <div className="flex-1 min-w-0 flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-28 bg-zinc-200 dark:bg-zinc-800 rounded" />
-          <div className="h-3 w-16 bg-zinc-100 dark:bg-zinc-900 rounded" />
+    <div className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl animate-pulse">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800" />
+        <div className="flex-1 flex flex-col gap-1.5">
+          <div className="w-32 h-3.5 bg-zinc-200 dark:bg-zinc-800 rounded" />
+          <div className="w-20 h-2.5 bg-zinc-200 dark:bg-zinc-800 rounded" />
         </div>
-        <div className="h-4 w-full bg-zinc-100 dark:bg-zinc-900 rounded" />
-        <div className="h-4 w-3/4 bg-zinc-100 dark:bg-zinc-900 rounded" />
-        <div className="h-44 w-full bg-zinc-100 dark:bg-zinc-900 rounded-2xl mt-1" />
+      </div>
+      <div className="space-y-2">
+        <div className="w-full h-3 bg-zinc-200 dark:bg-zinc-800 rounded" />
+        <div className="w-3/4 h-3 bg-zinc-200 dark:bg-zinc-800 rounded" />
       </div>
     </div>
   );
 }
 
-export default function Home({ searchValue = "" }) {
+export default function Home() {
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
-  const currentUserId = currentUser ? Number(currentUser.id || currentUser.userId) : null;
+  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
+
+  const [searchParams] = useSearchParams();
+  const searchValue = searchParams.get("q") || "";
 
   const [activeTab, setActiveTab] = useState("forYou"); // "forYou" | "following"
   const [posts, setPosts] = useState([]);
@@ -39,11 +50,10 @@ export default function Home({ searchValue = "" }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+
   const isFetchingRef = useRef(false);
 
-  const PAGE_SIZE = 10;
-
-  // Load categories
+  // Fetch categories
   useEffect(() => {
     categoryService
       .getAll()
@@ -51,20 +61,29 @@ export default function Home({ searchValue = "" }) {
       .catch(() => {});
   }, []);
 
-  // Load friends list to filter "following" tab
-  useEffect(() => {
+  // Load friends / followed IDs
+  const loadFriendsList = useCallback(() => {
     if (currentUserId) {
       friendService
         .getFriendsList(currentUserId)
         .then((res) => {
           const list = Array.isArray(res.data) ? res.data : [];
-          setFriendIds(list.map((u) => Number(u.id)));
+          const ids = list
+            .map((u) => Number(u.id || u.friendId || u.userId))
+            .filter((id) => !isNaN(id) && id > 0);
+          setFriendIds(ids);
         })
-        .catch(() => {});
+        .catch(() => {
+          setFriendIds([]);
+        });
     } else {
       setFriendIds([]);
     }
   }, [currentUserId]);
+
+  useEffect(() => {
+    loadFriendsList();
+  }, [loadFriendsList]);
 
   // Fetch posts
   const fetchPosts = useCallback(
@@ -118,6 +137,17 @@ export default function Home({ searchValue = "" }) {
     fetchPosts(0, true);
   }, [fetchPosts, searchValue]);
 
+  // When switching to following tab, refresh friends list and load extra if needed
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === "following") {
+      loadFriendsList();
+      if (posts.length < 30 && hasMore) {
+        fetchPosts(page + 1);
+      }
+    }
+  };
+
   // Listen for refresh feed event
   useEffect(() => {
     const handleRefresh = () => fetchPosts(0, true);
@@ -147,7 +177,7 @@ export default function Home({ searchValue = "" }) {
     if (activeTab === "following") {
       if (!currentUserId) return [];
       const friendIdSet = new Set(friendIds);
-      // Hiển thị bài viết của chính mình và những người bạn/tác giả đã kết nối
+      // Hiển thị bài viết của chính mình và những người bạn/tác giả đã follow
       return posts.filter((p) => {
         const authorId = Number(p.user?.id || p.author?.id);
         return authorId === currentUserId || friendIdSet.has(authorId);
@@ -162,10 +192,10 @@ export default function Home({ searchValue = "" }) {
       <div className="flex border-b border-zinc-200 dark:border-zinc-800 mb-3 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
         <button
           type="button"
-          onClick={() => setActiveTab("forYou")}
+          onClick={() => handleTabChange("forYou")}
           className={`flex-1 py-3 text-center text-xs font-semibold transition relative cursor-pointer ${
             activeTab === "forYou"
-              ? "text-black dark:text-white"
+              ? "text-black dark:text-white font-bold"
               : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
         >
@@ -177,10 +207,10 @@ export default function Home({ searchValue = "" }) {
 
         <button
           type="button"
-          onClick={() => setActiveTab("following")}
+          onClick={() => handleTabChange("following")}
           className={`flex-1 py-3 text-center text-xs font-semibold transition relative cursor-pointer ${
             activeTab === "following"
-              ? "text-black dark:text-white"
+              ? "text-black dark:text-white font-bold"
               : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
         >
@@ -208,24 +238,35 @@ export default function Home({ searchValue = "" }) {
         ) : displayedPosts.length === 0 ? (
           activeTab === "following" ? (
             /* Empty State chuyên biệt cho Tab Đang Theo Dõi */
-            <div className="p-10 text-center flex flex-col items-center justify-center gap-3.5 text-zinc-500 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs">
+            <div className="p-8 sm:p-10 text-center flex flex-col items-center justify-center gap-3.5 text-zinc-500 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs">
               <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center shadow-xs">
                 <UserPlus className="w-7 h-7 stroke-[1.5]" />
               </div>
               <div className="flex flex-col gap-1">
                 <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
-                  {currentUserId
-                    ? "Chưa có bài viết từ người bạn đang theo dõi"
-                    : "Đăng nhập để xem bảng tin theo dõi"}
+                  {!currentUserId
+                    ? "Đăng nhập để xem bảng tin theo dõi"
+                    : friendIds.length === 0
+                    ? "Bạn chưa theo dõi ai"
+                    : "Chưa có bài viết mới từ bạn bè"}
                 </p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm leading-relaxed mx-auto">
-                  {currentUserId
-                    ? "Bạn chưa kết nối với bạn bè hoặc những người bạn theo dõi chưa có bài đăng mới. Hãy khám phá và kết nối thêm bạn bè để không bỏ lỡ các tin tức hấp dẫn!"
-                    : "Đăng nhập vào BlogViet để theo dõi các tác giả yêu thích và cập nhật bài viết mới nhất từ bạn bè của bạn."}
+                  {!currentUserId
+                    ? "Đăng nhập vào BlogViet để theo dõi các tác giả yêu thích và cập nhật bài viết mới nhất từ bạn bè của bạn."
+                    : friendIds.length === 0
+                    ? "Hãy khám phá và theo dõi thêm bạn bè hoặc tác giả yêu thích để không bỏ lỡ các tin tức, bài viết hấp dẫn!"
+                    : "Những người bạn đang theo dõi chưa đăng bài viết nào gần đây. Hãy kết nối thêm bạn bè hoặc quay lại bảng tin chung."}
                 </p>
               </div>
 
-              {currentUserId ? (
+              {!currentUserId ? (
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition active:scale-95 shadow-sm mt-1"
+                >
+                  <span>Đăng nhập ngay</span>
+                </Link>
+              ) : friendIds.length === 0 ? (
                 <Link
                   to="/friends"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition active:scale-95 shadow-sm mt-1"
@@ -234,12 +275,23 @@ export default function Home({ searchValue = "" }) {
                   <span>Khám phá bạn bè ngay</span>
                 </Link>
               ) : (
-                <Link
-                  to="/login"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition active:scale-95 shadow-sm mt-1"
-                >
-                  <span>Đăng nhập tài khoản</span>
-                </Link>
+                <div className="flex items-center gap-2 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("forYou")}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition active:scale-95 shadow-sm cursor-pointer"
+                  >
+                    <Compass className="w-3.5 h-3.5" />
+                    <span>Xem Dành Cho Bạn</span>
+                  </button>
+                  <Link
+                    to="/friends"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-semibold transition active:scale-95"
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Tìm thêm bạn</span>
+                  </Link>
+                </div>
               )}
             </div>
           ) : (
