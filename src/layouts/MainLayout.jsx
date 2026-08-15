@@ -407,7 +407,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
           <main
             ref={mainRef}
             onScroll={handleMainScroll}
-            className="col-span-12 lg:col-span-7 min-w-0 w-full pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y"
+            className="col-span-12 lg:col-span-7 min-w-0 w-full pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y animate-fade-in-up"
           >
             {children}
           </main>
@@ -421,7 +421,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className={`w-full flex-1 px-2 sm:px-4 pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y ${
+          className={`w-full flex-1 px-2 sm:px-4 pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y animate-fade-in-up ${
             isProfilePage
               ? "max-w-5xl mx-auto"
               : isPostDetailPage

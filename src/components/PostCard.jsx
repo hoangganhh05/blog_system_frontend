@@ -268,7 +268,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   return (
     <article
       onClick={handleCardClick}
-      className={`rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-200 flex gap-3.5 ${
+      className={`rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs hover:shadow-md hover:-translate-y-0.5 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-200 flex gap-3.5 ${
         !isDetailed ? "cursor-pointer" : ""
       }`}
     >
@@ -503,7 +503,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
             <button
               type="button"
               onClick={handleToggleLike}
-              className={`flex items-center gap-1.5 text-xs font-medium transition cursor-pointer ${
+              className={`flex items-center gap-1.5 text-xs font-medium transition cursor-pointer active:scale-95 ${
                 liked ? "text-rose-500" : "hover:text-rose-500"
               }`}
               title={liked ? "Bỏ thích" : "Thích bài viết"}
@@ -528,7 +528,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                   e.stopPropagation();
                   setIsReactionsModalOpen(true);
                 }}
-                className="text-xs text-zinc-500 dark:text-zinc-400 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer font-semibold px-1.5 py-1 min-h-[36px] flex items-center"
+                className="text-xs text-zinc-500 dark:text-zinc-400 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer font-semibold px-1.5 py-1 min-h-[36px] flex items-center active:scale-95 transition-transform"
               >
                 {likeCount}
               </button>
@@ -554,7 +554,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); navigate(`/posts/${post.id}`); }}
-            className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
+            className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer active:scale-95"
             title="Bình luận"
           >
             <div className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
@@ -570,7 +570,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
               e.stopPropagation();
               setIsShareModalOpen(true);
             }}
-            className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
+            className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer active:scale-95"
             title="Chia sẻ"
           >
             <div className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
@@ -582,7 +582,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           <button
             type="button"
             onClick={handleToggleBookmark}
-            className={`flex items-center gap-1.5 text-xs font-medium group transition cursor-pointer ${
+            className={`flex items-center gap-1.5 text-xs font-medium group transition cursor-pointer active:scale-95 ${
               bookmarked ? "text-black dark:text-white" : "hover:text-black dark:hover:text-white"
             }`}
             title="Lưu bài viết"
