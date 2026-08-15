@@ -109,7 +109,27 @@ export function AuthProvider({ children }) {
     localStorage.setItem("blog_session_id", sessionToken);
   };
 
+  // Heartbeat định kỳ duy trì trạng thái Online thời gian thực
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    import("../services/userService").then(({ default: uService }) => {
+      uService.heartbeat().catch(() => {});
+    });
+
+    const interval = setInterval(() => {
+      import("../services/userService").then(({ default: uService }) => {
+        uService.heartbeat().catch(() => {});
+      });
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [currentUser?.id]);
+
   const logout = () => {
+    import("../services/userService").then(({ default: uService }) => {
+      uService.setOffline().catch(() => {});
+    });
     setCurrentUser(null);
     localStorage.removeItem("blog_user");
     localStorage.removeItem("blog_token");

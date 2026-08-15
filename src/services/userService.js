@@ -32,6 +32,18 @@ const userService = {
     return this.getById(id);
   },
 
+  getMe() {
+    return axiosClient.get("/users/me");
+  },
+
+  heartbeat() {
+    return axiosClient.post("/users/heartbeat");
+  },
+
+  setOffline() {
+    return axiosClient.post("/users/offline");
+  },
+
   register(userData) {
     return axiosClient.post("/auth/register", {
       username: userData.username,

@@ -33,6 +33,7 @@ import uploadService from "../services/uploadService";
 import AudioMessagePlayer from "./AudioMessagePlayer";
 import GifPicker from "./GifPicker";
 import EmojiPicker from "./EmojiPicker";
+import { isUserOnline, formatLastActive } from "../utils/statusUtils";
 import StickerPicker from "./StickerPicker";
 
 function getInitials(name) {
@@ -688,32 +689,42 @@ export default function FloatingChatWidget() {
                     }
                     className="flex items-center gap-2 cursor-pointer min-w-0 flex-1 group"
                   >
-                    {activeFriend.avatarUrl ? (
-                      <img
-                        src={activeFriend.avatarUrl}
-                        alt=""
-                        className="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                          if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                    <div className="relative shrink-0">
+                      {activeFriend.avatarUrl ? (
+                        <img
+                          src={activeFriend.avatarUrl}
+                          alt=""
+                          className="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="w-8 h-8 rounded-full text-xs font-bold text-white flex items-center justify-center shrink-0"
+                        style={{
+                          backgroundColor: activeFriend.avatarColor || "#27272a",
+                          display: activeFriend.avatarUrl ? "none" : "flex",
                         }}
-                      />
-                    ) : null}
-                    <div
-                      className="w-8 h-8 rounded-full text-xs font-bold text-white flex items-center justify-center shrink-0"
-                      style={{
-                        backgroundColor: activeFriend.avatarColor || "#27272a",
-                        display: activeFriend.avatarUrl ? "none" : "flex",
-                      }}
-                    >
-                      {getInitials(activeFriend.fullName || activeFriend.username)}
+                      >
+                        {getInitials(activeFriend.fullName || activeFriend.username)}
+                      </div>
+                      {!activeFriend.isAi && activeFriend.showActiveStatus !== false && (
+                        <span
+                          className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-zinc-900 ${
+                            isUserOnline(activeFriend) ? "bg-emerald-500" : "bg-zinc-400"
+                          }`}
+                          title={formatLastActive(activeFriend)}
+                        />
+                      )}
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="font-bold text-xs truncate text-zinc-900 dark:text-zinc-100 group-hover:underline">
                         {activeFriend.fullName || activeFriend.username}
                       </span>
                       <span className="text-[10px] text-zinc-400 truncate">
-                        Đang hoạt động
+                        {activeFriend.isAi ? "Trợ lý AI" : (formatLastActive(activeFriend) || "Ngoại tuyến")}
                       </span>
                     </div>
                   </div>
@@ -866,25 +877,35 @@ export default function FloatingChatWidget() {
                           }`}
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            {friend.avatarUrl ? (
-                              <img
-                                src={friend.avatarUrl}
-                                alt=""
-                                className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = "none";
-                                  if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                            <div className="relative shrink-0">
+                              {friend.avatarUrl ? (
+                                <img
+                                  src={friend.avatarUrl}
+                                  alt=""
+                                  className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                    if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                                  }}
+                                />
+                              ) : null}
+                              <div
+                                className="w-10 h-10 rounded-full text-xs font-bold text-white flex items-center justify-center shrink-0"
+                                style={{
+                                  backgroundColor: friend.avatarColor || "#27272a",
+                                  display: friend.avatarUrl ? "none" : "flex",
                                 }}
-                              />
-                            ) : null}
-                            <div
-                              className="w-10 h-10 rounded-full text-xs font-bold text-white flex items-center justify-center shrink-0"
-                              style={{
-                                backgroundColor: friend.avatarColor || "#27272a",
-                                display: friend.avatarUrl ? "none" : "flex",
-                              }}
-                            >
-                              {getInitials(fName)}
+                              >
+                                {getInitials(fName)}
+                              </div>
+                              {friend.showActiveStatus !== false && (
+                                <span
+                                  className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-900 ${
+                                    isUserOnline(friend) ? "bg-emerald-500" : "bg-zinc-400"
+                                  }`}
+                                  title={formatLastActive(friend)}
+                                />
+                              )}
                             </div>
 
                             <div className="flex flex-col min-w-0 flex-1">

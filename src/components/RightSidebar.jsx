@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
 import followService from "../services/followService";
 import MiniMusicPlayer from "./MiniMusicPlayer";
+import { isUserOnline, formatLastActive } from "../utils/statusUtils";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -124,25 +125,35 @@ export default function RightSidebar() {
                     to={`/profile/${user.id}`}
                     className="flex items-center gap-2.5 min-w-0 group"
                   >
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt=""
-                        className="w-9 h-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                          if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                    <div className="relative shrink-0">
+                      {user.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt=""
+                          className="w-9 h-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-[10px] shrink-0"
+                        style={{
+                          backgroundColor: user.avatarColor || "#27272a",
+                          display: user.avatarUrl ? "none" : "flex",
                         }}
-                      />
-                    ) : null}
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-[10px] shrink-0"
-                      style={{
-                        backgroundColor: user.avatarColor || "#27272a",
-                        display: user.avatarUrl ? "none" : "flex",
-                      }}
-                    >
-                      {getInitials(displayName)}
+                      >
+                        {getInitials(displayName)}
+                      </div>
+                      {user.showActiveStatus !== false && (
+                        <span
+                          className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-1.5 border-white dark:border-zinc-900 ${
+                            isUserOnline(user) ? "bg-emerald-500" : "bg-zinc-400"
+                          }`}
+                          title={formatLastActive(user)}
+                        />
+                      )}
                     </div>
 
                     <div className="flex flex-col min-w-0">
@@ -150,7 +161,7 @@ export default function RightSidebar() {
                         {displayName}
                       </span>
                       <span className="text-[10px] text-zinc-400 truncate">
-                        @{user.username}
+                        {formatLastActive(user) || `@${user.username}`}
                       </span>
                     </div>
                   </Link>

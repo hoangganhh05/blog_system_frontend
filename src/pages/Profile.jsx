@@ -27,6 +27,7 @@ import uploadService from "../services/uploadService";
 import PostCard from "../components/PostCard";
 import StoryArchiveModal from "../components/StoryArchiveModal";
 import ConfirmModal from "../components/ConfirmModal";
+import { isUserOnline, formatLastActive } from "../utils/statusUtils";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -529,6 +530,16 @@ export default function Profile() {
               </div>
             )}
 
+            {/* Chấm tròn trạng thái hoạt động trên Avatar Profile */}
+            {user.showActiveStatus !== false && (
+              <span
+                className={`absolute ${isMe ? "top-1 right-1" : "bottom-1 right-1"} w-4 h-4 rounded-full border-2 border-white dark:border-zinc-900 shadow-xs transition-colors ${
+                  isUserOnline(user) ? "bg-emerald-500" : "bg-zinc-400"
+                }`}
+                title={formatLastActive(user)}
+              />
+            )}
+
             {/* Nút Camera trên avatar chính chủ */}
             {isMe && (
               <>
@@ -737,9 +748,20 @@ export default function Profile() {
           <h1 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 tracking-tight">
             {user.fullName || user.username}
           </h1>
-          <span className="text-xs text-zinc-500 font-medium">
-            @{user.username}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-zinc-500 font-medium">
+              @{user.username}
+            </span>
+            {user.showActiveStatus !== false && (
+              <div className="flex items-center gap-1.5" title={formatLastActive(user)}>
+                <span className="text-zinc-400 text-xs">·</span>
+                <span className={`w-2 h-2 rounded-full shrink-0 ${isUserOnline(user) ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
+                <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+                  {formatLastActive(user) || "Ngoại tuyến"}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {user.bio ? (
@@ -927,26 +949,36 @@ export default function Profile() {
                     to={`/profile/${f.id}`}
                     className="flex items-center gap-3 min-w-0 flex-1 group"
                   >
-                    {f.avatarUrl ? (
-                      <img
-                        src={f.avatarUrl}
-                        alt=""
-                        className="w-11 h-11 rounded-full object-cover shrink-0"
-                      />
-                    ) : (
-                      <div
-                        className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
-                        style={{ backgroundColor: f.avatarColor || "#0866ff" }}
-                      >
-                        {getInitials(f.fullName || f.username)}
-                      </div>
-                    )}
+                    <div className="relative shrink-0">
+                      {f.avatarUrl ? (
+                        <img
+                          src={f.avatarUrl}
+                          alt=""
+                          className="w-11 h-11 rounded-full object-cover shrink-0"
+                        />
+                      ) : (
+                        <div
+                          className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
+                          style={{ backgroundColor: f.avatarColor || "#0866ff" }}
+                        >
+                          {getInitials(f.fullName || f.username)}
+                        </div>
+                      )}
+                      {f.showActiveStatus !== false && (
+                        <span
+                          className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-900 ${
+                            isUserOnline(f) ? "bg-emerald-500" : "bg-zinc-400"
+                          }`}
+                          title={formatLastActive(f)}
+                        />
+                      )}
+                    </div>
                     <div className="flex flex-col min-w-0">
                       <span className="font-bold text-sm text-zinc-900 dark:text-white group-hover:underline truncate">
                         {f.fullName || f.username}
                       </span>
                       <span className="text-xs text-zinc-400 truncate">
-                        @{f.username}
+                        {formatLastActive(f) || `@${f.username}`}
                       </span>
                     </div>
                   </Link>
@@ -1009,26 +1041,36 @@ export default function Profile() {
                     to={`/profile/${fl.id}`}
                     className="flex items-center gap-3 min-w-0 flex-1 group"
                   >
-                    {fl.avatarUrl ? (
-                      <img
-                        src={fl.avatarUrl}
-                        alt=""
-                        className="w-11 h-11 rounded-full object-cover shrink-0"
-                      />
-                    ) : (
-                      <div
-                        className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
-                        style={{ backgroundColor: fl.avatarColor || "#0866ff" }}
-                      >
-                        {getInitials(fl.fullName || fl.username)}
-                      </div>
-                    )}
+                    <div className="relative shrink-0">
+                      {fl.avatarUrl ? (
+                        <img
+                          src={fl.avatarUrl}
+                          alt=""
+                          className="w-11 h-11 rounded-full object-cover shrink-0"
+                        />
+                      ) : (
+                        <div
+                          className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
+                          style={{ backgroundColor: fl.avatarColor || "#0866ff" }}
+                        >
+                          {getInitials(fl.fullName || fl.username)}
+                        </div>
+                      )}
+                      {fl.showActiveStatus !== false && (
+                        <span
+                          className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-900 ${
+                            isUserOnline(fl) ? "bg-emerald-500" : "bg-zinc-400"
+                          }`}
+                          title={formatLastActive(fl)}
+                        />
+                      )}
+                    </div>
                     <div className="flex flex-col min-w-0">
                       <span className="font-bold text-sm text-zinc-900 dark:text-white group-hover:underline truncate">
                         {fl.fullName || fl.username}
                       </span>
                       <span className="text-xs text-zinc-400 truncate">
-                        @{fl.username}
+                        {formatLastActive(fl) || `@${fl.username}`}
                       </span>
                     </div>
                   </Link>
