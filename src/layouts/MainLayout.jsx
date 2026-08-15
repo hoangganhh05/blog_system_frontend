@@ -216,7 +216,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                   placeholder="Tìm kiếm bài viết, tác giả..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-transparent focus:border-[#0866ff] rounded-full py-1.5 pl-8 pr-3 text-xs text-[#050505] dark:text-[#e4e6eb] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none transition"
+                  className="w-full bg-slate-100 dark:bg-zinc-800/80 border border-slate-200/60 dark:border-zinc-700/50 focus:border-[#0866ff] rounded-full py-1.5 pl-8 pr-3 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none transition"
                 />
               </div>
             </form>
