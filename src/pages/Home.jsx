@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 20;
 
 function getInitials(name) {
   if (!name) return "?";
@@ -72,7 +72,7 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  // Fetch suggested friends for mobile carousel
+  // Fetch suggested friends
   useEffect(() => {
     userService
       .getAll("", 0, 8)
@@ -98,7 +98,7 @@ export default function Home() {
     }
   };
 
-  // Load friends / followed IDs
+  // Load friends / followed IDs from backend
   const loadFriendsList = useCallback(() => {
     if (currentUserId) {
       friendService
@@ -174,12 +174,13 @@ export default function Home() {
     fetchPosts(0, true);
   }, [fetchPosts, searchValue]);
 
-  // When switching to following tab, refresh friends list and load extra if needed
+  // Tab switching handler
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     if (tab === "following") {
       loadFriendsList();
-      if (posts.length < 30 && hasMore) {
+      // Load more posts to ensure following authors are included
+      if (posts.length < 40 && hasMore) {
         fetchPosts(page + 1);
       }
     }
@@ -225,35 +226,35 @@ export default function Home() {
 
   return (
     <div className="w-full min-h-full flex flex-col">
-      {/* Sticky Top Header with 2 Tabs (Threads / X Style) */}
+      {/* Sticky Top Header with 2 Tabs (Threads / X Style - Full Mobile & Desktop Interactive) */}
       <div className="flex border-b border-zinc-200 dark:border-zinc-800 mb-3 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
         <button
           type="button"
           onClick={() => handleTabChange("forYou")}
-          className={`flex-1 py-3 text-center text-xs font-semibold transition relative cursor-pointer ${
+          className={`flex-1 py-3 text-center text-xs transition-all relative cursor-pointer select-none ${
             activeTab === "forYou"
-              ? "text-black dark:text-white font-bold"
-              : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+              ? "text-zinc-950 dark:text-white font-extrabold"
+              : "text-zinc-400 dark:text-zinc-500 font-medium hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
         >
-          Dành cho bạn
+          <span>Dành cho bạn</span>
           {activeTab === "forYou" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-zinc-950 dark:bg-white animate-in fade-in duration-150" />
           )}
         </button>
 
         <button
           type="button"
           onClick={() => handleTabChange("following")}
-          className={`flex-1 py-3 text-center text-xs font-semibold transition relative cursor-pointer ${
+          className={`flex-1 py-3 text-center text-xs transition-all relative cursor-pointer select-none ${
             activeTab === "following"
-              ? "text-black dark:text-white font-bold"
-              : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+              ? "text-zinc-950 dark:text-white font-extrabold"
+              : "text-zinc-400 dark:text-zinc-500 font-medium hover:text-zinc-700 dark:hover:text-zinc-300"
           }`}
         >
-          Đang theo dõi
+          <span>Đang theo dõi</span>
           {activeTab === "following" && (
-            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-black dark:bg-white" />
+            <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full bg-zinc-950 dark:bg-white animate-in fade-in duration-150" />
           )}
         </button>
       </div>
@@ -359,7 +360,7 @@ export default function Home() {
                     ? "Đăng nhập để xem bảng tin theo dõi"
                     : friendIds.length === 0
                     ? "Bạn chưa theo dõi ai"
-                    : "Chưa có bài viết mới từ bạn bè"}
+                    : "Chưa có bài viết nào từ người bạn theo dõi"}
                 </p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm leading-relaxed mx-auto">
                   {!currentUserId
