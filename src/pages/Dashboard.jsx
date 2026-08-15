@@ -88,25 +88,27 @@ export default function Dashboard() {
   return (
     <div className="w-full flex flex-col gap-5">
       {/* 1. Header with Page Title & Create Post Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-200 dark:border-zinc-800">
-        <div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
-              title="Quay lại"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <BarChart3 className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
-            <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+      <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-2 -ml-1 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer shrink-0"
+            title="Quay lại"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100 shrink-0 shadow-2xs">
+            <BarChart3 className="w-5 h-5" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
               Bảng điều khiển
             </h1>
+            <p className="text-[11px] sm:text-xs text-zinc-500 truncate">
+              Theo dõi hiệu quả và quản lý bài viết của bạn.
+            </p>
           </div>
-          <p className="text-xs text-zinc-500 mt-0.5 ml-8 sm:ml-8">
-            Theo dõi hiệu quả thực tế và quản lý bài viết của bạn.
-          </p>
         </div>
 
         <button
@@ -115,10 +117,11 @@ export default function Dashboard() {
             setEditPost(null);
             setShowCreateModal(true);
           }}
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black text-xs font-semibold shadow-xs transition active:scale-95 cursor-pointer"
+          className="inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 text-xs font-bold shadow-xs hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
-          <span>Tạo bài viết mới</span>
+          <span className="hidden xs:inline">Tạo bài viết mới</span>
+          <span className="xs:hidden">Tạo bài</span>
         </button>
       </div>
 
