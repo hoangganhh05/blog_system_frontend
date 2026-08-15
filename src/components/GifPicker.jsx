@@ -227,8 +227,8 @@ export default function GifPicker({ onSelectGif, onClose }) {
           )}
         </div>
 
-        {/* Quick Tag Pills */}
-        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pt-0.5">
+        {/* Quick Tag Pills - Horizontal Scroll */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-0.5 whitespace-nowrap">
           {CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             const isSelected = activeCategory === cat.key;
@@ -240,13 +240,13 @@ export default function GifPicker({ onSelectGif, onClose }) {
                   setActiveCategory(cat.key);
                   setSearch("");
                 }}
-                className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold shrink-0 transition cursor-pointer ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-bold shrink-0 transition cursor-pointer select-none whitespace-nowrap ${
                   isSelected
-                    ? "bg-black text-white dark:bg-white dark:text-black shadow-xs"
-                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                    ? "bg-amber-500 text-black shadow-xs"
+                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100"
                 }`}
               >
-                <Icon className="w-3 h-3" />
+                <Icon className="w-3 h-3 shrink-0" />
                 <span>{cat.label}</span>
               </button>
             );
@@ -254,7 +254,7 @@ export default function GifPicker({ onSelectGif, onClose }) {
         </div>
       </div>
 
-      {/* GIFs Grid */}
+      {/* GIFs Grid - Vertical Scroll */}
       <div className="p-2 flex-1 min-h-0 overflow-y-auto grid grid-cols-2 gap-1.5 custom-scrollbar">
         {filteredGifs.length === 0 ? (
           <div className="col-span-2 py-8 text-center text-xs text-zinc-400">
