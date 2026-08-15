@@ -388,19 +388,19 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
 
       {/* ======================================================================
           EDGE-TO-EDGE FULL-WIDTH GRID LAYOUT (Facebook-style)
-          (Left Sidebar: col-span-2 | Main Content: col-span-12 lg:col-span-7 | Right Sidebar: col-span-3)
+          (Left Sidebar: col-span-3 | Main Content: col-span-12 lg:col-span-6 | Right Sidebar: col-span-3)
           ====================================================================== */}
-      <div className="w-full flex-1 min-h-0 h-[calc(100dvh-3.5rem)] px-2 sm:px-3 md:px-4 grid grid-cols-12 gap-4 overflow-hidden">
-        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-2, hidden on mobile) */}
-        <aside className="hidden lg:block lg:col-span-2 min-w-0 min-h-0 h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar pt-3 pb-20 select-none">
+      <div className="w-full flex-1 min-h-0 h-[calc(100dvh-3.5rem)] px-1 sm:px-2 md:px-3 lg:px-4 grid grid-cols-12 gap-3 lg:gap-4 overflow-hidden">
+        {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-3, hidden on mobile) */}
+        <aside className="hidden lg:block lg:col-span-3 min-w-0 min-h-0 h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar pt-3 pb-20 select-none">
           <LeftSidebar />
         </aside>
 
-        {/* CENTER COLUMN: Main Content Feed (col-span-12 on mobile, lg:col-span-7 on desktop) */}
+        {/* CENTER COLUMN: Main Content Feed (col-span-12 on mobile, lg:col-span-6 on desktop) */}
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className="col-span-12 lg:col-span-7 min-w-0 min-h-0 w-full h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar px-1 sm:px-2 pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y"
+          className="col-span-12 lg:col-span-6 min-w-0 min-h-0 w-full h-full max-h-full overflow-y-auto overscroll-contain custom-scrollbar px-1 sm:px-2 pt-3 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-4 touch-pan-y"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {children}
