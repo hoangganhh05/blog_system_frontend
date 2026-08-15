@@ -287,6 +287,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                   username={currentUser?.username}
                   avatarColor={currentUser?.avatarColor}
                   size="sm"
+                  hideStatus={true}
                   className="border border-zinc-200 dark:border-zinc-700"
                 />
                 <ChevronDown className="w-3 h-3 text-zinc-400 hidden sm:inline" />
@@ -307,6 +308,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                       username={currentUser?.username}
                       avatarColor={currentUser?.avatarColor}
                       size="sm"
+                      hideStatus={true}
                       onClick={() => setProfileMenuOpen(false)}
                       className="shrink-0"
                     />
@@ -500,6 +502,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
             username={currentUser?.username}
             avatarColor={currentUser?.avatarColor}
             size="xs"
+            hideStatus={true}
           />
         </NavLink>
       </nav>

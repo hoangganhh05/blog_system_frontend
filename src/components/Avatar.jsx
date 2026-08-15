@@ -31,7 +31,8 @@ export default function Avatar({
   size = "md",
   isOnline,
   lastActiveAt,
-  showActiveStatus = false,
+  showActiveStatus,
+  hideStatus = false,
   className = "",
   disableLink = false,
   onClick,
@@ -53,11 +54,12 @@ export default function Avatar({
   const userObj = {
     isOnline,
     lastActiveAt,
-    showActiveStatus,
+    showActiveStatus: showActiveStatus !== undefined ? showActiveStatus : true,
   };
 
   const online = isUserOnline(userObj);
   const activeTooltip = formatLastActive(userObj) || displayName;
+  const shouldShowStatus = !hideStatus && (showActiveStatus !== false) && online;
 
   const handleClick = (e) => {
     e.stopPropagation();
@@ -74,14 +76,14 @@ export default function Avatar({
   return (
     <div
       onClick={handleClick}
-      title={title || activeTooltip}
-      className={`relative shrink-0 select-none ${
+      title={title || (shouldShowStatus ? activeTooltip : displayName)}
+      className={`relative inline-flex items-center justify-center shrink-0 rounded-full select-none bg-transparent ${
         isClickable ? "cursor-pointer hover:opacity-90 active:scale-95 transition-all" : ""
       } ${sizeConfig.box} ${className}`}
       style={{ aspectRatio: "1 / 1" }}
     >
       <div
-        className="w-full h-full rounded-full overflow-hidden flex items-center justify-center aspect-square"
+        className="w-full h-full rounded-full overflow-hidden flex items-center justify-center aspect-square bg-transparent"
         style={{ width: "100%", height: "100%", aspectRatio: "1 / 1" }}
       >
         {imageSrc && !imgError ? (
@@ -89,22 +91,24 @@ export default function Avatar({
             src={imageSrc}
             alt={displayName}
             onError={() => setImgError(true)}
-            className="w-full h-full rounded-full object-cover shrink-0 block aspect-square"
+            className="w-full h-full rounded-full object-cover shrink-0 block aspect-square bg-transparent"
             style={{ width: "100%", height: "100%", objectFit: "cover", aspectRatio: "1 / 1" }}
           />
         ) : (
           <div
-            className={`w-full h-full rounded-full flex items-center justify-center font-bold text-white uppercase shrink-0 aspect-square shadow-xs ${sizeConfig.text}`}
+            className={`w-full h-full rounded-full flex items-center justify-center font-bold text-white uppercase text-center leading-none select-none shadow-xs ${sizeConfig.text}`}
             style={{ backgroundColor: avatarColor || "#0866ff", width: "100%", height: "100%", aspectRatio: "1 / 1" }}
           >
-            {userInitials}
+            <span className="flex items-center justify-center w-full text-center leading-none transform translate-y-[0.5px]">
+              {userInitials}
+            </span>
           </div>
         )}
       </div>
 
-      {showActiveStatus && online && (
+      {shouldShowStatus && (
         <span
-          className={`absolute bottom-0 right-0 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900 ${
+          className={`absolute bottom-0 right-0 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900 z-10 pointer-events-none ${
             sizeConfig.dot
           }`}
           title="Đang hoạt động"
