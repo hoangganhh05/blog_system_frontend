@@ -150,17 +150,21 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
+    let accumulatedContent = "";
+
     try {
       await aiService.streamChatWithAI(
         text,
         currentImage?.base64,
         currentImage?.mimeType,
         (chunk) => {
+          if (!chunk) return;
+          accumulatedContent += chunk;
           setIsThinking(false); // First chunk received
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === aiMsgId
-                ? { ...msg, content: (msg.content || "") + chunk }
+                ? { ...msg, content: accumulatedContent, isStreaming: true }
                 : msg
             )
           );
@@ -168,11 +172,21 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
         controller.signal
       );
 
-      // Finish streaming
+      // Finish streaming and ensure content is populated
       setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === aiMsgId ? { ...msg, isStreaming: false } : msg
-        )
+        prev.map((msg) => {
+          if (msg.id === aiMsgId) {
+            const finalContent = (msg.content || accumulatedContent || "").trim();
+            return {
+              ...msg,
+              content:
+                finalContent ||
+                "Trợ lý BlogViet đã nhận được tin nhắn của bạn. Bạn muốn mình hỗ trợ thêm điều gì?",
+              isStreaming: false,
+            };
+          }
+          return msg;
+        })
       );
     } catch (err) {
       if (err.name === "AbortError") {
@@ -181,7 +195,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
             msg.id === aiMsgId
               ? {
                   ...msg,
-                  content: msg.content || "(Đã dừng tạo phản hồi)",
+                  content: msg.content || accumulatedContent || "(Đã dừng tạo phản hồi)",
                   isStreaming: false,
                 }
               : msg
@@ -203,6 +217,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
                 failedImage: currentImage,
                 content:
                   msg.content ||
+                  accumulatedContent ||
                   "Không thể kết nối hoặc phản hồi từ máy chủ AI bị gián đoạn. Vui lòng bấm Thử lại!",
               }
             : msg
@@ -300,6 +315,8 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
         <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3.5 bg-zinc-50/50 dark:bg-zinc-950/40">
           {messages.map((msg) => {
             const isUser = msg.role === "user";
+            const hasContent = Boolean(msg.content && msg.content.trim());
+
             return (
               <div
                 key={msg.id}
@@ -336,16 +353,20 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
                       </div>
                     )}
 
-                    {/* AI Streaming Loading Indicator inside bubble */}
-                    {!isUser && !msg.content && msg.isStreaming && (
-                      <div className="flex items-center gap-2 text-zinc-400 py-0.5">
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
-                        <span className="text-[11px]">Đang tạo câu trả lời...</span>
+                    {/* AI Typing / Streaming Indicator (shown when waiting for first token or when content is empty) */}
+                    {!isUser && !hasContent && !msg.isError && (
+                      <div className="flex items-center gap-2 py-1 text-zinc-500 dark:text-zinc-400">
+                        <div className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce [animation-delay:-0.3s]" />
+                          <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce [animation-delay:-0.15s]" />
+                          <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" />
+                        </div>
+                        <span className="text-[11px] font-medium ml-1">Trợ lý AI đang suy nghĩ...</span>
                       </div>
                     )}
 
                     {/* Text Content */}
-                    {msg.content && (
+                    {hasContent && (
                       <span className="relative">
                         {msg.content}
                         {msg.isStreaming && (
@@ -373,7 +394,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
                     )}
                   </div>
 
-                  {!isUser && msg.content && !msg.isStreaming && !msg.isError && (
+                  {!isUser && hasContent && !msg.isStreaming && !msg.isError && (
                     <button
                       type="button"
                       onClick={() => handleCopy(msg.id, msg.content)}

@@ -131,6 +131,7 @@ const aiService = {
     const token = localStorage.getItem("blog_token");
     const headers = {
       "Content-Type": "application/json",
+      "Accept": "text/event-stream, application/json, text/plain, */*",
     };
     if (token && token !== "undefined" && token !== "null") {
       headers["Authorization"] = "Bearer " + token;
@@ -138,6 +139,14 @@ const aiService = {
 
     const apiBaseUrl = import.meta.env.VITE_API_URL || "/api";
     const endpoint = `${apiBaseUrl.replace(/\/$/, "")}/ai/stream`;
+
+    let receivedAnyChunk = false;
+    const safeEmitChunk = (c) => {
+      if (typeof c === "string" && c.length > 0) {
+        receivedAnyChunk = true;
+        onChunk?.(c);
+      }
+    };
 
     try {
       const response = await fetch(endpoint, {
@@ -151,6 +160,10 @@ const aiService = {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
+      if (!response.body) {
+        throw new Error("Response body is empty");
+      }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let buffer = "";
@@ -160,39 +173,120 @@ const aiService = {
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n\n");
-        buffer = lines.pop() || "";
+        
+        // Handle all newline variations (\r\n, \n, \r)
+        const lines = buffer.split(/\r?\n/);
+        // Keep the last incomplete fragment in buffer
+        buffer = lines.pop() ?? "";
 
         for (const line of lines) {
           const trimmed = line.trim();
-          if (trimmed.startsWith("data: ")) {
-            const dataStr = trimmed.substring(6).trim();
-            if (dataStr === "[DONE]") {
-              return;
+          if (!trimmed) continue;
+
+          // SSE data prefix
+          if (trimmed.startsWith("data:") || trimmed.startsWith("data :")) {
+            const dataStr = trimmed.replace(/^data\s*:\s*/, "").trim();
+            if (dataStr === "[DONE]" || !dataStr) {
+              continue;
             }
             try {
               const parsed = JSON.parse(dataStr);
-              if (parsed.chunk) {
-                onChunk(parsed.chunk);
-              } else if (parsed.error) {
-                throw new Error(parsed.error);
+              if (typeof parsed === "string") {
+                safeEmitChunk(parsed);
+              } else if (parsed && typeof parsed === "object") {
+                if (parsed.error) {
+                  throw new Error(typeof parsed.error === "string" ? parsed.error : "AI Service Error");
+                }
+                const chunkContent =
+                  parsed.chunk ??
+                  parsed.text ??
+                  parsed.content ??
+                  parsed.reply ??
+                  parsed.response ??
+                  parsed.message ??
+                  "";
+                if (chunkContent) {
+                  safeEmitChunk(chunkContent);
+                }
               }
             } catch (e) {
-              if (dataStr && !dataStr.startsWith("{")) {
-                onChunk(dataStr);
+              if (e.message && e.message.includes("AI Service Error")) {
+                throw e;
               }
+              // Plain text stream chunk
+              safeEmitChunk(dataStr);
+            }
+          } else if (!trimmed.startsWith("event:") && !trimmed.startsWith("id:") && !trimmed.startsWith(":")) {
+            // Direct text chunk without SSE data: prefix
+            try {
+              const parsed = JSON.parse(trimmed);
+              if (typeof parsed === "string") {
+                safeEmitChunk(parsed);
+              } else if (parsed && typeof parsed === "object") {
+                const chunkContent =
+                  parsed.chunk ??
+                  parsed.text ??
+                  parsed.content ??
+                  parsed.reply ??
+                  parsed.response ??
+                  parsed.message ??
+                  "";
+                if (chunkContent) {
+                  safeEmitChunk(chunkContent);
+                }
+              }
+            } catch {
+              safeEmitChunk(trimmed);
             }
           }
+        }
+      }
+
+      // Check remaining buffer
+      if (buffer.trim()) {
+        const remaining = buffer.trim();
+        if (remaining.startsWith("data:") || remaining.startsWith("data :")) {
+          const dataStr = remaining.replace(/^data\s*:\s*/, "").trim();
+          if (dataStr && dataStr !== "[DONE]") {
+            try {
+              const parsed = JSON.parse(dataStr);
+              const chunkContent =
+                typeof parsed === "string"
+                  ? parsed
+                  : parsed?.chunk ?? parsed?.text ?? parsed?.content ?? parsed?.reply ?? "";
+              if (chunkContent) safeEmitChunk(chunkContent);
+            } catch {
+              safeEmitChunk(dataStr);
+            }
+          }
+        } else if (!remaining.startsWith(":") && !remaining.startsWith("event:")) {
+          safeEmitChunk(remaining);
+        }
+      }
+
+      // If stream ended but no chunks were captured, fallback to sync API
+      if (!receivedAnyChunk) {
+        console.warn("[STREAM EMPTY, FALLBACK TO SYNC CHAT]");
+        const fallbackReply = await this.chatWithAI(userMessage, imageBase64, imageMimeType);
+        if (fallbackReply) {
+          safeEmitChunk(fallbackReply);
         }
       }
     } catch (err) {
       if (err.name === "AbortError") {
         return;
       }
-      // Nếu stream fetch thất bại, fallback sang chatWithAI thông thường
       console.warn("[STREAM FAIL, FALLBACK TO SYNC]", err);
-      const fallbackReply = await this.chatWithAI(userMessage, imageBase64, imageMimeType);
-      onChunk(fallbackReply);
+      try {
+        const fallbackReply = await this.chatWithAI(userMessage, imageBase64, imageMimeType);
+        if (fallbackReply) {
+          safeEmitChunk(fallbackReply);
+          return;
+        }
+      } catch (fallbackErr) {
+        console.error("Fallback chat failed:", fallbackErr);
+      }
+      throw err;
     }
   },
 

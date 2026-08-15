@@ -1204,7 +1204,15 @@ export default function FloatingChatWidget() {
                                   : "max-w-[100%] rounded-2xl rounded-bl-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200/80 dark:border-zinc-700/60 shadow-sm"
                               }`}
                             >
-                              {msg.content}
+                              {msg.content?.trim() ? (
+                                msg.content
+                              ) : (
+                                <div className="flex items-center gap-1 py-0.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.3s]" />
+                                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.15s]" />
+                                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" />
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
