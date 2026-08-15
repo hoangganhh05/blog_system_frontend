@@ -75,7 +75,7 @@ export default function Register() {
         <div className="flex flex-col items-center text-center mb-6">
           <Link
             to="/"
-            className="w-13 h-13 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-black text-xl tracking-tighter shadow-md hover:scale-105 active:scale-95 transition select-none"
+            className="w-14 h-14 rounded-2xl bg-[#0866ff] text-white flex items-center justify-center font-black text-2xl tracking-tighter shadow-lg shadow-blue-500/25 hover:scale-105 active:scale-95 transition-all select-none border border-white/20"
           >
             BV
           </Link>
