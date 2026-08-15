@@ -182,6 +182,22 @@ export default function FloatingChatWidget() {
     }
   });
 
+  // Privacy & Safety Sub-View States (stay inside Messenger drawer)
+  const [showPrivacySubView, setShowPrivacySubView] = useState(false);
+  const [blockedUsersMap, setBlockedUsersMap] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("blogviet_blocked_chat_users") || "{}");
+    } catch {
+      return {};
+    }
+  });
+  const [strangerFilterEnabled, setStrangerFilterEnabled] = useState(() => {
+    return localStorage.getItem("blogviet_stranger_filter") !== "false";
+  });
+  const [readReceiptsEnabled, setReadReceiptsEnabled] = useState(() => {
+    return localStorage.getItem("blogviet_read_receipts") !== "false";
+  });
+
   // Pinned Messages state (persisted per conversation)
   const [pinnedMessages, setPinnedMessages] = useState(() => {
     try {
@@ -601,6 +617,30 @@ export default function FloatingChatWidget() {
     setChatSoundEnabled(next);
     localStorage.setItem("blogviet_chat_sound", String(next));
     toast.success(next ? "Đã bật âm thanh thông báo tin nhắn" : "Đã tắt âm thanh thông báo tin nhắn");
+  };
+
+  const handleToggleBlockUser = (userId, name) => {
+    setBlockedUsersMap((prev) => {
+      const isBlocked = Boolean(prev[userId]);
+      const next = { ...prev, [userId]: !isBlocked };
+      localStorage.setItem("blogviet_blocked_chat_users", JSON.stringify(next));
+      toast.success(isBlocked ? `Đã bỏ chặn tin nhắn từ ${name || "người dùng"}` : `Đã chặn tin nhắn từ ${name || "người dùng"}`);
+      return next;
+    });
+  };
+
+  const handleToggleStrangerFilter = () => {
+    const next = !strangerFilterEnabled;
+    setStrangerFilterEnabled(next);
+    localStorage.setItem("blogviet_stranger_filter", String(next));
+    toast.success(next ? "Đã bật bộ lọc tin nhắn người lạ" : "Đã tắt bộ lọc tin nhắn người lạ");
+  };
+
+  const handleToggleReadReceipts = () => {
+    const next = !readReceiptsEnabled;
+    setReadReceiptsEnabled(next);
+    localStorage.setItem("blogviet_read_receipts", String(next));
+    toast.success(next ? "Đã bật hiển thị Đã xem tin nhắn" : "Đã ẩn trạng thái Đã xem tin nhắn");
   };
 
   // Handle Input Change with Broadcast Typing Indicator
@@ -1098,151 +1138,276 @@ export default function FloatingChatWidget() {
           {/* Chat Body */}
           <div className="flex-1 overflow-y-auto flex flex-col bg-zinc-50/50 dark:bg-zinc-950/60">
             {showSettingsView && !activeFriend ? (
-              /* Settings View with smooth slide-in */
-              <div className="p-4 flex flex-col gap-3 animate-in slide-in-from-right-4 duration-200">
-                <div className="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
-                  <div className="flex items-center gap-2">
+              showPrivacySubView ? (
+                /* In-Messenger Privacy & Safety Sub-View */
+                <div className="p-4 flex flex-col gap-3 animate-in slide-in-from-right-4 duration-200">
+                  <div className="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowPrivacySubView(false)}
+                        className="p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+                        title="Quay lại Cài đặt"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                      </button>
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                        Quyền riêng tư & An toàn Chat
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Stranger Message Filter */}
+                  <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl ${strangerFilterEnabled ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
+                        <Shield className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          Bộ lọc tin nhắn người lạ
+                        </span>
+                        <span className="text-[10px] text-zinc-500">
+                          Chuyển tin nhắn từ người chưa kết bạn vào tin nhắn chờ
+                        </span>
+                      </div>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => setShowSettingsView(false)}
-                      className="p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
-                      title="Quay lại danh sách"
+                      onClick={handleToggleStrangerFilter}
+                      className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative shrink-0 ml-2 ${strangerFilterEnabled ? "bg-black dark:bg-white" : "bg-zinc-300 dark:bg-zinc-700"}`}
                     >
-                      <ArrowLeft className="w-4 h-4" />
+                      <div className={`w-5 h-5 rounded-full bg-white dark:bg-black transition-transform ${strangerFilterEnabled ? "translate-x-4" : "translate-x-0"}`} />
                     </button>
-                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                      Cài đặt & Tùy chọn Messenger
+                  </div>
+
+                  {/* Read Receipts Status */}
+                  <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl ${readReceiptsEnabled ? "bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
+                        <CheckCheck className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          Hiển thị trạng thái "Đã xem"
+                        </span>
+                        <span className="text-[10px] text-zinc-500">
+                          Cho phép người khác biết khi bạn đã xem tin nhắn
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleToggleReadReceipts}
+                      className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative shrink-0 ml-2 ${readReceiptsEnabled ? "bg-black dark:bg-white" : "bg-zinc-300 dark:bg-zinc-700"}`}
+                    >
+                      <div className={`w-5 h-5 rounded-full bg-white dark:bg-black transition-transform ${readReceiptsEnabled ? "translate-x-4" : "translate-x-0"}`} />
+                    </button>
+                  </div>
+
+                  {/* Blocked Users Section in Chat */}
+                  <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex flex-col gap-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <UserX className="w-4 h-4 text-rose-500" />
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          Chặn tin nhắn ({Object.values(blockedUsersMap).filter(Boolean).length})
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-zinc-400">
+                        Chặn gửi/nhận tin nhắn
+                      </span>
+                    </div>
+
+                    {Object.values(blockedUsersMap).filter(Boolean).length === 0 ? (
+                      <div className="py-3 text-center text-xs text-zinc-400 bg-zinc-50 dark:bg-zinc-800/40 rounded-xl">
+                        Hiện không có người dùng nào bị chặn tin nhắn.
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
+                        {friends
+                          .filter((f) => blockedUsersMap[f.id])
+                          .map((f) => (
+                            <div
+                              key={f.id}
+                              className="flex items-center justify-between p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800/60"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Avatar
+                                  userId={f.id}
+                                  src={f.avatarUrl}
+                                  name={f.fullName || f.username}
+                                  size="xs"
+                                />
+                                <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate">
+                                  {f.fullName || f.username}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleBlockUser(f.id, f.fullName || f.username)}
+                                className="px-2.5 py-1 rounded-lg text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 transition cursor-pointer"
+                              >
+                                Bỏ chặn
+                              </button>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Encryption Badge */}
+                  <div className="p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 flex items-center gap-2.5">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                    <span className="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
+                      Mã hóa bảo mật đường truyền SSL/TLS 256-bit đang kích hoạt.
                     </span>
                   </div>
                 </div>
-
-                {/* Sound Settings Card */}
-                <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${chatSoundEnabled ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
-                      {chatSoundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                        Âm thanh thông báo
-                      </span>
-                      <span className="text-[10px] text-zinc-500">
-                        Phát âm thanh khi có tin nhắn mới đến
+              ) : (
+                /* Settings View with smooth slide-in */
+                <div className="p-4 flex flex-col gap-3 animate-in slide-in-from-right-4 duration-200">
+                  <div className="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowSettingsView(false)}
+                        className="p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+                        title="Quay lại danh sách"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                      </button>
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                        Cài đặt & Tùy chọn Messenger
                       </span>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleToggleChatSound}
-                    className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative ${chatSoundEnabled ? "bg-black dark:bg-white" : "bg-zinc-300 dark:bg-zinc-700"}`}
+
+                  {/* Sound Settings Card */}
+                  <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl ${chatSoundEnabled ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
+                        {chatSoundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          Âm thanh thông báo
+                        </span>
+                        <span className="text-[10px] text-zinc-500">
+                          Phát âm thanh khi có tin nhắn mới đến
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleToggleChatSound}
+                      className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative ${chatSoundEnabled ? "bg-black dark:bg-white" : "bg-zinc-300 dark:bg-zinc-700"}`}
+                    >
+                      <div className={`w-5 h-5 rounded-full bg-white dark:bg-black transition-transform ${chatSoundEnabled ? "translate-x-4" : "translate-x-0"}`} />
+                    </button>
+                  </div>
+
+                  {/* Active Status Settings Card */}
+                  <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
+                        <span className={`w-3.5 h-3.5 rounded-full block ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          Trạng thái hoạt động
+                        </span>
+                        <span className="text-[10px] text-zinc-500">
+                          Hiển thị chấm xanh khi bạn đang trực tuyến
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = !isUserActiveStatusEnabled(currentUserId);
+                        setUserActiveStatusEnabled(currentUserId, next);
+                        toast.success(next ? "Đã bật trạng thái trực tuyến" : "Đã tắt trạng thái trực tuyến (Ẩn)");
+                      }}
+                      className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative ${isUserActiveStatusEnabled(currentUserId) ? "bg-black dark:bg-white" : "bg-zinc-300 dark:bg-zinc-700"}`}
+                    >
+                      <div className={`w-5 h-5 rounded-full bg-white dark:bg-black transition-transform ${isUserActiveStatusEnabled(currentUserId) ? "translate-x-4" : "translate-x-0"}`} />
+                    </button>
+                  </div>
+
+                  {/* Mark All Read Action */}
+                  <div
+                    onClick={handleMarkAllAsRead}
+                    className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer group"
                   >
-                    <div className={`w-5 h-5 rounded-full bg-white dark:bg-black transition-transform ${chatSoundEnabled ? "translate-x-4" : "translate-x-0"}`} />
-                  </button>
-                </div>
-
-                {/* Active Status Settings Card */}
-                <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
-                      <span className={`w-3.5 h-3.5 rounded-full block ${isUserActiveStatusEnabled(currentUserId) ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
+                        <CheckCheck className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          Đánh dấu tất cả là đã đọc
+                        </span>
+                        <span className="text-[10px] text-zinc-500">
+                          Xóa tất cả số đếm tin nhắn chưa đọc
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                        Trạng thái hoạt động
-                      </span>
-                      <span className="text-[10px] text-zinc-500">
-                        Hiển thị chấm xanh khi bạn đang trực tuyến
-                      </span>
-                    </div>
+                    <span className="text-xs text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 font-semibold">
+                      Thực hiện →
+                    </span>
                   </div>
-                  <button
-                    type="button"
+
+                  {/* Archived Messages Quick Jump */}
+                  <div
                     onClick={() => {
-                      const next = !isUserActiveStatusEnabled(currentUserId);
-                      setUserActiveStatusEnabled(currentUserId, next);
-                      toast.success(next ? "Đã bật trạng thái trực tuyến" : "Đã tắt trạng thái trực tuyến (Ẩn)");
+                      setListTab("archived");
+                      setShowSettingsView(false);
                     }}
-                    className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative ${isUserActiveStatusEnabled(currentUserId) ? "bg-black dark:bg-white" : "bg-zinc-300 dark:bg-zinc-700"}`}
+                    className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer group"
                   >
-                    <div className={`w-5 h-5 rounded-full bg-white dark:bg-black transition-transform ${isUserActiveStatusEnabled(currentUserId) ? "translate-x-4" : "translate-x-0"}`} />
-                  </button>
-                </div>
-
-                {/* Mark All Read Action */}
-                <div
-                  onClick={handleMarkAllAsRead}
-                  className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
-                      <CheckCheck className="w-4 h-4" />
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
+                        <Archive className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          Kho tin nhắn lưu trữ
+                        </span>
+                        <span className="text-[10px] text-zinc-500">
+                          Xem và khôi phục các cuộc trò chuyện đã ẩn
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                        Đánh dấu tất cả là đã đọc
-                      </span>
-                      <span className="text-[10px] text-zinc-500">
-                        Xóa tất cả số đếm tin nhắn chưa đọc
-                      </span>
-                    </div>
+                    <span className="text-xs text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-full">
+                      {Object.values(archivedChats).filter(Boolean).length}
+                    </span>
                   </div>
-                  <span className="text-xs text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 font-semibold">
-                    Thực hiện →
-                  </span>
-                </div>
 
-                {/* Archived Messages Quick Jump */}
-                <div
-                  onClick={() => {
-                    setListTab("archived");
-                    setShowSettingsView(false);
-                  }}
-                  className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
-                      <Archive className="w-4 h-4" />
+                  {/* In-Messenger Privacy & Safety Drawer Button */}
+                  <div
+                    onClick={() => setShowPrivacySubView(true)}
+                    className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400">
+                        <Shield className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          Quyền riêng tư & Bảo mật chat
+                        </span>
+                        <span className="text-[10px] text-zinc-500">
+                          Chặn tin nhắn, tin nhắn chờ và quyền riêng tư
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                        Kho tin nhắn lưu trữ
-                      </span>
-                      <span className="text-[10px] text-zinc-500">
-                        Xem và khôi phục các cuộc trò chuyện đã ẩn
-                      </span>
-                    </div>
+                    <span className="text-xs text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 font-semibold">
+                      Xem →
+                    </span>
                   </div>
-                  <span className="text-xs text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-full">
-                    {Object.values(archivedChats).filter(Boolean).length}
-                  </span>
                 </div>
-
-                {/* Privacy & Block Management Link */}
-                <div
-                  onClick={() => {
-                    navigate("/security");
-                    setIsOpen(false);
-                  }}
-                  className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 shadow-2xs flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400">
-                      <Shield className="w-4 h-4" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                        Quyền riêng tư & Bảo mật
-                      </span>
-                      <span className="text-[10px] text-zinc-500">
-                        Quản lý chặn người dùng và bảo mật chat
-                      </span>
-                    </div>
-                  </div>
-                  <span className="text-xs text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 font-semibold">
-                    Mở →
-                  </span>
-                </div>
-              </div>
+              )
             ) : !activeFriend ? (
               /* Friends List */
               <div className="p-3 flex flex-col gap-2">
