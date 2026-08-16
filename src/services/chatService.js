@@ -34,6 +34,20 @@ const chatService = {
   deleteMessage(messageId) {
     return axiosClient.delete(`/chat/messages/${messageId}`).catch(() => ({ data: { success: true } }));
   },
+  // Lấy thông tin cuộc trò chuyện & Theme
+  getConversationWithUser(targetUserId) {
+    return axiosClient.get(`/conversations/with-user/${targetUserId}`);
+  },
+
+  // Cập nhật Theme cuộc trò chuyện theo Conversation ID
+  updateConversationTheme(conversationId, theme) {
+    return axiosClient.put(`/conversations/${conversationId}/theme`, { theme });
+  },
+
+  // Cập nhật Theme cuộc trò chuyện trực tiếp theo Target User ID
+  updateThemeWithUser(targetUserId, theme) {
+    return axiosClient.put(`/conversations/theme-with-user/${targetUserId}`, { theme });
+  },
 };
 
 export const sendMessage = chatService.sendMessage.bind(chatService);
@@ -42,5 +56,8 @@ export const markAsRead = chatService.markAsRead.bind(chatService);
 export const pinMessage = chatService.pinMessage.bind(chatService);
 export const editMessage = chatService.editMessage.bind(chatService);
 export const deleteMessage = chatService.deleteMessage.bind(chatService);
+export const getConversationWithUser = chatService.getConversationWithUser.bind(chatService);
+export const updateConversationTheme = chatService.updateConversationTheme.bind(chatService);
+export const updateThemeWithUser = chatService.updateThemeWithUser.bind(chatService);
 
 export default chatService;

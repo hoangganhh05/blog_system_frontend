@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation, Link } from "react-router-do
 import { Toaster } from "sonner";
 import { AuthProvider } from "./context/AuthContext";
 import { MusicProvider } from "./context/MusicContext";
+import { ChatProvider } from "./context/ChatContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
@@ -24,6 +25,7 @@ import SearchPage from "./pages/SearchPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import FloatingChatWidget from "./components/FloatingChatWidget";
+import FloatingChatDock from "./components/FloatingChatDock";
 
 function getEffectiveTheme(themeMode) {
   if (themeMode === "dark") return true;
@@ -170,6 +172,9 @@ function AppContent() {
 
       {/* Floating Messenger Widget — OUTSIDE MainLayout, always fixed on screen */}
       <FloatingChatWidget />
+
+      {/* Docked Floating Chat Tabs (Multi-window chat tabs) */}
+      <FloatingChatDock />
     </>
   );
 }
@@ -179,7 +184,9 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <MusicProvider>
-          <AppContent />
+          <ChatProvider>
+            <AppContent />
+          </ChatProvider>
         </MusicProvider>
       </AuthProvider>
     </BrowserRouter>
