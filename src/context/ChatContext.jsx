@@ -11,17 +11,22 @@ export function ChatProvider({ children }) {
   const { currentUser } = useAuth();
   const [activeChats, setActiveChats] = useState([]);
 
-  // Lắng nghe sự kiện mở chat từ bất kỳ đâu (Profile, Friends page, Search, PostCard)
+  // Lắng nghe sự kiện mở chat từ bất kỳ đâu (Profile, Friends page, Search, PostCard, Sidebar)
   useEffect(() => {
     const handleOpenFloatingChat = (event) => {
-      if (event.detail?.user) {
-        openChat(event.detail.user);
+      const u = event.detail?.user || event.detail?.friend || event.detail?.targetUser;
+      if (u) {
+        openChat(u);
       }
     };
 
     window.addEventListener("open_floating_chat", handleOpenFloatingChat);
-    return () => window.removeEventListener("open_floating_chat", handleOpenFloatingChat);
-  }, []);
+    window.addEventListener("open_chat_user", handleOpenFloatingChat);
+    return () => {
+      window.removeEventListener("open_floating_chat", handleOpenFloatingChat);
+      window.removeEventListener("open_chat_user", handleOpenFloatingChat);
+    };
+  }, [openChat]);
 
   // Lắng nghe sự kiện đổi theme qua Realtime WebSocket / Custom Event
   useEffect(() => {

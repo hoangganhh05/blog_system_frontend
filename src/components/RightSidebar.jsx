@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { UserPlus, Check, Sparkles } from "lucide-react";
+import { UserPlus, Check, Sparkles, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
@@ -197,27 +197,42 @@ export default function RightSidebar() {
                     </div>
                   </Link>
 
-                  <button
-                    type="button"
-                    onClick={() => handleToggleFollow(user)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                      isFollowing
-                        ? "bg-slate-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
-                        : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-2xs"
-                    }`}
-                  >
-                    {isFollowing ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                        <span>Đang theo dõi</span>
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-3.5 h-3.5" />
-                        <span>Theo dõi</span>
-                      </>
-                    )}
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(
+                          new CustomEvent("open_floating_chat", { detail: { user } })
+                        );
+                      }}
+                      className="p-1.5 rounded-full text-zinc-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition cursor-pointer"
+                      title={`Nhắn tin với ${displayName}`}
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleToggleFollow(user)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                        isFollowing
+                          ? "bg-slate-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
+                          : "bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-2xs"
+                      }`}
+                    >
+                      {isFollowing ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <span className="hidden sm:inline">Đang theo dõi</span>
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Theo dõi</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               );
             })}
