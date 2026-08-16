@@ -174,9 +174,9 @@ export default function MessengerDropdown({ isOpen, onClose }) {
     };
   }, [isOpen, currentUserId]);
 
-  // Lắng nghe sự kiện click ra ngoài để đóng dropdown
+  // Lắng nghe sự kiện click ra ngoài để đóng dropdown (Chỉ trên PC Desktop)
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isMobile) return;
 
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -202,7 +202,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, isMobile, onClose]);
 
   // Lắng nghe tin nhắn mới để cập nhật danh sách
   useEffect(() => {
@@ -521,10 +521,11 @@ export default function MessengerDropdown({ isOpen, onClose }) {
             <button
               type="button"
               onClick={(e) => handleSelectUser(e, AI_BOT_USER)}
-              className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer"
+              onTouchEnd={(e) => handleSelectUser(e, AI_BOT_USER)}
+              className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer touch-manipulation select-none relative z-20"
               title="Trò chuyện cùng BlogViet AI Bot"
             >
-              <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 group-hover:scale-105 transition-transform">
+              <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 group-hover:scale-105 transition-transform pointer-events-none">
                 <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-xs font-black text-xs border-2 border-white dark:border-zinc-900">
                   BA
                 </div>
@@ -532,7 +533,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                   ✨
                 </span>
               </div>
-              <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 max-w-[50px] truncate">
+              <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 max-w-[50px] truncate pointer-events-none">
                 BlogViet
               </span>
             </button>
@@ -543,10 +544,11 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                 key={f.id}
                 type="button"
                 onClick={(e) => handleSelectUser(e, f)}
-                className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer"
+                onTouchEnd={(e) => handleSelectUser(e, f)}
+                className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer touch-manipulation select-none relative z-20"
                 title={`Nhắn tin với ${f.fullName || f.username}`}
               >
-                <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 group-hover:scale-105 transition-transform">
+                <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 group-hover:scale-105 transition-transform pointer-events-none">
                   <Avatar
                     userId={f.id}
                     src={f.avatarUrl}
@@ -558,7 +560,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                   />
                   <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-1.5 ring-white dark:ring-zinc-900" />
                 </div>
-                <span className="text-[10px] font-medium text-zinc-700 dark:text-zinc-300 max-w-[52px] truncate">
+                <span className="text-[10px] font-medium text-zinc-700 dark:text-zinc-300 max-w-[52px] truncate pointer-events-none">
                   {f.fullName ? f.fullName.split(" ").pop() : f.username}
                 </span>
               </button>
@@ -570,7 +572,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
             <button
               type="button"
               onClick={() => setActiveFilter("all")}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
+              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer touch-manipulation ${
                 activeFilter === "all"
                   ? "bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400"
                   : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -582,7 +584,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
             <button
               type="button"
               onClick={() => setActiveFilter("unread")}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
+              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer touch-manipulation ${
                 activeFilter === "unread"
                   ? "bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400"
                   : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -594,7 +596,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
             <button
               type="button"
               onClick={() => setActiveFilter("ai")}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1 touch-manipulation ${
                 activeFilter === "ai"
                   ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400"
                   : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -607,7 +609,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
             <button
               type="button"
               onClick={() => setActiveFilter("archived")}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
+              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer touch-manipulation ${
                 activeFilter === "archived"
                   ? "bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400"
                   : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -618,7 +620,11 @@ export default function MessengerDropdown({ isOpen, onClose }) {
           </div>
 
           {/* 6. Danh Sách Cuộc Trò Chuyện & Bạn Bè (Cuộn mượt mà) */}
-          <div className="flex-1 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/40 scrollbar-thin bg-white dark:bg-zinc-900">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            className="flex-1 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/40 scrollbar-thin bg-white dark:bg-zinc-900 touch-manipulation"
+          >
             {loading ? (
               <div className="p-8 flex flex-col items-center justify-center text-zinc-400 gap-2">
                 <Loader2 className="w-6 h-6 animate-spin text-[#0866ff]" />
@@ -629,12 +635,13 @@ export default function MessengerDropdown({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={(e) => handleSelectUser(e, AI_BOT_USER)}
-                className="w-full p-3.5 flex items-center gap-3 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 cursor-pointer transition text-left border-0 bg-transparent"
+                onTouchEnd={(e) => handleSelectUser(e, AI_BOT_USER)}
+                className="w-full p-3.5 flex items-center gap-3 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 active:bg-indigo-100/60 cursor-pointer transition text-left border-0 bg-transparent touch-manipulation select-none relative z-20"
               >
-                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md font-bold text-sm shrink-0">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md font-bold text-sm shrink-0 pointer-events-none">
                   <Bot className="w-6 h-6" />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 pointer-events-none">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
                       <span>BlogViet AI Assistant</span>
@@ -677,10 +684,11 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                       key={partner.id || item.conversationId}
                       type="button"
                       onClick={(e) => handleSelectUser(e, partner)}
-                      className="w-full p-3 flex items-center gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 cursor-pointer transition relative group text-left border-0 bg-transparent"
+                      onTouchEnd={(e) => handleSelectUser(e, partner)}
+                      className="w-full p-3 flex items-center gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800 cursor-pointer transition relative group text-left border-0 bg-transparent touch-manipulation select-none z-20"
                     >
                       {/* Avatar Partner */}
-                      <div className="relative shrink-0">
+                      <div className="relative shrink-0 pointer-events-none">
                         <Avatar
                           userId={partner.id}
                           src={partner.avatarUrl}
@@ -695,7 +703,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                       </div>
 
                       {/* Chi tiết nội dung tin nhắn */}
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 pointer-events-none">
                         <div className="flex items-center justify-between mb-0.5">
                           <span
                             className={`text-xs font-bold truncate block ${
@@ -743,9 +751,10 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                         key={friend.id}
                         type="button"
                         onClick={(e) => handleSelectUser(e, friend)}
-                        className="w-full p-3 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 cursor-pointer transition text-left border-0 bg-transparent"
+                        onTouchEnd={(e) => handleSelectUser(e, friend)}
+                        className="w-full p-3 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800 cursor-pointer transition text-left border-0 bg-transparent touch-manipulation select-none relative z-20"
                       >
-                        <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex items-center gap-3 min-w-0 pointer-events-none">
                           <div className="relative shrink-0">
                             <Avatar
                               userId={friend.id}
