@@ -14,7 +14,11 @@ import {
   Loader2,
   ChevronRight,
   Bot,
+  ArrowLeft,
+  Shield,
+  UserX,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 import chatService from "../services/chatService";
@@ -76,6 +80,8 @@ export default function MessengerDropdown({ isOpen, onClose }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all"); // 'all' | 'unread' | 'ai' | 'archived'
   const [showSettings, setShowSettings] = useState(false);
+  const [strangerFilter, setStrangerFilter] = useState(false);
+  const [readReceipts, setReadReceipts] = useState(true);
 
   const [activeStatus, setActiveStatus] = useState(() => isUserActiveStatusEnabled());
   const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -88,12 +94,25 @@ export default function MessengerDropdown({ isOpen, onClose }) {
     const next = !activeStatus;
     setActiveStatus(next);
     setUserActiveStatusEnabled(next);
+    toast.success(next ? "Đã bật trạng thái trực tuyến." : "Đã ẩn trạng thái trực tuyến.");
   };
 
   const toggleSound = () => {
     const next = !soundEnabled;
     setSoundEnabled(next);
     localStorage.setItem("blogviet_chat_sound", String(next));
+    toast.success(next ? "Đã bật âm thanh tin nhắn." : "Đã tắt âm thanh tin nhắn.");
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await chatService.markAllAsRead?.();
+      setConversations((prev) => prev.map((c) => ({ ...c, unreadCount: 0 })));
+      toast.success("Đã đánh dấu tất cả là đã đọc!");
+    } catch {
+      setConversations((prev) => prev.map((c) => ({ ...c, unreadCount: 0 })));
+      toast.success("Đã xóa tất cả số đếm tin nhắn chưa đọc.");
+    }
   };
 
   // Tải danh sách cuộc trò chuyện gần đây và bạn bè
@@ -204,7 +223,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
     return name.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  // Bạn bè đang online cho thanh Stories / Avatars ngang
+  // Bạn bè đang online cho thanh Stories / Avatars ngang (chỉ hiển thị trên Mobile)
   const onlineFriends = friendsList.filter((f) => isUserOnline(f.id));
 
   const unreadTotal = conversations.reduce(
@@ -246,10 +265,10 @@ export default function MessengerDropdown({ isOpen, onClose }) {
           <button
             type="button"
             onClick={toggleActiveStatus}
-            className={`flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${
               activeStatus
-                ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400"
-                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
+                ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60"
+                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200/60 dark:border-zinc-700/60"
             }`}
             title={activeStatus ? "Đang bật hoạt động" : "Đang tắt hoạt động"}
           >
@@ -266,7 +285,9 @@ export default function MessengerDropdown({ isOpen, onClose }) {
             type="button"
             onClick={() => setShowSettings(!showSettings)}
             className={`p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer ${
-              showSettings ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100" : "text-zinc-500"
+              showSettings
+                ? "bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400 ring-2 ring-blue-500/30"
+                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
             }`}
             title="Cài đặt tin nhắn"
           >
@@ -285,328 +306,463 @@ export default function MessengerDropdown({ isOpen, onClose }) {
         </div>
       </div>
 
-      {/* 2. Menu Cài Đặt Mở Rộng (Khi bấm nút Settings) */}
-      {showSettings && (
-        <div className="p-3 bg-zinc-50 dark:bg-zinc-800/60 border-b border-zinc-200 dark:border-zinc-800 space-y-2 animate-in slide-in-from-top-2 duration-150 shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              {soundEnabled ? <Volume2 className="w-4 h-4 text-blue-500" /> : <VolumeX className="w-4 h-4 text-zinc-400" />}
-              <span>Âm thanh thông báo tin nhắn</span>
+      {/* 2. CHẾ ĐỘ HIỂN THỊ: CÀI ĐẶT TOÀN DIỆN vs DANH SÁCH TIN NHẮN */}
+      {showSettings ? (
+        /* ================= CÀI ĐẶT & TÙY CHỌN MESSENGER SUB-VIEW ================= */
+        <div className="flex-1 overflow-y-auto p-3.5 space-y-2.5 animate-in slide-in-from-right-4 duration-200">
+          <div className="flex items-center gap-2 pb-1.5 border-b border-zinc-100 dark:border-zinc-800">
+            <button
+              type="button"
+              onClick={() => setShowSettings(false)}
+              className="p-1 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+              title="Quay lại danh sách"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Cài đặt & Tùy chọn Messenger
+            </span>
+          </div>
+
+          {/* Âm thanh thông báo */}
+          <div className="p-3 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2 rounded-xl ${soundEnabled ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
+                {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Âm thanh thông báo</span>
+                <span className="text-[10px] text-zinc-500">Phát chuông khi có tin nhắn mới</span>
+              </div>
             </div>
             <button
               type="button"
               onClick={toggleSound}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${
-                soundEnabled ? "bg-blue-600 text-white" : "bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
-              }`}
+              className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative shrink-0 ${soundEnabled ? "bg-[#0866ff]" : "bg-zinc-300 dark:bg-zinc-700"}`}
             >
-              {soundEnabled ? "Bật" : "Tắt"}
+              <div className={`w-5 h-5 rounded-full bg-white transition-transform ${soundEnabled ? "translate-x-4" : "translate-x-0"}`} />
             </button>
           </div>
-        </div>
-      )}
 
-      {/* 3. Search Bar Input */}
-      <div className="px-3.5 pt-2.5 pb-2 shrink-0">
-        <div className="relative flex items-center">
-          <Search className="w-4 h-4 absolute left-3 text-zinc-400 pointer-events-none" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Tìm kiếm người nhắn, bạn bè..."
-            className="w-full pl-9 pr-8 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800/90 border border-transparent focus:border-blue-500/50 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none transition"
-          />
-          {searchTerm && (
+          {/* Trạng thái hoạt động */}
+          <div className="p-3 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2 rounded-xl ${activeStatus ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
+                <span className={`w-3.5 h-3.5 rounded-full block ${activeStatus ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Trạng thái hoạt động</span>
+                <span className="text-[10px] text-zinc-500">Hiển thị chấm xanh khi bạn trực tuyến</span>
+              </div>
+            </div>
             <button
               type="button"
-              onClick={() => setSearchTerm("")}
-              className="absolute right-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+              onClick={toggleActiveStatus}
+              className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative shrink-0 ${activeStatus ? "bg-[#0866ff]" : "bg-zinc-300 dark:bg-zinc-700"}`}
             >
-              <X className="w-3.5 h-3.5" />
+              <div className={`w-5 h-5 rounded-full bg-white transition-transform ${activeStatus ? "translate-x-4" : "translate-x-0"}`} />
             </button>
-          )}
-        </div>
-      </div>
-
-      {/* 4. Active Stories / Online Friends Bar (Thanh cuộn ngang avatar trực tuyến + AI Bot) */}
-      <div className="px-3.5 py-2 border-b border-zinc-100 dark:border-zinc-800/50 flex items-center gap-3 overflow-x-auto no-scrollbar shrink-0">
-        {/* BlogViet AI Bot Story Item */}
-        <button
-          type="button"
-          onClick={() => handleSelectUser(AI_BOT_USER)}
-          className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer"
-          title="Trò chuyện cùng BlogViet AI Bot"
-        >
-          <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 group-hover:scale-105 transition-transform">
-            <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-xs font-black text-xs border-2 border-white dark:border-zinc-900">
-              BA
-            </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-amber-400 ring-1 ring-white dark:ring-zinc-900 flex items-center justify-center text-[8px]">
-              ✨
-            </span>
           </div>
-          <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 max-w-[50px] truncate">
-            BlogViet
-          </span>
-        </button>
 
-        {/* Online Friends List */}
-        {onlineFriends.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            onClick={() => handleSelectUser(f)}
-            className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer"
-            title={`Nhắn tin với ${f.fullName || f.username}`}
-          >
-            <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 group-hover:scale-105 transition-transform">
-              <Avatar
-                userId={f.id}
-                src={f.avatarUrl}
-                name={f.fullName || f.username}
-                username={f.username}
-                avatarColor={f.avatarColor}
-                size="sm"
-                className="border-2 border-white dark:border-zinc-900"
-              />
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-1.5 ring-white dark:ring-zinc-900" />
-            </div>
-            <span className="text-[10px] font-medium text-zinc-700 dark:text-zinc-300 max-w-[52px] truncate">
-              {f.fullName ? f.fullName.split(" ").pop() : f.username}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* 5. Filter Tabs Pills */}
-      <div className="px-3.5 py-2 flex items-center gap-1.5 shrink-0 border-b border-zinc-100/80 dark:border-zinc-800/50">
-        <button
-          type="button"
-          onClick={() => setActiveFilter("all")}
-          className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
-            activeFilter === "all"
-              ? "bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400"
-              : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          }`}
-        >
-          Tất cả ({conversations.length})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveFilter("unread")}
-          className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
-            activeFilter === "unread"
-              ? "bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400"
-              : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          }`}
-        >
-          Chưa đọc {unreadTotal > 0 && `(${unreadTotal})`}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveFilter("ai")}
-          className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
-            activeFilter === "ai"
-              ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400"
-              : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          }`}
-        >
-          <Sparkles className="w-3 h-3 text-amber-500" />
-          <span>AI Bot</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveFilter("archived")}
-          className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
-            activeFilter === "archived"
-              ? "bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400"
-              : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          }`}
-        >
-          Lưu trữ
-        </button>
-      </div>
-
-      {/* 6. Danh Sách Cuộc Trò Chuyện & Bạn Bè (Cuộn mượt mà) */}
-      <div className="flex-1 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/40 scrollbar-thin">
-        {loading ? (
-          <div className="p-8 flex flex-col items-center justify-center text-zinc-400 gap-2">
-            <Loader2 className="w-6 h-6 animate-spin text-[#0866ff]" />
-            <span className="text-xs">Đang tải cuộc trò chuyện...</span>
-          </div>
-        ) : activeFilter === "ai" ? (
-          /* TAB AI BOT CHAT ROW */
+          {/* Đánh dấu tất cả là đã đọc */}
           <div
-            onClick={() => handleSelectUser(AI_BOT_USER)}
-            className="p-3.5 flex items-center gap-3 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 cursor-pointer transition"
+            onClick={handleMarkAllAsRead}
+            className="p-3 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer shadow-2xs group"
           >
-            <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md font-bold text-sm shrink-0">
-              <Bot className="w-6 h-6" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                  <span>BlogViet AI Assistant</span>
-                  <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
-                    AI PRO
-                  </span>
-                </span>
-                <span className="text-[10px] text-zinc-400">Trực tuyến</span>
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
+                <CheckCheck className="w-4 h-4" />
               </div>
-              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
-                Sẵn sàng giải đáp, tóm tắt bài viết và sáng tạo nội dung cho bạn...
-              </p>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Đánh dấu tất cả là đã đọc</span>
+                <span className="text-[10px] text-zinc-500">Xóa tất cả số đếm tin nhắn chưa đọc</span>
+              </div>
             </div>
+            <span className="text-xs text-blue-600 dark:text-blue-400 font-bold group-hover:translate-x-0.5 transition-transform">Thực hiện →</span>
           </div>
-        ) : filteredConversations.length === 0 && filteredFriends.length === 0 ? (
-          <div className="p-8 text-center text-zinc-400 space-y-2">
-            <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 mx-auto flex items-center justify-center text-xl">
-              💬
+
+          {/* Bộ lọc tin nhắn người lạ */}
+          <div className="p-3 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2 rounded-xl ${strangerFilter ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
+                <Shield className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Bộ lọc tin nhắn người lạ</span>
+                <span className="text-[10px] text-zinc-500">Lọc tin nhắn từ người chưa kết bạn</span>
+              </div>
             </div>
-            <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-              Không tìm thấy cuộc trò chuyện nào
-            </p>
-            <p className="text-[11px] text-zinc-400">
-              {searchTerm ? "Thử tìm với từ khóa khác" : "Hãy bắt đầu trò chuyện với bạn bè!"}
-            </p>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !strangerFilter;
+                setStrangerFilter(next);
+                toast.success(next ? "Đã bật bộ lọc tin nhắn người lạ." : "Đã tắt bộ lọc người lạ.");
+              }}
+              className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative shrink-0 ${strangerFilter ? "bg-[#0866ff]" : "bg-zinc-300 dark:bg-zinc-700"}`}
+            >
+              <div className={`w-5 h-5 rounded-full bg-white transition-transform ${strangerFilter ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
           </div>
-        ) : (
-          <>
-            {/* Danh sách cuộc trò chuyện gần đây */}
-            {filteredConversations.map((item) => {
-              const partner = item.user;
-              if (!partner) return null;
 
-              const isPartnerOnline = isUserOnline(partner.id);
-              const unread = Number(item.unreadCount) || 0;
-              const isSentByMe = Number(item.lastSenderId) === Number(currentUserId);
+          {/* Hiển thị trạng thái "Đã xem" */}
+          <div className="p-3 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2 rounded-xl ${readReceipts ? "bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}>
+                <CheckCheck className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Thông báo "Đã xem"</span>
+                <span className="text-[10px] text-zinc-500">Cho đối phương biết khi bạn đọc tin nhắn</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !readReceipts;
+                setReadReceipts(next);
+                toast.success(next ? "Đã bật trạng thái đã xem." : "Đã tắt trạng thái đã xem.");
+              }}
+              className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative shrink-0 ${readReceipts ? "bg-[#0866ff]" : "bg-zinc-300 dark:bg-zinc-700"}`}
+            >
+              <div className={`w-5 h-5 rounded-full bg-white transition-transform ${readReceipts ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
+          </div>
 
-              return (
-                <div
-                  key={partner.id || item.conversationId}
-                  onClick={() => handleSelectUser(partner)}
-                  className="p-3 flex items-center gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 cursor-pointer transition relative group"
+          {/* Kho lưu trữ tin nhắn */}
+          <div
+            onClick={() => {
+              setActiveFilter("archived");
+              setShowSettings(false);
+            }}
+            className="p-3 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer shadow-2xs"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
+                <Archive className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Kho tin nhắn lưu trữ</span>
+                <span className="text-[10px] text-zinc-500">Xem các cuộc hội thoại đã lưu trữ</span>
+              </div>
+            </div>
+            <span className="text-xs text-amber-600 dark:text-amber-400 font-bold">Xem →</span>
+          </div>
+
+          {/* Bảo mật SSL / TLS */}
+          <div className="p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 flex items-center gap-2.5">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
+              Mã hóa bảo mật đường truyền SSL/TLS 256-bit đang kích hoạt.
+            </span>
+          </div>
+        </div>
+      ) : (
+        /* ================= DANH SÁCH TIN NHẮN & BẠN BÈ ================= */
+        <>
+          {/* 3. Search Bar Input */}
+          <div className="px-3.5 pt-2.5 pb-2 shrink-0">
+            <div className="relative flex items-center">
+              <Search className="w-4 h-4 absolute left-3 text-zinc-400 pointer-events-none" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Tìm kiếm người nhắn, bạn bè..."
+                className="w-full pl-9 pr-8 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800/90 border border-transparent focus:border-blue-500/50 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none transition"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
                 >
-                  {/* Avatar Partner */}
-                  <div className="relative shrink-0">
-                    <Avatar
-                      userId={partner.id}
-                      src={partner.avatarUrl}
-                      name={partner.fullName || partner.username}
-                      username={partner.username}
-                      avatarColor={partner.avatarColor}
-                      size="md"
-                    />
-                    {isPartnerOnline && (
-                      <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" />
-                    )}
-                  </div>
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
 
-                  {/* Chi tiết nội dung tin nhắn */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <span
-                        className={`text-xs font-bold truncate block ${
-                          unread > 0
-                            ? "text-zinc-900 dark:text-zinc-100 font-black"
-                            : "text-zinc-800 dark:text-zinc-200"
-                        }`}
-                      >
-                        {partner.fullName || partner.username}
-                      </span>
-                      <span className="text-[10px] text-zinc-400 shrink-0 ml-2">
-                        {formatTimestamp(item.lastMessageTime || item.updatedAt)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <p
-                        className={`text-xs truncate pr-2 ${
-                          unread > 0
-                            ? "font-bold text-zinc-900 dark:text-zinc-100"
-                            : "text-zinc-500 dark:text-zinc-400"
-                        }`}
-                      >
-                        {isSentByMe && <span className="opacity-75">Bạn: </span>}
-                        {formatMessagePreview(item.lastMessage)}
-                      </p>
-
-                      {unread > 0 && (
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#0866ff] shrink-0" />
-                      )}
-                    </div>
-                  </div>
+          {/* 4. Active Stories / Online Friends Bar (CHỈ HIỂN THỊ TRÊN MOBILE `sm:hidden`, ĐÃ BỎ TRÊN DESKTOP) */}
+          <div className="sm:hidden px-3.5 py-2 border-b border-zinc-100 dark:border-zinc-800/50 flex items-center gap-3 overflow-x-auto no-scrollbar shrink-0">
+            {/* BlogViet AI Bot Story Item */}
+            <button
+              type="button"
+              onClick={() => handleSelectUser(AI_BOT_USER)}
+              className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer"
+              title="Trò chuyện cùng BlogViet AI Bot"
+            >
+              <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 group-hover:scale-105 transition-transform">
+                <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-xs font-black text-xs border-2 border-white dark:border-zinc-900">
+                  BA
                 </div>
-              );
-            })}
+                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-amber-400 ring-1 ring-white dark:ring-zinc-900 flex items-center justify-center text-[8px]">
+                  ✨
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 max-w-[50px] truncate">
+                BlogViet
+              </span>
+            </button>
 
-            {/* Danh sách gợi ý bạn bè để bắt đầu trò chuyện */}
-            {filteredFriends.length > 0 && (
-              <div className="pt-2">
-                <div className="px-3.5 py-1.5 text-[11px] font-bold text-zinc-400 uppercase tracking-wider bg-zinc-50/50 dark:bg-zinc-800/30">
-                  Gợi ý kết nối bạn bè
+            {/* Online Friends List */}
+            {onlineFriends.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => handleSelectUser(f)}
+                className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer"
+                title={`Nhắn tin với ${f.fullName || f.username}`}
+              >
+                <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 group-hover:scale-105 transition-transform">
+                  <Avatar
+                    userId={f.id}
+                    src={f.avatarUrl}
+                    name={f.fullName || f.username}
+                    username={f.username}
+                    avatarColor={f.avatarColor}
+                    size="sm"
+                    className="border-2 border-white dark:border-zinc-900"
+                  />
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-1.5 ring-white dark:ring-zinc-900" />
                 </div>
-                {filteredFriends.map((friend) => (
-                  <div
-                    key={friend.id}
-                    onClick={() => handleSelectUser(friend)}
-                    className="p-3 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 cursor-pointer transition"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
+                <span className="text-[10px] font-medium text-zinc-700 dark:text-zinc-300 max-w-[52px] truncate">
+                  {f.fullName ? f.fullName.split(" ").pop() : f.username}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* 5. Filter Tabs Pills */}
+          <div className="px-3.5 py-2 flex items-center gap-1.5 shrink-0 border-b border-zinc-100/80 dark:border-zinc-800/50">
+            <button
+              type="button"
+              onClick={() => setActiveFilter("all")}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
+                activeFilter === "all"
+                  ? "bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400"
+                  : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              }`}
+            >
+              Tất cả ({conversations.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveFilter("unread")}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
+                activeFilter === "unread"
+                  ? "bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400"
+                  : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              }`}
+            >
+              Chưa đọc {unreadTotal > 0 && `(${unreadTotal})`}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveFilter("ai")}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
+                activeFilter === "ai"
+                  ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400"
+                  : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              }`}
+            >
+              <Sparkles className="w-3 h-3 text-amber-500" />
+              <span>AI Bot</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveFilter("archived")}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
+                activeFilter === "archived"
+                  ? "bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400"
+                  : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              }`}
+            >
+              Lưu trữ
+            </button>
+          </div>
+
+          {/* 6. Danh Sách Cuộc Trò Chuyện & Bạn Bè (Cuộn mượt mà) */}
+          <div className="flex-1 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/40 scrollbar-thin">
+            {loading ? (
+              <div className="p-8 flex flex-col items-center justify-center text-zinc-400 gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-[#0866ff]" />
+                <span className="text-xs">Đang tải cuộc trò chuyện...</span>
+              </div>
+            ) : activeFilter === "ai" ? (
+              /* TAB AI BOT CHAT ROW */
+              <div
+                onClick={() => handleSelectUser(AI_BOT_USER)}
+                className="p-3.5 flex items-center gap-3 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 cursor-pointer transition"
+              >
+                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md font-bold text-sm shrink-0">
+                  <Bot className="w-6 h-6" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                      <span>BlogViet AI Assistant</span>
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
+                        AI PRO
+                      </span>
+                    </span>
+                    <span className="text-[10px] text-zinc-400">Trực tuyến</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
+                    Sẵn sàng giải đáp, tóm tắt bài viết và sáng tạo nội dung cho bạn...
+                  </p>
+                </div>
+              </div>
+            ) : filteredConversations.length === 0 && filteredFriends.length === 0 ? (
+              <div className="p-8 text-center text-zinc-400 space-y-2">
+                <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 mx-auto flex items-center justify-center text-xl">
+                  💬
+                </div>
+                <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  Không tìm thấy cuộc trò chuyện nào
+                </p>
+                <p className="text-[11px] text-zinc-400">
+                  {searchTerm ? "Thử tìm với từ khóa khác" : "Hãy bắt đầu trò chuyện với bạn bè!"}
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Danh sách cuộc trò chuyện gần đây */}
+                {filteredConversations.map((item) => {
+                  const partner = item.user;
+                  if (!partner) return null;
+
+                  const isPartnerOnline = isUserOnline(partner.id);
+                  const unread = Number(item.unreadCount) || 0;
+                  const isSentByMe = Number(item.lastSenderId) === Number(currentUserId);
+
+                  return (
+                    <div
+                      key={partner.id || item.conversationId}
+                      onClick={() => handleSelectUser(partner)}
+                      className="p-3 flex items-center gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 cursor-pointer transition relative group"
+                    >
+                      {/* Avatar Partner */}
                       <div className="relative shrink-0">
                         <Avatar
-                          userId={friend.id}
-                          src={friend.avatarUrl}
-                          name={friend.fullName || friend.username}
-                          username={friend.username}
-                          avatarColor={friend.avatarColor}
+                          userId={partner.id}
+                          src={partner.avatarUrl}
+                          name={partner.fullName || partner.username}
+                          username={partner.username}
+                          avatarColor={partner.avatarColor}
                           size="md"
                         />
-                        {isUserOnline(friend.id) && (
+                        {isPartnerOnline && (
                           <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" />
                         )}
                       </div>
-                      <div className="min-w-0">
-                        <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate block">
-                          {friend.fullName || friend.username}
-                        </span>
-                        <span className="text-[10px] text-zinc-400">
-                          {isUserOnline(friend.id)
-                            ? "Đang trực tuyến"
-                            : formatLastActive(friend.lastActive)}
-                        </span>
+
+                      {/* Chi tiết nội dung tin nhắn */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span
+                            className={`text-xs font-bold truncate block ${
+                              unread > 0
+                                ? "text-zinc-900 dark:text-zinc-100 font-black"
+                                : "text-zinc-800 dark:text-zinc-200"
+                            }`}
+                          >
+                            {partner.fullName || partner.username}
+                          </span>
+                          <span className="text-[10px] text-zinc-400 shrink-0 ml-2">
+                            {formatTimestamp(item.lastMessageTime || item.updatedAt)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <p
+                            className={`text-xs truncate pr-2 ${
+                              unread > 0
+                                ? "font-bold text-zinc-900 dark:text-zinc-100"
+                                : "text-zinc-500 dark:text-zinc-400"
+                            }`}
+                          >
+                            {isSentByMe && <span className="opacity-75">Bạn: </span>}
+                            {formatMessagePreview(item.lastMessage)}
+                          </p>
+
+                          {unread > 0 && (
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#0866ff] shrink-0" />
+                          )}
+                        </div>
                       </div>
                     </div>
+                  );
+                })}
 
-                    <button
-                      type="button"
-                      className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] hover:bg-blue-100 transition shrink-0"
-                    >
-                      Nhắn tin
-                    </button>
+                {/* Danh sách gợi ý bạn bè để bắt đầu trò chuyện */}
+                {filteredFriends.length > 0 && (
+                  <div className="pt-2">
+                    <div className="px-3.5 py-1.5 text-[11px] font-bold text-zinc-400 uppercase tracking-wider bg-zinc-50/50 dark:bg-zinc-800/30">
+                      Gợi ý kết nối bạn bè
+                    </div>
+                    {filteredFriends.map((friend) => (
+                      <div
+                        key={friend.id}
+                        onClick={() => handleSelectUser(friend)}
+                        className="p-3 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 cursor-pointer transition"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="relative shrink-0">
+                            <Avatar
+                              userId={friend.id}
+                              src={friend.avatarUrl}
+                              name={friend.fullName || friend.username}
+                              username={friend.username}
+                              avatarColor={friend.avatarColor}
+                              size="md"
+                            />
+                            {isUserOnline(friend.id) && (
+                              <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate block">
+                              {friend.fullName || friend.username}
+                            </span>
+                            <span className="text-[10px] text-zinc-400">
+                              {isUserOnline(friend.id)
+                                ? "Đang trực tuyến"
+                                : formatLastActive(friend.lastActive)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] hover:bg-blue-100 transition shrink-0"
+                        >
+                          Nhắn tin
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
-          </>
-        )}
-      </div>
+          </div>
 
-      {/* 7. Footer Dropdown: Lối tắt vào trang Tin nhắn toàn màn hình */}
-      <div className="p-2.5 bg-zinc-50 dark:bg-zinc-800/70 border-t border-zinc-100 dark:border-zinc-800 text-center shrink-0">
-        <Link
-          to="/friends"
-          onClick={onClose}
-          className="text-xs font-bold text-[#0866ff] hover:underline flex items-center justify-center gap-1 py-1"
-        >
-          <span>Xem tất cả danh sách bạn bè & hội thoại</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-        </Link>
-      </div>
+          {/* 7. Footer Dropdown: Lối tắt vào trang Tin nhắn toàn màn hình */}
+          <div className="p-2.5 bg-zinc-50 dark:bg-zinc-800/70 border-t border-zinc-100 dark:border-zinc-800 text-center shrink-0">
+            <Link
+              to="/friends"
+              onClick={onClose}
+              className="text-xs font-bold text-[#0866ff] hover:underline flex items-center justify-center gap-1 py-1"
+            >
+              <span>Xem tất cả danh sách bạn bè & hội thoại</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </>
+      )}
     </div>
   );
 }
