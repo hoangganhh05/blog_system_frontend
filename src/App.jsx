@@ -24,7 +24,6 @@ import FriendsPage from "./pages/FriendsPage";
 import SearchPage from "./pages/SearchPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import FloatingChatWidget from "./components/FloatingChatWidget";
 import FloatingChatDock from "./components/FloatingChatDock";
 
 function getEffectiveTheme(themeMode) {
@@ -169,9 +168,6 @@ function AppContent() {
           />
         </Routes>
       </MainLayout>
-
-      {/* Floating Messenger Widget — OUTSIDE MainLayout, always fixed on screen */}
-      <FloatingChatWidget />
 
       {/* Docked Floating Chat Tabs (Multi-window chat tabs) */}
       <FloatingChatDock />
