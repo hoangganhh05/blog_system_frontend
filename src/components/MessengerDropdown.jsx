@@ -168,7 +168,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 top-full mt-2 w-[360px] max-h-[520px] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200/90 dark:border-zinc-800 z-50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-left"
+      className="fixed sm:absolute top-14 sm:top-full left-1/2 sm:left-auto sm:right-0 -translate-x-1/2 sm:translate-x-0 w-[94vw] sm:w-[360px] max-h-[85vh] sm:max-h-[520px] sm:mt-2 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200/90 dark:border-zinc-800 z-50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-left"
       style={{
         boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.2), 0 0 1px rgba(0, 0, 0, 0.1)",
       }}

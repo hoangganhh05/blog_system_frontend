@@ -12,6 +12,7 @@ import {
   Loader2,
   Image as ImageIcon,
   Mic,
+  ArrowLeft,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
@@ -235,12 +236,22 @@ export default function ChatBoxWindow({ chat }) {
 
   // Giao diện Box Chat Mở Rộng Đầy Đủ
   return (
-    <div className="w-80 h-[430px] bg-white dark:bg-zinc-900 rounded-t-2xl shadow-2xl border border-slate-200 dark:border-zinc-800 flex flex-col overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-200 z-40">
+    <div className="fixed inset-0 sm:static sm:w-80 sm:h-[430px] w-full h-full bg-white dark:bg-zinc-900 rounded-none sm:rounded-t-2xl shadow-2xl border-0 sm:border border-slate-200 dark:border-zinc-800 flex flex-col overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-200 z-50 sm:z-40">
       {/* 1. Header Bar */}
       <div
-        className={`px-3 py-2.5 flex items-center justify-between border-b border-black/5 dark:border-white/5 transition-colors relative ${currentTheme.headerBg} ${currentTheme.headerText}`}
+        className={`px-3 py-2.5 flex items-center justify-between border-b border-black/5 dark:border-white/5 transition-colors relative shrink-0 ${currentTheme.headerBg} ${currentTheme.headerText}`}
       >
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          {/* Nút Quay Lại trên Mobile */}
+          <button
+            type="button"
+            onClick={() => closeChat(targetUserId)}
+            className="sm:hidden p-1.5 -ml-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer shrink-0"
+            title="Quay lại"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+
           <div className="relative shrink-0">
             <Avatar
               userId={user.id}
@@ -384,7 +395,7 @@ export default function ChatBoxWindow({ chat }) {
       {/* 3. Input Footer */}
       <form
         onSubmit={handleSendMessage}
-        className="p-2 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 flex items-center gap-1.5 relative"
+        className="p-2 pb-3 sm:pb-2 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 flex items-center gap-1.5 relative shrink-0"
       >
         {/* Emoji Button */}
         <div className="relative" ref={emojiPickerRef}>

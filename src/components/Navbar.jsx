@@ -768,13 +768,7 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
           <div style={{ position: "relative" }}>
             <button
               className={`navbar-icon-btn mobile-chat-btn ${messengerOpen ? "active" : ""}`}
-              onClick={() => {
-                if (window.innerWidth <= 640) {
-                  window.dispatchEvent(new CustomEvent("toggle_chat_widget"));
-                } else {
-                  setMessengerOpen((v) => !v);
-                }
-              }}
+              onClick={() => setMessengerOpen((v) => !v)}
               title="Tin nhắn Messenger"
               style={{ position: "relative" }}
             >

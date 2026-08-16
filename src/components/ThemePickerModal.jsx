@@ -54,14 +54,14 @@ export default function ThemePickerModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
         ref={modalContentRef}
-        className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[88vh] animate-in zoom-in-95 duration-200 text-left pointer-events-auto"
+        className="w-full sm:max-w-lg bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[78vh] sm:max-h-[88vh] animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-200 text-left pointer-events-auto"
       >
         {/* 1. Header Modal */}
         <div className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between shrink-0 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md">
@@ -211,8 +211,8 @@ export default function ThemePickerModal({
                 />
               </div>
 
-              {/* Grid 5 cột vòng tròn màu Gradient sắc sảo */}
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3.5">
+              {/* Grid 4 cột trên mobile, 5 cột trên PC cho các vòng tròn màu Gradient */}
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5 sm:gap-3.5">
                 {gradientList.map((g) => {
                   const isSelected = currentThemeId === g.id;
                   return (
@@ -220,7 +220,7 @@ export default function ThemePickerModal({
                       key={g.id}
                       type="button"
                       onClick={() => handleSelect(g.id)}
-                      className={`p-2.5 rounded-2xl flex flex-col items-center gap-1.5 transition cursor-pointer group hover:bg-zinc-100 dark:hover:bg-zinc-800/60 relative ${
+                      className={`p-2 sm:p-2.5 rounded-2xl flex flex-col items-center gap-1.5 transition cursor-pointer group hover:bg-zinc-100 dark:hover:bg-zinc-800/60 relative ${
                         isSelected
                           ? "bg-blue-50/50 dark:bg-blue-950/30 ring-2 ring-blue-600"
                           : ""
@@ -229,7 +229,7 @@ export default function ThemePickerModal({
                     >
                       {/* Vòng tròn Gradient */}
                       <div
-                        className="w-12 h-12 rounded-full shadow-md flex items-center justify-center group-hover:scale-110 transition-transform duration-150 relative"
+                        className="w-11 h-11 sm:w-12 sm:h-12 rounded-full shadow-md flex items-center justify-center group-hover:scale-110 transition-transform duration-150 relative"
                         style={{
                           background: `linear-gradient(135deg, ${g.from}, ${g.to})`,
                         }}
