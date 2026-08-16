@@ -1,215 +1,96 @@
-import { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Home, Compass, Users, Bookmark, BarChart2, Shield, Hash, Sparkles, Radio } from "lucide-react";
+import {
+  Home,
+  Compass,
+  Radio,
+  Users,
+  Bookmark,
+  BarChart3,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import userService from "../services/userService";
-import friendService from "../services/friendService";
-
-import Logo from "./Logo";
 import Avatar from "./Avatar";
 
-const TRENDING_TAGS = [
-  { tag: "#Vinahouse", count: "1.2k" },
-  { tag: "#IT", count: "3.4k" },
-  { tag: "#Chung", count: "5.8k" },
-  { tag: "#LapTrinh", count: "2.1k" },
-  { tag: "#DuLich", count: "980" },
-  { tag: "#AI", count: "4.5k" },
-  { tag: "#DoiSong", count: "1.8k" },
+const SIDEBAR_ITEMS = [
+  { to: "/", tooltip: "Bảng tin trang chủ", icon: Home },
+  { to: "/trending", tooltip: "Khám phá xu hướng", icon: Compass },
+  { to: "/radio", tooltip: "Phòng nhạc & Radio", icon: Radio },
+  { to: "/friends", tooltip: "Bạn bè & Kết nối", icon: Users },
+  { to: "/saved", tooltip: "Bài viết đã lưu", icon: Bookmark },
+  { to: "/dashboard", tooltip: "Bảng điều khiển & Công cụ", icon: BarChart3 },
 ];
-
-function getInitials(name) {
-  if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
-}
 
 export default function LeftSidebar() {
   const { currentUser } = useAuth();
   const currentUserId = currentUser ? Number(currentUser.id || currentUser.userId) : null;
 
-  const [stats, setStats] = useState({
-    postCount: 0,
-    totalViews: 0,
-    friendCount: 0,
-  });
-
-  useEffect(() => {
-    if (currentUserId) {
-      // Fetch user stats
-      userService
-        .getUserStats(currentUserId)
-        .then((res) => {
-          if (res.data) {
-            setStats((prev) => ({
-              ...prev,
-              postCount: res.data.postCount || res.data.totalPosts || 0,
-              totalViews: res.data.totalViews || res.data.viewCount || 0,
-            }));
-          }
-        })
-        .catch(() => {});
-
-      // Fetch friend count
-      friendService
-        .getFriendCount(currentUserId)
-        .then((res) => {
-          if (res.data) {
-            setStats((prev) => ({
-              ...prev,
-              friendCount: res.data.count || 0,
-            }));
-          }
-        })
-        .catch(() => {});
-    }
-  }, [currentUserId]);
-
   return (
-    <div className="w-full flex flex-col space-y-3 px-1">
-      {/* 1. Profile Shortcut Card hoặc Guest Login Card (Dạng phẳng) */}
+    <aside className="w-16 md:w-20 fixed left-0 top-14 bottom-0 hidden md:flex flex-col items-center py-4 bg-white dark:bg-[#242526] border-r border-slate-200 dark:border-zinc-800 z-30 select-none overflow-visible">
+      {/* 1. Profile Avatar Shortcut ở trên cùng */}
       {currentUser ? (
-        <div className="flex flex-col gap-3 px-1 py-1">
-          <Link
-            to={`/profile/${currentUserId}`}
-            className="flex items-center gap-3 p-2 -mx-1 rounded-xl hover:bg-slate-200/60 dark:hover:bg-zinc-800/60 transition group"
-          >
-            <Avatar
-              userId={currentUserId}
-              src={currentUser.avatarUrl}
-              name={currentUser.fullName || currentUser.username}
-              username={currentUser.username}
-              avatarColor={currentUser.avatarColor}
-              size="md"
-              isOnline={currentUser.isOnline}
-              lastActiveAt={currentUser.lastActiveAt}
-              showActiveStatus={currentUser.showActiveStatus}
-              className="border border-zinc-200 dark:border-zinc-700 shadow-xs shrink-0"
-            />
-
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:underline">
-                {currentUser.fullName || currentUser.username}
-              </span>
-              <span className="text-xs text-zinc-500 truncate">
-                @{currentUser.username}
-              </span>
-            </div>
-          </Link>
-
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-3 gap-2 py-2.5 border-y border-slate-200 dark:border-zinc-800 text-center">
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                {stats.postCount}
-              </span>
-              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Bài viết</span>
-            </div>
-            <div className="flex flex-col border-x border-slate-200 dark:border-zinc-800">
-              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                {stats.totalViews}
-              </span>
-              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Lượt xem</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                {stats.friendCount}
-              </span>
-              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Bạn bè</span>
-            </div>
+        <Link
+          to={`/profile/${currentUserId}`}
+          className="p-1 rounded-full hover:ring-2 hover:ring-[#0866ff]/40 transition relative group mb-3 shrink-0"
+        >
+          <Avatar
+            userId={currentUserId}
+            src={currentUser.avatarUrl}
+            name={currentUser.fullName || currentUser.username}
+            username={currentUser.username}
+            avatarColor={currentUser.avatarColor}
+            size="sm"
+            isOnline={currentUser.isOnline}
+            showActiveStatus={true}
+            className="w-10 h-10 min-w-10 min-h-10 border border-zinc-200 dark:border-zinc-700 shadow-xs"
+          />
+          {/* Tooltip Hover */}
+          <div className="absolute left-full ml-3.5 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 dark:bg-zinc-800 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all shadow-lg z-50">
+            Trang cá nhân ({currentUser.fullName || currentUser.username})
+            <div className="absolute right-full top-1/2 -translate-y-1/2 -mr-1 border-4 border-transparent border-r-slate-900 dark:border-r-zinc-800" />
           </div>
-        </div>
+        </Link>
       ) : (
-        <div className="p-4 flex flex-col gap-2.5 text-center items-center rounded-2xl bg-slate-200/40 dark:bg-zinc-800/40">
-          <Logo size="md" />
-          <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-            Chào mừng đến BlogViet!
-          </span>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-            Đăng nhập để chia sẻ câu chuyện, kết nối bạn bè và khám phá những bài viết hay.
-          </p>
-          <Link
-            to="/login"
-            className="w-full py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-bold hover:opacity-90 transition mt-1"
-          >
-            Đăng nhập ngay
-          </Link>
-        </div>
+        <Link
+          to="/login"
+          className="p-2 rounded-2xl hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-400 transition mb-3 shrink-0 relative group"
+        >
+          <Avatar size="sm" />
+          <div className="absolute left-full ml-3.5 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 dark:bg-zinc-800 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all shadow-lg z-50">
+            Đăng nhập
+            <div className="absolute right-full top-1/2 -translate-y-1/2 -mr-1 border-4 border-transparent border-r-slate-900 dark:border-r-zinc-800" />
+          </div>
+        </Link>
       )}
 
-      {/* Đường gạch ngang phân cách dài */}
-      <div className="border-t border-slate-200 dark:border-zinc-800 my-1" />
+      {/* Đường phân cách mờ */}
+      <div className="w-8 h-px bg-slate-200 dark:bg-zinc-800 mb-2 shrink-0" />
 
-      {/* 2. Menu Lối tắt tiện ích (Font chữ to, rõ ràng, đẹp mắt) */}
-      <div className="space-y-1">
-        {[
-          { to: "/", label: "Bảng tin trang chủ", icon: Home },
-          { to: "/trending", label: "Khám phá xu hướng", icon: Compass },
-          { to: "/radio", label: "Phòng nhạc & Radio", icon: Radio },
-          { to: "/friends", label: "Bạn bè & Kết nối", icon: Users },
-          { to: "/saved", label: "Bài viết đã lưu", icon: Bookmark },
-          { to: "/dashboard", label: "Bảng điều khiển", icon: BarChart2 },
-        ].map(({ to, label, icon: Icon }) => (
+      {/* 2. Danh sách Icon Điều Hướng + Tooltip */}
+      <nav className="flex flex-col items-center gap-2 w-full px-2">
+        {SIDEBAR_ITEMS.map(({ to, tooltip, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-[13.5px] sm:text-sm font-medium transition-all duration-300 ease-out hover:translate-x-1 active:scale-[0.98] ${
+              `p-3 rounded-2xl transition-all relative group flex items-center justify-center cursor-pointer ${
                 isActive
-                  ? "bg-slate-200/90 dark:bg-zinc-800 text-black dark:text-white font-bold"
-                  : "text-slate-700 dark:text-zinc-200 hover:bg-slate-200/60 dark:hover:bg-zinc-800/60 hover:text-black dark:hover:text-white"
+                  ? "bg-[#0866ff]/10 dark:bg-[#0866ff]/20 text-[#0866ff] shadow-xs"
+                  : "text-slate-600 dark:text-zinc-400 hover:text-[#0866ff] dark:hover:text-[#0866ff] hover:bg-slate-100 dark:hover:bg-zinc-800/80"
               }`
             }
           >
-            <Icon className="w-5 h-5 shrink-0" />
-            <span>{label}</span>
+            {({ isActive }) => (
+              <>
+                <Icon strokeWidth={isActive ? 2.5 : 1.8} className="w-5 h-5" />
+                {/* Tooltip bay ra bên phải khi hover */}
+                <div className="absolute left-full ml-3.5 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 dark:bg-zinc-800 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 shadow-lg z-50">
+                  {tooltip}
+                  <div className="absolute right-full top-1/2 -translate-y-1/2 -mr-1 border-4 border-transparent border-r-slate-900 dark:border-r-zinc-800" />
+                </div>
+              </>
+            )}
           </NavLink>
         ))}
-
-        {/* Nút mở nhanh Trợ lý AI BlogViet */}
-        <button
-          type="button"
-          onClick={() => {
-            window.dispatchEvent(new CustomEvent("open_ai_assistant"));
-          }}
-          className="flex items-center justify-between px-3 py-2.5 rounded-xl text-[13.5px] sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 transition-all duration-300 ease-out hover:translate-x-1 active:scale-[0.98] cursor-pointer text-left w-full group"
-        >
-          <div className="flex items-center gap-3.5">
-            <Sparkles className="w-5 h-5 shrink-0 text-indigo-600 dark:text-indigo-400 group-hover:rotate-12 transition-transform" />
-            <span>Trợ lý BlogViet AI</span>
-          </div>
-          <span className="text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-md">
-            Gemini 3.7
-          </span>
-        </button>
-      </div>
-
-      {/* Đường gạch ngang phân cách dài */}
-      <div className="border-t border-slate-200 dark:border-zinc-800 my-1" />
-
-      {/* 3. Lối tắt chuyên mục / Trending Tags (Dạng phẳng) */}
-      <div className="pt-1 px-1 flex flex-col gap-2.5">
-        <div className="flex items-center justify-between px-2">
-          <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            Chủ đề thịnh hành
-          </span>
-          <span className="text-xs text-zinc-400 font-semibold">Hot #</span>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5 px-1">
-          {TRENDING_TAGS.map(({ tag, count }) => (
-            <Link
-              key={tag}
-              to={`/search?q=${encodeURIComponent(tag.replace("#", ""))}`}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-200/70 dark:bg-zinc-800 hover:bg-slate-300/80 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 transition cursor-pointer"
-            >
-              <Hash className="w-3.5 h-3.5 text-zinc-400" />
-              <span>{tag.replace("#", "")}</span>
-              <span className="text-[10px] text-zinc-500 font-bold ml-0.5">{count}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </div>
+      </nav>
+    </aside>
   );
 }

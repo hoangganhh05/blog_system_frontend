@@ -132,14 +132,6 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   const isProfilePage = pathname.startsWith("/profile");
   const isPostDetailPage = pathname.startsWith("/posts/");
 
-  const navLinks = [
-    { to: "/",                         label: "Trang chủ",  icon: Home },
-    { to: "/trending",                  label: "Khám phá",   icon: Compass },
-    { to: "/friends",                   label: "Bạn bè",     icon: Users },
-    { to: "/saved",                     label: "Đã lưu",     icon: Bookmark },
-    { to: "/dashboard",                 label: "Công cụ",    icon: BarChart2 },
-  ];
-
   return (
     <div className="min-h-screen w-full bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col transition-colors duration-200">
       {/* ======================================================================
@@ -196,8 +188,8 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         ) : (
           /* STANDARD NAVBAR LAYOUT */
           <div className="w-full h-14 px-3 sm:px-4 md:px-4 flex items-center justify-between gap-2 sm:gap-4">
-            {/* LEFT SECTION: Hamburger Menu on Mobile (far left) & Logo + Nav on PC */}
-            <div className="flex items-center gap-2 sm:gap-5 shrink-0 min-w-0">
+            {/* LEFT SECTION: Hamburger on Mobile (far left) & Logo + Search Input on PC */}
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0 min-w-0">
               {/* Nút Menu 3 gạch ngang (Chỉ hiển thị ngoài cùng bên trái trên Mobile) */}
               <button
                 type="button"
@@ -213,44 +205,23 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 <Logo size="md" withText={true} />
               </div>
 
-              {/* Desktop Navigation Links */}
-              <nav className="hidden md:flex items-center gap-1">
-                {navLinks.map(({ to, label, icon: Icon }) => {
-                  const active = location.pathname === to || (to !== "/" && location.pathname.startsWith(to));
-                  return (
-                    <NavLink
-                      key={to}
-                      to={to}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                        active
-                          ? "text-[#0866ff] bg-[#0866ff]/10 dark:bg-[#0866ff]/20"
-                          : "text-[#65676b] hover:text-[#050505] dark:text-[#b0b3b8] dark:hover:text-[#e4e6eb] hover:bg-slate-100 dark:hover:bg-[#303031]"
-                      }`}
-                    >
-                      <Icon strokeWidth={active ? 2.4 : 1.75} className="w-4 h-4" />
-                      <span>{label}</span>
-                    </NavLink>
-                  );
-                })}
-              </nav>
+              {/* Thanh Tìm Kiếm Desktop (Đặt ngay cạnh Logo BlogViet ở bên trái) */}
+              <form onSubmit={handleSearchSubmit} className="hidden md:block w-56 lg:w-80">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm bài viết, tác giả..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-slate-100 dark:bg-zinc-800/80 border border-slate-200/60 dark:border-zinc-700/50 focus:border-[#0866ff] rounded-full py-1.5 pl-8 pr-3 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none transition"
+                  />
+                </div>
+              </form>
             </div>
 
-            {/* CENTER: Search Bar (Desktop only) */}
-            <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xs hidden md:block">
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm bài viết, tác giả..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-100 dark:bg-zinc-800/80 border border-slate-200/60 dark:border-zinc-700/50 focus:border-[#0866ff] rounded-full py-1.5 pl-8 pr-3 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none transition"
-                />
-              </div>
-            </form>
-
-            {/* RIGHT SECTION: Actions */}
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto md:ml-0">
+            {/* RIGHT SECTION: Notifications + Messenger + Profile */}
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto">
               {/* 1. Mobile Search Trigger Icon (Chỉ hiển thị trên Mobile) */}
               <button
                 type="button"
@@ -264,30 +235,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 <Search strokeWidth={2} className="w-4 h-4" />
               </button>
 
-              {/* 2. Create Post Button (Desktop only hidden md:inline-flex) */}
-              <button
-                type="button"
-                onClick={() => setIsCreateModalOpen(true)}
-                className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-1.5 min-h-[38px] rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition-all duration-150 active:scale-95 hover:opacity-95 cursor-pointer shadow-xs"
-              >
-                <Plus strokeWidth={2.5} className="w-3.5 h-3.5" />
-                <span>Đăng bài</span>
-              </button>
-
-              {/* 3. Trợ lý AI Gemini (Desktop only hidden md:flex) */}
-              <button
-                type="button"
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent("close_chat_widget"));
-                  setIsAiModalOpen(true);
-                }}
-                className="hidden md:flex p-1.5 min-w-[36px] min-h-[36px] items-center justify-center rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 active:scale-95 hover:scale-105 transition-all duration-150 cursor-pointer"
-                title="Trợ lý AI BlogViet (Gemini 3.7 Flash)"
-              >
-                <Sparkles strokeWidth={2} className="w-4 h-4" />
-              </button>
-
-              {/* 4. Chuông thông báo (Hiển thị đầy đủ cả Mobile & Desktop) */}
+              {/* 2. Chuông thông báo (Hiển thị đầy đủ cả Mobile & Desktop) */}
               <NavLink
                 to="/notifications"
                 className={({ isActive }) =>
@@ -305,7 +253,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 )}
               </NavLink>
 
-              {/* 5. Messenger Chat Button & Dropdown (Desktop & Mobile) */}
+              {/* 3. Messenger Chat Button & Dropdown (Desktop & Mobile) */}
               <div className="relative" ref={messengerMenuRef}>
                 <button
                   type="button"
@@ -332,7 +280,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 />
               </div>
 
-              {/* 6. Profile Dropdown (Desktop only hidden md:block) */}
+              {/* 4. Profile Dropdown (Desktop only hidden md:block) */}
               <div className="relative hidden md:block" ref={profileMenuRef}>
                 <button
                   type="button"
@@ -432,29 +380,27 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         />
       </header>
 
+      {/* LEFT SIDEBAR: Minimal Icon Bar with Hover Tooltips (Fixed on Desktop md+) */}
+      <LeftSidebar />
+
       {/* ======================================================================
           DYNAMIC ADAPTIVE LAYOUT:
-          - Home / Trending: 3-column Facebook layout (Sticky Sidebars + Center Feed)
-          - Profile / Posts / Tools: Balanced Centered Layout (max-w-5xl mx-auto)
+          - Home / Trending: 2-column Facebook layout (Center Feed + Sticky Right Sidebar)
+          - Profile / Posts / Tools: Balanced Centered Layout
           ====================================================================== */}
       {is3ColumnFeedPage ? (
-        <div className="w-full max-w-[1440px] mx-auto min-h-screen grid grid-cols-12 gap-3 sm:gap-4 lg:gap-5 px-2 sm:px-3 md:px-4 pt-3 sm:pt-4 items-start">
-          {/* LEFT COLUMN: Shortcuts & Profile Sidebar (col-span-3, sticky independent on gray background) */}
-          <aside className="sidebar-sticky hidden lg:block lg:col-span-3 custom-scrollbar pb-16">
-            <LeftSidebar />
-          </aside>
-
-          {/* CENTER COLUMN: Main Content Feed (col-span-12 on mobile, lg:col-span-6 on desktop with pristine white cards) */}
+        <div className="w-full max-w-[1360px] mx-auto min-h-screen grid grid-cols-12 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-4 md:pl-24 md:pr-4 pt-3 sm:pt-4 items-start">
+          {/* CENTER COLUMN: Main Content Feed (col-span-12 on mobile, lg:col-span-8 on desktop) */}
           <main
             ref={mainRef}
             onScroll={handleMainScroll}
-            className="col-span-12 lg:col-span-6 min-w-0 w-full pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-2.5 touch-pan-y animate-fade-in-up"
+            className="col-span-12 lg:col-span-8 min-w-0 w-full pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-2.5 touch-pan-y animate-fade-in-up"
           >
             {children}
           </main>
 
-          {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-3, sticky independent on gray background) */}
-          <aside className="sidebar-sticky sidebar-right-fixed hidden lg:block lg:col-span-3 custom-scrollbar pb-16">
+          {/* RIGHT COLUMN: Mini Music Player & Follow Suggestions (col-span-4, sticky on desktop) */}
+          <aside className="sidebar-sticky sidebar-right-fixed hidden lg:block lg:col-span-4 custom-scrollbar pb-16">
             <RightSidebar />
           </aside>
         </div>
@@ -462,7 +408,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className={`w-full flex-1 px-2 sm:px-4 pt-3 sm:pt-5 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-3 touch-pan-y animate-fade-in-up ${
+          className={`w-full flex-1 px-2 sm:px-4 md:pl-24 md:pr-6 pt-3 sm:pt-5 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-3 touch-pan-y animate-fade-in-up ${
             isProfilePage
               ? "max-w-5xl mx-auto"
               : isPostDetailPage
