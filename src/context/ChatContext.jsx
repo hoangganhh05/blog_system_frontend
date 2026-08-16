@@ -11,47 +11,7 @@ export function ChatProvider({ children }) {
   const { currentUser } = useAuth();
   const [activeChats, setActiveChats] = useState([]);
 
-  // Lắng nghe sự kiện mở chat từ bất kỳ đâu (Profile, Friends page, Search, PostCard, Sidebar)
-  useEffect(() => {
-    const handleOpenFloatingChat = (event) => {
-      const u = event.detail?.user || event.detail?.friend || event.detail?.targetUser;
-      if (u) {
-        openChat(u);
-      }
-    };
-
-    window.addEventListener("open_floating_chat", handleOpenFloatingChat);
-    window.addEventListener("open_chat_user", handleOpenFloatingChat);
-    return () => {
-      window.removeEventListener("open_floating_chat", handleOpenFloatingChat);
-      window.removeEventListener("open_chat_user", handleOpenFloatingChat);
-    };
-  }, [openChat]);
-
-  // Lắng nghe sự kiện đổi theme qua Realtime WebSocket / Custom Event
-  useEffect(() => {
-    const handleThemeUpdated = (event) => {
-      const { conversationId, targetUserId, theme } = event.detail || {};
-      if (!theme) return;
-
-      setActiveChats((prev) =>
-        prev.map((chat) => {
-          if (
-            (conversationId && chat.conversationId === conversationId) ||
-            (targetUserId && String(chat.user.id) === String(targetUserId))
-          ) {
-            return { ...chat, theme };
-          }
-          return chat;
-        })
-      );
-    };
-
-    window.addEventListener("chat_theme_updated", handleThemeUpdated);
-    return () => window.removeEventListener("chat_theme_updated", handleThemeUpdated);
-  }, []);
-
-  // Mở box chat với một người dùng
+  // 1. Mở box chat với một người dùng (Định nghĩa trước để tránh Temporal Dead Zone / TDZ)
   const openChat = useCallback(async (user) => {
     if (!user || !user.id) return;
     const targetUserId = user.id;
@@ -107,26 +67,26 @@ export function ChatProvider({ children }) {
     }
   }, []);
 
-  // Đóng box chat
+  // 2. Đóng box chat
   const closeChat = useCallback((userId) => {
     setActiveChats((prev) => prev.filter((chat) => String(chat.user.id) !== String(userId)));
   }, []);
 
-  // Thu nhỏ box chat
+  // 3. Thu nhỏ box chat
   const minimizeChat = useCallback((userId) => {
     setActiveChats((prev) =>
       prev.map((chat) => (String(chat.user.id) === String(userId) ? { ...chat, isMinimized: true } : chat))
     );
   }, []);
 
-  // Phóng to / Mở lại box chat
+  // 4. Phóng to / Mở lại box chat
   const maximizeChat = useCallback((userId) => {
     setActiveChats((prev) =>
       prev.map((chat) => (String(chat.user.id) === String(userId) ? { ...chat, isMinimized: false } : chat))
     );
   }, []);
 
-  // Toggle thu nhỏ / phóng to
+  // 5. Toggle thu nhỏ / phóng to
   const toggleMinimizeChat = useCallback((userId) => {
     setActiveChats((prev) =>
       prev.map((chat) =>
@@ -135,7 +95,7 @@ export function ChatProvider({ children }) {
     );
   }, []);
 
-  // Đổi Theme cuộc trò chuyện & Đồng bộ qua API + Realtime Event
+  // 6. Đổi Theme cuộc trò chuyện & Đồng bộ qua API + Realtime Event
   const setChatTheme = useCallback(async (userId, newTheme) => {
     setActiveChats((prev) =>
       prev.map((chat) => (String(chat.user.id) === String(userId) ? { ...chat, theme: newTheme } : chat))
@@ -152,6 +112,46 @@ export function ChatProvider({ children }) {
     } catch {
       // Fallback
     }
+  }, []);
+
+  // 7. Lắng nghe sự kiện mở chat từ bất kỳ đâu (Profile, Friends page, Search, PostCard, Sidebar)
+  useEffect(() => {
+    const handleOpenFloatingChat = (event) => {
+      const u = event.detail?.user || event.detail?.friend || event.detail?.targetUser;
+      if (u) {
+        openChat(u);
+      }
+    };
+
+    window.addEventListener("open_floating_chat", handleOpenFloatingChat);
+    window.addEventListener("open_chat_user", handleOpenFloatingChat);
+    return () => {
+      window.removeEventListener("open_floating_chat", handleOpenFloatingChat);
+      window.removeEventListener("open_chat_user", handleOpenFloatingChat);
+    };
+  }, [openChat]);
+
+  // 8. Lắng nghe sự kiện đổi theme qua Realtime WebSocket / Custom Event
+  useEffect(() => {
+    const handleThemeUpdated = (event) => {
+      const { conversationId, targetUserId, theme } = event.detail || {};
+      if (!theme) return;
+
+      setActiveChats((prev) =>
+        prev.map((chat) => {
+          if (
+            (conversationId && chat.conversationId === conversationId) ||
+            (targetUserId && String(chat.user.id) === String(targetUserId))
+          ) {
+            return { ...chat, theme };
+          }
+          return chat;
+        })
+      );
+    };
+
+    window.addEventListener("chat_theme_updated", handleThemeUpdated);
+    return () => window.removeEventListener("chat_theme_updated", handleThemeUpdated);
   }, []);
 
   return (
