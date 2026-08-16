@@ -17,7 +17,8 @@ import {
   Trash2,
   Copy,
   Check,
-  Bookmark
+  Bookmark,
+  Globe
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -162,7 +163,7 @@ export default function PostTheaterModal({
     }
   }, [images.length]);
 
-  // Lắng nghe bàn phím (Escape, ArrowLeft, ArrowRight)
+  // Lắng nghe phím tắt bàn phím
   useEffect(() => {
     if (!isOpen) return;
 
@@ -334,7 +335,7 @@ export default function PostTheaterModal({
 
   const currentImage = images[activeImageIndex] || images[0];
 
-  // Component phụ trợ cho phần nhập bình luận (dùng chung cho cả 2 mode)
+  // Component Ô Nhập Bình Luận Cố Định Ở Đáy
   const commentComposer = (
     <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shrink-0 relative">
       {selectedGif && (
@@ -435,7 +436,7 @@ export default function PostTheaterModal({
     </div>
   );
 
-  // Menu tùy chọn tác giả
+  // Menu tùy chọn ba chấm
   const optionsMenu = (
     <div className="relative">
       <button
@@ -494,10 +495,10 @@ export default function PostTheaterModal({
     </div>
   );
 
-  // Thống kê & 4 nút tương tác (Thích, Bình luận, Chia sẻ, Lưu)
+  // 4. Thanh Tương Tác & Thống Kê
   const interactionsSection = (
-    <>
-      <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+    <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+      <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
         <button
           type="button"
           onClick={() => setIsReactionsModalOpen(true)}
@@ -568,10 +569,10 @@ export default function PostTheaterModal({
           <span>Lưu</span>
         </button>
       </div>
-    </>
+    </div>
   );
 
-  // Danh sách bình luận
+  // 5. Danh Sách Bình Luận
   const commentsListSection = (
     <div className="space-y-3 pt-2">
       <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
@@ -605,217 +606,80 @@ export default function PostTheaterModal({
     </div>
   );
 
-  // =========================================================================
-  // TRƯỜNG HỢP 1: BÀI VIẾT KHÔNG CÓ ẢNH (MODAL CARD CĂN GIỮA MÀN HÌNH)
-  // =========================================================================
-  if (!hasImages) {
-    return createPortal(
-      <div
-        className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150 overflow-hidden pointer-events-auto"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClose();
-        }}
-      >
-        <div
-          className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl relative border border-zinc-200 dark:border-zinc-800 animate-in zoom-in-95 duration-150 text-left"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header Card */}
-          <div className="p-3.5 px-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between shrink-0 bg-white dark:bg-zinc-900">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              Bài viết của {authorName}
-            </h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 transition cursor-pointer"
-              title="Đóng (Esc)"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+  // Khối Hiển Thị Ảnh (Nằm Ngay Dưới Caption Chữ)
+  const imageGalleryBlock = hasImages && (
+    <div className="relative w-full rounded-2xl overflow-hidden bg-black flex items-center justify-center my-2 select-none group/media">
+      {/* Ảnh chính */}
+      <img
+        key={currentImage}
+        src={currentImage}
+        alt="Ảnh bài viết"
+        className="w-full max-h-[70vh] sm:max-h-[75vh] object-contain select-none"
+      />
 
-          {/* Body Card (Cuộn dọc) */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin bg-white dark:bg-zinc-900">
-            {/* Tác giả */}
-            <div className="flex items-center justify-between">
-              <Link
-                to={authorId ? `/profile/${authorId}` : "#"}
-                onClick={onClose}
-                className="flex items-center gap-2.5 group min-w-0"
-              >
-                <Avatar
-                  userId={authorId}
-                  src={authorAvatarUrl}
-                  name={authorName}
-                  username={author.username}
-                  avatarColor={authorAvatarColor}
-                  size="md"
-                />
-                <div className="min-w-0">
-                  <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:underline">
-                    {authorName}
-                  </h4>
-                  <p className="text-[11px] text-zinc-400">
-                    {timeAgo(post.createdAt)}
-                    {post.category?.name && ` • #${post.category.name}`}
-                  </p>
-                </div>
-              </Link>
-              {optionsMenu}
-            </div>
-
-            {/* AI Summary Box */}
-            {summary && (
-              <div className="p-3 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-900/60 text-xs text-indigo-900 dark:text-indigo-200 leading-relaxed animate-in fade-in duration-200">
-                <div className="flex items-center gap-1.5 font-bold mb-1 text-indigo-600 dark:text-indigo-400">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Tóm tắt thông minh:</span>
-                </div>
-                <p className="whitespace-pre-line">{summary}</p>
-              </div>
-            )}
-
-            {/* Nội dung Caption Text Lớn Rõ Ràng */}
-            {post.title && post.title !== post.content && (
-              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-                {post.title}
-              </h2>
-            )}
-            <p className="text-[15px] sm:text-[16px] leading-relaxed text-zinc-900 dark:text-zinc-100 whitespace-pre-line break-words">
-              {post.content || post.title}
-            </p>
-
-            {/* Tương tác & Bình luận */}
-            {interactionsSection}
-            {commentsListSection}
-          </div>
-
-          {/* Footer Input */}
-          {commentComposer}
+      {/* Chỉ số ảnh (1 / 4) */}
+      {images.length > 1 && (
+        <div className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-xs text-white text-[11px] font-bold pointer-events-none">
+          {activeImageIndex + 1} / {images.length}
         </div>
+      )}
 
-        {/* Sub-modals */}
-        {isReactionsModalOpen && (
-          <ReactionsModal
-            postId={post.id}
-            isOpen={isReactionsModalOpen}
-            onClose={() => setIsReactionsModalOpen(false)}
-            totalLikeCount={likeCount}
-          />
-        )}
+      {/* Nút lùi ảnh */}
+      {images.length > 1 && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handlePrevImage();
+          }}
+          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/60 hover:bg-black/90 text-white transition-all cursor-pointer hover:scale-110 active:scale-95 shadow-md"
+          title="Ảnh trước (Mũi tên trái)"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+      )}
 
-        {isShareModalOpen && (
-          <ShareModal
-            post={post}
-            isOpen={isShareModalOpen}
-            onClose={() => setIsShareModalOpen(false)}
-            onPostShared={(shared) => {
-              if (onPostUpdated) onPostUpdated(shared);
-            }}
-          />
-        )}
-
-        <ConfirmModal
-          isOpen={isDeleteModalOpen}
-          title="Xóa bài viết"
-          message="Bạn có chắc chắn muốn xóa vĩnh viễn bài viết này không? Hành động này không thể hoàn tác."
-          confirmText="Xóa bài viết"
-          isDanger={true}
-          onConfirm={confirmDeletePost}
-          onCancel={() => setIsDeleteModalOpen(false)}
-        />
-      </div>,
-      document.body
-    );
-  }
+      {/* Nút tiến ảnh */}
+      {images.length > 1 && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleNextImage();
+          }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/60 hover:bg-black/90 text-white transition-all cursor-pointer hover:scale-110 active:scale-95 shadow-md"
+          title="Ảnh tiếp theo (Mũi tên phải)"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      )}
+    </div>
+  );
 
   // =========================================================================
-  // TRƯỜNG HỢP 2: BÀI VIẾT CÓ ẢNH (BẬT CHẾ ĐỘ THEATER SPLIT VIEW TOÀN MÀN HÌNH)
+  // GIAO DIỆN MODAL CHUẨN THỨ TỰ LOGIC:
+  // 1. HEADER (Tác giả) -> 2. NỘI DUNG CHỮ -> 3. KHỐI ẢNH (DƯỚI CHỮ) -> 4. TƯƠNG TÁC -> 5. BÌNH LUẬN -> 6. COMPOSER
   // =========================================================================
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-sm flex flex-col md:flex-row items-stretch animate-in fade-in duration-150 overflow-hidden pointer-events-auto select-none"
+      className="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-xs flex items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150 overflow-hidden pointer-events-auto"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* 1. KHU VỰC HIỂN THỊ ẢNH THEATER TRÀN VIỀN (BÊN TRÁI TRÊN PC) */}
-      <div className="relative flex-1 min-w-0 bg-black flex items-center justify-center overflow-hidden h-[45vh] md:h-full select-none p-0 md:p-2">
-        {/* Nút Đóng X Góc Trên Trái trên PC */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-4 left-4 z-30 p-2.5 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-white transition-all cursor-pointer backdrop-blur-xs hidden md:flex items-center justify-center hover:scale-105"
-          title="Đóng (Esc)"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Chỉ số ảnh (Ví dụ: 1 / 4) nếu có nhiều ảnh */}
-        {images.length > 1 && (
-          <div className="absolute top-4 right-4 md:right-auto md:left-20 z-30 px-3 py-1 rounded-full bg-black/60 backdrop-blur-xs text-white text-xs font-bold pointer-events-none">
-            {activeImageIndex + 1} / {images.length}
-          </div>
-        )}
-
-        {/* Nút lùi ảnh (Prev) */}
-        {images.length > 1 && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePrevImage();
-            }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white transition-all cursor-pointer hover:scale-110 active:scale-95 shadow-lg"
-            title="Ảnh trước (Mũi tên trái)"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-        )}
-
-        {/* Ảnh chính hiển thị tối đa khung hình tràn viền */}
-        <div
-          className="w-full h-full flex items-center justify-center cursor-default overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <img
-            key={currentImage}
-            src={currentImage}
-            alt="Chi tiết ảnh bài viết"
-            className="w-full h-full max-h-[100vh] object-contain select-none animate-in zoom-in-95 duration-200"
-          />
-        </div>
-
-        {/* Nút tiến ảnh (Next) */}
-        {images.length > 1 && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleNextImage();
-            }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white transition-all cursor-pointer hover:scale-110 active:scale-95 shadow-lg"
-            title="Ảnh tiếp theo (Mũi tên phải)"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        )}
-      </div>
-
-      {/* 2. CỘT THÔNG TIN BÀI VIẾT & BÌNH LUẬN (BÊN PHẢI TRÊN PC) */}
       <div
-        className="w-full md:w-[380px] lg:w-[420px] h-[55vh] md:h-full bg-white dark:bg-zinc-900 border-t md:border-t-0 md:border-l border-zinc-200 dark:border-zinc-800 flex flex-col shrink-0 z-20 overflow-hidden text-left"
+        className="bg-white dark:bg-zinc-900 sm:rounded-2xl w-full max-w-2xl h-full sm:h-auto sm:max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative border-0 sm:border border-zinc-200 dark:border-zinc-800 animate-in zoom-in-95 duration-150 text-left"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header Thông Tin Tác Giả */}
-        <div className="p-3.5 pb-2.5 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900">
+        {/* 1. HEADER BÀI VIẾT (TRÊN CÙNG) */}
+        <div className="p-3 sm:p-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between shrink-0 bg-white dark:bg-zinc-900">
           <div className="flex items-center gap-2.5 min-w-0">
-            {/* Nút Quay Lại trên Mobile */}
+            {/* Nút Quay Lại */}
             <button
               type="button"
               onClick={onClose}
-              className="md:hidden p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+              className="p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+              title="Đóng (Esc)"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -834,22 +698,38 @@ export default function PostTheaterModal({
                 size="md"
               />
               <div className="min-w-0">
-                <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:underline">
+                <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:underline">
                   {authorName}
-                </h3>
-                <p className="text-[11px] text-zinc-400">
-                  {timeAgo(post.createdAt)}
-                  {post.category?.name && ` • #${post.category.name}`}
-                </p>
+                </h4>
+                <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                  <span>{timeAgo(post.createdAt)}</span>
+                  <span>•</span>
+                  <Globe className="w-3 h-3 inline-block opacity-70" />
+                  {post.category?.name && (
+                    <span className="font-semibold text-zinc-600 dark:text-zinc-300">
+                      • #{post.category.name}
+                    </span>
+                  )}
+                </div>
               </div>
             </Link>
           </div>
 
-          {optionsMenu}
+          <div className="flex items-center gap-1">
+            {optionsMenu}
+            <button
+              type="button"
+              onClick={onClose}
+              className="hidden sm:flex p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 transition cursor-pointer"
+              title="Đóng (Esc)"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Thân Cột: Văn bản bài viết & Danh sách Bình luận (Cuộn Độc Lập) */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin bg-white dark:bg-zinc-900">
+        {/* THÂN MODAL CUỘN DỌC TỰ ĐỘNG */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3.5 scrollbar-thin bg-white dark:bg-zinc-900">
           {/* AI Summary Box */}
           {summary && (
             <div className="p-3 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-900/60 text-xs text-indigo-900 dark:text-indigo-200 leading-relaxed animate-in fade-in duration-200">
@@ -861,22 +741,29 @@ export default function PostTheaterModal({
             </div>
           )}
 
-          {/* Tiêu đề & Nội dung Caption */}
+          {/* 2. NỘI DUNG / TIÊU ĐỀ / CAPTION BÀI VIẾT (Ở GIỮA 1 - NẰM TRÊN ẢNH) */}
           {post.title && post.title !== post.content && (
             <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
               {post.title}
             </h2>
           )}
-          <p className="text-[14px] leading-relaxed text-zinc-800 dark:text-zinc-200 whitespace-pre-line break-words">
-            {post.content || post.title}
-          </p>
+          {post.content && (
+            <div className="text-[15px] sm:text-[16px] leading-relaxed text-zinc-900 dark:text-zinc-100 whitespace-pre-line break-words">
+              {post.content}
+            </div>
+          )}
 
-          {/* Tương tác & Bình luận */}
+          {/* 3. KHU VỰC HIỂN THỊ ẢNH (Ở GIỮA 2 - NẰM NGAY DƯỚI NỘI DUNG CHỮ) */}
+          {imageGalleryBlock}
+
+          {/* 4. THANH TƯƠNG TÁC & THỐNG KÊ (DƯỚI ẢNH) */}
           {interactionsSection}
+
+          {/* 5. DANH SÁCH BÌNH LUẬN (DƯỚI CÙNG) */}
           {commentsListSection}
         </div>
 
-        {/* Footer Input */}
+        {/* 6. THANH NHẬP BÌNH LUẬN CỐ ĐỊNH Ở ĐÁY */}
         {commentComposer}
       </div>
 
