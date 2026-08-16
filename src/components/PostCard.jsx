@@ -279,12 +279,13 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   };
 
   const handleCardClick = (e) => {
-    // Avoid triggering card click when interacting with buttons or links
-    if (e.target.closest("button") || e.target.closest("a") || e.target.closest("input")) {
+    // Avoid triggering card click when interacting with buttons, links or menu
+    if (e.target.closest("button") || e.target.closest("a") || e.target.closest("input") || e.target.closest(".no-card-click")) {
       return;
     }
     if (!isDetailed) {
-      navigate(`/posts/${post.id}`);
+      e.preventDefault();
+      openTheater(e, 0);
     }
   };
 

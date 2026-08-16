@@ -24,6 +24,10 @@ const bookmarkService = {
     return axiosClient.get(`/posts/${postId}/bookmark/check`);
   },
 
+  isBookmarked(postId, userId) {
+    return this.checkBookmarked(postId, userId);
+  },
+
   // Lấy danh sách các bài viết đã bookmark của user
   getUserBookmarks(userId) {
     const uid = getUserId(userId);
@@ -37,6 +41,7 @@ const bookmarkService = {
 
 export const toggleBookmark = bookmarkService.toggleBookmark.bind(bookmarkService);
 export const checkBookmarked = bookmarkService.checkBookmarked.bind(bookmarkService);
+export const isBookmarked = bookmarkService.isBookmarked.bind(bookmarkService);
 export const getUserBookmarks = bookmarkService.getUserBookmarks.bind(bookmarkService);
 export const getBookmarks = bookmarkService.getBookmarks.bind(bookmarkService);
 

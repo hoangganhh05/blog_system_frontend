@@ -134,12 +134,14 @@ export default function PostTheaterModal({
         })
         .catch(() => {});
 
-      bookmarkService
-        .isBookmarked(post.id)
-        .then((res) => {
-          setBookmarked(Boolean(res.data?.bookmarked));
-        })
-        .catch(() => {});
+      const checkBm = bookmarkService.checkBookmarked || bookmarkService.isBookmarked;
+      if (typeof checkBm === "function") {
+        checkBm(post.id)
+          .then((res) => {
+            setBookmarked(Boolean(res.data?.bookmarked));
+          })
+          .catch(() => {});
+      }
     }
 
     setLikeCount(post.likesCount || 0);
