@@ -281,8 +281,14 @@ export default function MessengerDropdown({ isOpen, onClose }) {
       return;
     }
 
-    setActiveChatUser(user);
-    openChat(user);
+    if (isMobile) {
+      // Trên Mobile: Chuyển sang màn hình chat toàn màn hình trong Drawer
+      setActiveChatUser(user);
+    } else {
+      // Trên PC: Đóng dropdown và mở duy nhất 1 Box Chat Dock ở góc dưới bên phải chuẩn Facebook
+      openChat(user);
+      onClose();
+    }
   };
 
   const innerContent = (
