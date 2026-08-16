@@ -203,6 +203,16 @@ export default function ChatBoxWindow({ chat, onBack }) {
     return () => window.removeEventListener("chat:new-message", handleNewMessage);
   }, [currentUserId, targetUserId, scrollToBottom]);
 
+  // Đóng compact menu khi click ra ngoài trên PC
+  useEffect(() => {
+    if (!activeActionMessage) return;
+    const handleGlobalClick = () => {
+      setActiveActionMessage(null);
+    };
+    window.addEventListener("click", handleGlobalClick);
+    return () => window.removeEventListener("click", handleGlobalClick);
+  }, [activeActionMessage]);
+
   // Gửi tin nhắn
   const handleSendMessage = async (customContent = null) => {
     const textToSend = customContent || inputText;
@@ -642,16 +652,104 @@ export default function ChatBoxWindow({ chat, onBack }) {
               >
                 {/* Bubble Tin Nhắn */}
                 <div className="relative flex items-center gap-1 group/bubble">
-                  {/* Nút 3 chấm mở action menu khi hover trên desktop */}
+                  {/* Nút 3 chấm mở action menu khi hover trên PC (Ẩn trên Mobile) */}
                   {isMine && (
                     <button
                       type="button"
-                      onClick={() => setActiveActionMessage(msg)}
-                      className="opacity-0 group-hover/bubble:opacity-100 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-zinc-400 transition cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveActionMessage(activeActionMessage?.id === msg.id ? null : msg);
+                      }}
+                      className="hidden md:inline-flex opacity-0 group-hover/bubble:opacity-100 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-zinc-400 transition cursor-pointer"
                       title="Tùy chọn"
                     >
                       <MoreHorizontal className="w-3.5 h-3.5" />
                     </button>
+                  )}
+
+                  {/* 1. MENU NHỎ GỌN TRÊN PC (NỔI NGAY CẠNH BÓNG TIN NHẮN) */}
+                  {activeActionMessage?.id === msg.id && (
+                    <div
+                      className={`hidden md:block absolute top-0 ${
+                        isMine ? "right-full mr-2" : "left-full ml-2"
+                      } z-40 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-1.5 w-44 animate-in fade-in zoom-in-95 duration-100 text-left`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Quick Reactions bar */}
+                      <div className="flex items-center justify-between px-1.5 py-1 mb-1 border-b border-zinc-100 dark:border-zinc-800 text-base">
+                        {["❤️", "😂", "😮", "😢", "😡", "👍"].map((emoji) => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => handleSendReaction(msg.id, emoji)}
+                            className="hover:scale-125 transition-transform cursor-pointer"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Action List nhỏ gọn */}
+                      <div className="space-y-0.5 text-xs text-zinc-700 dark:text-zinc-200 font-medium">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setReplyingMessage(msg);
+                            setActiveActionMessage(null);
+                            textInputRef.current?.focus();
+                          }}
+                          className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-left transition cursor-pointer"
+                        >
+                          <Reply className="w-3.5 h-3.5 text-blue-500" />
+                          <span>Trả lời</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleCopyMessage(msg.content)}
+                          className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-left transition cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>Sao chép</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handlePinMessage(msg)}
+                          className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-left transition cursor-pointer"
+                        >
+                          <Pin className="w-3.5 h-3.5 text-amber-500" />
+                          <span>Ghim</span>
+                        </button>
+
+                        {isMine && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingMessage(msg);
+                                setInputText(msg.content);
+                                setActiveActionMessage(null);
+                                textInputRef.current?.focus();
+                              }}
+                              className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-blue-600 dark:text-blue-400 text-left transition cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>Chỉnh sửa</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMessage(msg.id)}
+                              className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg text-rose-600 dark:text-rose-400 text-left transition cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Thu hồi</span>
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   )}
 
                   {isSticker ? (
@@ -688,8 +786,11 @@ export default function ChatBoxWindow({ chat, onBack }) {
                   {!isMine && (
                     <button
                       type="button"
-                      onClick={() => setActiveActionMessage(msg)}
-                      className="opacity-0 group-hover/bubble:opacity-100 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-zinc-400 transition cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveActionMessage(activeActionMessage?.id === msg.id ? null : msg);
+                      }}
+                      className="hidden md:inline-flex opacity-0 group-hover/bubble:opacity-100 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-zinc-400 transition cursor-pointer"
                       title="Tùy chọn"
                     >
                       <MoreHorizontal className="w-3.5 h-3.5" />
@@ -969,14 +1070,14 @@ export default function ChatBoxWindow({ chat, onBack }) {
         />
       )}
 
-      {/* Bottom Sheet Menu Tùy Chọn Tin Nhắn (Long-Press / 3 Chấm trên Mobile & Desktop) */}
+      {/* 2. BOTTOM SHEET TRÊN MOBILE (KÍCH HOẠT KHI LONG-PRESS TRÊN MÀN HÌNH NHỎ) */}
       {activeActionMessage && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
+          className="block md:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-end justify-center p-0 animate-in fade-in duration-150"
           onClick={() => setActiveActionMessage(null)}
         >
           <div
-            className="w-full sm:max-w-xs bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl p-4 space-y-3 shadow-2xl border border-zinc-200 dark:border-zinc-800 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150 text-left"
+            className="w-full bg-white dark:bg-zinc-900 rounded-t-3xl p-4 space-y-3 pb-8 shadow-2xl border-t border-zinc-200 dark:border-zinc-800 animate-in slide-in-from-bottom-5 duration-150 text-left"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Quick Reactions Bar */}
