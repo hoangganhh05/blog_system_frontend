@@ -179,15 +179,25 @@ export default function MessengerDropdown({ isOpen, onClose }) {
     if (!isOpen || isMobile) return;
 
     const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        const trigger =
-          e.target.closest(".mobile-chat-btn") ||
-          e.target.closest(".navbar-icon-btn") ||
-          e.target.closest("button[title='Tin nhắn Messenger']");
-        if (!trigger) {
-          onClose();
-        }
+      // 1. Kiểm tra dropdownRef trực tiếp
+      if (dropdownRef.current && dropdownRef.current.contains(e.target)) {
+        return;
       }
+      // 2. Kiểm tra composedPath để bảo vệ các phần tử vừa re-render
+      if (e.composedPath && dropdownRef.current && e.composedPath().includes(dropdownRef.current)) {
+        return;
+      }
+      // 3. Bỏ qua nếu click vào nút mở chat trên Navbar
+      const trigger = e.target.closest && (
+        e.target.closest(".mobile-chat-btn") ||
+        e.target.closest(".navbar-icon-btn") ||
+        e.target.closest("button[title='Tin nhắn Messenger']")
+      );
+      if (trigger) {
+        return;
+      }
+
+      onClose();
     };
 
     const handleKeyDown = (e) => {
@@ -196,9 +206,13 @@ export default function MessengerDropdown({ isOpen, onClose }) {
       }
     };
 
-    document.addEventListener("click", handleClickOutside);
+    const timer = setTimeout(() => {
+      document.addEventListener("click", handleClickOutside);
+    }, 50);
+
     document.addEventListener("keydown", handleKeyDown);
     return () => {
+      clearTimeout(timer);
       document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
@@ -807,6 +821,8 @@ export default function MessengerDropdown({ isOpen, onClose }) {
     return createPortal(
       <div
         ref={dropdownRef}
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
         className="fixed inset-0 z-[9999] bg-white dark:bg-zinc-900 w-full h-[100dvh] flex flex-col overflow-hidden animate-in fade-in duration-150 text-left pointer-events-auto"
       >
         {activeChatUser ? (
@@ -829,6 +845,8 @@ export default function MessengerDropdown({ isOpen, onClose }) {
   return (
     <div
       ref={dropdownRef}
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
       className="absolute top-full right-0 w-[380px] h-[580px] mt-2 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200/90 dark:border-zinc-800 z-50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-left pointer-events-auto"
       style={{
         boxShadow:
