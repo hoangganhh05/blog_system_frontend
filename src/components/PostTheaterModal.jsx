@@ -15,7 +15,6 @@ import {
   ArrowLeft,
   Loader2,
   Trash2,
-  Edit,
   Copy,
   Check,
   Bookmark
@@ -74,6 +73,8 @@ export default function PostTheaterModal({
   } else if (post?.imageUrl) {
     images.push(post.imageUrl);
   }
+
+  const hasImages = images.length > 0;
 
   const [activeImageIndex, setActiveImageIndex] = useState(initialImageIndex || 0);
   const [comments, setComments] = useState([]);
@@ -333,6 +334,405 @@ export default function PostTheaterModal({
 
   const currentImage = images[activeImageIndex] || images[0];
 
+  // Component phụ trợ cho phần nhập bình luận (dùng chung cho cả 2 mode)
+  const commentComposer = (
+    <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shrink-0 relative">
+      {selectedGif && (
+        <div className="mb-2 relative inline-block">
+          <img
+            src={selectedGif}
+            alt="GIF đính kèm"
+            className="h-20 rounded-xl object-cover border border-zinc-200 dark:border-zinc-700"
+          />
+          <button
+            type="button"
+            onClick={() => setSelectedGif(null)}
+            className="absolute -top-1.5 -right-1.5 p-1 bg-zinc-900/80 hover:bg-zinc-900 text-white rounded-full text-xs cursor-pointer"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
+      {showEmojiPicker && (
+        <div className="absolute bottom-16 right-4 z-50">
+          <EmojiPicker
+            onSelect={(emoji) => {
+              setCommentText((prev) => prev + emoji);
+              setShowEmojiPicker(false);
+            }}
+            onClose={() => setShowEmojiPicker(false)}
+          />
+        </div>
+      )}
+
+      {showGifPicker && (
+        <div className="absolute bottom-16 right-4 z-50">
+          <GifPicker
+            onSelect={(gifUrl) => {
+              setSelectedGif(gifUrl);
+              setShowGifPicker(false);
+            }}
+            onClose={() => setShowGifPicker(false)}
+          />
+        </div>
+      )}
+
+      <form onSubmit={handleCreateComment} className="flex items-center gap-2">
+        <Avatar
+          userId={currentUserId}
+          src={currentUser?.avatarUrl}
+          name={currentUser?.fullName || currentUser?.username}
+          username={currentUser?.username}
+          avatarColor={currentUser?.avatarColor}
+          size="sm"
+          className="shrink-0 hidden sm:block"
+        />
+
+        <div className="flex-1 flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/80 rounded-2xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-[#0866ff]/30 transition">
+          <input
+            ref={commentInputRef}
+            type="text"
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            placeholder="Viết bình luận công khai..."
+            className="flex-1 bg-transparent border-0 outline-none text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 py-1"
+            disabled={isSubmittingComment}
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowEmojiPicker((v) => !v)}
+            className="p-1 rounded-full text-zinc-400 hover:text-amber-500 transition cursor-pointer"
+            title="Chọn emoji"
+          >
+            <Smile className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowGifPicker((v) => !v)}
+            className="px-1.5 py-0.5 rounded text-[10px] font-black text-zinc-400 hover:text-[#0866ff] bg-zinc-200/60 dark:bg-zinc-700/60 transition cursor-pointer"
+            title="Chọn ảnh động GIF"
+          >
+            GIF
+          </button>
+        </div>
+
+        <button
+          type="submit"
+          disabled={(!commentText.trim() && !selectedGif) || isSubmittingComment}
+          className="p-2 rounded-full bg-[#0866ff] hover:bg-[#0756d6] disabled:opacity-40 text-white transition cursor-pointer shrink-0 active:scale-95"
+          title="Gửi bình luận"
+        >
+          {isSubmittingComment ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Send className="w-4 h-4" />
+          )}
+        </button>
+      </form>
+    </div>
+  );
+
+  // Menu tùy chọn tác giả
+  const optionsMenu = (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setMenuOpen((v) => !v)}
+        className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 transition cursor-pointer"
+      >
+        <MoreHorizontal className="w-5 h-5" />
+      </button>
+
+      {menuOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-transparent"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div className="absolute right-0 top-8 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-1.5 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left transition cursor-pointer"
+            >
+              {isCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+              <span>{isCopied ? "Đã sao chép" : "Sao chép liên kết"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleAiSummarize}
+              disabled={isSummarizing}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-indigo-600 dark:text-indigo-400 w-full text-left transition cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>{isSummarizing ? "Đang tóm tắt..." : summary ? "Ẩn tóm tắt" : "Tóm tắt với AI"}</span>
+            </button>
+
+            {isOwner && (
+              <>
+                <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-0.5" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setIsDeleteModalOpen(true);
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 w-full text-left transition cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Xóa bài viết</span>
+                </button>
+              </>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  // Thống kê & 4 nút tương tác (Thích, Bình luận, Chia sẻ, Lưu)
+  const interactionsSection = (
+    <>
+      <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+        <button
+          type="button"
+          onClick={() => setIsReactionsModalOpen(true)}
+          className="flex items-center gap-1.5 hover:underline cursor-pointer"
+        >
+          <div className="flex items-center -space-x-1">
+            <span className="w-4 h-4 rounded-full bg-rose-500 flex items-center justify-center text-[10px] text-white">
+              ❤️
+            </span>
+            <span className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-[10px] text-white">
+              👍
+            </span>
+          </div>
+          <span>{likeCount} lượt thích</span>
+        </button>
+
+        <div className="flex items-center gap-3">
+          <span>{comments.length} bình luận</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-1 py-1 border-y border-zinc-100 dark:border-zinc-800 text-xs font-semibold text-zinc-600 dark:text-zinc-300">
+        <button
+          type="button"
+          onClick={handleLikeToggle}
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-xl transition cursor-pointer active:scale-95 ${
+            liked
+              ? "text-rose-500 font-bold bg-rose-50/50 dark:bg-rose-950/20"
+              : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          }`}
+        >
+          <Heart
+            className={`w-4 h-4 transition-transform ${liked ? "fill-current scale-110" : ""} ${
+              isPopping ? "animate-bounce" : ""
+            }`}
+          />
+          <span>Thích</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => commentInputRef.current?.focus()}
+          className="flex items-center justify-center gap-1.5 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+        >
+          <MessageCircle className="w-4 h-4" />
+          <span>Bình luận</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsShareModalOpen(true)}
+          className="flex items-center justify-center gap-1.5 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+        >
+          <Share2 className="w-4 h-4" />
+          <span>Chia sẻ</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleBookmarkToggle}
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-xl transition cursor-pointer ${
+            bookmarked
+              ? "text-amber-500 font-bold bg-amber-50/50 dark:bg-amber-950/20"
+              : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          }`}
+        >
+          <Bookmark className={`w-4 h-4 ${bookmarked ? "fill-current" : ""}`} />
+          <span>Lưu</span>
+        </button>
+      </div>
+    </>
+  );
+
+  // Danh sách bình luận
+  const commentsListSection = (
+    <div className="space-y-3 pt-2">
+      <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+        Bình luận ({comments.length})
+      </h4>
+
+      {loadingComments ? (
+        <div className="py-6 flex items-center justify-center text-zinc-400 gap-2 text-xs">
+          <Loader2 className="w-4 h-4 animate-spin text-[#0866ff]" />
+          <span>Đang tải bình luận...</span>
+        </div>
+      ) : comments.length === 0 ? (
+        <div className="py-8 text-center text-zinc-400 text-xs space-y-1">
+          <MessageCircle className="w-8 h-8 mx-auto opacity-30" />
+          <p className="font-semibold">Chưa có bình luận nào</p>
+          <p className="text-[11px]">Hãy là người đầu tiên nêu cảm nghĩ về bài viết này!</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {comments.map((comment) => (
+            <Comment
+              key={comment.id}
+              comment={comment}
+              onDelete={handleDeleteComment}
+              onReplyCreated={(newRep) => setComments((prev) => [...prev, newRep])}
+            />
+          ))}
+          <div ref={commentsEndRef} />
+        </div>
+      )}
+    </div>
+  );
+
+  // =========================================================================
+  // TRƯỜNG HỢP 1: BÀI VIẾT KHÔNG CÓ ẢNH (MODAL CARD CĂN GIỮA MÀN HÌNH)
+  // =========================================================================
+  if (!hasImages) {
+    return createPortal(
+      <div
+        className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150 overflow-hidden pointer-events-auto"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <div
+          className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl relative border border-zinc-200 dark:border-zinc-800 animate-in zoom-in-95 duration-150 text-left"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header Card */}
+          <div className="p-3.5 px-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between shrink-0 bg-white dark:bg-zinc-900">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+              Bài viết của {authorName}
+            </h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 transition cursor-pointer"
+              title="Đóng (Esc)"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Body Card (Cuộn dọc) */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin bg-white dark:bg-zinc-900">
+            {/* Tác giả */}
+            <div className="flex items-center justify-between">
+              <Link
+                to={authorId ? `/profile/${authorId}` : "#"}
+                onClick={onClose}
+                className="flex items-center gap-2.5 group min-w-0"
+              >
+                <Avatar
+                  userId={authorId}
+                  src={authorAvatarUrl}
+                  name={authorName}
+                  username={author.username}
+                  avatarColor={authorAvatarColor}
+                  size="md"
+                />
+                <div className="min-w-0">
+                  <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:underline">
+                    {authorName}
+                  </h4>
+                  <p className="text-[11px] text-zinc-400">
+                    {timeAgo(post.createdAt)}
+                    {post.category?.name && ` • #${post.category.name}`}
+                  </p>
+                </div>
+              </Link>
+              {optionsMenu}
+            </div>
+
+            {/* AI Summary Box */}
+            {summary && (
+              <div className="p-3 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-900/60 text-xs text-indigo-900 dark:text-indigo-200 leading-relaxed animate-in fade-in duration-200">
+                <div className="flex items-center gap-1.5 font-bold mb-1 text-indigo-600 dark:text-indigo-400">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Tóm tắt thông minh:</span>
+                </div>
+                <p className="whitespace-pre-line">{summary}</p>
+              </div>
+            )}
+
+            {/* Nội dung Caption Text Lớn Rõ Ràng */}
+            {post.title && post.title !== post.content && (
+              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                {post.title}
+              </h2>
+            )}
+            <p className="text-[15px] sm:text-[16px] leading-relaxed text-zinc-900 dark:text-zinc-100 whitespace-pre-line break-words">
+              {post.content || post.title}
+            </p>
+
+            {/* Tương tác & Bình luận */}
+            {interactionsSection}
+            {commentsListSection}
+          </div>
+
+          {/* Footer Input */}
+          {commentComposer}
+        </div>
+
+        {/* Sub-modals */}
+        {isReactionsModalOpen && (
+          <ReactionsModal
+            postId={post.id}
+            isOpen={isReactionsModalOpen}
+            onClose={() => setIsReactionsModalOpen(false)}
+            totalLikeCount={likeCount}
+          />
+        )}
+
+        {isShareModalOpen && (
+          <ShareModal
+            post={post}
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            onPostShared={(shared) => {
+              if (onPostUpdated) onPostUpdated(shared);
+            }}
+          />
+        )}
+
+        <ConfirmModal
+          isOpen={isDeleteModalOpen}
+          title="Xóa bài viết"
+          message="Bạn có chắc chắn muốn xóa vĩnh viễn bài viết này không? Hành động này không thể hoàn tác."
+          confirmText="Xóa bài viết"
+          isDanger={true}
+          onConfirm={confirmDeletePost}
+          onCancel={() => setIsDeleteModalOpen(false)}
+        />
+      </div>,
+      document.body
+    );
+  }
+
+  // =========================================================================
+  // TRƯỜNG HỢP 2: BÀI VIẾT CÓ ẢNH (BẬT CHẾ ĐỘ THEATER SPLIT VIEW TOÀN MÀN HÌNH)
+  // =========================================================================
   return createPortal(
     <div
       className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-sm flex flex-col md:flex-row items-stretch animate-in fade-in duration-150 overflow-hidden pointer-events-auto select-none"
@@ -340,10 +740,8 @@ export default function PostTheaterModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* ========================================================================= */}
-      {/* 1. KHU VỰC HIỂN THỊ ẢNH THEATER (BÊN TRÁI TRÊN PC, PHẦN THÂN TRÊN MOBILE) */}
-      {/* ========================================================================= */}
-      <div className="relative flex-1 min-w-0 bg-black flex items-center justify-center overflow-hidden h-[45vh] md:h-full select-none">
+      {/* 1. KHU VỰC HIỂN THỊ ẢNH THEATER TRÀN VIỀN (BÊN TRÁI TRÊN PC) */}
+      <div className="relative flex-1 min-w-0 bg-black flex items-center justify-center overflow-hidden h-[45vh] md:h-full select-none p-0 md:p-2">
         {/* Nút Đóng X Góc Trên Trái trên PC */}
         <button
           type="button"
@@ -369,32 +767,25 @@ export default function PostTheaterModal({
               e.stopPropagation();
               handlePrevImage();
             }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer hover:scale-110 active:scale-95"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white transition-all cursor-pointer hover:scale-110 active:scale-95 shadow-lg"
             title="Ảnh trước (Mũi tên trái)"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
         )}
 
-        {/* Ảnh chính hiển thị */}
-        {currentImage ? (
-          <div
-            className="w-full h-full flex items-center justify-center p-2 md:p-6 cursor-default"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              key={currentImage}
-              src={currentImage}
-              alt="Chi tiết ảnh bài viết"
-              className="max-w-full max-h-full object-contain select-none animate-in zoom-in-95 duration-200"
-            />
-          </div>
-        ) : (
-          <div className="text-zinc-500 text-sm flex flex-col items-center gap-2 p-6 text-center">
-            <Sparkles className="w-8 h-8 opacity-40" />
-            <span>Bài viết không có hình ảnh đính kèm</span>
-          </div>
-        )}
+        {/* Ảnh chính hiển thị tối đa khung hình tràn viền */}
+        <div
+          className="w-full h-full flex items-center justify-center cursor-default overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <img
+            key={currentImage}
+            src={currentImage}
+            alt="Chi tiết ảnh bài viết"
+            className="w-full h-full max-h-[100vh] object-contain select-none animate-in zoom-in-95 duration-200"
+          />
+        </div>
 
         {/* Nút tiến ảnh (Next) */}
         {images.length > 1 && (
@@ -404,7 +795,7 @@ export default function PostTheaterModal({
               e.stopPropagation();
               handleNextImage();
             }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer hover:scale-110 active:scale-95"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white transition-all cursor-pointer hover:scale-110 active:scale-95 shadow-lg"
             title="Ảnh tiếp theo (Mũi tên phải)"
           >
             <ChevronRight className="w-6 h-6" />
@@ -412,11 +803,9 @@ export default function PostTheaterModal({
         )}
       </div>
 
-      {/* ========================================================================= */}
-      {/* 2. CỘT THÔNG TIN BÀI VIẾT & BÌNH LUẬN (BÊN PHẢI TRÊN PC, TOÀN PHẦN DƯỚI TRÊN MOBILE) */}
-      {/* ========================================================================= */}
+      {/* 2. CỘT THÔNG TIN BÀI VIẾT & BÌNH LUẬN (BÊN PHẢI TRÊN PC) */}
       <div
-        className="w-full md:w-[420px] lg:w-[460px] h-[55vh] md:h-full bg-white dark:bg-zinc-900 border-t md:border-t-0 md:border-l border-zinc-200 dark:border-zinc-800 flex flex-col shrink-0 z-20 overflow-hidden text-left"
+        className="w-full md:w-[380px] lg:w-[420px] h-[55vh] md:h-full bg-white dark:bg-zinc-900 border-t md:border-t-0 md:border-l border-zinc-200 dark:border-zinc-800 flex flex-col shrink-0 z-20 overflow-hidden text-left"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Thông Tin Tác Giả */}
@@ -456,62 +845,7 @@ export default function PostTheaterModal({
             </Link>
           </div>
 
-          {/* Menu Tùy Chọn */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setMenuOpen((v) => !v)}
-              className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 transition cursor-pointer"
-            >
-              <MoreHorizontal className="w-5 h-5" />
-            </button>
-
-            {menuOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40 bg-transparent"
-                  onClick={() => setMenuOpen(false)}
-                />
-                <div className="absolute right-0 top-8 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-1.5 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
-                  <button
-                    type="button"
-                    onClick={handleCopyLink}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left transition cursor-pointer"
-                  >
-                    {isCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                    <span>{isCopied ? "Đã sao chép" : "Sao chép liên kết"}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleAiSummarize}
-                    disabled={isSummarizing}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-indigo-600 dark:text-indigo-400 w-full text-left transition cursor-pointer"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span>{isSummarizing ? "Đang tóm tắt..." : summary ? "Ẩn tóm tắt" : "Tóm tắt với AI"}</span>
-                  </button>
-
-                  {isOwner && (
-                    <>
-                      <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-0.5" />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 w-full text-left transition cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span>Xóa bài viết</span>
-                      </button>
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
+          {optionsMenu}
         </div>
 
         {/* Thân Cột: Văn bản bài viết & Danh sách Bình luận (Cuộn Độc Lập) */}
@@ -537,214 +871,13 @@ export default function PostTheaterModal({
             {post.content || post.title}
           </p>
 
-          {/* Thống Kê Tương Tác */}
-          <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-            <button
-              type="button"
-              onClick={() => setIsReactionsModalOpen(true)}
-              className="flex items-center gap-1.5 hover:underline cursor-pointer"
-            >
-              <div className="flex items-center -space-x-1">
-                <span className="w-4 h-4 rounded-full bg-rose-500 flex items-center justify-center text-[10px] text-white">
-                  ❤️
-                </span>
-                <span className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-[10px] text-white">
-                  👍
-                </span>
-              </div>
-              <span>{likeCount} lượt thích</span>
-            </button>
-
-            <div className="flex items-center gap-3">
-              <span>{comments.length} bình luận</span>
-            </div>
-          </div>
-
-          {/* Nút Thao Tác (Thích, Bình luận, Chia sẻ, Lưu) */}
-          <div className="grid grid-cols-4 gap-1 py-1 border-y border-zinc-100 dark:border-zinc-800 text-xs font-semibold text-zinc-600 dark:text-zinc-300">
-            <button
-              type="button"
-              onClick={handleLikeToggle}
-              className={`flex items-center justify-center gap-1.5 py-2 rounded-xl transition cursor-pointer active:scale-95 ${
-                liked
-                  ? "text-rose-500 font-bold bg-rose-50/50 dark:bg-rose-950/20"
-                  : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              }`}
-            >
-              <Heart
-                className={`w-4 h-4 transition-transform ${liked ? "fill-current scale-110" : ""} ${
-                  isPopping ? "animate-bounce" : ""
-                }`}
-              />
-              <span>Thích</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => commentInputRef.current?.focus()}
-              className="flex items-center justify-center gap-1.5 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>Bình luận</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsShareModalOpen(true)}
-              className="flex items-center justify-center gap-1.5 py-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
-            >
-              <Share2 className="w-4 h-4" />
-              <span>Chia sẻ</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleBookmarkToggle}
-              className={`flex items-center justify-center gap-1.5 py-2 rounded-xl transition cursor-pointer ${
-                bookmarked
-                  ? "text-amber-500 font-bold bg-amber-50/50 dark:bg-amber-950/20"
-                  : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              }`}
-            >
-              <Bookmark className={`w-4 h-4 ${bookmarked ? "fill-current" : ""}`} />
-              <span>Lưu</span>
-            </button>
-          </div>
-
-          {/* Danh Sách Bình Luận */}
-          <div className="space-y-3 pt-2">
-            <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-              Bình luận ({comments.length})
-            </h4>
-
-            {loadingComments ? (
-              <div className="py-6 flex items-center justify-center text-zinc-400 gap-2 text-xs">
-                <Loader2 className="w-4 h-4 animate-spin text-[#0866ff]" />
-                <span>Đang tải bình luận...</span>
-              </div>
-            ) : comments.length === 0 ? (
-              <div className="py-8 text-center text-zinc-400 text-xs space-y-1">
-                <MessageCircle className="w-8 h-8 mx-auto opacity-30" />
-                <p className="font-semibold">Chưa có bình luận nào</p>
-                <p className="text-[11px]">Hãy là người đầu tiên nêu cảm nghĩ về bài viết này!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {comments.map((comment) => (
-                  <Comment
-                    key={comment.id}
-                    comment={comment}
-                    onDelete={handleDeleteComment}
-                    onReplyCreated={(newRep) => setComments((prev) => [...prev, newRep])}
-                  />
-                ))}
-                <div ref={commentsEndRef} />
-              </div>
-            )}
-          </div>
+          {/* Tương tác & Bình luận */}
+          {interactionsSection}
+          {commentsListSection}
         </div>
 
-        {/* Footer: Ô Nhập Bình Luận Cố Định */}
-        <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shrink-0 relative">
-          {/* Preview GIF đính kèm nếu có */}
-          {selectedGif && (
-            <div className="mb-2 relative inline-block">
-              <img
-                src={selectedGif}
-                alt="GIF đính kèm"
-                className="h-20 rounded-xl object-cover border border-zinc-200 dark:border-zinc-700"
-              />
-              <button
-                type="button"
-                onClick={() => setSelectedGif(null)}
-                className="absolute -top-1.5 -right-1.5 p-1 bg-zinc-900/80 hover:bg-zinc-900 text-white rounded-full text-xs"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          )}
-
-          {/* Emoji Picker Popup */}
-          {showEmojiPicker && (
-            <div className="absolute bottom-16 right-4 z-50">
-              <EmojiPicker
-                onSelect={(emoji) => {
-                  setCommentText((prev) => prev + emoji);
-                  setShowEmojiPicker(false);
-                }}
-                onClose={() => setShowEmojiPicker(false)}
-              />
-            </div>
-          )}
-
-          {/* GIF Picker Popup */}
-          {showGifPicker && (
-            <div className="absolute bottom-16 right-4 z-50">
-              <GifPicker
-                onSelect={(gifUrl) => {
-                  setSelectedGif(gifUrl);
-                  setShowGifPicker(false);
-                }}
-                onClose={() => setShowGifPicker(false)}
-              />
-            </div>
-          )}
-
-          <form onSubmit={handleCreateComment} className="flex items-center gap-2">
-            <Avatar
-              userId={currentUserId}
-              src={currentUser?.avatarUrl}
-              name={currentUser?.fullName || currentUser?.username}
-              username={currentUser?.username}
-              avatarColor={currentUser?.avatarColor}
-              size="sm"
-              className="shrink-0 hidden sm:block"
-            />
-
-            <div className="flex-1 flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/80 rounded-2xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-[#0866ff]/30 transition">
-              <input
-                ref={commentInputRef}
-                type="text"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Viết bình luận công khai..."
-                className="flex-1 bg-transparent border-0 outline-none text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 py-1"
-                disabled={isSubmittingComment}
-              />
-
-              <button
-                type="button"
-                onClick={() => setShowEmojiPicker((v) => !v)}
-                className="p-1 rounded-full text-zinc-400 hover:text-amber-500 transition cursor-pointer"
-                title="Chọn emoji"
-              >
-                <Smile className="w-4 h-4" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowGifPicker((v) => !v)}
-                className="px-1.5 py-0.5 rounded text-[10px] font-black text-zinc-400 hover:text-[#0866ff] bg-zinc-200/60 dark:bg-zinc-700/60 transition cursor-pointer"
-                title="Chọn ảnh động GIF"
-              >
-                GIF
-              </button>
-            </div>
-
-            <button
-              type="submit"
-              disabled={(!commentText.trim() && !selectedGif) || isSubmittingComment}
-              className="p-2 rounded-full bg-[#0866ff] hover:bg-[#0756d6] disabled:opacity-40 text-white transition cursor-pointer shrink-0 active:scale-95"
-              title="Gửi bình luận"
-            >
-              {isSubmittingComment ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-            </button>
-          </form>
-        </div>
+        {/* Footer Input */}
+        {commentComposer}
       </div>
 
       {/* Sub-modals */}
