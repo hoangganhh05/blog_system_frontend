@@ -254,18 +254,26 @@ export default function ChatBoxWindow({ chat, onBack }) {
       >
         {/* Left: Avatar + Name + Dropdown trigger */}
         <div className="flex items-center gap-2 min-w-0 flex-1 relative">
-          {/* Nút Quay Lại trên Mobile */}
-          <button
-            type="button"
-            onClick={() => {
-              if (onBack) onBack();
-              else closeChat(targetUserId);
-            }}
-            className="md:hidden p-1.5 -ml-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer shrink-0"
-            title="Quay lại"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
+          {/* Nút Quay Lại khi mở trong dropdown hoặc mobile */}
+          {onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className="p-1.5 -ml-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer shrink-0"
+              title="Quay lại danh sách"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => closeChat(targetUserId)}
+              className="md:hidden p-1.5 -ml-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer shrink-0"
+              title="Quay lại"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+          )}
 
           <div className="relative shrink-0 cursor-pointer" onClick={() => setShowOptionsMenu(!showOptionsMenu)}>
             <Avatar
@@ -615,6 +623,15 @@ export default function ChatBoxWindow({ chat, onBack }) {
       </form>
     </>
   );
+
+  // Khi được nhúng trực tiếp trong dropdown/modal (có onBack)
+  if (onBack) {
+    return (
+      <div className="w-full h-full flex-1 flex flex-col overflow-hidden pointer-events-auto">
+        {chatBody}
+      </div>
+    );
+  }
 
   // Trên Mobile (< 768px): Mở Full Screen qua React Portal gắn trực tiếp vào body
   if (isMobile) {

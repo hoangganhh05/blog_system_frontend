@@ -196,10 +196,10 @@ export default function MessengerDropdown({ isOpen, onClose }) {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, isMobile, onClose]);
@@ -255,21 +255,17 @@ export default function MessengerDropdown({ isOpen, onClose }) {
 
   const handleSelectUser = (e, user) => {
     if (e) {
-      if (typeof e.preventDefault === "function") e.preventDefault();
       if (typeof e.stopPropagation === "function") e.stopPropagation();
     }
     if (!user) return;
     if (user.id === "ai_assistant") {
       window.dispatchEvent(new CustomEvent("open_ai_assistant"));
       onClose();
-    } else {
-      if (isMobile) {
-        setActiveChatUser(user);
-      } else {
-        openChat(user);
-        onClose();
-      }
+      return;
     }
+
+    setActiveChatUser(user);
+    openChat(user);
   };
 
   const innerContent = (
@@ -833,13 +829,24 @@ export default function MessengerDropdown({ isOpen, onClose }) {
   return (
     <div
       ref={dropdownRef}
-      className="absolute top-full right-0 w-[380px] max-h-[580px] mt-2 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200/90 dark:border-zinc-800 z-50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-left pointer-events-auto"
+      className="absolute top-full right-0 w-[380px] h-[580px] mt-2 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200/90 dark:border-zinc-800 z-50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-left pointer-events-auto"
       style={{
         boxShadow:
           "0 20px 40px -15px rgba(0, 0, 0, 0.25), 0 0 1px rgba(0, 0, 0, 0.15)",
       }}
     >
-      {innerContent}
+      {activeChatUser ? (
+        <ChatBoxWindow
+          chat={{
+            user: activeChatUser,
+            isMinimized: false,
+            theme: activeChatUser.theme || "DEFAULT",
+          }}
+          onBack={() => setActiveChatUser(null)}
+        />
+      ) : (
+        innerContent
+      )}
     </div>
   );
 }
