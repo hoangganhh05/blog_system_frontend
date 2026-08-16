@@ -667,16 +667,16 @@ export default function ChatBoxWindow({ chat, onBack }) {
                     </button>
                   )}
 
-                  {/* 1. MENU NHỎ GỌN TRÊN PC (NỔI NGAY CẠNH BÓNG TIN NHẮN) */}
+                  {/* 1. MENU NHỎ GỌN TRÊN PC (NỔI GỌN TRONG KHUNG CHAT, KHÔNG BỊ TRÀN RA NGOÀI) */}
                   {activeActionMessage?.id === msg.id && (
                     <div
-                      className={`hidden md:block absolute top-0 ${
-                        isMine ? "right-full mr-2" : "left-full ml-2"
-                      } z-40 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 p-1.5 w-44 animate-in fade-in zoom-in-95 duration-100 text-left`}
+                      className={`hidden md:block absolute ${
+                        isMine ? "right-0" : "left-0"
+                      } top-full mt-1.5 z-40 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 p-2 w-44 animate-in fade-in zoom-in-95 duration-100 text-left`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {/* Quick Reactions bar */}
-                      <div className="flex items-center justify-between px-1.5 py-1 mb-1 border-b border-zinc-100 dark:border-zinc-800 text-base">
+                      <div className="flex items-center justify-between px-1 py-1 mb-1 border-b border-zinc-100 dark:border-zinc-800 text-base">
                         {["❤️", "😂", "😮", "😢", "😡", "👍"].map((emoji) => (
                           <button
                             key={emoji}
