@@ -712,7 +712,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
       {/* Image Lightbox Modal */}
       {lightboxImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 cursor-zoom-out select-none"
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xs flex items-center justify-center p-1 sm:p-2 animate-in fade-in duration-150 cursor-zoom-out select-none"
           onClick={(e) => {
             e.stopPropagation();
             setLightboxImage(null);
@@ -725,17 +725,17 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
               e.stopPropagation();
               setLightboxImage(null);
             }}
-            className="absolute top-4 right-4 text-white/80 hover:text-white p-2.5 rounded-full bg-black/40 hover:bg-black/60 transition-colors cursor-pointer z-10"
+            className="absolute top-4 right-4 text-white/90 hover:text-white p-2.5 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm transition-colors cursor-pointer z-60"
             title="Đóng (Esc)"
           >
             <X className="w-5 h-5" />
           </button>
 
-          {/* Ảnh phóng to */}
+          {/* Ảnh phóng to tối đa theo viewport nhưng giữ nguyên tỉ lệ */}
           <img
             src={lightboxImage}
             alt="Xem ảnh toàn màn hình"
-            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl select-none cursor-default animate-in zoom-in-95 duration-150"
+            className="w-auto h-auto max-w-[100vw] max-h-[98vh] sm:max-h-[96vh] object-contain select-none cursor-default animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           />
         </div>
