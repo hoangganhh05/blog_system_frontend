@@ -705,39 +705,24 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
       </div>
 
       {/* Right Actions */}
-      <div className="navbar-right">
+      <div className="navbar-right flex items-center gap-2 shrink-0">
           {currentUser ? (
             <>
               {/* Notification Bell (hidden on mobile because MobileBottomNav handles notifications) */}
               {!isMobileView && (
-                <div style={{ position: "relative" }} ref={notifRef}>
+                <div className="relative" ref={notifRef}>
                   <button
-                    className="navbar-icon-btn"
+                    type="button"
+                    className="w-10 h-10 rounded-full flex items-center justify-center bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 transition-all cursor-pointer relative shrink-0 shadow-2xs"
                     onClick={() => setNotifOpen((v) => !v)}
                     title="Thông báo"
-                    style={{ position: "relative" }}
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                       <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                     </svg>
                     {unreadCount > 0 && (
-                      <span style={{
-                        position: "absolute",
-                        top: -2,
-                        right: -2,
-                        background: "var(--danger)",
-                        color: "white",
-                        fontSize: 10,
-                        fontWeight: "bold",
-                        borderRadius: "50%",
-                        minWidth: 16,
-                        height: 16,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: "0 4px",
-                      }}>
+                      <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border-2 border-white dark:border-zinc-900 shadow-xs">
                         {unreadCount > 9 ? "9+" : unreadCount}
                       </span>
                     )}
@@ -754,46 +739,35 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
               )}
             </>
           ) : (
-            <div className="navbar-auth-btns" style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <div className="navbar-auth-btns flex items-center gap-1.5">
               <Link to="/login">
-                <button className="btn btn-secondary btn-sm" style={{ padding: "5px 10px", fontSize: 12 }}>Đăng nhập</button>
+                <button className="px-3 py-1.5 rounded-full text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 transition cursor-pointer">
+                  Đăng nhập
+                </button>
               </Link>
               <Link to="/register">
-                <button className="btn btn-primary btn-sm" style={{ padding: "5px 10px", fontSize: 12 }}>Đăng ký</button>
+                <button className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#0866ff] text-white hover:bg-blue-600 shadow-xs transition cursor-pointer">
+                  Đăng ký
+                </button>
               </Link>
             </div>
           )}
 
           {/* Messenger Chat Dropdown Container */}
-          <div style={{ position: "relative" }}>
+          <div className="relative">
             <button
-              className={`navbar-icon-btn mobile-chat-btn ${messengerOpen ? "active" : ""}`}
+              type="button"
+              className={`w-10 h-10 rounded-full flex items-center justify-center bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 transition-all cursor-pointer relative shrink-0 shadow-2xs ${
+                messengerOpen ? "ring-2 ring-[#0866ff]/40 bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] dark:text-blue-400" : ""
+              }`}
               onClick={() => setMessengerOpen((v) => !v)}
               title="Tin nhắn Messenger"
-              style={{ position: "relative" }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
               </svg>
               {unreadChatCount > 0 && (
-                <span
-                  style={{
-                    position: "absolute",
-                    top: -2,
-                    right: -2,
-                    background: "var(--danger)",
-                    color: "white",
-                    fontSize: 10,
-                    fontWeight: "bold",
-                    borderRadius: "50%",
-                    minWidth: 16,
-                    height: 16,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "0 4px",
-                  }}
-                >
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border-2 border-white dark:border-zinc-900 shadow-xs">
                   {unreadChatCount > 9 ? "9+" : unreadChatCount}
                 </span>
               )}
@@ -806,9 +780,29 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
             />
           </div>
 
+          {/* User Profile Avatar Link on Desktop */}
+          {currentUser && (
+            <Link
+              to={`/profile/${currentUserId}`}
+              className="hidden sm:flex items-center shrink-0 ml-0.5 group"
+              title={`Trang cá nhân của ${currentUser.fullName || currentUser.username}`}
+            >
+              <Avatar
+                userId={currentUserId}
+                src={currentUser.avatarUrl}
+                name={currentUser.fullName || currentUser.username}
+                username={currentUser.username}
+                avatarColor={currentUser.avatarColor}
+                size="w-10 h-10"
+                className="border border-zinc-200 dark:border-zinc-700 shadow-2xs group-hover:scale-105 transition-transform"
+              />
+            </Link>
+          )}
+
           {/* Mobile Search Magnifying Glass 🔍 Button */}
           <button
-            className="navbar-icon-btn mobile-search-btn"
+            type="button"
+            className="sm:hidden w-10 h-10 rounded-full flex items-center justify-center bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 transition-all cursor-pointer shrink-0"
             onClick={() => setMobileSearchOpen((v) => !v)}
             title="Tìm kiếm bài viết, người dùng"
           >
@@ -820,7 +814,8 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
 
           {/* Hamburger Menu ☰ Button for Mobile */}
           <button
-            className="navbar-icon-btn mobile-menu-trigger"
+            type="button"
+            className="sm:hidden w-10 h-10 rounded-full flex items-center justify-center bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 transition-all cursor-pointer shrink-0"
             onClick={(e) => {
               e.stopPropagation();
               setMobileDrawerOpen(true);
