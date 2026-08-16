@@ -13,6 +13,7 @@ import {
   Loader2,
   Image as ImageIcon,
   Mic,
+  Square,
   ArrowLeft,
   Phone,
   Video,
@@ -21,20 +22,30 @@ import {
   MessageSquare,
   User,
   Pin,
+  PinOff,
   Users,
   BellOff,
   Trash2,
   Edit3,
-  ThumbsUp,
+  Copy,
+  Reply,
+  Plus,
+  Sticker as StickerIcon,
+  ImagePlus,
   Sparkles,
+  MoreVertical,
+  MoreHorizontal
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 import chatService from "../services/chatService";
+import uploadService from "../services/uploadService";
 import { CHAT_THEMES, getChatTheme } from "../utils/chatThemes";
 import Avatar from "./Avatar";
 import EmojiPicker from "./EmojiPicker";
+import GifPicker from "./GifPicker";
+import StickerPicker from "./StickerPicker";
 import AudioMessagePlayer from "./AudioMessagePlayer";
 import ThemePickerModal from "./ThemePickerModal";
 
@@ -50,6 +61,16 @@ function isAudioMessage(content) {
     lower.endsWith(".m4a") ||
     lower.endsWith(".ogg")
   );
+}
+
+function isImageMessage(content) {
+  if (!content || typeof content !== "string") return false;
+  return content.startsWith("📷 http");
+}
+
+function isStickerMessage(content) {
+  if (!content || typeof content !== "string") return false;
+  return content.startsWith("🏷️ http");
 }
 
 function formatMessageTime(dateStr) {
@@ -78,8 +99,26 @@ export default function ChatBoxWindow({ chat, onBack }) {
   const [isSending, setIsSending] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [showStickerPicker, setShowStickerPicker] = useState(false);
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [nickname, setNickname] = useState(null);
+
+  // Tin nhắn đang được phản hồi / chỉnh sửa
+  const [replyingMessage, setReplyingMessage] = useState(null);
+  const [editingMessage, setEditingMessage] = useState(null);
+
+  // Tin nhắn đang mở action menu (trên mobile hoặc context)
+  const [activeActionMessage, setActiveActionMessage] = useState(null);
+  const [messageReactions, setMessageReactions] = useState({});
+
+  // Ghi âm giọng nói Web Audio API
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const recordingTimerRef = useRef(null);
 
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.innerWidth < 768
@@ -94,21 +133,22 @@ export default function ChatBoxWindow({ chat, onBack }) {
   }, []);
 
   const messagesEndRef = useRef(null);
-  const themePickerRef = useRef(null);
-  const emojiPickerRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const textInputRef = useRef(null);
   const optionsMenuRef = useRef(null);
+  const longPressTimerRef = useRef(null);
 
   const currentTheme = getChatTheme(theme);
   const quickEmoji = currentTheme.quickEmoji || "👍";
 
-  // Auto scroll to bottom
+  // Tự động cuộn xuống cuối
   const scrollToBottom = useCallback((smooth = true) => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
     }
   }, []);
 
-  // Tải lịch sử tin nhắn khi mở tab
+  // Tải lịch sử tin nhắn
   useEffect(() => {
     let isMounted = true;
     setIsLoadingHistory(true);
@@ -136,7 +176,7 @@ export default function ChatBoxWindow({ chat, onBack }) {
     };
   }, [currentUserId, targetUserId, scrollToBottom]);
 
-  // Lắng nghe tin nhắn mới từ WebSocket / sự kiện toàn cục
+  // Lắng nghe tin nhắn mới từ WebSocket / CustomEvent
   useEffect(() => {
     const handleNewMessage = (event) => {
       const msg = event.detail?.message;
@@ -150,117 +190,268 @@ export default function ChatBoxWindow({ chat, onBack }) {
         (String(msgSenderId) === String(currentUserId) && String(msgReceiverId) === String(targetUserId))
       ) {
         setMessages((prev) => {
-          if (prev.some((m) => m.id && msg.id && m.id === msg.id)) return prev;
+          if (prev.some((m) => m.id && msg.id && m.id === msg.id)) {
+            return prev;
+          }
           return [...prev, msg];
         });
         setTimeout(() => scrollToBottom(true), 50);
       }
     };
 
-    window.addEventListener("chat_message_received", handleNewMessage);
-    return () => window.removeEventListener("chat_message_received", handleNewMessage);
+    window.addEventListener("chat:new-message", handleNewMessage);
+    return () => window.removeEventListener("chat:new-message", handleNewMessage);
   }, [currentUserId, targetUserId, scrollToBottom]);
 
-  // Đóng dropdown khi bấm ra ngoài
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (themePickerRef.current && !themePickerRef.current.contains(e.target)) {
-        setShowThemePicker(false);
-      }
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target)) {
-        setShowEmojiPicker(false);
-      }
-      if (optionsMenuRef.current && !optionsMenuRef.current.contains(e.target)) {
-        setShowOptionsMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   // Gửi tin nhắn
-  const handleSendMessage = async (textToSend) => {
-    const trimmed = typeof textToSend === "string" ? textToSend.trim() : inputText.trim();
-    if (!trimmed || isSending) return;
+  const handleSendMessage = async (customContent = null) => {
+    const textToSend = customContent || inputText;
+    if ((!textToSend || !textToSend.trim()) && !customContent) return;
 
-    setInputText("");
+    // Nếu đang trong chế độ Edit tin nhắn
+    if (editingMessage) {
+      const editId = editingMessage.id;
+      const newText = textToSend.trim();
+      setEditingMessage(null);
+      setInputText("");
+
+      try {
+        await chatService.editMessage(editId, newText);
+        setMessages((prev) =>
+          prev.map((m) => (m.id === editId ? { ...m, content: newText, isEdited: true } : m))
+        );
+        toast.success("Đã chỉnh sửa tin nhắn!");
+      } catch {
+        toast.error("Không thể chỉnh sửa tin nhắn.");
+      }
+      return;
+    }
+
+    let finalContent = textToSend.trim();
+    if (replyingMessage) {
+      const replySnippet = replyingMessage.content?.slice(0, 50) || "tin nhắn";
+      finalContent = `[Trả lời: "${replySnippet}"]\n${finalContent}`;
+      setReplyingMessage(null);
+    }
+
     setIsSending(true);
+    if (!customContent) setInputText("");
 
     // Optimistic UI
-    const tempId = "temp-" + Date.now();
-    const tempMsg = {
+    const tempId = "temp_" + Date.now();
+    const optimisticMsg = {
       id: tempId,
-      sender: currentUser,
       senderId: currentUserId,
-      receiver: user,
       receiverId: targetUserId,
-      content: trimmed,
+      content: finalContent,
       createdAt: new Date().toISOString(),
       isRead: false,
     };
 
-    setMessages((prev) => [...prev, tempMsg]);
+    setMessages((prev) => [...prev, optimisticMsg]);
     setTimeout(() => scrollToBottom(true), 50);
 
     try {
-      const res = await chatService.sendMessage(currentUserId, targetUserId, trimmed);
-      const savedMsg = res.data || tempMsg;
-      setMessages((prev) => prev.map((m) => (m.id === tempId ? savedMsg : m)));
+      const res = await chatService.sendMessage(currentUserId, targetUserId, finalContent);
+      if (res.data) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? { ...res.data, id: res.data.id || tempId } : m))
+        );
+      }
     } catch {
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       toast.error("Không thể gửi tin nhắn. Vui lòng thử lại!");
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
     } finally {
       setIsSending(false);
+      setShowEmojiPicker(false);
+      setShowGifPicker(false);
+      setShowStickerPicker(false);
+      setShowPlusMenu(false);
+    }
+  };
+
+  // Upload & gửi ảnh
+  const handleUploadImage = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    for (const file of files) {
+      try {
+        const res = await uploadService.uploadFile(file);
+        if (res.data?.url) {
+          await handleSendMessage(`📷 ${res.data.url}`);
+        }
+      } catch {
+        toast.error("Lỗi gửi ảnh. Vui lòng thử lại!");
+      }
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    setShowPlusMenu(false);
+  };
+
+  // Bắt đầu ghi âm
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const audioFile = new File([audioBlob], `voice_${Date.now()}.webm`, { type: "audio/webm" });
+        stream.getTracks().forEach((track) => track.stop());
+
+        try {
+          const res = await uploadService.uploadFile(audioFile);
+          if (res.data?.url) {
+            await handleSendMessage(`🎙️ ${res.data.url}`);
+          }
+        } catch {
+          toast.error("Lỗi gửi tin nhắn thoại!");
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingDuration(0);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+    } catch {
+      toast.error("Không thể truy cập Microphone để ghi âm!");
+    }
+  };
+
+  // Dừng ghi âm và gửi
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      clearInterval(recordingTimerRef.current);
+    }
+  };
+
+  // Hủy ghi âm
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      audioChunksRef.current = [];
+      mediaRecorderRef.current.stream?.getTracks().forEach((track) => track.stop());
+      setIsRecording(false);
+      clearInterval(recordingTimerRef.current);
+      toast.info("Đã hủy ghi âm.");
+    }
+  };
+
+  // Long-press handler cho tin nhắn
+  const handleTouchStart = (msg) => {
+    longPressTimerRef.current = setTimeout(() => {
+      setActiveActionMessage(msg);
+    }, 450);
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+    }
+  };
+
+  // Reaction tin nhắn
+  const handleSendReaction = (messageId, emoji) => {
+    setMessageReactions((prev) => ({
+      ...prev,
+      [messageId]: emoji,
+    }));
+    setActiveActionMessage(null);
+    toast.success(`Đã thả cảm xúc ${emoji}`);
+  };
+
+  // Sao chép tin nhắn
+  const handleCopyMessage = (content) => {
+    const cleanContent = content.replace(/^\[Trả lời: "[^"]*"\]\n/, "");
+    navigator.clipboard.writeText(cleanContent).then(() => {
+      toast.success("Đã sao chép tin nhắn!");
+      setActiveActionMessage(null);
+    });
+  };
+
+  // Ghim tin nhắn
+  const handlePinMessage = async (msg) => {
+    setActiveActionMessage(null);
+    try {
+      await chatService.pinMessage(msg.id, true);
+      toast.success("Đã ghim tin nhắn!");
+      setMessages((prev) =>
+        prev.map((m) => (m.id === msg.id ? { ...m, isPinned: true } : m))
+      );
+    } catch {
+      toast.error("Không thể ghim tin nhắn.");
+    }
+  };
+
+  // Xóa / Thu hồi tin nhắn
+  const handleDeleteMessage = async (messageId) => {
+    setActiveActionMessage(null);
+    try {
+      await chatService.deleteMessage(messageId);
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      toast.success("Đã thu hồi tin nhắn!");
+    } catch {
+      toast.error("Không thể thu hồi tin nhắn.");
     }
   };
 
   // Chọn Theme
-  const handleSelectTheme = (themeId) => {
-    setChatTheme(targetUserId, themeId);
+  const handleSelectTheme = async (themeId) => {
     setShowThemePicker(false);
-  };
-
-  // Các thao tác Menu Tùy Chọn
-  const handleCallAudio = () => {
-    toast.info(`Đang kết nối cuộc gọi thoại đến ${user.fullName || user.username}...`);
-  };
-
-  const handleCallVideo = () => {
-    toast.info(`Đang kết nối cuộc gọi video đến ${user.fullName || user.username}...`);
+    setChatTheme(targetUserId, themeId);
+    try {
+      await chatService.updateThemeWithUser(targetUserId, themeId);
+      toast.success("Đã cập nhật chủ đề cuộc trò chuyện!");
+    } catch {
+      // Offline fallback
+    }
   };
 
   const handleSetNickname = () => {
-    const newName = window.prompt("Đặt biệt danh cho người này:", nickname || user.fullName || user.username);
-    if (newName !== null) {
-      setNickname(newName.trim() || null);
-      toast.success("Đã cập nhật biệt danh!");
+    const name = window.prompt("Nhập biệt danh mới cho người này:", nickname || user.fullName || user.username);
+    if (name !== null) {
+      setNickname(name.trim() || null);
+      toast.success("Đã đổi biệt danh thành công!");
+      setShowOptionsMenu(false);
     }
-    setShowOptionsMenu(false);
   };
 
   const handleClearChatHistory = () => {
-    if (window.confirm("Bạn có chắc muốn xóa lịch sử hiển thị của cuộc trò chuyện này?")) {
+    if (window.confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện này không?")) {
       setMessages([]);
-      toast.success("Đã xóa hiển thị cuộc trò chuyện.");
+      toast.success("Đã xóa cuộc trò chuyện!");
+      setShowOptionsMenu(false);
     }
-    setShowOptionsMenu(false);
   };
 
+  const pinnedMsg = messages.find((m) => m.isPinned);
+
+  // Giao diện chính của Box Chat
   const chatBody = (
-    <>
+    <div className="w-full h-full flex flex-col overflow-hidden select-none text-left bg-white dark:bg-zinc-900">
       {/* 1. Header Bar */}
       <div
-        className={`px-3 py-2 flex items-center justify-between border-b border-black/5 dark:border-white/5 transition-colors relative shrink-0 ${currentTheme.headerBg} ${currentTheme.headerText}`}
+        className={`px-3 py-2.5 flex items-center justify-between border-b border-black/5 dark:border-white/5 transition-colors relative shrink-0 z-20 ${currentTheme.headerBg} ${currentTheme.headerText}`}
       >
-        {/* Left: Avatar + Name + Dropdown trigger */}
         <div className="flex items-center gap-2 min-w-0 flex-1 relative">
-          {/* Nút Quay Lại khi mở trong dropdown hoặc mobile */}
           {onBack ? (
             <button
               type="button"
               onClick={onBack}
               className="p-1.5 -ml-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer shrink-0"
-              title="Quay lại danh sách"
+              title="Quay lại"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
@@ -275,7 +466,10 @@ export default function ChatBoxWindow({ chat, onBack }) {
             </button>
           )}
 
-          <div className="relative shrink-0 cursor-pointer" onClick={() => setShowOptionsMenu(!showOptionsMenu)}>
+          <div
+            className="relative shrink-0 cursor-pointer"
+            onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+          >
             <Avatar
               userId={user.id}
               src={user.avatarUrl}
@@ -305,37 +499,22 @@ export default function ChatBoxWindow({ chat, onBack }) {
             </span>
           </div>
 
-          {/* Context Options Menu Dropdown (Facebook Messenger Style) */}
+          {/* Context Options Menu Dropdown */}
           {showOptionsMenu && (
             <div
               ref={optionsMenuRef}
               className="absolute left-0 top-11 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-60 animate-in fade-in zoom-in-95 duration-150 text-zinc-800 dark:text-zinc-200 text-xs select-none"
             >
-              {/* Bảo mật E2EE */}
               <div className="p-2 flex items-start gap-2.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300">
                 <Lock className="w-4 h-4 mt-0.5 text-[#0866ff] shrink-0" />
                 <div className="flex flex-col">
                   <span className="font-bold text-[11px]">Được mã hóa đầu cuối</span>
-                  <span className="text-[10px] opacity-80">Tin nhắn và cuộc gọi của bạn luôn được bảo vệ</span>
+                  <span className="text-[10px] opacity-80">Tin nhắn và cuộc gọi luôn được bảo vệ</span>
                 </div>
               </div>
 
               <div className="border-t border-zinc-100 dark:border-zinc-800 my-1" />
 
-              {/* Mở trong Messenger */}
-              <button
-                type="button"
-                onClick={() => {
-                  navigate("/friends");
-                  setShowOptionsMenu(false);
-                }}
-                className="w-full p-2 rounded-xl flex items-center gap-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left transition cursor-pointer"
-              >
-                <MessageSquare className="w-4 h-4 text-zinc-500" />
-                <span className="font-semibold">Mở trong Messenger</span>
-              </button>
-
-              {/* Xem trang cá nhân */}
               <Link
                 to={`/profile/${user.id}`}
                 onClick={() => setShowOptionsMenu(false)}
@@ -345,9 +524,6 @@ export default function ChatBoxWindow({ chat, onBack }) {
                 <span className="font-semibold">Xem trang cá nhân</span>
               </Link>
 
-              <div className="border-t border-zinc-100 dark:border-zinc-800 my-1" />
-
-              {/* Đổi chủ đề */}
               <button
                 type="button"
                 onClick={() => {
@@ -357,74 +533,20 @@ export default function ChatBoxWindow({ chat, onBack }) {
                 className="w-full p-2 rounded-xl flex items-center gap-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left transition cursor-pointer"
               >
                 <Palette className="w-4 h-4 text-pink-500" />
-                <span className="font-semibold">Đổi chủ đề</span>
+                <span className="font-semibold">Đổi chủ đề (65+ Theme)</span>
               </button>
 
-              {/* Biểu tượng cảm xúc */}
-              <button
-                type="button"
-                onClick={() => {
-                  setShowOptionsMenu(false);
-                  setShowThemePicker(true);
-                }}
-                className="w-full p-2 rounded-xl flex items-center gap-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left transition cursor-pointer"
-              >
-                <span className="text-base leading-none">{quickEmoji}</span>
-                <span className="font-semibold">Biểu tượng cảm xúc ({quickEmoji})</span>
-              </button>
-
-              {/* Biệt danh */}
               <button
                 type="button"
                 onClick={handleSetNickname}
                 className="w-full p-2 rounded-xl flex items-center gap-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left transition cursor-pointer"
               >
                 <Edit3 className="w-4 h-4 text-indigo-500" />
-                <span className="font-semibold">Biệt danh</span>
-              </button>
-
-              {/* Xem tin nhắn đã ghim */}
-              <button
-                type="button"
-                onClick={() => {
-                  toast.info("Chưa có tin nhắn nào được ghim trong đoạn chat này.");
-                  setShowOptionsMenu(false);
-                }}
-                className="w-full p-2 rounded-xl flex items-center gap-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left transition cursor-pointer"
-              >
-                <Pin className="w-4 h-4 text-amber-500" />
-                <span className="font-semibold">Xem tin nhắn đã ghim</span>
+                <span className="font-semibold">Đặt biệt danh</span>
               </button>
 
               <div className="border-t border-zinc-100 dark:border-zinc-800 my-1" />
 
-              {/* Tạo nhóm */}
-              <button
-                type="button"
-                onClick={() => {
-                  toast.info("Tính năng tạo nhóm chat đang được hoàn thiện.");
-                  setShowOptionsMenu(false);
-                }}
-                className="w-full p-2 rounded-xl flex items-center gap-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left transition cursor-pointer"
-              >
-                <Users className="w-4 h-4 text-emerald-500" />
-                <span className="font-semibold">Tạo nhóm</span>
-              </button>
-
-              {/* Tắt thông báo */}
-              <button
-                type="button"
-                onClick={() => {
-                  toast.success("Đã tắt thông báo cho cuộc trò chuyện này.");
-                  setShowOptionsMenu(false);
-                }}
-                className="w-full p-2 rounded-xl flex items-center gap-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left transition cursor-pointer"
-              >
-                <BellOff className="w-4 h-4 text-zinc-500" />
-                <span className="font-semibold">Tắt thông báo</span>
-              </button>
-
-              {/* Xóa đoạn chat */}
               <button
                 type="button"
                 onClick={handleClearChatHistory}
@@ -437,29 +559,16 @@ export default function ChatBoxWindow({ chat, onBack }) {
           )}
         </div>
 
-        {/* Right Actions: Phone Call + Video Call + Theme + Minimize + Close */}
         <div className="flex items-center gap-1 shrink-0">
-          {/* Nút Gọi Thoại */}
           <button
             type="button"
-            onClick={handleCallAudio}
+            onClick={() => setShowThemePicker(true)}
             className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer"
-            title="Bắt đầu gọi thoại"
+            title="Đổi màu theme"
           >
-            <Phone className="w-3.5 h-3.5" />
+            <Palette className="w-3.5 h-3.5" />
           </button>
 
-          {/* Nút Gọi Video */}
-          <button
-            type="button"
-            onClick={handleCallVideo}
-            className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer"
-            title="Bắt đầu gọi video"
-          >
-            <Video className="w-3.5 h-3.5" />
-          </button>
-
-          {/* Nút Thu Nhỏ (Chỉ trên Desktop) */}
           <button
             type="button"
             onClick={() => toggleMinimizeChat(targetUserId)}
@@ -469,33 +578,32 @@ export default function ChatBoxWindow({ chat, onBack }) {
             <Minus className="w-3.5 h-3.5" />
           </button>
 
-          {/* Nút Đóng */}
           <button
             type="button"
             onClick={() => closeChat(targetUserId)}
             className="p-1.5 rounded-full hover:bg-rose-500/20 hover:text-rose-400 transition cursor-pointer"
-            title="Đóng box chat"
+            title="Đóng"
           >
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Modal Chọn Theme Phân Loại Đầy Đủ */}
-      {showThemePicker && (
-        <ThemePickerModal
-          isOpen={showThemePicker}
-          onClose={() => setShowThemePicker(false)}
-          currentThemeId={theme || "DEFAULT"}
-          onSelectTheme={handleSelectTheme}
-          targetUserName={user.fullName || user.username}
-        />
+      {/* Banner Tin Nhắn Đã Ghim (Nếu có) */}
+      {pinnedMsg && (
+        <div className="px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200/60 dark:border-amber-900/60 flex items-center justify-between text-[11px] text-amber-900 dark:text-amber-200 shrink-0 z-10">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Pin className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span className="font-bold shrink-0">Đã ghim:</span>
+            <span className="truncate">{pinnedMsg.content}</span>
+          </div>
+        </div>
       )}
 
       {/* 2. Messages List Body */}
       <div
         className={`flex-1 p-3 overflow-y-auto space-y-2 text-xs transition-colors scrollbar-thin ${
-          currentTheme.chatBg || currentTheme.bodyBg || "bg-slate-50"
+          currentTheme.chatBg || currentTheme.bodyBg || "bg-slate-50 dark:bg-zinc-950"
         }`}
       >
         {isLoadingHistory ? (
@@ -515,31 +623,88 @@ export default function ChatBoxWindow({ chat, onBack }) {
           </div>
         ) : (
           messages.map((msg, index) => {
-            const isMine =
-              Number(msg.senderId || msg.sender?.id) === Number(currentUserId);
+            const isMine = Number(msg.senderId || msg.sender?.id) === Number(currentUserId);
             const isAudio = isAudioMessage(msg.content);
+            const isImage = isImageMessage(msg.content);
+            const isSticker = isStickerMessage(msg.content);
+            const reaction = messageReactions[msg.id];
 
             return (
               <div
                 key={msg.id || index}
-                className={`flex flex-col group/msg ${
-                  isMine ? "items-end" : "items-start"
-                }`}
+                onTouchStart={() => handleTouchStart(msg)}
+                onTouchEnd={handleTouchEnd}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setActiveActionMessage(msg);
+                }}
+                className={`flex flex-col group/msg relative ${isMine ? "items-end" : "items-start"}`}
               >
-                <div
-                  className={`max-w-[80%] rounded-2xl px-3 py-2 text-xs break-words whitespace-pre-wrap transition-all ${
-                    isMine
-                      ? `${currentTheme.sentBubble || currentTheme.myBubble || "bg-blue-600 text-white"} rounded-br-xs`
-                      : `${currentTheme.receivedBubble || currentTheme.theirBubble || "bg-white text-zinc-900 border"} rounded-bl-xs`
-                  }`}
-                >
-                  {isAudio ? (
-                    <AudioMessagePlayer audioUrl={msg.content.replace("🎙️ ", "").trim()} />
+                {/* Bubble Tin Nhắn */}
+                <div className="relative flex items-center gap-1 group/bubble">
+                  {/* Nút 3 chấm mở action menu khi hover trên desktop */}
+                  {isMine && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveActionMessage(msg)}
+                      className="opacity-0 group-hover/bubble:opacity-100 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-zinc-400 transition cursor-pointer"
+                      title="Tùy chọn"
+                    >
+                      <MoreHorizontal className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+
+                  {isSticker ? (
+                    <img
+                      src={msg.content.replace("🏷️ ", "").trim()}
+                      alt="Sticker"
+                      className="w-28 h-28 object-contain my-1 select-none animate-in zoom-in-95 duration-150"
+                    />
+                  ) : isImage ? (
+                    <div className="rounded-2xl overflow-hidden max-w-[240px] my-1 border border-black/10 dark:border-white/10 shadow-xs">
+                      <img
+                        src={msg.content.replace("📷 ", "").trim()}
+                        alt="Ảnh tin nhắn"
+                        className="w-full h-auto max-h-[220px] object-cover cursor-pointer hover:opacity-95 transition"
+                        onClick={() => window.open(msg.content.replace("📷 ", "").trim(), "_blank")}
+                      />
+                    </div>
                   ) : (
-                    msg.content
+                    <div
+                      className={`max-w-[82%] rounded-2xl px-3 py-2 text-xs break-words whitespace-pre-wrap transition-all shadow-2xs ${
+                        isMine
+                          ? `${currentTheme.sentBubble || currentTheme.myBubble || "bg-blue-600 text-white"} rounded-br-xs`
+                          : `${currentTheme.receivedBubble || currentTheme.theirBubble || "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700"} rounded-bl-xs`
+                      }`}
+                    >
+                      {isAudio ? (
+                        <AudioMessagePlayer audioUrl={msg.content.replace("🎙️ ", "").trim()} />
+                      ) : (
+                        msg.content
+                      )}
+                    </div>
+                  )}
+
+                  {!isMine && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveActionMessage(msg)}
+                      className="opacity-0 group-hover/bubble:opacity-100 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-zinc-400 transition cursor-pointer"
+                      title="Tùy chọn"
+                    >
+                      <MoreHorizontal className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+
+                  {/* Huy hiệu cảm xúc (Reaction) */}
+                  {reaction && (
+                    <span className="absolute -bottom-2 right-1 text-sm bg-white dark:bg-zinc-800 rounded-full px-1 shadow-md border border-zinc-200 dark:border-zinc-700 animate-in zoom-in-50 duration-100">
+                      {reaction}
+                    </span>
                   )}
                 </div>
 
+                {/* Thời gian & Trạng thái đã xem */}
                 <div className="flex items-center gap-1 mt-0.5 px-1 opacity-0 group-hover/msg:opacity-100 transition-opacity">
                   <span className="text-[9px] text-zinc-400">
                     {formatMessageTime(msg.createdAt)}
@@ -561,67 +726,337 @@ export default function ChatBoxWindow({ chat, onBack }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 3. Input Footer */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSendMessage();
-        }}
-        className="p-2 pb-3 sm:pb-2 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 flex items-center gap-1.5 relative shrink-0"
-      >
-        {/* Emoji Button */}
-        <div className="relative" ref={emojiPickerRef}>
+      {/* Preview Tin Nhắn Đang Trả Lời / Đang Chỉnh Sửa */}
+      {replyingMessage && (
+        <div className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between text-xs text-zinc-700 dark:text-zinc-300 shrink-0">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Reply className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+            <span className="font-bold shrink-0">Trả lời:</span>
+            <span className="truncate">{replyingMessage.content}</span>
+          </div>
           <button
             type="button"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="p-1.5 text-zinc-400 hover:text-amber-500 transition cursor-pointer"
-            title="Thêm biểu tượng cảm xúc"
+            onClick={() => setReplyingMessage(null)}
+            className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
           >
-            <Smile className="w-4 h-4" />
+            <X className="w-3 h-3" />
           </button>
-
-          {showEmojiPicker && (
-            <div className="absolute bottom-10 left-0 z-50">
-              <EmojiPicker
-                onSelect={(emoji) => {
-                  setInputText((prev) => prev + emoji);
-                  setShowEmojiPicker(false);
-                }}
-              />
-            </div>
-          )}
         </div>
+      )}
 
+      {editingMessage && (
+        <div className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 border-t border-blue-200 dark:border-blue-800 flex items-center justify-between text-xs text-blue-700 dark:text-blue-300 shrink-0">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Edit3 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+            <span className="font-bold shrink-0">Chỉnh sửa tin nhắn</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setEditingMessage(null);
+              setInputText("");
+            }}
+            className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
+      {/* 3. Thanh Công Cụ Nhập Tin Nhắn (Input Action Bar) */}
+      <div className="p-2 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 shrink-0 relative">
+        {/* Bảng Pickers */}
+        {showEmojiPicker && (
+          <div className="absolute bottom-12 left-2 z-50">
+            <EmojiPicker
+              onSelect={(emoji) => {
+                setInputText((prev) => prev + emoji);
+                setShowEmojiPicker(false);
+              }}
+              onClose={() => setShowEmojiPicker(false)}
+            />
+          </div>
+        )}
+
+        {showGifPicker && (
+          <div className="absolute bottom-12 left-2 z-50">
+            <GifPicker
+              onSelect={(gifUrl) => {
+                handleSendMessage(`📷 ${gifUrl}`);
+                setShowGifPicker(false);
+              }}
+              onClose={() => setShowGifPicker(false)}
+            />
+          </div>
+        )}
+
+        {showStickerPicker && (
+          <div className="absolute bottom-12 left-2 z-50">
+            <StickerPicker
+              onSelectSticker={(stickerUrl) => {
+                handleSendMessage(`🏷️ ${stickerUrl}`);
+                setShowStickerPicker(false);
+              }}
+              onClose={() => setShowStickerPicker(false)}
+            />
+          </div>
+        )}
+
+        {/* Input file ẩn */}
         <input
-          type="text"
-          placeholder="Nhập tin nhắn..."
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          className="flex-1 bg-slate-100 dark:bg-zinc-800 border-none rounded-full px-3.5 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,video/*"
+          multiple
+          onChange={handleUploadImage}
+          className="hidden"
         />
 
-        {/* Nút Gửi hoặc Nút Quick Emoji như thật trên Facebook Messenger */}
-        {inputText.trim() ? (
-          <button
-            type="submit"
-            disabled={isSending}
-            className="p-1.5 rounded-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white transition active:scale-95 cursor-pointer disabled:cursor-not-allowed"
-            title="Gửi tin nhắn (Enter)"
-          >
-            {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          </button>
+        {/* Giao diện khi ĐANG GHI ÂM GIỌNG NÓI */}
+        {isRecording ? (
+          <div className="flex items-center justify-between gap-2 p-1 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 rounded-full px-3 animate-pulse">
+            <div className="flex items-center gap-2 text-rose-600 text-xs font-bold">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping" />
+              <span>Đang ghi âm ({recordingDuration}s)...</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={cancelRecording}
+                className="p-1.5 rounded-full hover:bg-rose-200/50 text-rose-600 transition cursor-pointer"
+                title="Hủy ghi âm"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={stopRecording}
+                className="p-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white transition cursor-pointer"
+                title="Gửi tin nhắn thoại"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => handleSendMessage(quickEmoji)}
-            className="p-1.5 text-base hover:scale-125 active:scale-90 transition-transform cursor-pointer"
-            title={`Gửi biểu tượng cảm xúc nhanh (${quickEmoji})`}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage();
+            }}
+            className="flex items-center gap-1.5"
           >
-            {quickEmoji}
-          </button>
+            {/* Menu dấu cộng (+) mở rộng các công cụ */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowPlusMenu(!showPlusMenu)}
+                className={`p-1.5 rounded-full transition cursor-pointer ${
+                  showPlusMenu
+                    ? "bg-blue-600 text-white"
+                    : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                }`}
+                title="Thêm đính kèm"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+
+              {showPlusMenu && (
+                <div className="absolute bottom-10 left-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-1.5 z-50 flex flex-col gap-1 w-44 animate-in fade-in zoom-in-95 duration-100 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                      setShowPlusMenu(false);
+                    }}
+                    className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left transition cursor-pointer"
+                  >
+                    <ImageIcon className="w-4 h-4 text-emerald-500" />
+                    <span>Gửi ảnh / Video</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowStickerPicker(true);
+                      setShowPlusMenu(false);
+                    }}
+                    className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left transition cursor-pointer"
+                  >
+                    <StickerIcon className="w-4 h-4 text-amber-500" />
+                    <span>Nhãn dán Sticker</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowGifPicker(true);
+                      setShowPlusMenu(false);
+                    }}
+                    className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left transition cursor-pointer"
+                  >
+                    <ImagePlus className="w-4 h-4 text-purple-500" />
+                    <span>Ảnh GIF động</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      startRecording();
+                      setShowPlusMenu(false);
+                    }}
+                    className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left transition cursor-pointer"
+                  >
+                    <Mic className="w-4 h-4 text-rose-500" />
+                    <span>Ghi âm giọng nói</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Nút Emoji */}
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="p-1.5 text-zinc-500 hover:text-amber-500 transition cursor-pointer"
+              title="Biểu tượng cảm xúc"
+            >
+              <Smile className="w-4 h-4" />
+            </button>
+
+            {/* Ô nhập văn bản */}
+            <input
+              ref={textInputRef}
+              type="text"
+              placeholder="Nhập tin nhắn..."
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              className="flex-1 bg-slate-100 dark:bg-zinc-800 border-none rounded-full px-3.5 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+
+            {/* Nút Gửi hoặc Nút Quick Emoji */}
+            {inputText.trim() ? (
+              <button
+                type="submit"
+                disabled={isSending}
+                className="p-1.5 rounded-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white transition active:scale-95 cursor-pointer"
+                title="Gửi tin nhắn"
+              >
+                {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleSendMessage(quickEmoji)}
+                className="p-1 text-base hover:scale-125 active:scale-90 transition-transform cursor-pointer"
+                title={`Gửi nhanh (${quickEmoji})`}
+              >
+                {quickEmoji}
+              </button>
+            )}
+          </form>
         )}
-      </form>
-    </>
+      </div>
+
+      {/* Modal Chọn Theme 65+ Màu */}
+      {showThemePicker && (
+        <ThemePickerModal
+          isOpen={showThemePicker}
+          onClose={() => setShowThemePicker(false)}
+          currentThemeId={theme || "DEFAULT"}
+          onSelectTheme={handleSelectTheme}
+          targetUserName={nickname || user.fullName || user.username}
+        />
+      )}
+
+      {/* Bottom Sheet Menu Tùy Chọn Tin Nhắn (Long-Press / 3 Chấm trên Mobile & Desktop) */}
+      {activeActionMessage && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
+          onClick={() => setActiveActionMessage(null)}
+        >
+          <div
+            className="w-full sm:max-w-xs bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl p-4 space-y-3 shadow-2xl border border-zinc-200 dark:border-zinc-800 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150 text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Quick Reactions Bar */}
+            <div className="flex justify-around py-2 border-b border-zinc-100 dark:border-zinc-800 text-2xl">
+              {["❤️", "😂", "😮", "😢", "😡", "👍"].map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => handleSendReaction(activeActionMessage.id, emoji)}
+                  className="hover:scale-125 active:scale-90 transition-transform cursor-pointer"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+
+            {/* Menu Options */}
+            <div className="space-y-1 text-zinc-700 dark:text-zinc-200 font-medium text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setReplyingMessage(activeActionMessage);
+                  setActiveActionMessage(null);
+                  textInputRef.current?.focus();
+                }}
+                className="w-full flex items-center gap-3 p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition cursor-pointer"
+              >
+                <Reply className="w-4 h-4 text-blue-500" />
+                <span>Trả lời</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleCopyMessage(activeActionMessage.content)}
+                className="w-full flex items-center gap-3 p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition cursor-pointer"
+              >
+                <Copy className="w-4 h-4 text-emerald-500" />
+                <span>Sao chép</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handlePinMessage(activeActionMessage)}
+                className="w-full flex items-center gap-3 p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition cursor-pointer"
+              >
+                <Pin className="w-4 h-4 text-amber-500" />
+                <span>Ghim tin nhắn</span>
+              </button>
+
+              {Number(activeActionMessage.senderId || activeActionMessage.sender?.id) === Number(currentUserId) && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingMessage(activeActionMessage);
+                      setInputText(activeActionMessage.content);
+                      setActiveActionMessage(null);
+                      textInputRef.current?.focus();
+                    }}
+                    className="w-full flex items-center gap-3 p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-blue-600 dark:text-blue-400 transition cursor-pointer"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>Chỉnh sửa</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteMessage(activeActionMessage.id)}
+                    className="w-full flex items-center gap-3 p-2.5 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl text-rose-600 dark:text-rose-400 transition cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Thu hồi tin nhắn</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 
   // Khi được nhúng trực tiếp trong dropdown/modal (có onBack)
@@ -633,7 +1068,7 @@ export default function ChatBoxWindow({ chat, onBack }) {
     );
   }
 
-  // Trên Mobile (< 768px): Mở Full Screen qua React Portal gắn trực tiếp vào body
+  // Trên Mobile (< 768px): Mở Full Screen qua React Portal
   if (isMobile) {
     return createPortal(
       <div className="fixed inset-0 z-[9999] w-full h-[100dvh] bg-white dark:bg-zinc-900 flex flex-col overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-200">
@@ -643,7 +1078,7 @@ export default function ChatBoxWindow({ chat, onBack }) {
     );
   }
 
-  // Trên PC: Tab thu nhỏ (Minimized)
+  // Trên PC: Tab thu nhỏ
   if (isMinimized) {
     return (
       <div className="w-64 h-11 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-t-xl shadow-xl flex items-center justify-between px-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-all pointer-events-auto select-none">
@@ -693,7 +1128,7 @@ export default function ChatBoxWindow({ chat, onBack }) {
 
   // Trên PC: Box Chat Dock mở rộng bình thường
   return (
-    <div className="w-80 h-[440px] bg-white dark:bg-zinc-900 rounded-t-2xl shadow-2xl border border-slate-200 dark:border-zinc-800 flex flex-col overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-200">
+    <div className="w-80 h-[460px] bg-white dark:bg-zinc-900 rounded-t-2xl shadow-2xl border border-slate-200 dark:border-zinc-800 flex flex-col overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-200">
       {chatBody}
     </div>
   );
