@@ -3,12 +3,13 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Bell, Plus, ChevronDown, LogOut,
   Sun, Moon, Shield, User, Settings, Home,
-  Compass, Bookmark, Users, BarChart2, X, Sparkles, Hash, ArrowUp, ArrowLeft,
+  Compass, Bookmark, Users, BarChart2, X, Sparkles, Hash, ArrowUp, ArrowLeft, MessageCircle,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import notificationService from "../services/notificationService";
 import CreatePostModal from "../components/CreatePostModal";
 import AiAssistantModal from "../components/AiAssistantModal";
+import MessengerDropdown from "../components/MessengerDropdown";
 import LeftSidebar from "../components/LeftSidebar";
 import RightSidebar from "../components/RightSidebar";
 import MiniMusicPlayer from "../components/MiniMusicPlayer";
@@ -23,6 +24,8 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
   const [unreadNotifs, setUnreadNotifs] = useState(0);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const [messengerOpen, setMessengerOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,6 +35,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
 
   const profileMenuRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const messengerMenuRef = useRef(null);
   const mobileSearchInputRef = useRef(null);
 
   // Poll notifications badge
@@ -46,6 +50,15 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
     return () => clearInterval(t);
   }, [currentUserId]);
 
+  // Listen for unread chat count changes
+  useEffect(() => {
+    const handleCount = (e) => {
+      if (typeof e.detail === "number") setUnreadChatCount(e.detail);
+    };
+    window.addEventListener("unread_chat_count_changed", handleCount);
+    return () => window.removeEventListener("unread_chat_count_changed", handleCount);
+  }, []);
+
   // Close dropdowns on outside click
   useEffect(() => {
     const h = (e) => {
@@ -53,6 +66,8 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         setProfileMenuOpen(false);
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target))
         setMobileMenuOpen(false);
+      if (messengerMenuRef.current && !messengerMenuRef.current.contains(e.target))
+        setMessengerOpen(false);
     };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
@@ -277,6 +292,33 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                   <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-zinc-900" />
                 )}
               </NavLink>
+
+              {/* Messenger Chat Dropdown (Desktop & Mobile) */}
+              <div className="relative" ref={messengerMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setMessengerOpen((v) => !v)}
+                  className={`relative p-1.5 sm:p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full active:scale-95 hover:scale-105 transition-all duration-150 cursor-pointer ${
+                    messengerOpen
+                      ? "text-[#0866ff] bg-[#0866ff]/10 dark:bg-[#0866ff]/20 ring-2 ring-[#0866ff]/30"
+                      : "text-zinc-500 hover:text-black dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  }`}
+                  title="Tin nhắn Messenger"
+                >
+                  <MessageCircle strokeWidth={1.8} className="w-4 h-4" />
+                  {unreadChatCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-red-600 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 border-2 border-white dark:border-[#242526] shadow-xs">
+                      {unreadChatCount > 9 ? "9+" : unreadChatCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Messenger Dropdown Menu */}
+                <MessengerDropdown
+                  isOpen={messengerOpen}
+                  onClose={() => setMessengerOpen(false)}
+                />
+              </div>
 
               {/* Avatar Trang cá nhân trên Mobile (Click chuyển thẳng sang profile cá nhân) */}
               {currentUser && (
