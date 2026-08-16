@@ -14,7 +14,8 @@ import {
   Check,
   Sparkles,
   Volume2,
-  CornerDownRight
+  CornerDownRight,
+  X
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import likeService from "../services/likeService";
@@ -81,6 +82,19 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState(null);
   const [isPopping, setIsPopping] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
+
+  // Close lightbox on Escape key
+  useEffect(() => {
+    if (!lightboxImage) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setLightboxImage(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxImage]);
 
   // Load preview names when hovering over like section
   const handleLikeMouseEnter = () => {
@@ -502,11 +516,17 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
             {/* Ảnh bài gốc (nếu có) */}
             {origMedia && (
-              <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 mt-1 max-h-[360px] bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
+              <div
+                className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 mt-1 max-h-[360px] bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center cursor-pointer group/media"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxImage(origMedia);
+                }}
+              >
                 <img
                   src={origMedia}
                   alt=""
-                  className="w-full h-auto max-h-[360px] object-cover object-center block"
+                  className="w-full h-auto max-h-[360px] object-cover object-center block hover:opacity-95 transition-opacity"
                   loading="lazy"
                 />
               </div>
@@ -516,11 +536,17 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
 
         {/* Adaptive Image Grid (Bài viết thường không phải share) */}
         {!originalPost && post.thumbNail && (
-          <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100/80 dark:bg-zinc-900/80 my-2 max-h-[540px] flex items-center justify-center">
+          <div
+            className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100/80 dark:bg-zinc-900/80 my-2 max-h-[540px] flex items-center justify-center cursor-pointer group/media"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxImage(post.thumbNail);
+            }}
+          >
             <img
               src={post.thumbNail}
               alt=""
-              className="w-full h-auto max-h-[540px] object-cover object-center block"
+              className="w-full h-auto max-h-[540px] object-cover object-center block hover:opacity-95 transition-opacity"
               loading="lazy"
             />
           </div>
@@ -682,6 +708,38 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
         onConfirm={confirmDeletePost}
         onCancel={() => setIsDeleteModalOpen(false)}
       />
+
+      {/* Image Lightbox Modal */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 cursor-zoom-out select-none"
+          onClick={(e) => {
+            e.stopPropagation();
+            setLightboxImage(null);
+          }}
+        >
+          {/* Nút đóng (X) */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxImage(null);
+            }}
+            className="absolute top-4 right-4 text-white/80 hover:text-white p-2.5 rounded-full bg-black/40 hover:bg-black/60 transition-colors cursor-pointer z-10"
+            title="Đóng (Esc)"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Ảnh phóng to */}
+          <img
+            src={lightboxImage}
+            alt="Xem ảnh toàn màn hình"
+            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl select-none cursor-default animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </article>
   );
 }
