@@ -9,7 +9,7 @@ export default function FloatingChatDock() {
   }
 
   return (
-    <div className="fixed bottom-0 right-20 flex items-end space-x-3 z-40 pointer-events-none select-none">
+    <div className="fixed bottom-0 right-4 md:right-16 z-50 flex items-end space-x-3 pointer-events-none select-none">
       {activeChats.map((chat) => (
         <ChatBoxWindow key={chat.user.id} chat={chat} />
       ))}

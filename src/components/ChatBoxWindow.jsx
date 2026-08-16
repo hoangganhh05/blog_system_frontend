@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import {
   X,
@@ -79,6 +80,18 @@ export default function ChatBoxWindow({ chat }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [nickname, setNickname] = useState(null);
+
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < 768
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const messagesEndRef = useRef(null);
   const themePickerRef = useRef(null);
@@ -233,57 +246,8 @@ export default function ChatBoxWindow({ chat }) {
     setShowOptionsMenu(false);
   };
 
-  // Giao diện khi Tab bị thu nhỏ (Minimized)
-  if (isMinimized) {
-    return (
-      <div className="w-64 h-11 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-t-xl shadow-xl flex items-center justify-between px-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-all pointer-events-auto select-none">
-        <div
-          className="flex items-center gap-2 min-w-0 flex-1"
-          onClick={() => toggleMinimizeChat(targetUserId)}
-        >
-          <div className="relative">
-            <Avatar
-              userId={user.id}
-              src={user.avatarUrl}
-              name={user.fullName || user.username}
-              username={user.username}
-              avatarColor={user.avatarColor}
-              size="xs"
-            />
-            {user.isOnline && (
-              <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-zinc-900" />
-            )}
-          </div>
-          <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-            {nickname || user.fullName || user.username}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => toggleMinimizeChat(targetUserId)}
-            className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
-            title="Mở rộng"
-          >
-            <Maximize2 className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => closeChat(targetUserId)}
-            className="p-1 rounded-md text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition"
-            title="Đóng"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Giao diện Box Chat Mở Rộng Đầy Đủ
-  return (
-    <div className="fixed inset-0 sm:static sm:w-80 sm:h-[440px] w-full h-full bg-white dark:bg-zinc-900 rounded-none sm:rounded-t-2xl shadow-2xl border-0 sm:border border-slate-200 dark:border-zinc-800 flex flex-col overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-200 z-50 sm:z-40">
+  const chatBody = (
+    <>
       {/* 1. Header Bar */}
       <div
         className={`px-3 py-2 flex items-center justify-between border-b border-black/5 dark:border-white/5 transition-colors relative shrink-0 ${currentTheme.headerBg} ${currentTheme.headerText}`}
@@ -294,7 +258,7 @@ export default function ChatBoxWindow({ chat }) {
           <button
             type="button"
             onClick={() => closeChat(targetUserId)}
-            className="sm:hidden p-1.5 -ml-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer shrink-0"
+            className="md:hidden p-1.5 -ml-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer shrink-0"
             title="Quay lại"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -484,11 +448,11 @@ export default function ChatBoxWindow({ chat }) {
             <Video className="w-3.5 h-3.5" />
           </button>
 
-          {/* Nút Thu Nhỏ */}
+          {/* Nút Thu Nhỏ (Chỉ trên Desktop) */}
           <button
             type="button"
             onClick={() => toggleMinimizeChat(targetUserId)}
-            className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer"
+            className="hidden md:inline-flex p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer"
             title="Thu nhỏ"
           >
             <Minus className="w-3.5 h-3.5" />
@@ -646,6 +610,71 @@ export default function ChatBoxWindow({ chat }) {
           </button>
         )}
       </form>
+    </>
+  );
+
+  // Trên Mobile (< 768px): Mở Full Screen qua React Portal gắn trực tiếp vào body
+  if (isMobile) {
+    return createPortal(
+      <div className="fixed inset-0 z-[9999] w-full h-[100dvh] bg-white dark:bg-zinc-900 flex flex-col overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-200">
+        {chatBody}
+      </div>,
+      document.body
+    );
+  }
+
+  // Trên PC: Tab thu nhỏ (Minimized)
+  if (isMinimized) {
+    return (
+      <div className="w-64 h-11 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-t-xl shadow-xl flex items-center justify-between px-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-all pointer-events-auto select-none">
+        <div
+          className="flex items-center gap-2 min-w-0 flex-1"
+          onClick={() => toggleMinimizeChat(targetUserId)}
+        >
+          <div className="relative">
+            <Avatar
+              userId={user.id}
+              src={user.avatarUrl}
+              name={user.fullName || user.username}
+              username={user.username}
+              avatarColor={user.avatarColor}
+              size="xs"
+            />
+            {user.isOnline && (
+              <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-zinc-900" />
+            )}
+          </div>
+          <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+            {nickname || user.fullName || user.username}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => toggleMinimizeChat(targetUserId)}
+            className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+            title="Mở rộng"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => closeChat(targetUserId)}
+            className="p-1 rounded-md text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition"
+            title="Đóng"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Trên PC: Box Chat Dock mở rộng bình thường
+  return (
+    <div className="w-80 h-[440px] bg-white dark:bg-zinc-900 rounded-t-2xl shadow-2xl border border-slate-200 dark:border-zinc-800 flex flex-col overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-200">
+      {chatBody}
     </div>
   );
 }
