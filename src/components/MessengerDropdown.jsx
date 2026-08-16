@@ -244,7 +244,11 @@ export default function MessengerDropdown({ isOpen, onClose }) {
     0
   );
 
-  const handleSelectUser = (user) => {
+  const handleSelectUser = (e, user) => {
+    if (e) {
+      if (typeof e.preventDefault === "function") e.preventDefault();
+      if (typeof e.stopPropagation === "function") e.stopPropagation();
+    }
     if (!user) return;
     if (user.id === "ai_assistant") {
       window.dispatchEvent(new CustomEvent("open_ai_assistant"));
@@ -503,7 +507,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
             {/* BlogViet AI Bot Story Item */}
             <button
               type="button"
-              onClick={() => handleSelectUser(AI_BOT_USER)}
+              onClick={(e) => handleSelectUser(e, AI_BOT_USER)}
               className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer"
               title="Trò chuyện cùng BlogViet AI Bot"
             >
@@ -525,7 +529,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
               <button
                 key={f.id}
                 type="button"
-                onClick={() => handleSelectUser(f)}
+                onClick={(e) => handleSelectUser(e, f)}
                 className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer"
                 title={`Nhắn tin với ${f.fullName || f.username}`}
               >
@@ -609,9 +613,10 @@ export default function MessengerDropdown({ isOpen, onClose }) {
               </div>
             ) : activeFilter === "ai" ? (
               /* TAB AI BOT CHAT ROW */
-              <div
-                onClick={() => handleSelectUser(AI_BOT_USER)}
-                className="p-3.5 flex items-center gap-3 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 cursor-pointer transition"
+              <button
+                type="button"
+                onClick={(e) => handleSelectUser(e, AI_BOT_USER)}
+                className="w-full p-3.5 flex items-center gap-3 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 cursor-pointer transition text-left border-0 bg-transparent"
               >
                 <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md font-bold text-sm shrink-0">
                   <Bot className="w-6 h-6" />
@@ -630,7 +635,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                     Sẵn sàng giải đáp, tóm tắt bài viết và sáng tạo nội dung cho bạn...
                   </p>
                 </div>
-              </div>
+              </button>
             ) : filteredConversations.length === 0 && filteredFriends.length === 0 ? (
               <div className="p-8 text-center text-zinc-400 space-y-2">
                 <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 mx-auto flex items-center justify-center text-xl">
@@ -655,10 +660,11 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                   const isSentByMe = Number(item.lastSenderId) === Number(currentUserId);
 
                   return (
-                    <div
+                    <button
                       key={partner.id || item.conversationId}
-                      onClick={() => handleSelectUser(partner)}
-                      className="p-3 flex items-center gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 cursor-pointer transition relative group"
+                      type="button"
+                      onClick={(e) => handleSelectUser(e, partner)}
+                      className="w-full p-3 flex items-center gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 cursor-pointer transition relative group text-left border-0 bg-transparent"
                     >
                       {/* Avatar Partner */}
                       <div className="relative shrink-0">
@@ -709,7 +715,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                           )}
                         </div>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
 
@@ -720,10 +726,11 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                       Gợi ý kết nối bạn bè
                     </div>
                     {filteredFriends.map((friend) => (
-                      <div
+                      <button
                         key={friend.id}
-                        onClick={() => handleSelectUser(friend)}
-                        className="p-3 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 cursor-pointer transition"
+                        type="button"
+                        onClick={(e) => handleSelectUser(e, friend)}
+                        className="w-full p-3 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 cursor-pointer transition text-left border-0 bg-transparent"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="relative shrink-0">
@@ -751,13 +758,10 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] hover:bg-blue-100 transition shrink-0"
-                        >
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0866ff] hover:bg-blue-100 transition shrink-0 pointer-events-none">
                           Nhắn tin
-                        </button>
-                      </div>
+                        </span>
+                      </button>
                     ))}
                   </div>
                 )}
