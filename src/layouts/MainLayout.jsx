@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Bell, Plus, ChevronDown, LogOut,
   Sun, Moon, Shield, User, Settings, Home,
-  Compass, Bookmark, Users, BarChart2, X, Sparkles, Hash, ArrowUp, ArrowLeft, MessageCircle,
+  Compass, Bookmark, Users, BarChart2, X, Sparkles, Hash, ArrowUp, ArrowLeft, MessageCircle, Menu,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import notificationService from "../services/notificationService";
@@ -196,11 +196,24 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         ) : (
           /* STANDARD NAVBAR LAYOUT */
           <div className="w-full h-14 px-3 sm:px-4 md:px-4 flex items-center justify-between gap-2 sm:gap-4">
-            {/* LEFT: Minimalist Logo + Nav Links */}
-            <div className="flex items-center gap-3 sm:gap-5 shrink-0 min-w-0">
-              <Logo size="md" withText={true} />
+            {/* LEFT SECTION: Hamburger Menu on Mobile (far left) & Logo + Nav on PC */}
+            <div className="flex items-center gap-2 sm:gap-5 shrink-0 min-w-0">
+              {/* Nút Menu 3 gạch ngang (Chỉ hiển thị ngoài cùng bên trái trên Mobile) */}
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(true)}
+                className="flex md:hidden items-center p-2 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition cursor-pointer"
+                title="Mở menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
 
-              {/* Desktop Navigation */}
+              {/* Logo & Tên BlogViet (Ẩn hoàn toàn trên Mobile md:hidden, chỉ hiện trên PC md:flex) */}
+              <div className="hidden md:flex items-center">
+                <Logo size="md" withText={true} />
+              </div>
+
+              {/* Desktop Navigation Links */}
               <nav className="hidden md:flex items-center gap-1">
                 {navLinks.map(({ to, label, icon: Icon }) => {
                   const active = location.pathname === to || (to !== "/" && location.pathname.startsWith(to));
@@ -222,8 +235,8 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               </nav>
             </div>
 
-            {/* CENTER: Search Bar */}
-            <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xs hidden sm:block">
+            {/* CENTER: Search Bar (Desktop only) */}
+            <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xs hidden md:block">
               <div className="relative">
                 <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
@@ -236,23 +249,22 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
               </div>
             </form>
 
-            {/* RIGHT: Actions */}
-            {/* RIGHT: Actions */}
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-              {/* Mobile Search Button (Visible only on small screens) */}
+            {/* RIGHT SECTION: Actions */}
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto md:ml-0">
+              {/* 1. Mobile Search Trigger Icon (Chỉ hiển thị trên Mobile) */}
               <button
                 type="button"
                 onClick={() => {
                   setMobileSearchOpen(true);
                   setTimeout(() => mobileSearchInputRef.current?.focus(), 50);
                 }}
-                className="sm:hidden p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-150 cursor-pointer"
+                className="flex md:hidden p-1.5 min-w-[36px] min-h-[36px] items-center justify-center rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-150 cursor-pointer"
                 title="Tìm kiếm bài viết, tác giả"
               >
                 <Search strokeWidth={2} className="w-4 h-4" />
               </button>
 
-              {/* Create Post Button (Desktop only - Mobile uses bottom nav + button) */}
+              {/* 2. Create Post Button (Desktop only hidden md:inline-flex) */}
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(true)}
@@ -262,20 +274,20 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 <span>Đăng bài</span>
               </button>
 
-              {/* Trợ lý AI Gemini */}
+              {/* 3. Trợ lý AI Gemini (Desktop only hidden md:flex) */}
               <button
                 type="button"
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent("close_chat_widget"));
                   setIsAiModalOpen(true);
                 }}
-                className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 active:scale-95 hover:scale-105 transition-all duration-150 cursor-pointer"
+                className="hidden md:flex p-1.5 min-w-[36px] min-h-[36px] items-center justify-center rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 active:scale-95 hover:scale-105 transition-all duration-150 cursor-pointer"
                 title="Trợ lý AI BlogViet (Gemini 3.7 Flash)"
               >
                 <Sparkles strokeWidth={2} className="w-4 h-4" />
               </button>
 
-              {/* Chuông thông báo (Hiển thị đầy đủ cả Mobile & Desktop) */}
+              {/* 4. Chuông thông báo (Hiển thị đầy đủ cả Mobile & Desktop) */}
               <NavLink
                 to="/notifications"
                 className={({ isActive }) =>
@@ -293,7 +305,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 )}
               </NavLink>
 
-              {/* Messenger Chat Dropdown (Desktop & Mobile) */}
+              {/* 5. Messenger Chat Button & Dropdown (Desktop & Mobile) */}
               <div className="relative" ref={messengerMenuRef}>
                 <button
                   type="button"
@@ -320,27 +332,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                 />
               </div>
 
-              {/* Avatar Trang cá nhân trên Mobile (Click chuyển thẳng sang profile cá nhân) */}
-              {currentUser && (
-                <Link
-                  to={`/profile/${currentUserId}`}
-                  className="md:hidden flex items-center justify-center p-0.5 rounded-full hover:opacity-90 active:scale-95 transition"
-                  title="Trang cá nhân của bạn"
-                >
-                  <Avatar
-                    userId={currentUserId}
-                    src={currentUser?.avatarUrl}
-                    name={currentUser?.fullName || currentUser?.username}
-                    username={currentUser?.username}
-                    avatarColor={currentUser?.avatarColor}
-                    size="xs"
-                    hideStatus={true}
-                    className="w-7 h-7 min-w-7 min-h-7 border border-zinc-200 dark:border-zinc-700 shadow-xs"
-                  />
-                </Link>
-              )}
-
-              {/* Profile Dropdown (Desktop only) */}
+              {/* 6. Profile Dropdown (Desktop only hidden md:block) */}
               <div className="relative hidden md:block" ref={profileMenuRef}>
                 <button
                   type="button"
@@ -426,20 +418,6 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
                     </button>
                   </div>
                 )}
-              </div>
-
-              {/* Mobile Hamburger */}
-              <div className="relative md:hidden">
-                <button
-                  type="button"
-                  onClick={() => setMobileMenuOpen(true)}
-                  className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-150 cursor-pointer"
-                  title="Mở menu đầy đủ"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
               </div>
             </div>
           </div>

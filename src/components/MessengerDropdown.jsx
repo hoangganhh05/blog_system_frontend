@@ -245,7 +245,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
   return (
     <div
       ref={dropdownRef}
-      className="fixed sm:absolute top-14 sm:top-full left-1/2 sm:left-auto sm:right-0 -translate-x-1/2 sm:translate-x-0 w-[94vw] sm:w-[380px] max-h-[85vh] sm:max-h-[580px] sm:mt-2 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200/90 dark:border-zinc-800 z-50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-left pointer-events-auto"
+      className="fixed md:absolute inset-0 md:inset-auto md:top-full md:right-0 w-full md:w-[380px] h-full md:max-h-[580px] md:mt-2 bg-white dark:bg-zinc-900 rounded-none md:rounded-2xl shadow-2xl border-0 md:border md:border-zinc-200/90 dark:md:border-zinc-800 z-50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-left pointer-events-auto"
       style={{
         boxShadow:
           "0 20px 40px -15px rgba(0, 0, 0, 0.25), 0 0 1px rgba(0, 0, 0, 0.15)",
@@ -254,9 +254,18 @@ export default function MessengerDropdown({ isOpen, onClose }) {
       {/* 1. Header: Tiêu đề + Trạng thái hoạt động + Cài đặt */}
       <div className="p-3.5 pb-2.5 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800/80 shrink-0">
         <div className="flex items-center gap-2">
+          {/* Nút Quay Lại trên Mobile */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="md:hidden p-1.5 -ml-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition cursor-pointer"
+            title="Quay lại"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           <span className="text-xl">💬</span>
           <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
-            Tin nhắn bạn bè
+            Đoạn chat
           </h3>
         </div>
 
@@ -294,11 +303,11 @@ export default function MessengerDropdown({ isOpen, onClose }) {
             <Settings className="w-4 h-4" />
           </button>
 
-          {/* Nút Đóng */}
+          {/* Nút Đóng (Chỉ hiện trên Desktop, Mobile có nút ArrowLeft) */}
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
+            className="hidden md:inline-flex p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
             title="Đóng"
           >
             <X className="w-4 h-4" />
