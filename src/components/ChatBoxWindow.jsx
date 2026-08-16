@@ -20,6 +20,7 @@ import { CHAT_THEMES, getChatTheme } from "../utils/chatThemes";
 import Avatar from "./Avatar";
 import EmojiPicker from "./EmojiPicker";
 import AudioMessagePlayer from "./AudioMessagePlayer";
+import ThemePickerModal from "./ThemePickerModal";
 
 function isAudioMessage(content) {
   if (!content || typeof content !== "string") return false;
@@ -269,43 +270,14 @@ export default function ChatBoxWindow({ chat }) {
         {/* Header Actions */}
         <div className="flex items-center gap-1 shrink-0">
           {/* Nút Chọn Theme */}
-          <div className="relative" ref={themePickerRef}>
-            <button
-              type="button"
-              onClick={() => setShowThemePicker(!showThemePicker)}
-              className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer"
-              title="Đổi chủ đề chat"
-            >
-              <Palette className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Popover Bảng Màu Themes */}
-            {showThemePicker && (
-              <div className="absolute right-0 top-8 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-2 z-50 flex flex-col gap-1 text-xs">
-                <span className="px-2 py-1 font-bold text-zinc-500 dark:text-zinc-400 text-[10px] uppercase tracking-wider">
-                  Chủ đề trò chuyện
-                </span>
-                {Object.values(CHAT_THEMES).map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => handleSelectTheme(t.id)}
-                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition cursor-pointer ${
-                      theme === t.id
-                        ? "bg-zinc-100 dark:bg-zinc-800 font-bold text-zinc-900 dark:text-white"
-                        : "hover:bg-zinc-50 dark:hover:bg-zinc-800/60 text-zinc-700 dark:text-zinc-300"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={`w-3.5 h-3.5 rounded-full ${t.previewDot} shrink-0`} />
-                      <span className="truncate">{t.name}</span>
-                    </div>
-                    {theme === t.id && <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowThemePicker(true)}
+            className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer"
+            title="Đổi chủ đề & bảng màu chat"
+          >
+            <Palette className="w-3.5 h-3.5" />
+          </button>
 
           {/* Nút Thu Nhỏ */}
           <button
@@ -329,18 +301,37 @@ export default function ChatBoxWindow({ chat }) {
         </div>
       </div>
 
+      {/* Modal Chọn Theme Phân Loại Đầy Đủ */}
+      {showThemePicker && (
+        <ThemePickerModal
+          isOpen={showThemePicker}
+          onClose={() => setShowThemePicker(false)}
+          currentThemeId={theme || "DEFAULT"}
+          onSelectTheme={handleSelectTheme}
+          targetUserName={user.fullName || user.username}
+        />
+      )}
+
       {/* 2. Messages List Body */}
       <div
-        className={`flex-1 p-3 overflow-y-auto space-y-2 text-xs transition-colors scrollbar-thin ${currentTheme.bodyBg}`}
+        className={`flex-1 p-3 overflow-y-auto space-y-2 text-xs transition-colors scrollbar-thin ${
+          currentTheme.chatBg || currentTheme.bodyBg || "bg-slate-50"
+        }`}
       >
         {isLoadingHistory ? (
-          <div className="h-full flex items-center justify-center text-zinc-400">
-            <Loader2 className="w-5 h-5 animate-spin" />
+          <div className="flex items-center justify-center h-full text-zinc-400 gap-2">
+            <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+            <span>Đang tải tin nhắn...</span>
           </div>
         ) : messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center text-zinc-400 gap-2 p-4">
-            <span className="text-2xl">👋</span>
-            <p className="text-xs font-medium">Bắt đầu cuộc trò chuyện với {user.fullName || user.username}!</p>
+          <div className="flex flex-col items-center justify-center h-full text-center p-4 text-zinc-400 space-y-1">
+            <span className="text-3xl mb-1">{currentTheme.quickEmoji || "💬"}</span>
+            <span className="font-bold text-zinc-700 dark:text-zinc-300">
+              Chưa có tin nhắn nào
+            </span>
+            <span className="text-[11px]">
+              Hãy gửi lời chào đầu tiên để bắt đầu cuộc trò chuyện!
+            </span>
           </div>
         ) : (
           messages.map((msg, index) => {
@@ -351,11 +342,15 @@ export default function ChatBoxWindow({ chat }) {
             return (
               <div
                 key={msg.id || index}
-                className={`flex flex-col ${isMine ? "items-end" : "items-start"} group/msg`}
+                className={`flex flex-col group/msg ${
+                  isMine ? "items-end" : "items-start"
+                }`}
               >
                 <div
                   className={`max-w-[80%] rounded-2xl px-3 py-2 text-xs break-words whitespace-pre-wrap transition-all ${
-                    isMine ? `${currentTheme.myBubble} rounded-br-xs` : `${currentTheme.theirBubble} rounded-bl-xs`
+                    isMine
+                      ? `${currentTheme.sentBubble || currentTheme.myBubble || "bg-blue-600 text-white"} rounded-br-xs`
+                      : `${currentTheme.receivedBubble || currentTheme.theirBubble || "bg-white text-zinc-900 border"} rounded-bl-xs`
                   }`}
                 >
                   {isAudio ? (
