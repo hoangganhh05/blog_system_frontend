@@ -59,18 +59,18 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
     return () => window.removeEventListener("unread_chat_count_changed", handleCount);
   }, []);
 
-  // Close dropdowns on outside click
+  // Close dropdowns on outside click (MessengerDropdown manages its own portal and click outside)
   useEffect(() => {
     const h = (e) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target))
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
         setProfileMenuOpen(false);
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target))
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
         setMobileMenuOpen(false);
-      if (messengerMenuRef.current && !messengerMenuRef.current.contains(e.target))
-        setMessengerOpen(false);
+      }
     };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
+    document.addEventListener("click", h);
+    return () => document.removeEventListener("click", h);
   }, []);
 
   // Close mobile menu on route change

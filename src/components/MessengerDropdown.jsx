@@ -174,9 +174,11 @@ export default function MessengerDropdown({ isOpen, onClose }) {
     };
   }, [isOpen, currentUserId]);
 
-  // Lắng nghe sự kiện click ra ngoài để đóng dropdown (Chỉ trên PC Desktop)
+  // Lắng nghe sự kiện click ra ngoài để đóng dropdown (Chỉ trên PC Desktop >= 768px)
   useEffect(() => {
-    if (!isOpen || isMobile) return;
+    if (!isOpen) return;
+    const isMobileScreen = window.innerWidth < 768 || isMobile;
+    if (isMobileScreen) return;
 
     const handleClickOutside = (e) => {
       // 1. Kiểm tra dropdownRef trực tiếp
@@ -208,7 +210,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
 
     const timer = setTimeout(() => {
       document.addEventListener("click", handleClickOutside);
-    }, 50);
+    }, 100);
 
     document.addEventListener("keydown", handleKeyDown);
     return () => {
@@ -269,6 +271,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
 
   const handleSelectUser = (e, user) => {
     if (e) {
+      if (typeof e.preventDefault === "function") e.preventDefault();
       if (typeof e.stopPropagation === "function") e.stopPropagation();
     }
     if (!user) return;
@@ -530,8 +533,12 @@ export default function MessengerDropdown({ isOpen, onClose }) {
             {/* BlogViet AI Bot Story Item */}
             <button
               type="button"
-              onClick={(e) => handleSelectUser(e, AI_BOT_USER)}
-              onTouchEnd={(e) => handleSelectUser(e, AI_BOT_USER)}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSelectUser(e, AI_BOT_USER);
+              }}
               className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer touch-manipulation select-none relative z-20"
               title="Trò chuyện cùng BlogViet AI Bot"
             >
@@ -553,8 +560,12 @@ export default function MessengerDropdown({ isOpen, onClose }) {
               <button
                 key={f.id}
                 type="button"
-                onClick={(e) => handleSelectUser(e, f)}
-                onTouchEnd={(e) => handleSelectUser(e, f)}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSelectUser(e, f);
+                }}
                 className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer touch-manipulation select-none relative z-20"
                 title={`Nhắn tin với ${f.fullName || f.username}`}
               >
@@ -644,8 +655,12 @@ export default function MessengerDropdown({ isOpen, onClose }) {
               /* TAB AI BOT CHAT ROW */
               <button
                 type="button"
-                onClick={(e) => handleSelectUser(e, AI_BOT_USER)}
-                onTouchEnd={(e) => handleSelectUser(e, AI_BOT_USER)}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSelectUser(e, AI_BOT_USER);
+                }}
                 className="w-full p-3.5 flex items-center gap-3 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 active:bg-indigo-100/60 cursor-pointer transition text-left border-0 bg-transparent touch-manipulation select-none relative z-20"
               >
                 <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md font-bold text-sm shrink-0 pointer-events-none">
@@ -693,8 +708,12 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                     <button
                       key={partner.id || item.conversationId}
                       type="button"
-                      onClick={(e) => handleSelectUser(e, partner)}
-                      onTouchEnd={(e) => handleSelectUser(e, partner)}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSelectUser(e, partner);
+                      }}
                       className="w-full p-3 flex items-center gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800 cursor-pointer transition relative group text-left border-0 bg-transparent touch-manipulation select-none z-20"
                     >
                       {/* Avatar Partner */}
@@ -760,8 +779,12 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                       <button
                         key={friend.id}
                         type="button"
-                        onClick={(e) => handleSelectUser(e, friend)}
-                        onTouchEnd={(e) => handleSelectUser(e, friend)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleSelectUser(e, friend);
+                        }}
                         className="w-full p-3 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800 cursor-pointer transition text-left border-0 bg-transparent touch-manipulation select-none relative z-20"
                       >
                         <div className="flex items-center gap-3 min-w-0 pointer-events-none">
