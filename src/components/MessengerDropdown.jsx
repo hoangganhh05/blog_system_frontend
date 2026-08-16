@@ -25,6 +25,7 @@ import { useChat } from "../context/ChatContext";
 import chatService from "../services/chatService";
 import friendService from "../services/friendService";
 import Avatar from "./Avatar";
+import ChatBoxWindow from "./ChatBoxWindow";
 import {
   isUserOnline,
   formatLastActive,
@@ -83,6 +84,14 @@ export default function MessengerDropdown({ isOpen, onClose }) {
   const [showSettings, setShowSettings] = useState(false);
   const [strangerFilter, setStrangerFilter] = useState(false);
   const [readReceipts, setReadReceipts] = useState(true);
+  const [activeChatUser, setActiveChatUser] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setActiveChatUser(null);
+      setShowSettings(false);
+    }
+  }, [isOpen]);
 
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.innerWidth < 768
@@ -254,8 +263,12 @@ export default function MessengerDropdown({ isOpen, onClose }) {
       window.dispatchEvent(new CustomEvent("open_ai_assistant"));
       onClose();
     } else {
-      openChat(user);
-      onClose();
+      if (isMobile) {
+        setActiveChatUser(user);
+      } else {
+        openChat(user);
+        onClose();
+      }
     }
   };
 
@@ -791,7 +804,18 @@ export default function MessengerDropdown({ isOpen, onClose }) {
         ref={dropdownRef}
         className="fixed inset-0 z-[9999] bg-white dark:bg-zinc-900 w-full h-[100dvh] flex flex-col overflow-hidden animate-in fade-in duration-150 text-left pointer-events-auto"
       >
-        {innerContent}
+        {activeChatUser ? (
+          <ChatBoxWindow
+            chat={{
+              user: activeChatUser,
+              isMinimized: false,
+              theme: activeChatUser.theme || "DEFAULT",
+            }}
+            onBack={() => setActiveChatUser(null)}
+          />
+        ) : (
+          innerContent
+        )}
       </div>,
       document.body
     );

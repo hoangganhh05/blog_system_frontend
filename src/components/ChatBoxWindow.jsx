@@ -63,7 +63,7 @@ function formatMessageTime(dateStr) {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function ChatBoxWindow({ chat }) {
+export default function ChatBoxWindow({ chat, onBack }) {
   const { user, isMinimized, theme } = chat;
   const { currentUser } = useAuth();
   const { closeChat, toggleMinimizeChat, setChatTheme } = useChat();
@@ -257,7 +257,10 @@ export default function ChatBoxWindow({ chat }) {
           {/* Nút Quay Lại trên Mobile */}
           <button
             type="button"
-            onClick={() => closeChat(targetUserId)}
+            onClick={() => {
+              if (onBack) onBack();
+              else closeChat(targetUserId);
+            }}
             className="md:hidden p-1.5 -ml-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition cursor-pointer shrink-0"
             title="Quay lại"
           >
