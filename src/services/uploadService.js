@@ -45,10 +45,19 @@ const uploadService = {
   async uploadMedia(file, onProgress) {
     return this.uploadFile(file, onProgress);
   },
+
+  async uploadMultipleFiles(files, onProgress) {
+    if (!files || files.length === 0) return [];
+    const list = Array.from(files);
+    const promises = list.map((file) => this.uploadFile(file));
+    const results = await Promise.all(promises);
+    return results.map((r) => r.data?.url).filter(Boolean);
+  },
 };
 
 export const uploadFile = uploadService.uploadFile.bind(uploadService);
 export const uploadImage = uploadService.uploadImage.bind(uploadService);
 export const uploadMedia = uploadService.uploadMedia.bind(uploadService);
+export const uploadMultipleFiles = uploadService.uploadMultipleFiles.bind(uploadService);
 
 export default uploadService;

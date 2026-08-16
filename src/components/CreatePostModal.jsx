@@ -41,9 +41,15 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
   useEffect(() => {
     if (editPost) {
       setContent(editPost.content || "");
-      if (editPost.thumbNail) {
-        setImages([editPost.thumbNail]);
+      const existingImgs = [];
+      if (Array.isArray(editPost.images) && editPost.images.length > 0) {
+        existingImgs.push(...editPost.images);
+      } else if (Array.isArray(editPost.imageUrls) && editPost.imageUrls.length > 0) {
+        existingImgs.push(...editPost.imageUrls);
+      } else if (editPost.thumbNail) {
+        existingImgs.push(editPost.thumbNail);
       }
+      setImages(existingImgs);
       setSelectedCategory(editPost.category?.id || "");
     } else {
       setContent("");
@@ -68,12 +74,9 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
 
     setIsUploading(true);
     try {
-      for (const file of files) {
-        if (images.length >= 4) break;
-        const res = await uploadService.uploadFile(file);
-        if (res.data?.url) {
-          setImages((prev) => [...prev, res.data.url]);
-        }
+      const uploadedUrls = await uploadService.uploadMultipleFiles(files.slice(0, 10));
+      if (uploadedUrls && uploadedUrls.length > 0) {
+        setImages((prev) => [...prev, ...uploadedUrls].slice(0, 10));
       }
     } catch {
       toast.error("Lỗi tải ảnh lên. Vui lòng thử lại!");
@@ -116,7 +119,8 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
         body: trimmedContent,
         thumbNail: images[0] || null,
         thumbnail: images[0] || null,
-        mediaUrl: images[0] || null,
+        images: images,
+        imageUrls: images,
         mediaUrls: images.length > 0 ? images : null,
         status: "PUBLISHED",
         ...(categoryIdNum

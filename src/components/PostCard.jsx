@@ -528,20 +528,115 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           </div>
         )}
 
-        {/* Adaptive Image Grid (Bài viết thường không phải share) */}
-        {!originalPost && post.thumbNail && (
-          <div
-            className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100/80 dark:bg-zinc-900/80 my-2 max-h-[540px] flex items-center justify-center cursor-pointer group/media"
-            onClick={(e) => openTheater(e, 0)}
-          >
-            <img
-              src={post.thumbNail}
-              alt=""
-              className="w-full h-auto max-h-[540px] object-cover object-center block hover:opacity-95 transition-opacity"
-              loading="lazy"
-            />
-          </div>
-        )}
+        {/* Adaptive Image Grid (Hỗ trợ 1, 2, 3, 4+ ảnh chuẩn Facebook) */}
+        {!originalPost && (() => {
+          const cardImages = [];
+          if (Array.isArray(post.images) && post.images.length > 0) {
+            cardImages.push(...post.images);
+          } else if (Array.isArray(post.imageUrls) && post.imageUrls.length > 0) {
+            cardImages.push(...post.imageUrls);
+          } else if (post.thumbNail) {
+            cardImages.push(post.thumbNail);
+          }
+
+          if (cardImages.length === 0) return null;
+
+          if (cardImages.length === 1) {
+            return (
+              <div
+                className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100/80 dark:bg-zinc-900/80 my-2 max-h-[540px] flex items-center justify-center cursor-pointer group/media"
+                onClick={(e) => openTheater(e, 0)}
+              >
+                <img
+                  src={cardImages[0]}
+                  alt=""
+                  className="w-full h-auto max-h-[540px] object-cover object-center block hover:opacity-95 transition-opacity"
+                  loading="lazy"
+                />
+              </div>
+            );
+          }
+
+          if (cardImages.length === 2) {
+            return (
+              <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 my-2 max-h-[380px]">
+                {cardImages.slice(0, 2).map((img, idx) => (
+                  <div
+                    key={idx}
+                    className="relative h-[280px] cursor-pointer overflow-hidden group/media"
+                    onClick={(e) => openTheater(e, idx)}
+                  >
+                    <img
+                      src={img}
+                      alt=""
+                      className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            );
+          }
+
+          if (cardImages.length === 3) {
+            return (
+              <div className="grid grid-cols-3 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 my-2 max-h-[380px]">
+                <div
+                  className="col-span-2 relative h-[320px] cursor-pointer overflow-hidden group/media"
+                  onClick={(e) => openTheater(e, 0)}
+                >
+                  <img
+                    src={cardImages[0]}
+                    alt=""
+                    className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="flex flex-col gap-1 h-[320px]">
+                  {cardImages.slice(1, 3).map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative h-[158px] cursor-pointer overflow-hidden group/media"
+                      onClick={(e) => openTheater(e, idx + 1)}
+                    >
+                      <img
+                        src={img}
+                        alt=""
+                        className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
+                        loading="lazy"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+
+          // 4 ảnh trở lên
+          return (
+            <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 my-2 max-h-[400px]">
+              {cardImages.slice(0, 4).map((img, idx) => (
+                <div
+                  key={idx}
+                  className="relative h-[190px] cursor-pointer overflow-hidden group/media"
+                  onClick={(e) => openTheater(e, idx)}
+                >
+                  <img
+                    src={img}
+                    alt=""
+                    className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
+                    loading="lazy"
+                  />
+                  {idx === 3 && cardImages.length > 4 && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-xl font-black">
+                      +{cardImages.length - 4}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* Tag Chủ Đề */}
         {post.category?.name && (
