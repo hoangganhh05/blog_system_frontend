@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -82,6 +83,18 @@ export default function MessengerDropdown({ isOpen, onClose }) {
   const [showSettings, setShowSettings] = useState(false);
   const [strangerFilter, setStrangerFilter] = useState(false);
   const [readReceipts, setReadReceipts] = useState(true);
+
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < 768
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const [activeStatus, setActiveStatus] = useState(() => isUserActiveStatusEnabled());
   const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -242,17 +255,10 @@ export default function MessengerDropdown({ isOpen, onClose }) {
     }
   };
 
-  return (
-    <div
-      ref={dropdownRef}
-      className="fixed md:absolute inset-0 md:inset-auto md:top-full md:right-0 w-full md:w-[380px] h-full md:max-h-[580px] md:mt-2 bg-white dark:bg-zinc-900 rounded-none md:rounded-2xl shadow-2xl border-0 md:border md:border-zinc-200/90 dark:md:border-zinc-800 z-50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-left pointer-events-auto"
-      style={{
-        boxShadow:
-          "0 20px 40px -15px rgba(0, 0, 0, 0.25), 0 0 1px rgba(0, 0, 0, 0.15)",
-      }}
-    >
+  const innerContent = (
+    <>
       {/* 1. Header: Tiêu đề + Trạng thái hoạt động + Cài đặt */}
-      <div className="p-3.5 pb-2.5 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800/80 shrink-0">
+      <div className="p-3.5 pb-2.5 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800/80 shrink-0 bg-white dark:bg-zinc-900">
         <div className="flex items-center gap-2">
           {/* Nút Quay Lại trên Mobile */}
           <button
@@ -470,7 +476,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
         /* ================= DANH SÁCH TIN NHẮN & BẠN BÈ ================= */
         <>
           {/* 3. Search Bar Input */}
-          <div className="px-3.5 pt-2.5 pb-2 shrink-0">
+          <div className="px-3.5 pt-2.5 pb-2 shrink-0 bg-white dark:bg-zinc-900">
             <div className="relative flex items-center">
               <Search className="w-4 h-4 absolute left-3 text-zinc-400 pointer-events-none" />
               <input
@@ -493,7 +499,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
           </div>
 
           {/* 4. Active Stories / Online Friends Bar (CHỈ HIỂN THỊ TRÊN MOBILE `sm:hidden`, ĐÃ BỎ TRÊN DESKTOP) */}
-          <div className="sm:hidden px-3.5 py-2 border-b border-zinc-100 dark:border-zinc-800/50 flex items-center gap-3 overflow-x-auto no-scrollbar shrink-0">
+          <div className="sm:hidden px-3.5 py-2 border-b border-zinc-100 dark:border-zinc-800/50 flex items-center gap-3 overflow-x-auto no-scrollbar shrink-0 bg-white dark:bg-zinc-900">
             {/* BlogViet AI Bot Story Item */}
             <button
               type="button"
@@ -543,7 +549,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
           </div>
 
           {/* 5. Filter Tabs Pills */}
-          <div className="px-3.5 py-2 flex items-center gap-1.5 shrink-0 border-b border-zinc-100/80 dark:border-zinc-800/50">
+          <div className="px-3.5 py-2 flex items-center gap-1.5 shrink-0 border-b border-zinc-100/80 dark:border-zinc-800/50 bg-white dark:bg-zinc-900">
             <button
               type="button"
               onClick={() => setActiveFilter("all")}
@@ -595,7 +601,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
           </div>
 
           {/* 6. Danh Sách Cuộc Trò Chuyện & Bạn Bè (Cuộn mượt mà) */}
-          <div className="flex-1 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/40 scrollbar-thin">
+          <div className="flex-1 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/40 scrollbar-thin bg-white dark:bg-zinc-900">
             {loading ? (
               <div className="p-8 flex flex-col items-center justify-center text-zinc-400 gap-2">
                 <Loader2 className="w-6 h-6 animate-spin text-[#0866ff]" />
@@ -772,6 +778,31 @@ export default function MessengerDropdown({ isOpen, onClose }) {
           </div>
         </>
       )}
+    </>
+  );
+
+  if (isMobile) {
+    return createPortal(
+      <div
+        ref={dropdownRef}
+        className="fixed inset-0 z-[9999] bg-white dark:bg-zinc-900 w-full h-[100dvh] flex flex-col overflow-hidden animate-in fade-in duration-150 text-left pointer-events-auto"
+      >
+        {innerContent}
+      </div>,
+      document.body
+    );
+  }
+
+  return (
+    <div
+      ref={dropdownRef}
+      className="absolute top-full right-0 w-[380px] max-h-[580px] mt-2 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200/90 dark:border-zinc-800 z-50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-left pointer-events-auto"
+      style={{
+        boxShadow:
+          "0 20px 40px -15px rgba(0, 0, 0, 0.25), 0 0 1px rgba(0, 0, 0, 0.15)",
+      }}
+    >
+      {innerContent}
     </div>
   );
 }
