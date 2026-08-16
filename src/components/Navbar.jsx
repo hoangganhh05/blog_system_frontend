@@ -7,6 +7,7 @@ import postService from "../services/postService";
 import NotificationDrawer from "./NotificationDrawer";
 import MobileMenuDrawer from "./MobileMenuDrawer";
 import MobileSearchOverlay from "./MobileSearchOverlay";
+import MessengerDropdown from "./MessengerDropdown";
 import Avatar from "./Avatar";
 
 function getInitials(name) {
@@ -27,6 +28,7 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [messengerOpen, setMessengerOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -762,39 +764,53 @@ function Navbar({ onToggleTheme, isDark, onSearchChange, searchValue }) {
             </div>
           )}
 
-          {/* Messenger Chat Button */}
-          <button
-            className="navbar-icon-btn mobile-chat-btn"
-            onClick={() => window.dispatchEvent(new CustomEvent("toggle_chat_widget"))}
-            title="Tin nhắn Messenger"
-            style={{ position: "relative" }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-            </svg>
-            {unreadChatCount > 0 && (
-              <span
-                style={{
-                  position: "absolute",
-                  top: -2,
-                  right: -2,
-                  background: "var(--danger)",
-                  color: "white",
-                  fontSize: 10,
-                  fontWeight: "bold",
-                  borderRadius: "50%",
-                  minWidth: 16,
-                  height: 16,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "0 4px",
-                }}
-              >
-                {unreadChatCount > 9 ? "9+" : unreadChatCount}
-              </span>
-            )}
-          </button>
+          {/* Messenger Chat Dropdown Container */}
+          <div style={{ position: "relative" }}>
+            <button
+              className={`navbar-icon-btn mobile-chat-btn ${messengerOpen ? "active" : ""}`}
+              onClick={() => {
+                if (window.innerWidth <= 640) {
+                  window.dispatchEvent(new CustomEvent("toggle_chat_widget"));
+                } else {
+                  setMessengerOpen((v) => !v);
+                }
+              }}
+              title="Tin nhắn Messenger"
+              style={{ position: "relative" }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+              </svg>
+              {unreadChatCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: -2,
+                    right: -2,
+                    background: "var(--danger)",
+                    color: "white",
+                    fontSize: 10,
+                    fontWeight: "bold",
+                    borderRadius: "50%",
+                    minWidth: 16,
+                    height: 16,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0 4px",
+                  }}
+                >
+                  {unreadChatCount > 9 ? "9+" : unreadChatCount}
+                </span>
+              )}
+            </button>
+
+            {/* Messenger Dropdown Menu */}
+            <MessengerDropdown
+              isOpen={messengerOpen}
+              onClose={() => setMessengerOpen(false)}
+            />
+          </div>
 
           {/* Mobile Search Magnifying Glass 🔍 Button */}
           <button

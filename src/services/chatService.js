@@ -48,6 +48,11 @@ const chatService = {
   updateThemeWithUser(targetUserId, theme) {
     return axiosClient.put(`/conversations/theme-with-user/${targetUserId}`, { theme });
   },
+
+  // Lấy danh sách cuộc trò chuyện gần đây kèm tin nhắn cuối và số lượng chưa đọc
+  getRecentConversations() {
+    return axiosClient.get("/conversations/recent");
+  },
 };
 
 export const sendMessage = chatService.sendMessage.bind(chatService);
@@ -59,5 +64,6 @@ export const deleteMessage = chatService.deleteMessage.bind(chatService);
 export const getConversationWithUser = chatService.getConversationWithUser.bind(chatService);
 export const updateConversationTheme = chatService.updateConversationTheme.bind(chatService);
 export const updateThemeWithUser = chatService.updateThemeWithUser.bind(chatService);
+export const getRecentConversations = chatService.getRecentConversations.bind(chatService);
 
 export default chatService;
