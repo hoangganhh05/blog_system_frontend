@@ -27,6 +27,7 @@ import EditPostModal from "./EditPostModal";
 import ReactionsModal from "./ReactionsModal";
 import ConfirmModal from "./ConfirmModal";
 import ShareModal from "./ShareModal";
+import PostTheaterModal from "./PostTheaterModal";
 import Avatar from "./Avatar";
 
 function getInitials(name) {
@@ -82,19 +83,14 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState(null);
   const [isPopping, setIsPopping] = useState(false);
-  const [lightboxImage, setLightboxImage] = useState(null);
+  const [isTheaterOpen, setIsTheaterOpen] = useState(false);
+  const [theaterInitialImageIndex, setTheaterInitialImageIndex] = useState(0);
 
-  // Close lightbox on Escape key
-  useEffect(() => {
-    if (!lightboxImage) return;
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        setLightboxImage(null);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxImage]);
+  const openTheater = (e, index = 0) => {
+    if (e) e.stopPropagation();
+    setTheaterInitialImageIndex(index);
+    setIsTheaterOpen(true);
+  };
 
   // Load preview names when hovering over like section
   const handleLikeMouseEnter = () => {
@@ -518,10 +514,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
             {origMedia && (
               <div
                 className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 mt-1 max-h-[360px] bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center cursor-pointer group/media"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLightboxImage(origMedia);
-                }}
+                onClick={(e) => openTheater(e, 0)}
               >
                 <img
                   src={origMedia}
@@ -538,10 +531,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
         {!originalPost && post.thumbNail && (
           <div
             className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100/80 dark:bg-zinc-900/80 my-2 max-h-[540px] flex items-center justify-center cursor-pointer group/media"
-            onClick={(e) => {
-              e.stopPropagation();
-              setLightboxImage(post.thumbNail);
-            }}
+            onClick={(e) => openTheater(e, 0)}
           >
             <img
               src={post.thumbNail}
@@ -622,7 +612,11 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           {/* Comment */}
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); navigate(`/posts/${post.id}`); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (isDetailed) return;
+              openTheater(e, 0);
+            }}
             className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer active:scale-95"
             title="Bình luận"
           >
@@ -709,36 +703,21 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
         onCancel={() => setIsDeleteModalOpen(false)}
       />
 
-      {/* Image Lightbox Modal */}
-      {lightboxImage && (
-        <div
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xs flex items-center justify-center p-1 sm:p-2 animate-in fade-in duration-150 cursor-zoom-out select-none"
-          onClick={(e) => {
-            e.stopPropagation();
-            setLightboxImage(null);
+      {/* Post Theater Modal (Facebook-style Split View on PC & Full View on Mobile) */}
+      {isTheaterOpen && (
+        <PostTheaterModal
+          post={currentPost || post}
+          initialImageIndex={theaterInitialImageIndex}
+          isOpen={isTheaterOpen}
+          onClose={() => setIsTheaterOpen(false)}
+          onPostUpdated={(updated) => {
+            setCurrentPost(updated);
+            if (onEdit) onEdit(updated);
           }}
-        >
-          {/* Nút đóng (X) */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setLightboxImage(null);
-            }}
-            className="absolute top-4 right-4 text-white/90 hover:text-white p-2.5 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm transition-colors cursor-pointer z-60"
-            title="Đóng (Esc)"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          {/* Ảnh phóng to tối đa theo viewport nhưng giữ nguyên tỉ lệ */}
-          <img
-            src={lightboxImage}
-            alt="Xem ảnh toàn màn hình"
-            className="w-auto h-auto max-w-[100vw] max-h-[98vh] sm:max-h-[96vh] object-contain select-none cursor-default animate-in zoom-in-95 duration-150"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+          onPostDeleted={(deletedId) => {
+            if (onDelete) onDelete(deletedId);
+          }}
+        />
       )}
     </article>
   );
