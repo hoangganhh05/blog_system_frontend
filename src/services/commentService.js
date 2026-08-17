@@ -27,8 +27,8 @@ const commentService = {
   },
 
   // Tạo comment mới
-  create({ content, post }) {
-    return axiosClient.post("/comments", { content, post });
+  create({ content, post, imageIndex = null }) {
+    return axiosClient.post("/comments", { content, post, imageIndex });
   },
 
   // Alias cho create
