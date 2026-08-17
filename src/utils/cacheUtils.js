@@ -31,7 +31,7 @@ export const clearAllLocalStorage = () => {
   if (typeof window === 'undefined') return;
   
   // Giữ lại các key authentication quan trọng
-  const authKeys = ['blog_token', 'blog_user', 'blog_session_id'];
+  const authKeys = ['blog_user', 'blog_session_id'];
   const authData = {};
 
   authKeys.forEach(key => {

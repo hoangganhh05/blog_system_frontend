@@ -128,14 +128,10 @@ const aiService = {
       imageMimeType: imageMimeType || null,
     };
 
-    const token = localStorage.getItem("blog_token");
     const headers = {
       "Content-Type": "application/json",
       "Accept": "text/event-stream, application/json, text/plain, */*",
     };
-    if (token && token !== "undefined" && token !== "null") {
-      headers["Authorization"] = "Bearer " + token;
-    }
 
     const apiBaseUrl = import.meta.env.VITE_API_URL || "/api";
     const endpoint = `${apiBaseUrl.replace(/\/$/, "")}/ai/stream`;
@@ -154,6 +150,7 @@ const aiService = {
         headers,
         body: JSON.stringify(payload),
         signal,
+        credentials: "include",
       });
 
       if (!response.ok) {

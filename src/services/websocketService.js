@@ -19,12 +19,11 @@ class WebSocketService {
       return;
     }
 
-    const authToken = token || localStorage.getItem("blog_token");
+    const authToken = token;
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = window.location.host;
 
-    // Use relative reverse proxy path or fallback
-    const wsUrl = `${protocol}//${host}/ws/realtime${authToken ? `?token=${encodeURIComponent(authToken)}` : ""}`;
+    const wsUrl = `${protocol}//${host}/ws/realtime`;
 
     try {
       this.ws = new WebSocket(wsUrl);

@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 function ProtectedRoute({ children }) {
   const { currentUser, loading } = useAuth();
   const location = useLocation();
-  const hasPersistedAuth = Boolean(localStorage.getItem("blog_token") && localStorage.getItem("blog_user"));
+  const hasPersistedAuth = Boolean(localStorage.getItem("blog_user"));
 
   if (loading || (!currentUser && hasPersistedAuth)) {
     return (

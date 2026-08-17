@@ -10,6 +10,7 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 const PUBLIC_AUTH_PATHS = [
@@ -23,20 +24,10 @@ const isPublicAuthRequest = (url = "") =>
   PUBLIC_AUTH_PATHS.some((path) => url.includes(path));
 
 // =============================================
-// REQUEST INTERCEPTOR: Token & Payload Encryption
+// REQUEST INTERCEPTOR: Payload Encryption
 // =============================================
 axiosClient.interceptors.request.use(
   async (config) => {
-    // 1. Gắn Token xác thực (Bỏ qua nếu token rác / null / undefined)
-    const token = localStorage.getItem("blog_token");
-    const requestUrl = `${config.url || ""}`;
-
-    if (token && token !== "undefined" && token !== "null" && !isPublicAuthRequest(requestUrl)) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = "Bearer " + token;
-    }
-
-    // 2. Tự động mã hóa Payload Request (AES-256) nếu môi trường hỗ trợ
     const method = (config.method || "get").toLowerCase();
     const isMutation = ["post", "put", "patch"].includes(method);
     const isFormData = typeof FormData !== "undefined" && config.data instanceof FormData;
@@ -108,7 +99,6 @@ axiosClient.interceptors.response.use(
 
     // 401 (Unauthorized) - tự động logout và dọn sạch session rác
     if (status === 401 && !isPublicAuthRequest(requestUrl)) {
-      localStorage.removeItem("blog_token");
       localStorage.removeItem("blog_user");
       localStorage.removeItem("blog_session_id");
       sessionStorage.clear();
