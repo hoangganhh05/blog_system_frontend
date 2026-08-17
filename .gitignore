@@ -32,3 +32,10 @@ dist-ssr
 *.log
 *-out.txt
 audit.json
+*.tmp
+*.bak
+Thumbs.db
+
+# Build caches
+node_modules/.cache
+.eslintcache
