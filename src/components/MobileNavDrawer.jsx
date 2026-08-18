@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useMusic } from "../context/MusicContext";
+import { useTheme } from "../context/ThemeContext";
 import userService from "../services/userService";
 import friendService from "../services/friendService";
 import followService from "../services/followService";
@@ -17,6 +18,7 @@ import {
   Settings,
   Sun,
   Moon,
+  Monitor,
   LogOut,
   X,
   TrendingUp,
@@ -42,8 +44,6 @@ function getInitials(name) {
 export default function MobileNavDrawer({
   isOpen,
   onClose,
-  isDark,
-  onToggleTheme,
 }) {
   const { currentUser, logout } = useAuth();
   const {
@@ -53,6 +53,7 @@ export default function MobileNavDrawer({
     isPlaying,
     currentTrack,
   } = useMusic();
+  const { isDark, setTheme, themeMode } = useTheme();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
   const navigate = useNavigate();
 
@@ -205,7 +206,7 @@ export default function MobileNavDrawer({
 
   const navLinks = [
     { to: "/", label: "Bảng tin trang chủ", icon: Home },
-    { to: "/trending", label: "Khám phá xu hướng", icon: Compass },
+    { to: "/trending", label: "Khám phá chủ đề", icon: Compass },
     { to: "/radio", label: "Phòng nhạc & Radio", icon: Radio },
     { to: "/friends", label: "Bạn bè & Kết nối", icon: Users },
     { to: "/saved", label: "Bài viết đã lưu", icon: Bookmark },
@@ -488,7 +489,7 @@ export default function MobileNavDrawer({
           <button
             type="button"
             onClick={() => {
-              onToggleTheme?.();
+              setTheme(themeMode === "dark" ? "light" : "dark");
             }}
             className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] hover:bg-slate-100 dark:hover:bg-[#303031] transition cursor-pointer"
           >
@@ -504,6 +505,44 @@ export default function MobileNavDrawer({
               {isDark ? "Dark" : "Light"}
             </span>
           </button>
+
+          {/* Theme Mode Picker (Sáng / Tối / Hệ thống) */}
+          <div className="px-3 py-2 rounded-xl bg-[#f0f2f5] dark:bg-[#18191a] flex items-center gap-2">
+            <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 shrink-0">Giao diện:</span>
+            <button
+              type="button"
+              onClick={() => setTheme("light")}
+              className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                themeMode === "light"
+                  ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300"
+                  : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+              }`}
+            >
+              ☀️ Sáng
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme("dark")}
+              className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                themeMode === "dark"
+                  ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300"
+                  : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+              }`}
+            >
+              🌙 Tối
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme("system")}
+              className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                themeMode === "system"
+                  ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300"
+                  : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+              }`}
+            >
+              💻 Hệ thống
+            </button>
+          </div>
 
           {currentUser && (
             <button

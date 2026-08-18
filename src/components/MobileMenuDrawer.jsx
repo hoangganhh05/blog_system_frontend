@@ -2,6 +2,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import Avatar from "./Avatar";
 
 function getInitials(name) {
@@ -9,8 +10,9 @@ function getInitials(name) {
   return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 }
 
-export default function MobileMenuDrawer({ isOpen, onClose, isDark, onToggleTheme }) {
+export default function MobileMenuDrawer({ isOpen, onClose }) {
   const { currentUser, logout } = useAuth();
+  const { isDark, setTheme, themeMode } = useTheme();
   const navigate = useNavigate();
 
   if (!isOpen || typeof document === "undefined" || !document.body) return null;
@@ -156,7 +158,7 @@ export default function MobileMenuDrawer({ isOpen, onClose, isDark, onToggleThem
 
             {/* Toggle Theme */}
             <div
-              onClick={onToggleTheme}
+              onClick={() => setTheme(themeMode === "dark" ? "light" : "dark")}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -173,6 +175,38 @@ export default function MobileMenuDrawer({ isOpen, onClose, isDark, onToggleThem
                 <span>Chế độ {isDark ? "Tối" : "Sáng"}</span>
               </div>
               <span style={{ fontSize: 12, color: "var(--primary)", fontWeight: 700 }}>Đổi</span>
+            </div>
+
+            {/* Theme Mode Picker (Sáng / Tối / Hệ thống) */}
+            <div style={{ padding: "12px 14px", background: "var(--bg-input)", borderRadius: 14, marginBottom: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Chế độ giao diện:</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {[
+                  { mode: "light", label: "☀️ Sáng" },
+                  { mode: "dark", label: "🌙 Tối" },
+                  { mode: "system", label: "💻 Hệ thống" },
+                ].map(({ mode, label }) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setTheme(mode)}
+                    style={{
+                      flex: 1,
+                      padding: "8px 4px",
+                      borderRadius: 10,
+                      border: "none",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      background: themeMode === mode ? "var(--primary)" : "transparent",
+                      color: themeMode === mode ? "#fff" : "var(--text-secondary)",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Color Accent Picker */}

@@ -6,6 +6,7 @@ import {
   Compass, Bookmark, Users, BarChart2, X, Sparkles, Hash, ArrowUp, ArrowLeft, MessageCircle, Menu,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import notificationService from "../services/notificationService";
 import CreatePostModal from "../components/CreatePostModal";
 import AiAssistantModal from "../components/AiAssistantModal";
@@ -17,8 +18,9 @@ import MobileNavDrawer from "../components/MobileNavDrawer";
 import Logo from "../components/Logo";
 import Avatar from "../components/Avatar";
 
-export default function MainLayout({ children, isDark, onToggleTheme }) {
+export default function MainLayout({ children }) {
   const { currentUser, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
@@ -348,7 +350,7 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
 
                     <button
                       type="button"
-                      onClick={() => { onToggleTheme?.(); setProfileMenuOpen(false); }}
+                      onClick={() => { toggleTheme(); setProfileMenuOpen(false); }}
                       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-98 transition w-full text-left cursor-pointer"
                     >
                       {isDark ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-zinc-500" />}
@@ -375,8 +377,6 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
         <MobileNavDrawer
           isOpen={mobileMenuOpen}
           onClose={() => setMobileMenuOpen(false)}
-          isDark={isDark}
-          onToggleTheme={onToggleTheme}
         />
       </header>
 

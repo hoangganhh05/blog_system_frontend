@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "./context/AuthContext";
 import { MusicProvider } from "./context/MusicContext";
 import { ChatProvider } from "./context/ChatContext";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
@@ -27,55 +28,15 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import FloatingChatDock from "./components/FloatingChatDock";
 
-function getEffectiveTheme(themeMode) {
-  if (themeMode === "dark") return true;
-  if (themeMode === "light") return false;
-  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-}
-
 function AppContent() {
   const location = useLocation();
   const isAuthPage = ["/login", "/register", "/verify-email", "/forgot-password"].includes(location.pathname);
-
-  const [themeMode, setThemeMode] = useState(() => {
-    return localStorage.getItem("blog_theme_mode") || (localStorage.getItem("theme") ? localStorage.getItem("theme") : "system");
-  });
+  const { isDark } = useTheme();
 
   const [isCompact, setIsCompact] = useState(() => {
     return localStorage.getItem("blog_compact_mode") === "true";
   });
 
-  const [isDark, setIsDark] = useState(() => getEffectiveTheme(themeMode));
-
-  // Sync theme mode changes & system prefers-color-scheme listener
-  useEffect(() => {
-    const updateTheme = () => {
-      const effectiveDark = getEffectiveTheme(themeMode);
-      setIsDark(effectiveDark);
-      document.documentElement.setAttribute("data-theme", effectiveDark ? "dark" : "light");
-      if (effectiveDark) {
-        document.documentElement.classList.add("dark");
-        localStorage.setItem("theme", "dark");
-        localStorage.setItem("blog_theme", "dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-        localStorage.setItem("theme", "light");
-        localStorage.setItem("blog_theme", "light");
-      }
-      localStorage.setItem("blog_theme_mode", themeMode);
-    };
-
-    updateTheme();
-
-    if (themeMode === "system") {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      const handler = () => updateTheme();
-      mediaQuery.addEventListener("change", handler);
-      return () => mediaQuery.removeEventListener("change", handler);
-    }
-  }, [themeMode]);
-
-  // Sync compact mode
   useEffect(() => {
     if (isCompact) {
       document.documentElement.classList.add("compact");
@@ -86,30 +47,16 @@ function AppContent() {
     }
   }, [isCompact]);
 
-  // Listen to custom window events from settings page
   useEffect(() => {
-    const handleThemeEvent = (e) => {
-      if (e.detail?.mode) {
-        setThemeMode(e.detail.mode);
-      }
-    };
     const handleCompactEvent = (e) => {
       if (typeof e.detail?.isCompact === "boolean") {
         setIsCompact(e.detail.isCompact);
       }
     };
 
-    window.addEventListener("theme_mode_changed", handleThemeEvent);
     window.addEventListener("compact_mode_changed", handleCompactEvent);
-    return () => {
-      window.removeEventListener("theme_mode_changed", handleThemeEvent);
-      window.removeEventListener("compact_mode_changed", handleCompactEvent);
-    };
+    return () => window.removeEventListener("compact_mode_changed", handleCompactEvent);
   }, []);
-
-  const toggleTheme = () => {
-    setThemeMode((prev) => (prev === "dark" ? "light" : "dark"));
-  };
 
   if (isAuthPage) {
     return (
@@ -133,7 +80,7 @@ function AppContent() {
             "border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-2xl shadow-xl text-xs font-medium px-4 py-3",
         }}
       />
-      <MainLayout isDark={isDark} onToggleTheme={toggleTheme}>
+      <MainLayout>
         <Routes>
           <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/posts/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
@@ -182,7 +129,9 @@ export default function App() {
       <AuthProvider>
         <MusicProvider>
           <ChatProvider>
-            <AppContent />
+            <ThemeProvider>
+              <AppContent />
+            </ThemeProvider>
           </ChatProvider>
         </MusicProvider>
       </AuthProvider>

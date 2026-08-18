@@ -62,6 +62,7 @@ export default function Home() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const isFetchingRef = useRef(false);
 
@@ -339,7 +340,6 @@ export default function Home() {
     if (activeTab === "following") {
       if (!currentUserId) return [];
       const followingSet = new Set(followingIds);
-      // Hiển thị bài viết của chính mình và những người dùng đang theo dõi trong DB
       return posts.filter((p) => {
         const authorId = Number(p.user?.id || p.author?.id);
         return authorId === Number(currentUserId) || followingSet.has(authorId);
@@ -347,6 +347,14 @@ export default function Home() {
     }
     return posts;
   }, [posts, activeTab, followingIds, currentUserId]);
+
+  const filteredDisplayedPosts = useMemo(() => {
+    if (selectedCategory === null) return displayedPosts;
+    return displayedPosts.filter((p) => {
+      const catId = Number(p.category?.id || p.categoryId);
+      return catId === Number(selectedCategory);
+    });
+  }, [displayedPosts, selectedCategory]);
 
   return (
     <div className="w-full flex flex-col gap-2">
@@ -378,6 +386,37 @@ export default function Home() {
           <span>Đang theo dõi</span>
         </button>
       </div>
+
+      {/* Category Filter Bar - Horizontal Scroll Pills (Mobile & Desktop) */}
+      {categories.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-2 px-1 touch-pan-x">
+          <button
+            type="button"
+            onClick={() => setSelectedCategory(null)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer flex-shrink-0 ${
+              selectedCategory === null
+                ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-semibold shadow-sm"
+                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+            }`}
+          >
+            Tất cả
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer flex-shrink-0 ${
+                selectedCategory === cat.id
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-semibold shadow-sm"
+                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Story Bar ở đầu Bảng tin */}
       <StoryBar />
@@ -538,7 +577,7 @@ export default function Home() {
             </div>
           )
         ) : (
-          displayedPosts.map((post, idx) => (
+          filteredDisplayedPosts.map((post, idx) => (
             <div
               key={post.id}
               className="animate-fade-in-up"

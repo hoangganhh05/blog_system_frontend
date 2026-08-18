@@ -136,16 +136,7 @@ function VideosPage() {
         </div>
 
         {/* Filter Categories Bar */}
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            marginBottom: 20,
-            overflowX: "auto",
-            paddingBottom: 4,
-            scrollbarWidth: "none",
-          }}
-        >
+        <div className="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth py-2 touch-pan-x">
           {[
             { id: "ALL", label: `Tất cả Video (${allVideoPosts.length})` },
             { id: "POPULAR", label: "Video phổ biến nhất" },
@@ -153,19 +144,11 @@ function VideosPage() {
             <button
               key={cat.id}
               onClick={() => handleSelectCategory(cat.id)}
-              style={{
-                padding: "10px 18px",
-                borderRadius: 20,
-                border: "none",
-                fontSize: 14,
-                fontWeight: activeCategory === cat.id ? 700 : 600,
-                background: activeCategory === cat.id ? "var(--primary)" : "var(--bg-card)",
-                color: activeCategory === cat.id ? "#fff" : "var(--text-secondary)",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                boxShadow: activeCategory === cat.id ? "0 4px 12px rgba(24,119,242,0.3)" : "none",
-                whiteSpace: "nowrap",
-              }}
+              className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition cursor-pointer flex-shrink-0 ${
+                activeCategory === cat.id
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm"
+                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+              }`}
             >
               {cat.label}
             </button>
