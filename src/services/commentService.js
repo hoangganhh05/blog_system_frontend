@@ -45,6 +45,11 @@ const commentService = {
   delete(id) {
     return axiosClient.delete(`/comments/${id}`);
   },
+
+  // Lấy gợi ý mention khi gõ @
+  getMentionSuggestions(keyword) {
+    return axiosClient.get(`/users/mention-suggestions?keyword=${keyword || ''}`);
+  },
 };
 
 export const getAll = commentService.getAll.bind(commentService);
@@ -56,5 +61,6 @@ export const create = commentService.create.bind(commentService);
 export const createComment = commentService.createComment.bind(commentService);
 export const update = commentService.update.bind(commentService);
 export const deleteComment = commentService.delete.bind(commentService);
+export const getMentionSuggestions = commentService.getMentionSuggestions.bind(commentService);
 
 export default commentService;

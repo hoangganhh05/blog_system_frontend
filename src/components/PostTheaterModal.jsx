@@ -85,6 +85,13 @@ export default function PostTheaterModal({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  
+  // Mention states
+  const [showMentionDropdown, setShowMentionDropdown] = useState(false);
+  const [mentionSuggestions, setMentionSuggestions] = useState([]);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+  const [mentionStartIndex, setMentionStartIndex] = useState(0);
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post?.likesCount || 0);
@@ -333,6 +340,88 @@ export default function PostTheaterModal({
     }
   };
 
+  // Fetch mention suggestions
+  const fetchMentionSuggestions = async (query) => {
+    if (!query || query.length < 1) {
+      setMentionSuggestions([]);
+      return;
+    }
+    try {
+      const res = await commentService.getMentionSuggestions(query);
+      setMentionSuggestions(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setMentionSuggestions([]);
+    }
+  };
+
+  // Handle comment input change with mention detection
+  const handleCommentInputChange = (e) => {
+    const value = e.target.value;
+    const cursorPosition = e.target.selectionStart;
+    setCommentText(value);
+
+    // Check if @ was just typed
+    const textBeforeCursor = value.slice(0, cursorPosition);
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+    if (lastAtIndex !== -1) {
+      // Check if @ is at the start of a word (preceded by space or start of line)
+      const charBeforeAt = textBeforeCursor[lastAtIndex - 1];
+      if (!charBeforeAt || charBeforeAt === ' ' || charBeforeAt === '\n') {
+        const query = textBeforeCursor.slice(lastAtIndex + 1);
+        setMentionQuery(query);
+        setMentionStartIndex(lastAtIndex);
+        setShowMentionDropdown(true);
+        setSelectedMentionIndex(0);
+        fetchMentionSuggestions(query);
+        return;
+      }
+    }
+
+    // Hide dropdown if no valid @ mention
+    setShowMentionDropdown(false);
+    setMentionSuggestions([]);
+  };
+
+  // Handle selecting a mention
+  const handleSelectMention = (user) => {
+    const beforeMention = commentText.slice(0, mentionStartIndex);
+    const afterMention = commentText.slice(mentionStartIndex + mentionQuery.length + 1);
+    const newText = `${beforeMention}@${user.username} ${afterMention}`;
+    setCommentText(newText);
+    setShowMentionDropdown(false);
+    setMentionSuggestions([]);
+    
+    // Focus input and move cursor after the mention
+    setTimeout(() => {
+      const newCursorPos = mentionStartIndex + user.username.length + 2;
+      if (commentInputRef.current) {
+        commentInputRef.current.focus();
+        commentInputRef.current.setSelectionRange(newCursorPos, newCursorPos);
+      }
+    }, 0);
+  };
+
+  // Handle keyboard navigation in mention dropdown
+  const handleMentionKeyDown = (e) => {
+    if (!showMentionDropdown || mentionSuggestions.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedMentionIndex((prev) => (prev + 1) % mentionSuggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedMentionIndex((prev) => (prev - 1 + mentionSuggestions.length) % mentionSuggestions.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSelectMention(mentionSuggestions[selectedMentionIndex]);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setShowMentionDropdown(false);
+      setMentionSuggestions([]);
+    }
+  };
+
   const currentImage = images[activeImageIndex] || images[0];
 
   // Component Ô Nhập Bình Luận Cố Định Ở Đáy
@@ -390,12 +479,13 @@ export default function PostTheaterModal({
           className="shrink-0 hidden sm:block"
         />
 
-        <div className="flex-1 flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/80 rounded-2xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-[#0866ff]/30 transition">
+        <div className="flex-1 flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/80 rounded-2xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-[#0866ff]/30 transition relative">
           <input
             ref={commentInputRef}
             type="text"
             value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
+            onChange={handleCommentInputChange}
+            onKeyDown={handleMentionKeyDown}
             placeholder="Viết bình luận công khai..."
             className="flex-1 bg-transparent border-0 outline-none text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 py-1"
             disabled={isSubmittingComment}
@@ -418,6 +508,39 @@ export default function PostTheaterModal({
           >
             GIF
           </button>
+
+          {/* Mention Dropdown */}
+          {showMentionDropdown && mentionSuggestions.length > 0 && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-60 overflow-y-auto z-50">
+              {mentionSuggestions.map((user, index) => (
+                <button
+                  key={user.id}
+                  type="button"
+                  onClick={() => handleSelectMention(user)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer ${
+                    index === selectedMentionIndex ? 'bg-zinc-100 dark:bg-zinc-800' : ''
+                  }`}
+                >
+                  <Avatar
+                    userId={user.id}
+                    src={user.avatarUrl}
+                    name={user.fullName || user.username}
+                    username={user.username}
+                    size="xs"
+                    className="shrink-0"
+                  />
+                  <div className="flex flex-col items-start">
+                    <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                      {user.fullName || user.username}
+                    </span>
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                      @{user.username}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <button

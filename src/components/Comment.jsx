@@ -49,6 +49,31 @@ function parseCommentContent(content) {
   return { text: content, mediaUrl: null };
 }
 
+// Function to highlight @username mentions in comment text
+function renderCommentTextWithMentions(text) {
+  if (!text) return null;
+  
+  // Split text by @username mentions
+  const parts = text.split(/(@\w+)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('@')) {
+      const username = part.slice(1);
+      return (
+        <Link
+          key={index}
+          to={`/profile/${username}`}
+          className="text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </Link>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+}
+
 export default function Comment({ comment, onDelete, onReplyCreated }) {
   const { currentUser } = useAuth();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
@@ -237,7 +262,7 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
             <div className="flex flex-col gap-1">
               {parsed.text && (
                 <div className="text-xs sm:text-sm leading-relaxed text-zinc-800 dark:text-zinc-200 break-words whitespace-pre-wrap">
-                  {parsed.text}
+                  {renderCommentTextWithMentions(parsed.text)}
                 </div>
               )}
               {parsed.mediaUrl && (
