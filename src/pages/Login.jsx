@@ -95,15 +95,10 @@ export default function Login() {
             </p>
           </div>
           
-          {/* Bottom Section - Social Proof */}
-          <div className="flex items-center gap-3 pt-6 border-t border-slate-100 dark:border-zinc-800">
-            <div className="flex -space-x-2">
-              <div className="w-8 h-8 rounded-full bg-blue-500 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-white text-xs font-bold">A</div>
-              <div className="w-8 h-8 rounded-full bg-indigo-500 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-white text-xs font-bold">B</div>
-              <div className="w-8 h-8 rounded-full bg-purple-500 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-white text-xs font-bold">C</div>
-            </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
-              5,000+ tác giả đang hoạt động
+          {/* Bottom Section - Footer */}
+          <div className="pt-6 border-t border-slate-100 dark:border-zinc-800">
+            <p className="text-xs text-slate-400 dark:text-zinc-500 font-medium">
+              © 2026 BlogViet. Nền tảng chia sẻ và kết nối cộng đồng.
             </p>
           </div>
         </div>
