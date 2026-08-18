@@ -64,10 +64,11 @@ export default function ShareModal({
 
     setIsSharing(true);
     try {
+      const trimmedCaption = caption.trim();
       const payload = {
-        title: caption.trim().slice(0, 100) || `${currentUser.fullName || "Người dùng"} đã chia sẻ bài viết`,
-        content: caption.trim(),
-        body: caption.trim(),
+        title: trimmedCaption.slice(0, 100) || null,
+        content: trimmedCaption || null,
+        body: trimmedCaption || null,
         status: "PUBLISHED",
         sharedPost: { id: post.sharedPost?.id || post.id },
         originalPost: { id: post.sharedPost?.id || post.id },

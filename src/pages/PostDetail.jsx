@@ -148,6 +148,16 @@ export default function PostDetail() {
         onEdit={(updated) => setPost(updated)}
       />
 
+      {/* Embedded Original Post if this is a shared post */}
+      {(post?.originalPost || post?.sharedPost || post?.parentPost || post?.repostOf) && (
+        <div className="mt-4">
+          <PostCard
+            post={post?.originalPost || post?.sharedPost || post?.parentPost || post?.repostOf}
+            isDetailed={false}
+          />
+        </div>
+      )}
+
       {/* Reply Composer Box with GIF Support */}
       {currentUser && (
         <div ref={composerRef} className="relative mb-3">

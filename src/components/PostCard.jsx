@@ -451,9 +451,11 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
             {post.title}
           </h2>
         )}
-        <p className="text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-200 my-2 whitespace-pre-line break-words">
-          {post?.content || post?.body || post?.title || post?.text}
-        </p>
+        {(post?.content || post?.body || post?.title || post?.text) && (
+          <p className="text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-200 my-2 whitespace-pre-line break-words">
+            {post?.content || post?.body || post?.title || post?.text}
+          </p>
+        )}
 
         {/* Khung bài viết gốc khi được chia sẻ (Embedded Original Shared Post) */}
         {originalPost && (
