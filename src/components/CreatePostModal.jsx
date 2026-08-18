@@ -138,6 +138,8 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
       } else {
         result = await postService.create(payload);
         toast.success("Đã đăng bài viết mới thành công!");
+        // Đóng Modal + cuộn nhẹ lên đầu trang để thấy bài viết mới trên Feed (không cần F5)
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
       if (onPostCreated) onPostCreated(result.data);

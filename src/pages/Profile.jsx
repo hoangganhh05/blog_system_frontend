@@ -496,6 +496,14 @@ export default function Profile() {
     }
   };
 
+  const handleProfilePostCreated = (newPost) => {
+    if (!isMe || !newPost?.id) return;
+    setPosts((prev) => [
+      newPost,
+      ...prev.filter((p) => Number(p.id) !== Number(newPost.id)),
+    ]);
+  };
+
   const handleEditPost = (updatedPost) => {
     if (!updatedPost?.id) return;
     setPosts((prev) =>
@@ -1387,6 +1395,7 @@ export default function Profile() {
                 post={post}
                 onDelete={(delId) => setPosts((prev) => prev.filter((p) => p.id !== delId))}
                 onEdit={handleEditPost}
+                onPostCreated={handleProfilePostCreated}
               />
             ))
           )
@@ -1584,6 +1593,7 @@ export default function Profile() {
                 post={post}
                 onDelete={(delId) => setSavedPosts((prev) => prev.filter((p) => p.id !== delId))}
                 onEdit={handleEditPost}
+                onPostCreated={handleProfilePostCreated}
               />
             ))
           )

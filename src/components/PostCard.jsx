@@ -57,7 +57,7 @@ function timeAgo(dateStr) {
   return new Date(formattedString).toLocaleDateString("vi-VN", { month: "short", day: "numeric" });
 }
 
-export default function PostCard({ post, onDelete, onEdit, isDetailed = false }) {
+export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDetailed = false }) {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
@@ -479,7 +479,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                 }}
                 className="flex items-center gap-2 group hover:underline"
               >
-                                <Avatar
+                <Avatar
                   userId={origAuthor.id}
                   src={origAuthorAvatarUrl}
                   name={origAuthorName}
@@ -488,14 +488,21 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
                   size="xs"
                   className="shrink-0 border border-zinc-200 dark:border-zinc-700 shadow-xs"
                 />
-                <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 truncate">
-                  {origAuthorName}
-                </span>
-                {origAuthor.username && (
-                  <span className="text-xs text-zinc-400 truncate">
-                    @{origAuthor.username}
+                <span className="min-w-0">
+                  <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 truncate flex items-center gap-1.5">
+                    {origAuthorName}
+                    {originalPost.createdAt && (
+                      <span className="text-[10px] text-zinc-400 font-normal shrink-0">
+                        · {timeAgo(originalPost.createdAt)}
+                      </span>
+                    )}
                   </span>
-                )}
+                  {origAuthor.username && (
+                    <span className="text-xs text-zinc-400 truncate block">
+                      @{origAuthor.username}
+                    </span>
+                  )}
+                </span>
               </Link>
             </div>
 
@@ -787,6 +794,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
           onPostShared={(shared) => {
+            if (onPostCreated) onPostCreated(shared);
             if (onEdit) onEdit(shared);
           }}
         />
@@ -810,6 +818,7 @@ export default function PostCard({ post, onDelete, onEdit, isDetailed = false })
           initialImageIndex={theaterInitialImageIndex}
           isOpen={isTheaterOpen}
           onClose={() => setIsTheaterOpen(false)}
+          onPostCreated={onPostCreated}
           onPostUpdated={(updated) => {
             setCurrentPost(updated);
             if (onEdit) onEdit(updated);

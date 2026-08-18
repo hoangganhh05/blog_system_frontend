@@ -147,16 +147,8 @@ export default function PostDetail() {
         onDelete={() => navigate("/")}
         onEdit={(updated) => setPost(updated)}
       />
-
-      {/* Embedded Original Post if this is a shared post */}
-      {(post?.originalPost || post?.sharedPost || post?.parentPost || post?.repostOf) && (
-        <div className="mt-4">
-          <PostCard
-            post={post?.originalPost || post?.sharedPost || post?.parentPost || post?.repostOf}
-            isDetailed={false}
-          />
-        </div>
-      )}
+      {/* Lưu ý: Bài viết gốc khi là bài chia sẻ đã được hiển thị dưới dạng
+          Embedded Card ngay bên trong PostCard chính (tránh render trùng lặp) */}
 
       {/* Reply Composer Box with GIF Support */}
       {currentUser && (

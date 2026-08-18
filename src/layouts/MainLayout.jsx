@@ -531,9 +531,13 @@ export default function MainLayout({ children, isDark, onToggleTheme }) {
       <CreatePostModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onPostCreated={() => {
+        onPostCreated={(newPost) => {
           setIsCreateModalOpen(false);
-          window.dispatchEvent(new CustomEvent("refresh_feed_posts"));
+          if (newPost) {
+            window.dispatchEvent(new CustomEvent("post_created", { detail: { post: newPost } }));
+          } else {
+            window.dispatchEvent(new CustomEvent("refresh_feed_posts"));
+          }
         }}
       />
 

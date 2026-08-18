@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   X,
   ChevronLeft,
@@ -58,8 +58,10 @@ export default function PostTheaterModal({
   isOpen,
   onClose,
   onPostUpdated,
-  onPostDeleted
+  onPostDeleted,
+  onPostCreated
 }) {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
@@ -197,6 +199,24 @@ export default function PostTheaterModal({
   const isOwner = myId > 0 && authorId > 0 && authorId === myId;
   const authorAvatarUrl = isOwner ? (currentUser?.avatarUrl || author.avatarUrl) : (author.avatarUrl || author.avatar);
   const authorAvatarColor = isOwner ? (currentUser?.avatarColor || author.avatarColor) : author.avatarColor;
+
+  const originalPost = post?.originalPost || post?.sharedPost || post?.parentPost || post?.repostOf;
+  const origAuthor = originalPost?.user || originalPost?.author || {};
+  const origAuthorName = origAuthor.fullName || origAuthor.username || origAuthor.name || "Tác giả gốc";
+  const origAuthorAvatarUrl = origAuthor.avatarUrl || origAuthor.avatar;
+  const origAuthorAvatarColor = origAuthor.avatarColor;
+  const origPostId =
+    originalPost?.id || post?.sharedPostId || post?.originalPostId || post?.parentPostId || null;
+  const origContent =
+    originalPost?.content || originalPost?.body || originalPost?.text || originalPost?.title || "";
+  const origMedia =
+    (Array.isArray(originalPost?.images) && originalPost.images.length > 0
+      ? originalPost.images[0]
+      : null) ||
+    originalPost?.thumbNail ||
+    originalPost?.thumbnail ||
+    originalPost?.mediaUrl ||
+    originalPost?.imageUrl;
 
   const handleLikeToggle = async (e) => {
     if (e) e.stopPropagation();
@@ -875,6 +895,68 @@ export default function PostTheaterModal({
             </div>
           )}
 
+          {/* Embedded Original Post if this is a shared post */}
+          {originalPost && (
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                if (origPostId) {
+                  navigate(`/posts/${origPostId}`);
+                } else {
+                  onClose();
+                }
+              }}
+              className="mt-3 p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 flex flex-col gap-2 cursor-pointer hover:bg-zinc-100/60 dark:hover:bg-zinc-800/60 transition"
+            >
+              {/* Original Author */}
+              <div className="flex items-center gap-2">
+                <Avatar
+                  userId={origAuthor.id}
+                  src={origAuthorAvatarUrl}
+                  name={origAuthorName}
+                  username={origAuthor.username}
+                  avatarColor={origAuthorAvatarColor}
+                  size="xs"
+                  className="shrink-0 border border-zinc-200 dark:border-zinc-700 shadow-xs"
+                />
+                <div className="min-w-0">
+                  <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 truncate block">
+                    {origAuthorName}
+                  </span>
+                  <span className="text-[11px] text-zinc-400 truncate block">
+                    {origAuthor.username ? `@${origAuthor.username}` : "Bài viết gốc"}
+                    {originalPost.createdAt && ` · ${timeAgo(originalPost.createdAt)}`}
+                  </span>
+                </div>
+              </div>
+
+              {/* Original Title */}
+              {originalPost.title && originalPost.title !== origContent && (
+                <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                  {originalPost.title}
+                </h4>
+              )}
+
+              {/* Original Content */}
+              {origContent && (
+                <p className="text-xs text-zinc-700 dark:text-zinc-300 line-clamp-3 leading-relaxed break-words">
+                  {origContent}
+                </p>
+              )}
+
+              {/* Original Media */}
+              {origMedia && (
+                <div className="rounded-xl overflow-hidden max-h-48 border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
+                  <img
+                    src={origMedia}
+                    alt=""
+                    className="w-full h-auto max-h-48 object-cover object-center block"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* 3. KHU VỰC HIỂN THỊ ẢNH (Ở GIỮA 2 - NẰM NGAY DƯỚI NỘI DUNG CHỮ) */}
           {imageGalleryBlock}
 
@@ -906,6 +988,7 @@ export default function PostTheaterModal({
           onClose={() => setIsShareModalOpen(false)}
           onPostShared={(shared) => {
             if (onPostUpdated) onPostUpdated(shared);
+            if (onPostCreated) onPostCreated(shared);
           }}
         />
       )}

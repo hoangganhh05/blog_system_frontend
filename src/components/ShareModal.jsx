@@ -24,6 +24,8 @@ export default function ShareModal({
   isOpen = true,
   onClose,
   onPostShared,
+  onShareSuccess,
+  onPostCreated,
 }) {
   const { currentUser } = useAuth();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
@@ -78,7 +80,11 @@ export default function ShareModal({
       const res = await postService.create(payload);
       toast.success("Đã chia sẻ bài viết lên trang cá nhân!");
       if (onPostShared) onPostShared(res.data);
+      if (onShareSuccess) onShareSuccess(res.data);
+      if (onPostCreated) onPostCreated(res.data);
       onClose();
+      // Đóng Modal ngay + cuộn nhẹ lên đầu trang để thấy bài chia sẻ mới (không cần F5)
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       console.error("Lỗi chia sẻ bài viết:", err);
       toast.error("Không thể chia sẻ bài viết. Vui lòng thử lại!");

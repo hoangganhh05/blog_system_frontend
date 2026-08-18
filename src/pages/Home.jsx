@@ -294,11 +294,23 @@ export default function Home() {
       }
     };
 
+    const handleGlobalCreated = (e) => {
+      const { post: newPost } = e.detail || {};
+      if (newPost?.id) {
+        setPosts((prev) => [
+          newPost,
+          ...prev.filter((p) => Number(p.id) !== Number(newPost.id)),
+        ]);
+      }
+    };
+
     window.addEventListener("refresh_feed_posts", handleRefresh);
+    window.addEventListener("post_created", handleGlobalCreated);
     window.addEventListener("post_deleted", handleGlobalDelete);
     window.addEventListener("post_updated", handleGlobalUpdate);
     return () => {
       window.removeEventListener("refresh_feed_posts", handleRefresh);
+      window.removeEventListener("post_created", handleGlobalCreated);
       window.removeEventListener("post_deleted", handleGlobalDelete);
       window.removeEventListener("post_updated", handleGlobalUpdate);
     };
@@ -307,6 +319,7 @@ export default function Home() {
   const handlePostCreated = (newPost) => {
     if (newPost) {
       setPosts((prev) => [newPost, ...prev]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -535,6 +548,7 @@ export default function Home() {
                 post={post}
                 onDelete={handleDeletePost}
                 onEdit={handleEditPost}
+                onPostCreated={handlePostCreated}
               />
             </div>
           ))
