@@ -54,10 +54,19 @@ export function ChatProvider({ children }) {
       const res = await chatService.getConversationWithUser(targetUserId);
       if (res.data) {
         const { id, theme } = res.data;
+        // Ưu tiên theme trong DB, fallback sang localStorage (đã lưu khi đổi theme trước đó)
+        const savedLocalTheme = (() => {
+          try {
+            return localStorage.getItem(`chat_theme_${targetUserId}`);
+          } catch {
+            return null;
+          }
+        })();
+        const resolvedTheme = theme || savedLocalTheme || DEFAULT_THEME_ID;
         setActiveChats((prev) =>
           prev.map((chat) =>
             String(chat.user.id) === String(targetUserId)
-              ? { ...chat, conversationId: id, theme: theme || DEFAULT_THEME_ID }
+              ? { ...chat, conversationId: id, theme: resolvedTheme }
               : chat
           )
         );
@@ -100,6 +109,13 @@ export function ChatProvider({ children }) {
     setActiveChats((prev) =>
       prev.map((chat) => (String(chat.user.id) === String(userId) ? { ...chat, theme: newTheme } : chat))
     );
+
+    // Lưu theme theo từng cuộc trò chuyện vào localStorage (hoạt động offline / reload nhanh)
+    try {
+      localStorage.setItem(`chat_theme_${userId}`, newTheme);
+    } catch {
+      // Bỏ qua nếu localStorage bị chặn
+    }
 
     try {
       await chatService.updateThemeWithUser(userId, newTheme);

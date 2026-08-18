@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   X,
   Minus,
@@ -33,7 +33,6 @@ import {
   Sticker as StickerIcon,
   ImagePlus,
   Sparkles,
-  MoreVertical,
   MoreHorizontal
 } from "lucide-react";
 import { toast } from "sonner";
@@ -41,7 +40,7 @@ import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 import chatService from "../services/chatService";
 import uploadService from "../services/uploadService";
-import { CHAT_THEMES, getChatTheme } from "../utils/chatThemes";
+import { getChatTheme } from "../utils/chatThemes";
 import Avatar from "./Avatar";
 import EmojiPicker from "./EmojiPicker";
 import GifPicker from "./GifPicker";
@@ -88,7 +87,6 @@ export default function ChatBoxWindow({ chat, onBack }) {
   const { user, isMinimized, theme } = chat;
   const { currentUser } = useAuth();
   const { closeChat, toggleMinimizeChat, setChatTheme } = useChat();
-  const navigate = useNavigate();
 
   const currentUserId = currentUser?.id || currentUser?.userId;
   const targetUserId = user.id;
@@ -140,6 +138,15 @@ export default function ChatBoxWindow({ chat, onBack }) {
 
   const currentTheme = getChatTheme(theme);
   const quickEmoji = currentTheme.quickEmoji || "👍";
+
+  // Inline background cho Theme Gradient (Tailwind không tự sinh class bg-[linear-gradient(...)] động
+  // nên phải gán trực tiếp style để màu/gradient hiển thị đúng trên bubble tin nhắn gửi đi)
+  const sentBubbleStyle =
+    Array.isArray(currentTheme?.gradientColors) && currentTheme.gradientColors.length === 2
+      ? {
+          background: `linear-gradient(135deg, ${currentTheme.gradientColors[0]}, ${currentTheme.gradientColors[1]})`,
+        }
+      : undefined;
 
   // Tự động cuộn xuống cuối
   const scrollToBottom = useCallback((smooth = true) => {
@@ -417,12 +424,11 @@ export default function ChatBoxWindow({ chat, onBack }) {
     }
   };
 
-  // Chọn Theme
+  // Chọn Theme (setChatTheme trong Context đã tự đồng bộ lên API + localStorage)
   const handleSelectTheme = async (themeId) => {
     setShowThemePicker(false);
-    setChatTheme(targetUserId, themeId);
     try {
-      await chatService.updateThemeWithUser(targetUserId, themeId);
+      await setChatTheme(targetUserId, themeId);
       toast.success("Đã cập nhật chủ đề cuộc trò chuyện!");
     } catch {
       // Offline fallback
@@ -648,10 +654,10 @@ export default function ChatBoxWindow({ chat, onBack }) {
                   e.preventDefault();
                   setActiveActionMessage(msg);
                 }}
-                className={`flex flex-col group/msg relative ${isMine ? "items-end" : "items-start"}`}
+                className={`flex flex-col group/msg relative my-1 w-full ${isMine ? "items-end" : "items-start"}`}
               >
                 {/* Bubble Tin Nhắn */}
-                <div className="relative flex items-center gap-1 group/bubble">
+                <div className={`relative flex items-center gap-1 group/bubble w-full ${isMine ? "justify-end" : "justify-start"}`}>
                   {/* Nút 3 chấm mở action menu khi hover trên PC (Ẩn trên Mobile) */}
                   {isMine && (
                     <button
@@ -769,11 +775,12 @@ export default function ChatBoxWindow({ chat, onBack }) {
                     </div>
                   ) : (
                     <div
-                      className={`max-w-[82%] rounded-2xl px-3 py-2 text-xs break-words whitespace-pre-wrap transition-all shadow-2xs ${
+                      className={`inline-block w-fit max-w-[75%] sm:max-w-[70%] px-4 py-2.5 rounded-2xl break-words whitespace-pre-wrap text-sm sm:text-base leading-normal ${
                         isMine
                           ? `${currentTheme.sentBubble || currentTheme.myBubble || "bg-blue-600 text-white"} rounded-br-xs`
                           : `${currentTheme.receivedBubble || currentTheme.theirBubble || "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700"} rounded-bl-xs`
                       }`}
+                      style={isMine ? sentBubbleStyle : undefined}
                     >
                       {isAudio ? (
                         <AudioMessagePlayer audioUrl={msg.content.replace("🎙️ ", "").trim()} />

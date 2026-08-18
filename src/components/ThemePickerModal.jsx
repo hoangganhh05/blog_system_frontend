@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Check, Sparkles, Palette, Search, Heart, Smile, Rocket, Coffee } from "lucide-react";
+import { X, Sparkles, Palette, Search, Heart, Smile, Rocket, Coffee } from "lucide-react";
 import { SPECIAL_THEMES, COLOR_THEMES, BASE_GRADIENTS } from "../constants/chatThemes";
 
 const SPECIAL_CATEGORIES = [
@@ -168,12 +168,6 @@ export default function ThemePickerModal({
                             {item.name}
                           </span>
                         </div>
-
-                        {isSelected && (
-                          <div className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs animate-in zoom-in-50">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                        )}
                       </div>
 
                       {/* Mini Chat Simulation Preview Box */}
@@ -220,31 +214,29 @@ export default function ThemePickerModal({
                       key={g.id}
                       type="button"
                       onClick={() => handleSelect(g.id)}
-                      className={`p-2 sm:p-2.5 rounded-2xl flex flex-col items-center gap-1.5 transition cursor-pointer group hover:bg-zinc-100 dark:hover:bg-zinc-800/60 relative ${
-                        isSelected
-                          ? "bg-blue-50/50 dark:bg-blue-950/30 ring-2 ring-blue-600"
-                          : ""
-                      }`}
+                      className="flex flex-col items-center gap-1.5 transition cursor-pointer group rounded-xl px-1 py-1"
                       title={g.name}
                     >
-                      {/* Vòng tròn Gradient */}
+                      {/* Vòng tròn Swatch màu trơn tinh tế (chỉ màu, không icon) */}
                       <div
-                        className="w-11 h-11 sm:w-12 sm:h-12 rounded-full shadow-md flex items-center justify-center group-hover:scale-110 transition-transform duration-150 relative"
+                        className={`w-7 h-7 rounded-full transition-transform hover:scale-110 ring-2 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900 shadow-sm ${
+                          isSelected
+                            ? "ring-blue-600 scale-110"
+                            : "ring-transparent group-hover:ring-zinc-300 dark:group-hover:ring-zinc-600"
+                        }`}
                         style={{
                           background: `linear-gradient(135deg, ${g.from}, ${g.to})`,
                         }}
-                      >
-                        <span className="text-base drop-shadow-xs">{g.emoji}</span>
-
-                        {isSelected && (
-                          <div className="absolute inset-0 rounded-full bg-black/30 flex items-center justify-center">
-                            <Check className="w-5 h-5 text-white stroke-[3]" />
-                          </div>
-                        )}
-                      </div>
+                      />
 
                       {/* Tên Màu */}
-                      <span className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 text-center truncate max-w-full">
+                      <span
+                        className={`text-[11px] font-semibold text-center truncate max-w-full ${
+                          isSelected
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-zinc-700 dark:text-zinc-300"
+                        }`}
+                      >
                         {g.name}
                       </span>
                     </button>
