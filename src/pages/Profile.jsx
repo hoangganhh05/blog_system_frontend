@@ -1250,26 +1250,28 @@ export default function Profile() {
 
       {/* Edit Profile Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150" onClick={() => setIsEditModalOpen(false)}>
-          <div
-            className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95"
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-in fade-in duration-150" onClick={() => setIsEditModalOpen(false)}>
+          <form
+            onSubmit={handleSaveProfile}
+            className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[88vh] overflow-hidden animate-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
-            <form onSubmit={handleSaveProfile} className="p-5 flex flex-col gap-4">
-              {/* Header with centered title and close button */}
-              <div className="relative flex items-center justify-center pb-3 border-b border-zinc-100 dark:border-zinc-800">
-                <span className="font-bold text-base text-zinc-900 dark:text-white">
-                  Chỉnh sửa hồ sơ
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+            {/* Header - Fixed */}
+            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center shrink-0">
+              <span className="font-bold text-base text-zinc-900 dark:text-white">
+                Chỉnh sửa hồ sơ
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
+            {/* Body - Scrollable */}
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
               {/* Avatar picker in modal */}
               <div className="flex items-center gap-4">
                 <div className="relative">
@@ -1467,26 +1469,26 @@ export default function Profile() {
                   </select>
                 </div>
               </div>
+            </div>
 
-              {/* Action buttons */}
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 cursor-pointer"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={isUpdating}
-                  className="px-6 py-2 rounded-xl text-xs font-bold bg-black dark:bg-white text-white dark:text-black hover:opacity-90 transition cursor-pointer"
-                >
-                  {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Lưu thay đổi"}
-                </button>
-              </div>
-            </form>
-          </div>
+            {/* Footer - Fixed */}
+            <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3 bg-gray-50 dark:bg-zinc-800/50 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={isUpdating}
+                className="px-6 py-2 rounded-xl text-xs font-bold bg-black dark:bg-white text-white dark:text-black hover:opacity-90 transition cursor-pointer"
+              >
+                {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Lưu thay đổi"}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
