@@ -318,7 +318,6 @@ export default function Settings() {
                 <SecurityTab
                   passwordForm={passwordForm}
                   setPasswordForm={setPasswordForm}
-                  loading={loading}
                 />
               )}
 
@@ -590,9 +589,10 @@ function AccountTab({
 }
 
 // Security Tab Component
-function SecurityTab({ passwordForm, setPasswordForm, loading }) {
+function SecurityTab({ passwordForm, setPasswordForm }) {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
