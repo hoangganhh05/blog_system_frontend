@@ -591,7 +591,7 @@ function AccountTab({
 
 // Security Tab Component
 function SecurityTab({ passwordForm, setPasswordForm, loading }) {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -602,15 +602,14 @@ function SecurityTab({ passwordForm, setPasswordForm, loading }) {
       return;
     }
 
-    if (passwordForm.newPassword.length < 6) {
-      toast.error("Mật khẩu mới phải có ít nhất 6 ký tự!");
+    if (passwordForm.newPassword.length < 8) {
+      toast.error("Mật khẩu mới phải có ít nhất 8 ký tự!");
       return;
     }
 
     setLoading(true);
     try {
-      // TODO: Call password change API when available
-      // await authService.changePassword(passwordForm);
+      await userService.changePassword(user.id, passwordForm.currentPassword, passwordForm.newPassword);
       
       toast.success("Đổi mật khẩu thành công. Vui lòng đăng nhập lại!");
       
