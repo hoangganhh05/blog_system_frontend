@@ -421,3 +421,34 @@ html.dark .card-dynamic-hover:hover {
   animation: slideInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* ============================================
+   FLOATING & GLOWING ANIMATIONS FOR HERO SECTIONS
+   ============================================ */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-12px) scale(1.02);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+}
+
+.animate-float {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: pulseGlow 6s ease-in-out infinite;
+}
+

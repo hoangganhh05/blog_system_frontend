@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Eye, EyeOff, ArrowRight, User, Mail, Lock, Check } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -21,6 +21,16 @@ export default function Register() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [rotatingIndex, setRotatingIndex] = useState(0);
+
+  const rotatingWords = ["Đam mê", "Cảm xúc", "Ý tưởng", "Tri thức"];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRotatingIndex((prev) => (prev + 1) % rotatingWords.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -71,13 +81,13 @@ export default function Register() {
       <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen w-full">
         {/* Left Column - Hero Introduction */}
         <div className="hidden lg:flex flex-col justify-center p-12 lg:p-16 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-500 relative overflow-hidden animate-slide-in-left">
-          {/* Background patterns */}
+          {/* Background patterns with glow animation */}
           <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-20 left-20 w-64 h-64 bg-white rounded-full blur-3xl" />
-            <div className="absolute bottom-20 right-20 w-80 h-80 bg-white rounded-full blur-3xl" />
+            <div className="absolute top-20 left-20 w-64 h-64 bg-white rounded-full blur-3xl animate-glow" />
+            <div className="absolute bottom-20 right-20 w-80 h-80 bg-white rounded-full blur-3xl animate-glow" style={{ animationDelay: '2s' }} />
           </div>
           
-          <div className="relative z-10 text-white">
+          <div className="relative z-10 text-white animate-float">
             <div className="mb-8">
               <Logo size="xl" showGlow={true} />
               <h1 className="text-4xl lg:text-5xl font-black mt-6 tracking-tight">
@@ -85,43 +95,17 @@ export default function Register() {
               </h1>
             </div>
             
-            <h2 className="text-2xl lg:text-3xl font-bold mb-6 leading-tight">
-              Bắt đầu hành trình viết lách và kết nối ngay hôm nay
+            <h2 className="text-4xl lg:text-6xl font-black mb-4 leading-tight drop-shadow-md">
+              Bắt đầu hành trình.
             </h2>
             
-            <p className="text-base lg:text-lg text-white/90 mb-10 leading-relaxed max-w-lg">
-              Chào mừng bạn gia nhập cộng đồng! Tạo tài khoản miễn phí và bắt đầu chia sẻ câu chuyện của bạn.
+            <p className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-yellow-200 via-pink-200 to-cyan-200 bg-clip-text text-transparent mb-6">
+              Chia sẻ <span className="inline-block transition-all duration-500">{rotatingWords[rotatingIndex]}</span>
             </p>
             
-            {/* Feature List */}
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                  <span className="text-xl">🚀</span>
-                </div>
-                <p className="text-sm lg:text-base font-medium leading-relaxed">
-                  Tạo tài khoản miễn phí chỉ trong vài giây.
-                </p>
-              </div>
-              
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                  <span className="text-xl">🌐</span>
-                </div>
-                <p className="text-sm lg:text-base font-medium leading-relaxed">
-                  Xây dựng trang cá nhân chuyên nghiệp & liên kết mạng xã hội.
-                </p>
-              </div>
-              
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                  <span className="text-xl">👥</span>
-                </div>
-                <p className="text-sm lg:text-base font-medium leading-relaxed">
-                  Giao lưu, tag bạn bè và thảo luận cùng hàng ngàn tác giả khác.
-                </p>
-              </div>
-            </div>
+            <p className="text-lg text-white/80 leading-relaxed">
+              Không gian sáng tạo dành riêng cho bạn.
+            </p>
           </div>
         </div>
 
