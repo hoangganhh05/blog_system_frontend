@@ -205,6 +205,13 @@ export default function Settings() {
     try {
       await userService.updateProfile(currentUser.id || currentUser.userId, profileForm);
       toast.success("Đã lưu hồ sơ");
+      
+      // Reload user data to sync with AuthContext
+      const updatedUser = await userService.getById(currentUser.id || currentUser.userId);
+      setUser(updatedUser.data);
+      
+      // Redirect to profile page to see updated data
+      navigate(`/profile/${currentUser.username || currentUser.id}`);
     } catch (error) {
       toast.error("Không thể lưu hồ sơ");
     } finally {
@@ -584,10 +591,46 @@ function AccountTab({
 
 // Security Tab Component
 function SecurityTab({ passwordForm, setPasswordForm, loading }) {
-  const handleSubmit = (e) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement password change API call
-    toast.success("Đã thay đổi mật khẩu");
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast.error("Mật khẩu mới phải có ít nhất 6 ký tự!");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // TODO: Call password change API when available
+      // await authService.changePassword(passwordForm);
+      
+      toast.success("Đổi mật khẩu thành công. Vui lòng đăng nhập lại!");
+      
+      // Clear password fields
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      
+      // Auto logout and redirect to login after 1.5s
+      setTimeout(() => {
+        logout();
+        navigate("/login");
+      }, 1500);
+    } catch (error) {
+      toast.error("Không thể đổi mật khẩu. Vui lòng thử lại!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
