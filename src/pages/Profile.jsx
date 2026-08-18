@@ -653,7 +653,7 @@ export default function Profile() {
                   type="button"
                   onClick={() => {
                     setIsMoreMenuOpen(false);
-                    navigate("/security");
+                    navigate("/settings");
                   }}
                   className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
                 >

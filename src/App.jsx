@@ -20,6 +20,7 @@ import AiCreatorPage from "./pages/AiCreatorPage";
 import VideosPage from "./pages/VideosPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import SecuritySettingsPage from "./pages/SecuritySettingsPage";
+import Settings from "./pages/Settings";
 import FriendsPage from "./pages/FriendsPage";
 import SearchPage from "./pages/SearchPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
@@ -145,7 +146,7 @@ function AppContent() {
           <Route path="/games" element={<ProtectedRoute><GamesPage /></ProtectedRoute>} />
           <Route path="/ai-creator" element={<ProtectedRoute><AiCreatorPage /></ProtectedRoute>} />
           <Route path="/security" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/settings/privacy" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
           <Route path="/security-settings" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
           <Route path="/privacy" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
