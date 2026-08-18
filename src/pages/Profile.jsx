@@ -640,7 +640,7 @@ export default function Profile() {
                   type="button"
                   onClick={() => {
                     setIsMoreMenuOpen(false);
-                    navigate("/saved");
+                    setActiveTab("saved");
                   }}
                   className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition w-full text-left cursor-pointer"
                 >
@@ -1067,7 +1067,7 @@ export default function Profile() {
       </div>
 
       {/* Tabs: Chia đều các cột với thanh active tối giản */}
-      <div className={`grid ${isMe ? "grid-cols-5" : "grid-cols-4"} text-center border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs`}>
+      <div className="grid grid-cols-4 text-center border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
         <button
           type="button"
           onClick={() => setActiveTab("posts")}
@@ -1124,22 +1124,6 @@ export default function Profile() {
             <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-black dark:bg-white rounded-full" />
           )}
         </button>
-        {isMe && (
-          <button
-            type="button"
-            onClick={() => setActiveTab("saved")}
-            className={`py-3 text-xs font-semibold transition cursor-pointer relative ${
-              activeTab === "saved"
-                ? "text-black dark:text-white"
-                : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
-            }`}
-          >
-            Đã lưu
-            {activeTab === "saved" && (
-              <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-black dark:bg-white rounded-full" />
-            )}
-          </button>
-        )}
       </div>
 
       {/* Tab Content List */}
@@ -1341,20 +1325,22 @@ export default function Profile() {
               ))}
             </div>
           )
-        ) : savedPosts.length === 0 ? (
-          <div className="p-12 text-center text-zinc-400 text-xs">
-            Chưa có bài viết nào được lưu.
-          </div>
-        ) : (
-          savedPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onDelete={(delId) => setSavedPosts((prev) => prev.filter((p) => p.id !== delId))}
-              onEdit={handleEditPost}
-            />
-          ))
-        )}
+        ) : activeTab === "saved" ? (
+          savedPosts.length === 0 ? (
+            <div className="p-12 text-center text-zinc-400 text-xs">
+              Chưa có bài viết nào được lưu.
+            </div>
+          ) : (
+            savedPosts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onDelete={(delId) => setSavedPosts((prev) => prev.filter((p) => p.id !== delId))}
+                onEdit={handleEditPost}
+              />
+            ))
+          )
+        ) : null}
       </div>
 
       {/* Edit Profile Modal */}
