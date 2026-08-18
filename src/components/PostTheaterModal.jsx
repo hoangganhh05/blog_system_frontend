@@ -504,15 +504,14 @@ export default function PostTheaterModal({
           onClick={() => setIsReactionsModalOpen(true)}
           className="flex items-center gap-1.5 hover:underline cursor-pointer"
         >
-          <div className="flex items-center -space-x-1">
-            <span className="w-4 h-4 rounded-full bg-rose-500 flex items-center justify-center text-[10px] text-white">
-              ❤️
-            </span>
-            <span className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-[10px] text-white">
-              👍
-            </span>
-          </div>
-          <span>{likeCount} lượt thích</span>
+          {likeCount > 0 && (
+            <>
+              <span className="w-4 h-4 rounded-full bg-rose-500 flex items-center justify-center text-[10px] text-white">
+                ❤️
+              </span>
+              <span>{likeCount} lượt thích</span>
+            </>
+          )}
         </button>
 
         <div className="flex items-center gap-3">
