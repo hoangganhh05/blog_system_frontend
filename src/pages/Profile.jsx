@@ -1066,6 +1066,253 @@ export default function Profile() {
         )}
       </div>
 
+      {/* Inline Edit Profile Container */}
+      {isEditModalOpen && (
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm mb-6 transition-all duration-300 animate-in fade-in slide-in-from-top-2">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-6 pb-4 border-b border-zinc-200 dark:border-zinc-800">
+            <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+              Chỉnh sửa thông tin cá nhân
+            </h3>
+            <button
+              type="button"
+              onClick={() => setIsEditModalOpen(false)}
+              className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSaveProfile} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Column 1: Name & Bio */}
+              <div className="space-y-4">
+                {/* Avatar picker */}
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    {editForm.avatarUrl ? (
+                      <img
+                        src={editForm.avatarUrl}
+                        alt=""
+                        className="w-16 h-16 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
+                      />
+                    ) : (
+                      <div
+                        className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-white text-xl bg-zinc-800 dark:bg-zinc-700"
+                      >
+                        {getInitials(editForm.fullName || user.username)}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => modalAvatarInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 p-1.5 rounded-full bg-black dark:bg-white text-white dark:text-black shadow-xs cursor-pointer hover:scale-110 transition"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                    </button>
+                    <input
+                      ref={modalAvatarInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleDirectAvatarUpload}
+                      className="hidden"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-zinc-900 dark:text-white">
+                      Ảnh đại diện
+                    </span>
+                    <span className="text-[11px] text-zinc-400">
+                      Nhấn vào máy ảnh để đổi ảnh mới
+                    </span>
+                  </div>
+                </div>
+
+                {/* Full name input */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    Tên hiển thị
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.fullName}
+                    onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                  />
+                </div>
+
+                {/* Bio input */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    Tiểu sử
+                  </label>
+                  <textarea
+                    value={editForm.bio}
+                    onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                    rows={3}
+                    placeholder="Viết một vài dòng giới thiệu về bạn..."
+                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 resize-none focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Column 2: Social Media Links */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-1.5 text-zinc-900 dark:text-white font-bold text-xs">
+                  <Users className="w-3.5 h-3.5 text-blue-500" />
+                  <span>Liên kết mạng xã hội</span>
+                </div>
+
+                <div className="space-y-3">
+                  {/* Facebook */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                      Facebook
+                    </label>
+                    <input
+                      type="url"
+                      value={editForm.facebookUrl}
+                      onChange={(e) => setEditForm({ ...editForm, facebookUrl: e.target.value })}
+                      placeholder="facebook.com/username"
+                      className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* TikTok */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                      TikTok
+                    </label>
+                    <input
+                      type="url"
+                      value={editForm.tiktokUrl}
+                      onChange={(e) => setEditForm({ ...editForm, tiktokUrl: e.target.value })}
+                      placeholder="tiktok.com/@username"
+                      className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Instagram */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                      Instagram
+                    </label>
+                    <input
+                      type="url"
+                      value={editForm.instagramUrl}
+                      onChange={(e) => setEditForm({ ...editForm, instagramUrl: e.target.value })}
+                      placeholder="instagram.com/username"
+                      className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* YouTube */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                      YouTube
+                    </label>
+                    <input
+                      type="url"
+                      value={editForm.youtubeUrl}
+                      onChange={(e) => setEditForm({ ...editForm, youtubeUrl: e.target.value })}
+                      placeholder="youtube.com/@username"
+                      className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* GitHub */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                      GitHub
+                    </label>
+                    <input
+                      type="url"
+                      value={editForm.githubUrl}
+                      onChange={(e) => setEditForm({ ...editForm, githubUrl: e.target.value })}
+                      placeholder="github.com/username"
+                      className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Twitter/X */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                      Twitter/X
+                    </label>
+                    <input
+                      type="url"
+                      value={editForm.twitterUrl}
+                      onChange={(e) => setEditForm({ ...editForm, twitterUrl: e.target.value })}
+                      placeholder="x.com/username"
+                      className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Privacy Settings */}
+            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center gap-1.5 text-zinc-900 dark:text-white font-bold text-xs mb-4">
+                <Lock className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Quyền riêng tư danh sách</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Friend List Privacy */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                    Ai có thể xem danh sách bạn bè của tôi?
+                  </label>
+                  <select
+                    value={editForm.friendListPrivacy}
+                    onChange={(e) => setEditForm({ ...editForm, friendListPrivacy: e.target.value })}
+                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none cursor-pointer"
+                  >
+                    <option value="PUBLIC">🌐 Công khai (Mọi người đều có thể xem)</option>
+                    <option value="PRIVATE">🔒 Chỉ mình tôi (Ẩn danh sách bạn bè)</option>
+                  </select>
+                </div>
+
+                {/* Follower List Privacy */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                    Ai có thể xem danh sách người theo dõi của tôi?
+                  </label>
+                  <select
+                    value={editForm.followerListPrivacy}
+                    onChange={(e) => setEditForm({ ...editForm, followerListPrivacy: e.target.value })}
+                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none cursor-pointer"
+                  >
+                    <option value="PUBLIC">🌐 Công khai (Mọi người đều có thể xem)</option>
+                    <option value="PRIVATE">🔒 Chỉ mình tôi (Ẩn danh sách người theo dõi)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={isUpdating}
+                className="px-6 py-2 rounded-xl text-xs font-bold bg-black dark:bg-white text-white dark:text-black hover:opacity-90 transition cursor-pointer"
+              >
+                {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Lưu thay đổi"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* Tabs: Chia đều các cột với thanh active tối giản */}
       <div className="grid grid-cols-4 text-center border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-xs">
         <button
@@ -1342,250 +1589,6 @@ export default function Profile() {
           )
         ) : null}
       </div>
-
-      {/* Edit Profile Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-in fade-in duration-150" onClick={() => setIsEditModalOpen(false)}>
-          <form
-            onSubmit={handleSaveProfile}
-            className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[88vh] overflow-hidden animate-in zoom-in-95"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header - Fixed */}
-            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center shrink-0">
-              <span className="font-bold text-base text-zinc-900 dark:text-white">
-                Chỉnh sửa hồ sơ
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsEditModalOpen(false)}
-                className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Body - Scrollable */}
-            <div className="p-6 overflow-y-auto space-y-4 flex-1">
-              {/* Avatar picker in modal */}
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  {editForm.avatarUrl ? (
-                    <img
-                      src={editForm.avatarUrl}
-                      alt=""
-                      className="w-16 h-16 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
-                    />
-                  ) : (
-                    <div
-                      className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-white text-xl bg-zinc-800 dark:bg-zinc-700"
-                    >
-                      {getInitials(editForm.fullName || user.username)}
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => modalAvatarInputRef.current?.click()}
-                    className="absolute bottom-0 right-0 p-1.5 rounded-full bg-black dark:bg-white text-white dark:text-black shadow-xs cursor-pointer hover:scale-110 transition"
-                  >
-                    <Camera className="w-3.5 h-3.5" />
-                  </button>
-                  <input
-                    ref={modalAvatarInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleDirectAvatarUpload}
-                    className="hidden"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-zinc-900 dark:text-white">
-                    Ảnh đại diện
-                  </span>
-                  <span className="text-[11px] text-zinc-400">
-                    Nhấn vào máy ảnh để đổi ảnh mới
-                  </span>
-                </div>
-              </div>
-
-              {/* Full name input */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                  Tên hiển thị
-                </label>
-                <input
-                  type="text"
-                  value={editForm.fullName}
-                  onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                  className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                />
-              </div>
-
-              {/* Bio input */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                  Tiểu sử
-                </label>
-                <textarea
-                  value={editForm.bio}
-                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                  rows={3}
-                  placeholder="Viết một vài dòng giới thiệu về bạn..."
-                  className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 resize-none focus:outline-none"
-                />
-              </div>
-
-              {/* Social Media Links Section */}
-              <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-3">
-                <div className="flex items-center gap-1.5 text-zinc-900 dark:text-white font-bold text-xs">
-                  <Users className="w-3.5 h-3.5 text-blue-500" />
-                  <span>Liên kết mạng xã hội</span>
-                </div>
-
-                {/* Facebook */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                    Facebook
-                  </label>
-                  <input
-                    type="url"
-                    value={editForm.facebookUrl}
-                    onChange={(e) => setEditForm({ ...editForm, facebookUrl: e.target.value })}
-                    placeholder="facebook.com/username"
-                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                  />
-                </div>
-
-                {/* TikTok */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                    TikTok
-                  </label>
-                  <input
-                    type="url"
-                    value={editForm.tiktokUrl}
-                    onChange={(e) => setEditForm({ ...editForm, tiktokUrl: e.target.value })}
-                    placeholder="tiktok.com/@username"
-                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                  />
-                </div>
-
-                {/* Instagram */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                    Instagram
-                  </label>
-                  <input
-                    type="url"
-                    value={editForm.instagramUrl}
-                    onChange={(e) => setEditForm({ ...editForm, instagramUrl: e.target.value })}
-                    placeholder="instagram.com/username"
-                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                  />
-                </div>
-
-                {/* YouTube */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                    YouTube
-                  </label>
-                  <input
-                    type="url"
-                    value={editForm.youtubeUrl}
-                    onChange={(e) => setEditForm({ ...editForm, youtubeUrl: e.target.value })}
-                    placeholder="youtube.com/@username"
-                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                  />
-                </div>
-
-                {/* GitHub */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                    GitHub
-                  </label>
-                  <input
-                    type="url"
-                    value={editForm.githubUrl}
-                    onChange={(e) => setEditForm({ ...editForm, githubUrl: e.target.value })}
-                    placeholder="github.com/username"
-                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                  />
-                </div>
-
-                {/* Twitter/X */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                    Twitter/X
-                  </label>
-                  <input
-                    type="url"
-                    value={editForm.twitterUrl}
-                    onChange={(e) => setEditForm({ ...editForm, twitterUrl: e.target.value })}
-                    placeholder="x.com/username"
-                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Privacy Settings Section */}
-              <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-3">
-                <div className="flex items-center gap-1.5 text-zinc-900 dark:text-white font-bold text-xs">
-                  <Lock className="w-3.5 h-3.5 text-indigo-500" />
-                  <span>Quyền riêng tư danh sách</span>
-                </div>
-
-                {/* Friend List Privacy */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                    Ai có thể xem danh sách bạn bè của tôi?
-                  </label>
-                  <select
-                    value={editForm.friendListPrivacy}
-                    onChange={(e) => setEditForm({ ...editForm, friendListPrivacy: e.target.value })}
-                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none cursor-pointer"
-                  >
-                    <option value="PUBLIC">🌐 Công khai (Mọi người đều có thể xem)</option>
-                    <option value="PRIVATE">🔒 Chỉ mình tôi (Ẩn danh sách bạn bè)</option>
-                  </select>
-                </div>
-
-                {/* Follower List Privacy */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                    Ai có thể xem danh sách người theo dõi của tôi?
-                  </label>
-                  <select
-                    value={editForm.followerListPrivacy}
-                    onChange={(e) => setEditForm({ ...editForm, followerListPrivacy: e.target.value })}
-                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none cursor-pointer"
-                  >
-                    <option value="PUBLIC">🌐 Công khai (Mọi người đều có thể xem)</option>
-                    <option value="PRIVATE">🔒 Chỉ mình tôi (Ẩn danh sách người theo dõi)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer - Fixed */}
-            <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3 bg-gray-50 dark:bg-zinc-800/50 shrink-0">
-              <button
-                type="button"
-                onClick={() => setIsEditModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 cursor-pointer"
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                disabled={isUpdating}
-                className="px-6 py-2 rounded-xl text-xs font-bold bg-black dark:bg-white text-white dark:text-black hover:opacity-90 transition cursor-pointer"
-              >
-                {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Lưu thay đổi"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       {/* Story Archive Modal */}
       {isStoryArchiveOpen && (
