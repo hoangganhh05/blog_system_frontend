@@ -82,9 +82,9 @@ export default function Register() {
       <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(#27272a_1px,transparent_1px)] pointer-events-none opacity-50" />
       
       {/* Clean Card Container */}
-      <div className="w-full max-w-4xl bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10 animate-slide-in-left">
+      <div className="w-full max-w-4xl bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden grid grid-cols-1 md:grid-cols-12 relative z-10 animate-slide-in-left">
         {/* Left Column - Hero Introduction */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-blue-50 via-indigo-50/50 to-white dark:from-zinc-900 dark:to-zinc-950 p-8 lg:p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-zinc-800">
+        <div className="md:col-span-5 bg-gradient-to-br from-blue-50 via-indigo-50/50 to-white dark:from-zinc-900 dark:to-zinc-950 p-8 lg:p-10 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-100 dark:border-zinc-800">
           {/* Top Section - Branding */}
           <div>
             <div className="flex items-center gap-3 mb-4">
@@ -124,7 +124,7 @@ export default function Register() {
         </div>
 
         {/* Right Column - Register Form */}
-        <div className="lg:col-span-7 p-8 lg:p-10 flex flex-col justify-center bg-white dark:bg-zinc-900 animate-slide-in-right">
+        <div className="md:col-span-7 p-8 lg:p-10 flex flex-col justify-center bg-white dark:bg-zinc-900 animate-slide-in-right">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
               Đăng ký

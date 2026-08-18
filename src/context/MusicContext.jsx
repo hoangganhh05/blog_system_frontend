@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import songService from "../services/songService";
+import { useAuth } from "./AuthContext";
 
 export const VIETNAMESE_PLAYLIST = [
   // 1. Vinahouse & Remix Club
@@ -148,6 +149,7 @@ export function formatDurationTime(secs) {
 const MusicContext = createContext(null);
 
 export function MusicProvider({ children }) {
+  const { token } = useAuth();
   const [playlist, setPlaylist] = useState(VIETNAMESE_PLAYLIST);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -204,8 +206,10 @@ export function MusicProvider({ children }) {
     genre: rawTrack?.genre || "Radio",
   };
 
-  // Fetch dynamic songs from backend API on mount
+  // Fetch dynamic songs from backend API on mount (only when authenticated)
   useEffect(() => {
+    if (!token) return; // Only fetch songs when user is logged in
+    
     songService
       .getAll()
       .then((res) => {
@@ -221,7 +225,7 @@ export function MusicProvider({ children }) {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [token]);
 
   // Initialize singleton audio element ONCE
   useEffect(() => {
@@ -484,6 +488,8 @@ export function MusicProvider({ children }) {
   };
 
   const reloadPlaylist = async () => {
+    if (!token) return; // Only fetch songs when user is logged in
+    
     try {
       const res = await songService.getAll();
       if (Array.isArray(res.data) && res.data.length > 0) {
