@@ -74,7 +74,7 @@ function renderCommentTextWithMentions(text) {
   });
 }
 
-export default function Comment({ comment, onDelete, onReplyCreated }) {
+export default function Comment({ comment, onDelete, onReplyCreated, onUpdate }) {
   const { currentUser } = useAuth();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
@@ -98,10 +98,12 @@ export default function Comment({ comment, onDelete, onReplyCreated }) {
     if (!editText.trim() || isSubmitting) return;
     setIsSubmitting(true);
     try {
-      await commentService.update(comment.id, { content: editText.trim() });
+      const res = await commentService.update(comment.id, { content: editText.trim() });
       comment.content = editText.trim();
+      comment.updatedAt = res.data?.updatedAt || new Date().toISOString();
       setIsEditing(false);
       toast.success("Đã cập nhật bình luận!");
+      if (onUpdate) onUpdate(res.data);
     } catch {
       toast.error("Không thể cập nhật bình luận!");
     } finally {
