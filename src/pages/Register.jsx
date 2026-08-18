@@ -77,73 +77,71 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 relative overflow-hidden flex items-center justify-center p-4 lg:p-8">
-      {/* Background Glow Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/30 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/25 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex items-center justify-center p-4 lg:p-8 relative overflow-hidden">
+      {/* Subtle Dot Grid Pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(#27272a_1px,transparent_1px)] pointer-events-none opacity-50" />
       
-      {/* Glassmorphism Container */}
-      <div className="w-full max-w-5xl bg-white/[0.03] border border-white/10 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 animate-slide-in-left">
-        {/* Left Column - Hero & Branding */}
-        <div className="lg:col-span-7 p-8 lg:p-12 flex flex-col justify-between relative">
-          {/* Badge */}
-          <div className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium w-fit flex items-center gap-1.5 mb-8">
-            <span>✨</span>
-            <span>Nền tảng chia sẻ thế hệ mới</span>
+      {/* Clean Card Container */}
+      <div className="w-full max-w-4xl bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10 animate-slide-in-left">
+        {/* Left Column - Hero Introduction */}
+        <div className="lg:col-span-5 bg-gradient-to-br from-blue-50 via-indigo-50/50 to-white dark:from-zinc-900 dark:to-zinc-950 p-8 lg:p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-zinc-800">
+          {/* Top Section - Branding */}
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <Logo size="xl" showGlow={false} />
+              <span className="text-2xl font-bold text-slate-900 dark:text-white">BlogViet</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100/70 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-semibold mt-4">
+              <span>✨</span>
+              <span>Nền tảng kết nối</span>
+            </div>
           </div>
           
-          {/* Hero Content */}
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="mb-6">
-              <Logo size="xl" showGlow={true} />
-              <h1 className="text-4xl lg:text-5xl font-black mt-6 tracking-tight text-white">
-                BlogViet
-              </h1>
-            </div>
-            
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4 leading-tight text-white">
-              Bắt đầu hành trình
+          {/* Middle Section - Slogan & Rotating Text */}
+          <div className="flex-1 flex flex-col justify-center py-8">
+            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white leading-tight mb-4">
+              Bắt đầu hành trình sáng tạo.
             </h2>
             
-            <p className="text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent mb-6">
-              Chia sẻ <span className="inline-block transition-all duration-500">{rotatingWords[rotatingIndex]}</span>
+            <p className="text-lg text-slate-600 dark:text-slate-300 mb-2">
+              Cùng viết tiếp{" "}
+              <span className="text-blue-600 dark:text-blue-400 font-bold transition-all duration-500">
+                {rotatingWords[rotatingIndex]}
+              </span>
             </p>
             
-            <p className="text-lg text-slate-400 leading-relaxed">
-              Không gian sáng tạo dành riêng cho bạn.
+            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+              Đọc, viết và gắn kết cùng bạn bè mỗi ngày.
             </p>
           </div>
           
-          {/* Quote/Review Box */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mt-8 backdrop-blur-md">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
-                BV
-              </div>
-              <div>
-                <p className="text-sm text-slate-300 italic leading-relaxed">
-                  "Tham gia cộng đồng và bắt đầu chia sẻ câu chuyện của bạn với thế giới."
-                </p>
-                <p className="text-xs text-slate-500 mt-2 font-medium">— Cộng đồng BlogViet</p>
-              </div>
+          {/* Bottom Section - Social Proof */}
+          <div className="flex items-center gap-3 pt-6 border-t border-slate-100 dark:border-zinc-800">
+            <div className="flex -space-x-2">
+              <div className="w-8 h-8 rounded-full bg-blue-500 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-white text-xs font-bold">A</div>
+              <div className="w-8 h-8 rounded-full bg-indigo-500 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-white text-xs font-bold">B</div>
+              <div className="w-8 h-8 rounded-full bg-purple-500 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-white text-xs font-bold">C</div>
             </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+              5,000+ tác giả đang hoạt động
+            </p>
           </div>
         </div>
 
         {/* Right Column - Register Form */}
-        <div className="lg:col-span-5 p-8 lg:p-12 bg-white/[0.02] border-l border-white/5 flex flex-col justify-center animate-slide-in-right">
+        <div className="lg:col-span-7 p-8 lg:p-10 flex flex-col justify-center bg-white dark:bg-zinc-900 animate-slide-in-right">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-white mb-2">
-              Tạo tài khoản mới
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              Đăng ký
             </h1>
-            <p className="text-sm text-slate-400">
-              Gia nhập cộng đồng và bắt đầu sáng tạo
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Tạo tài khoản và bắt đầu chia sẻ câu chuyện
             </p>
           </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs p-3.5 rounded-2xl mb-5 animate-in fade-in duration-150 flex items-start gap-2">
+          <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 text-xs p-3.5 rounded-xl mb-5 animate-in fade-in duration-150 flex items-start gap-2">
             <span className="font-bold">⚠️</span>
             <span className="flex-1 leading-snug">{error}</span>
           </div>
@@ -152,11 +150,11 @@ export default function Register() {
         {/* Register Form */}
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-300">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
               Họ và tên
             </label>
             <div className="relative">
-              <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 id="fullName"
                 type="text"
@@ -165,14 +163,14 @@ export default function Register() {
                 value={form.fullName}
                 onChange={handleChange}
                 autoFocus
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-white placeholder-slate-400 focus:bg-white dark:focus:bg-zinc-800 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="block text-xs font-bold text-slate-300">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                 Tên đăng nhập
               </label>
               <input
@@ -182,12 +180,12 @@ export default function Register() {
                 placeholder="nguyenvana"
                 value={form.username}
                 onChange={handleChange}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-white placeholder-slate-400 focus:bg-white dark:focus:bg-zinc-800 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="block text-xs font-bold text-slate-300">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                 Email
               </label>
               <input
@@ -197,17 +195,17 @@ export default function Register() {
                 placeholder="name@example.com"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-white placeholder-slate-400 focus:bg-white dark:focus:bg-zinc-800 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-300">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
               Mật khẩu
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -215,12 +213,12 @@ export default function Register() {
                 placeholder="Tối thiểu 6 ký tự"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full pl-10 pr-11 py-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                className="w-full pl-10 pr-11 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-white placeholder-slate-400 focus:bg-white dark:focus:bg-zinc-800 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition cursor-pointer p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition cursor-pointer p-1"
                 title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               >
                 {showPassword ? (
@@ -233,11 +231,11 @@ export default function Register() {
           </div>
 
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-300">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
               Xác nhận mật khẩu
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
@@ -245,12 +243,12 @@ export default function Register() {
                 placeholder="Nhập lại mật khẩu"
                 value={form.confirmPassword}
                 onChange={handleChange}
-                className="w-full pl-10 pr-11 py-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                className="w-full pl-10 pr-11 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-white placeholder-slate-400 focus:bg-white dark:focus:bg-zinc-800 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition cursor-pointer p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition cursor-pointer p-1"
                 title={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               >
                 {showConfirmPassword ? (
@@ -266,7 +264,7 @@ export default function Register() {
             id="register-submit-btn"
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold transition-all duration-200 active:scale-[0.98] shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-4"
+            className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 font-semibold transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-4"
           >
             {loading ? (
               <>
@@ -283,12 +281,12 @@ export default function Register() {
         </form>
 
         {/* Footer Prompt */}
-        <div className="mt-7 pt-5 border-t border-white/10 text-center">
-          <p className="text-xs text-slate-400">
+        <div className="mt-7 pt-5 border-t border-slate-100 dark:border-zinc-800 text-center">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Đã có tài khoản?{" "}
             <Link
               to="/login"
-              className="font-bold text-white hover:text-indigo-400 transition"
+              className="font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition"
             >
               Đăng nhập ngay
             </Link>
