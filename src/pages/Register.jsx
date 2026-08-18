@@ -67,22 +67,79 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#f8fafc] dark:bg-[#0b0f19] px-4 py-12 transition-colors duration-200 relative overflow-hidden">
-      {/* Ambient background glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-rose-500/10 dark:bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="w-full max-w-md bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 p-7 sm:p-9 shadow-xl z-10 animate-in fade-in zoom-in-95 duration-200">
-        {/* Header Form */}
-        <div className="flex flex-col items-center text-center mb-6">
-          <Logo size="xl" showGlow={true} />
-          <h1 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-4 tracking-tight">
-            Tạo tài khoản BlogViet
-          </h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed max-w-xs">
-            Gia nhập cộng đồng chia sẻ tri thức, âm nhạc và kết nối cùng bạn bè.
-          </p>
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#f8fafc] dark:bg-[#0b0f19] transition-colors duration-200 relative overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen w-full">
+        {/* Left Column - Hero Introduction */}
+        <div className="hidden lg:flex flex-col justify-center p-12 lg:p-16 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-500 relative overflow-hidden animate-in fade-in slide-in-from-left duration-700 ease-out">
+          {/* Background patterns */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-20 left-20 w-64 h-64 bg-white rounded-full blur-3xl" />
+            <div className="absolute bottom-20 right-20 w-80 h-80 bg-white rounded-full blur-3xl" />
+          </div>
+          
+          <div className="relative z-10 text-white">
+            <div className="mb-8">
+              <Logo size="xl" showGlow={true} />
+              <h1 className="text-4xl lg:text-5xl font-black mt-6 tracking-tight">
+                BlogViet
+              </h1>
+            </div>
+            
+            <h2 className="text-2xl lg:text-3xl font-bold mb-6 leading-tight">
+              Bắt đầu hành trình viết lách và kết nối ngay hôm nay
+            </h2>
+            
+            <p className="text-base lg:text-lg text-white/90 mb-10 leading-relaxed max-w-lg">
+              Chào mừng bạn gia nhập cộng đồng! Tạo tài khoản miễn phí và bắt đầu chia sẻ câu chuyện của bạn.
+            </p>
+            
+            {/* Feature List */}
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <span className="text-xl">🚀</span>
+                </div>
+                <p className="text-sm lg:text-base font-medium leading-relaxed">
+                  Tạo tài khoản miễn phí chỉ trong vài giây.
+                </p>
+              </div>
+              
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <span className="text-xl">🌐</span>
+                </div>
+                <p className="text-sm lg:text-base font-medium leading-relaxed">
+                  Xây dựng trang cá nhân chuyên nghiệp & liên kết mạng xã hội.
+                </p>
+              </div>
+              
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <span className="text-xl">👥</span>
+                </div>
+                <p className="text-sm lg:text-base font-medium leading-relaxed">
+                  Giao lưu, tag bạn bè và thảo luận cùng hàng ngàn tác giả khác.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Right Column - Register Form */}
+        <div className="flex items-center justify-center p-6 lg:p-12">
+          <div className="w-full max-w-md bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 p-7 sm:p-9 shadow-xl animate-in fade-in slide-in-from-right duration-700 ease-out">
+            {/* Header Form */}
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="lg:hidden mb-4">
+                <Logo size="xl" showGlow={true} />
+              </div>
+              <h1 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+                Tạo tài khoản BlogViet
+              </h1>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed max-w-xs">
+                Gia nhập cộng đồng chia sẻ tri thức, âm nhạc và kết nối cùng bạn bè.
+              </p>
+            </div>
 
         {/* Error Alert */}
         {error && (
@@ -236,6 +293,8 @@ export default function Register() {
               Đăng nhập ngay
             </Link>
           </p>
+        </div>
+          </div>
         </div>
       </div>
     </div>
