@@ -21,6 +21,12 @@ import {
   Bookmark,
   Copy,
   Shield,
+  Facebook,
+  Instagram,
+  Music2,
+  Youtube,
+  Github,
+  Twitter,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
@@ -93,6 +99,12 @@ export default function Profile() {
     bannerUrl: "",
     friendListPrivacy: "PUBLIC",
     followerListPrivacy: "PUBLIC",
+    facebookUrl: "",
+    tiktokUrl: "",
+    instagramUrl: "",
+    youtubeUrl: "",
+    githubUrl: "",
+    twitterUrl: "",
   });
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -132,6 +144,12 @@ export default function Profile() {
           bannerUrl: userData.bannerUrl || "",
           friendListPrivacy: userData.friendListPrivacy || (userData.showFriendsList === false ? "PRIVATE" : "PUBLIC"),
           followerListPrivacy: userData.followerListPrivacy || (userData.showFollowingList === false ? "PRIVATE" : "PUBLIC"),
+          facebookUrl: userData.facebookUrl || "",
+          tiktokUrl: userData.tiktokUrl || "",
+          instagramUrl: userData.instagramUrl || "",
+          youtubeUrl: userData.youtubeUrl || "",
+          githubUrl: userData.githubUrl || "",
+          twitterUrl: userData.twitterUrl || "",
         });
       })
       .catch(() => {})
@@ -719,6 +737,78 @@ export default function Profile() {
             Chưa có tiểu sử. Bấm "Chỉnh sửa hồ sơ" để thêm giới thiệu về bạn!
           </p>
         ) : null}
+
+        {/* Social Media Links Icons */}
+        {(user.facebookUrl || user.tiktokUrl || user.instagramUrl || user.youtubeUrl || user.githubUrl || user.twitterUrl) && (
+          <div className="flex items-center justify-center gap-3 mt-3">
+            {user.facebookUrl && (
+              <a
+                href={user.facebookUrl.startsWith('http') ? user.facebookUrl : `https://${user.facebookUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-[#1877f2] hover:bg-[#1877f2] hover:text-white transition-all duration-200 cursor-pointer"
+                title="Facebook"
+              >
+                <Facebook className="w-4 h-4" />
+              </a>
+            )}
+            {user.tiktokUrl && (
+              <a
+                href={user.tiktokUrl.startsWith('http') ? user.tiktokUrl : `https://${user.tiktokUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-black dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black transition-all duration-200 cursor-pointer"
+                title="TikTok"
+              >
+                <Music2 className="w-4 h-4" />
+              </a>
+            )}
+            {user.instagramUrl && (
+              <a
+                href={user.instagramUrl.startsWith('http') ? user.instagramUrl : `https://${user.instagramUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-[#E4405F] hover:bg-[#E4405F] hover:text-white transition-all duration-200 cursor-pointer"
+                title="Instagram"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
+            )}
+            {user.youtubeUrl && (
+              <a
+                href={user.youtubeUrl.startsWith('http') ? user.youtubeUrl : `https://${user.youtubeUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-[#FF0000] hover:bg-[#FF0000] hover:text-white transition-all duration-200 cursor-pointer"
+                title="YouTube"
+              >
+                <Youtube className="w-4 h-4" />
+              </a>
+            )}
+            {user.githubUrl && (
+              <a
+                href={user.githubUrl.startsWith('http') ? user.githubUrl : `https://${user.githubUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all duration-200 cursor-pointer"
+                title="GitHub"
+              >
+                <Github className="w-4 h-4" />
+              </a>
+            )}
+            {user.twitterUrl && (
+              <a
+                href={user.twitterUrl.startsWith('http') ? user.twitterUrl : `https://${user.twitterUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black transition-all duration-200 cursor-pointer"
+                title="Twitter/X"
+              >
+                <Twitter className="w-4 h-4" />
+              </a>
+            )}
+          </div>
+        )}
 
         {/* Stats (Căn giữa) */}
         <div className="flex items-center justify-center gap-3 text-xs text-zinc-500 mt-2.5 pb-2">
@@ -1324,6 +1414,98 @@ export default function Profile() {
                   placeholder="Viết một vài dòng giới thiệu về bạn..."
                   className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 resize-none focus:outline-none"
                 />
+              </div>
+
+              {/* Social Media Links Section */}
+              <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-3">
+                <div className="flex items-center gap-1.5 text-zinc-900 dark:text-white font-bold text-xs">
+                  <Users className="w-3.5 h-3.5 text-blue-500" />
+                  <span>Liên kết mạng xã hội</span>
+                </div>
+
+                {/* Facebook */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                    Facebook
+                  </label>
+                  <input
+                    type="url"
+                    value={editForm.facebookUrl}
+                    onChange={(e) => setEditForm({ ...editForm, facebookUrl: e.target.value })}
+                    placeholder="facebook.com/username"
+                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                  />
+                </div>
+
+                {/* TikTok */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                    TikTok
+                  </label>
+                  <input
+                    type="url"
+                    value={editForm.tiktokUrl}
+                    onChange={(e) => setEditForm({ ...editForm, tiktokUrl: e.target.value })}
+                    placeholder="tiktok.com/@username"
+                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                  />
+                </div>
+
+                {/* Instagram */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                    Instagram
+                  </label>
+                  <input
+                    type="url"
+                    value={editForm.instagramUrl}
+                    onChange={(e) => setEditForm({ ...editForm, instagramUrl: e.target.value })}
+                    placeholder="instagram.com/username"
+                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                  />
+                </div>
+
+                {/* YouTube */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                    YouTube
+                  </label>
+                  <input
+                    type="url"
+                    value={editForm.youtubeUrl}
+                    onChange={(e) => setEditForm({ ...editForm, youtubeUrl: e.target.value })}
+                    placeholder="youtube.com/@username"
+                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                  />
+                </div>
+
+                {/* GitHub */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                    GitHub
+                  </label>
+                  <input
+                    type="url"
+                    value={editForm.githubUrl}
+                    onChange={(e) => setEditForm({ ...editForm, githubUrl: e.target.value })}
+                    placeholder="github.com/username"
+                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                  />
+                </div>
+
+                {/* Twitter/X */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                    Twitter/X
+                  </label>
+                  <input
+                    type="url"
+                    value={editForm.twitterUrl}
+                    onChange={(e) => setEditForm({ ...editForm, twitterUrl: e.target.value })}
+                    placeholder="x.com/username"
+                    className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white border border-transparent focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
+                  />
+                </div>
               </div>
 
               {/* Privacy Settings Section */}
