@@ -50,7 +50,7 @@ export default function Login() {
     <div className="min-h-screen w-full flex items-center justify-center bg-[#f8fafc] dark:bg-[#0b0f19] transition-colors duration-200 relative overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen w-full">
         {/* Left Column - Hero Introduction */}
-        <div className="hidden lg:flex flex-col justify-center p-12 lg:p-16 bg-gradient-to-br from-indigo-600 via-purple-600 to-rose-500 relative overflow-hidden animate-in fade-in slide-in-from-left duration-700 ease-out">
+        <div className="hidden lg:flex flex-col justify-center p-12 lg:p-16 bg-gradient-to-br from-indigo-600 via-purple-600 to-rose-500 relative overflow-hidden animate-slide-in-left">
           {/* Background patterns */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-20 left-20 w-64 h-64 bg-white rounded-full blur-3xl" />
@@ -107,7 +107,7 @@ export default function Login() {
 
         {/* Right Column - Login Form */}
         <div className="flex items-center justify-center p-6 lg:p-12">
-          <div className="w-full max-w-md bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 p-7 sm:p-9 shadow-xl animate-in fade-in slide-in-from-right duration-700 ease-out">
+          <div className="w-full max-w-md bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 p-7 sm:p-9 shadow-xl animate-slide-in-right">
             {/* Header Form */}
             <div className="flex flex-col items-center text-center mb-6">
               <div className="lg:hidden mb-4">
