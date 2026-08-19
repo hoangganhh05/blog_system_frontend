@@ -523,7 +523,7 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
             {/* Ảnh bài gốc (nếu có) */}
             {origMedia && (
               <div
-                className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 mt-1 max-h-[360px] bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center cursor-pointer group/media"
+                className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 mt-1 max-h-[360px] bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center cursor-pointer group/media"
                 onClick={(e) => openTheater(e, 0)}
               >
                 <img
@@ -531,6 +531,7 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
                   alt=""
                   className="w-full h-auto max-h-[360px] object-cover object-center block hover:opacity-95 transition-opacity"
                   loading="lazy"
+                  decoding="async"
                 />
               </div>
             )}
@@ -553,7 +554,7 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
           if (cardImages.length === 1) {
             return (
               <div
-                className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100/80 dark:bg-zinc-900/80 my-2 max-h-[540px] flex items-center justify-center cursor-pointer group/media"
+                className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[540px] flex items-center justify-center cursor-pointer group/media"
                 onClick={(e) => openTheater(e, 0)}
               >
                 <img
@@ -561,6 +562,7 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
                   alt=""
                   className="w-full h-auto max-h-[540px] object-cover object-center block hover:opacity-95 transition-opacity"
                   loading="lazy"
+                  decoding="async"
                 />
               </div>
             );
@@ -568,11 +570,11 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
 
           if (cardImages.length === 2) {
             return (
-              <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 my-2 max-h-[380px]">
+              <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[380px]">
                 {cardImages.slice(0, 2).map((img, idx) => (
                   <div
                     key={idx}
-                    className="relative h-[280px] cursor-pointer overflow-hidden group/media"
+                    className="relative h-[280px] bg-zinc-100 dark:bg-zinc-800 cursor-pointer overflow-hidden group/media"
                     onClick={(e) => openTheater(e, idx)}
                   >
                     <img
@@ -580,6 +582,7 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
                       alt=""
                       className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
                       loading="lazy"
+                      decoding="async"
                     />
                   </div>
                 ))}
@@ -589,9 +592,9 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
 
           if (cardImages.length === 3) {
             return (
-              <div className="grid grid-cols-3 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 my-2 max-h-[380px]">
+              <div className="grid grid-cols-3 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[380px]">
                 <div
-                  className="col-span-2 relative h-[320px] cursor-pointer overflow-hidden group/media"
+                  className="col-span-2 relative h-[320px] bg-zinc-100 dark:bg-zinc-800 cursor-pointer overflow-hidden group/media"
                   onClick={(e) => openTheater(e, 0)}
                 >
                   <img
@@ -599,13 +602,14 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
                     alt=""
                     className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
                     loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="flex flex-col gap-1 h-[320px]">
                   {cardImages.slice(1, 3).map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative h-[158px] cursor-pointer overflow-hidden group/media"
+                      className="relative h-[158px] bg-zinc-100 dark:bg-zinc-800 cursor-pointer overflow-hidden group/media"
                       onClick={(e) => openTheater(e, idx + 1)}
                     >
                       <img
@@ -613,6 +617,7 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
                         alt=""
                         className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
                         loading="lazy"
+                        decoding="async"
                       />
                     </div>
                   ))}
@@ -623,11 +628,11 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
 
           // 4 ảnh trở lên
           return (
-            <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 my-2 max-h-[400px]">
+            <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[400px]">
               {cardImages.slice(0, 4).map((img, idx) => (
                 <div
                   key={idx}
-                  className="relative h-[190px] cursor-pointer overflow-hidden group/media"
+                  className="relative h-[190px] bg-zinc-100 dark:bg-zinc-800 cursor-pointer overflow-hidden group/media"
                   onClick={(e) => openTheater(e, idx)}
                 >
                   <img
@@ -635,6 +640,7 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
                     alt=""
                     className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
                     loading="lazy"
+                    decoding="async"
                   />
                   {idx === 3 && cardImages.length > 4 && (
                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-xl font-black">

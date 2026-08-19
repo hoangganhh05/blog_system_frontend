@@ -7,6 +7,8 @@ import userService from "../services/userService";
 import followService from "../services/followService";
 import { useAuth } from "../context/AuthContext";
 import PostCard from "../components/PostCard";
+import PostSkeleton from "../components/PostSkeleton";
+import EmptyState from "../components/EmptyState";
 import StoryBar from "../components/StoryBar";
 import QuickComposer from "../components/QuickComposer";
 import Avatar from "../components/Avatar";
@@ -26,24 +28,6 @@ const PAGE_SIZE = 20;
 function getInitials(name) {
   if (!name) return "?";
   return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
-}
-
-function PostSkeleton() {
-  return (
-    <div className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl animate-pulse">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800" />
-        <div className="flex-1 flex flex-col gap-1.5">
-          <div className="w-32 h-3.5 bg-zinc-200 dark:bg-zinc-800 rounded" />
-          <div className="w-20 h-2.5 bg-zinc-200 dark:bg-zinc-800 rounded" />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <div className="w-full h-3 bg-zinc-200 dark:bg-zinc-800 rounded" />
-        <div className="w-3/4 h-3 bg-zinc-200 dark:bg-zinc-800 rounded" />
-      </div>
-    </div>
-  );
 }
 
 export default function Home() {
@@ -504,6 +488,7 @@ export default function Home() {
             <PostSkeleton />
             <PostSkeleton />
             <PostSkeleton />
+            <PostSkeleton />
           </>
         ) : displayedPosts.length === 0 ? (
           activeTab === "following" ? (
@@ -566,15 +551,16 @@ export default function Home() {
             </div>
           ) : (
             /* Empty State cho Tab Dành Cho Bạn */
-            <div className="p-12 text-center flex flex-col items-center justify-center gap-3 text-zinc-400 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 animate-scale-in">
-              <MessageSquare className="w-12 h-12 stroke-[1.25] text-zinc-300 dark:text-zinc-700" />
-              <p className="font-semibold text-sm text-zinc-600 dark:text-zinc-400">
-                Chưa có bài viết nào
-              </p>
-              <p className="text-xs text-zinc-500 max-w-xs leading-relaxed">
-                Hãy là người đầu tiên chia sẻ suy nghĩ, kinh nghiệm hoặc bắt đầu một chủ đề thảo luận!
-              </p>
-            </div>
+            <EmptyState
+              icon={MessageSquare}
+              onAction={() => {
+                const composer = document.getElementById("quick-composer-input");
+                if (composer) {
+                  composer.focus();
+                  composer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }}
+            />
           )
         ) : (
           filteredDisplayedPosts.map((post, idx) => (

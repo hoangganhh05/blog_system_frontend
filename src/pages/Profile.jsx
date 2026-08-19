@@ -32,6 +32,8 @@ import friendService from "../services/friendService";
 import followService from "../services/followService";
 import uploadService from "../services/uploadService";
 import PostCard from "../components/PostCard";
+import PostSkeleton from "../components/PostSkeleton";
+import EmptyState from "../components/EmptyState";
 import StoryArchiveModal from "../components/StoryArchiveModal";
 import ConfirmModal from "../components/ConfirmModal";
 import { isUserOnline, formatLastActive, isUserActiveStatusEnabled, setUserActiveStatusEnabled } from "../utils/statusUtils";
@@ -1384,10 +1386,28 @@ export default function Profile() {
       {/* Tab Content List */}
       <div key={activeTab} className="animate-tab-fade flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900 mt-2">
         {activeTab === "posts" ? (
-          posts.length === 0 ? (
-            <div className="p-12 text-center text-zinc-400 text-xs">
-              Chưa có bài viết nào.
+          loading ? (
+            <div className="flex flex-col gap-2">
+              <PostSkeleton />
+              <PostSkeleton />
+              <PostSkeleton />
             </div>
+          ) : posts.length === 0 ? (
+            <EmptyState
+              title="Chưa có bài viết nào"
+              description={isMe ? "Hãy chia sẻ câu chuyện đầu tiên của bạn với mọi người." : "Người dùng này chưa đăng bài viết nào."}
+              actionText={isMe ? "Tạo bài viết mới" : undefined}
+              onAction={isMe ? () => {
+                navigate("/");
+                setTimeout(() => {
+                  const composer = document.getElementById("quick-composer-input");
+                  if (composer) {
+                    composer.focus();
+                    composer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                }, 100);
+              } : undefined}
+            />
           ) : (
             posts.map((post) => (
               <PostCard
