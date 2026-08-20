@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
   X,
-  Sparkles,
+  MessageSquare,
   Send,
   Loader2,
   Trash2,
@@ -29,7 +29,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
       id: "ai-intro",
       role: "ai",
       content:
-        "Xin chào! Mình là **Trợ lý BlogViet** được hỗ trợ bởi trí tuệ nhân tạo Gemini 3.7 Flash ✨.\n\nMình có thể giúp bạn lên ý tưởng, viết bài blog, tóm tắt nội dung, giải đáp thắc mắc và phân tích hình ảnh (ảnh chụp màn hình, ảnh lỗi, v.v.). Hãy nhắn hoặc gửi ảnh cho mình nhé!",
+        "Xin chào! Mình là **Trợ lý BlogViet**.\n\nMình có thể giúp bạn lên ý tưởng, viết bài blog, tóm tắt nội dung, giải đáp thắc mắc và phân tích hình ảnh (ảnh chụp màn hình, ảnh lỗi, v.v.). Hãy nhắn hoặc gửi ảnh cho mình nhé!",
       time: new Date(),
     },
   ]);
@@ -252,12 +252,12 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
         id: "ai-intro-new",
         role: "ai",
         content:
-          "Đã làm mới đoạn hội thoại! Bạn muốn khám phá hoặc phân tích hình ảnh gì tiếp theo? ✨",
+          "Đã làm mới đoạn hội thoại! Bạn muốn khám phá hoặc phân tích hình ảnh gì tiếp theo?",
         time: new Date(),
       },
     ]);
     setSelectedImage(null);
-    toast.info("Đã xóa lịch sử trò chuyện với AI");
+    toast.info("Đã xóa lịch sử trò chuyện");
   };
 
   if (!isOpen || typeof document === "undefined" || !document.body) return null;
@@ -274,8 +274,8 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
         {/* Header */}
         <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center shadow-md">
-              <Sparkles className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md">
+              <MessageSquare className="w-4 h-4" />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
@@ -283,12 +283,12 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
                   Trợ lý BlogViet
                 </span>
                 <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/60">
-                  Gemini 3.7 Flash · Streaming
+                  Streaming
                 </span>
               </div>
               <span className="text-[10px] text-emerald-500 font-medium flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Phản hồi siêu tốc 24/7
+                Phản hồi nhanh 24/7
               </span>
             </div>
           </div>
@@ -331,7 +331,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
                 >
                   {!isUser && (
                     <div className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] shrink-0 mb-1 shadow-xs">
-                      ✨
+                      BV
                     </div>
                   )}
 
@@ -355,7 +355,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
                       </div>
                     )}
 
-                    {/* AI Typing / Streaming Indicator (shown when waiting for first token or when content is empty) */}
+                    {/* Typing / Streaming Indicator (shown when waiting for first token or when content is empty) */}
                     {!isUser && !hasContent && !msg.isError && (
                       <div className="flex items-center gap-2 py-1 text-zinc-500 dark:text-zinc-400">
                         <div className="flex items-center gap-1">
@@ -363,7 +363,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
                           <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce [animation-delay:-0.15s]" />
                           <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" />
                         </div>
-                        <span className="text-[11px] font-medium ml-1">Trợ lý AI đang suy nghĩ...</span>
+                        <span className="text-[11px] font-medium ml-1">Đang suy nghĩ...</span>
                       </div>
                     )}
 
@@ -473,7 +473,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
               <span className="text-[10px] text-zinc-400">
                 {(selectedImage.file?.size
                   ? (selectedImage.file.size / 1024).toFixed(1) + " KB"
-                  : "")} · Sẵn sàng gửi để AI phân tích
+                  : "")} · Sẵn sàng gửi để phân tích
               </span>
             </div>
             <button
@@ -520,7 +520,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
             onChange={(e) => setInputText(e.target.value)}
             placeholder={
               selectedImage
-                ? "Nhập câu hỏi về hình ảnh này (hoặc bấm gửi để AI phân tích)..."
+                ? "Nhập câu hỏi về hình ảnh này (hoặc bấm gửi để phân tích)..."
                 : "Hỏi bất kỳ điều gì với Trợ lý BlogViet..."
             }
             disabled={isThinking || isStreaming}
