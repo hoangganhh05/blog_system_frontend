@@ -24,6 +24,7 @@ export default function MainLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
 
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
@@ -95,6 +96,18 @@ export default function MainLayout({ children }) {
       window.removeEventListener("open_ai_assistant", handleOpenAi);
       window.removeEventListener("close_ai_assistant", handleCloseAi);
     };
+  }, []);
+
+  // Sync sidebar collapsed state from LeftSidebar
+  useEffect(() => {
+    const handleSidebarToggle = (e) => {
+      if (typeof e.detail?.isSidebarCollapsed === "boolean") {
+        setIsSidebarCollapsed(e.detail.isSidebarCollapsed);
+      }
+    };
+
+    window.addEventListener("sidebar_toggle", handleSidebarToggle);
+    return () => window.removeEventListener("sidebar_toggle", handleSidebarToggle);
   }, []);
 
   // Scroll to Top Listener (Handles both independent main column and window scroll)
@@ -389,7 +402,9 @@ export default function MainLayout({ children }) {
           - Profile / Posts / Tools: Balanced Centered Layout
           ====================================================================== */}
       {is3ColumnFeedPage ? (
-        <div className="w-full max-w-[1360px] mx-auto min-h-screen grid grid-cols-12 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-4 md:pl-24 md:pr-4 pt-3 sm:pt-4 items-start">
+        <div className={`w-full max-w-[1360px] mx-auto min-h-screen grid grid-cols-12 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-4 pt-3 sm:pt-4 items-start transition-all duration-300 ${
+          isSidebarCollapsed ? "md:pl-24" : "md:pl-72"
+        } md:pr-4`}>
           {/* CENTER COLUMN: Main Content Feed (col-span-12 on mobile, lg:col-span-8 on desktop) */}
           <main
             ref={mainRef}
@@ -408,7 +423,9 @@ export default function MainLayout({ children }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className={`w-full flex-1 px-2 sm:px-4 md:pl-24 md:pr-6 pt-3 sm:pt-5 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-3 touch-pan-y animate-fade-in-up ${
+          className={`w-full flex-1 px-2 sm:px-4 pt-3 sm:pt-5 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-3 touch-pan-y animate-fade-in-up transition-all duration-300 ${
+            isSidebarCollapsed ? "md:pl-24" : "md:pl-72"
+          } md:pr-6 ${
             isProfilePage
               ? "max-w-5xl mx-auto"
               : isPostDetailPage
