@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Upload, X, Play, Pause, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import uploadService from "../services/uploadService";
+import postService from "../services/postService";
 
 const MAX_DURATION = 120; // 2 minutes in seconds
 const MAX_SIZE = 30 * 1024 * 1024; // 30MB
@@ -14,6 +16,7 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [validationError, setValidationError] = useState(null);
+  const [caption, setCaption] = useState("");
   
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -122,34 +125,52 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
     setUploadProgress(0);
 
     try {
-      // Simulate upload progress (replace with actual Cloudflare R2 upload)
-      const uploadInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(uploadInterval);
-            return 100;
-          }
-          return prev + 10;
-        });
-      }, 200);
+      // 1) Upload the actual video file to the API (multipart FormData) → real public URL
+      const result = await uploadService.uploadMedia(
+        selectedFile,
+        (progress) => {
+          setUploadProgress(progress);
+        },
+        "shorts"
+      );
 
-      // Simulate upload delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const uploadedUrl = result?.data?.url || result?.url;
 
-      clearInterval(uploadInterval);
+      if (!uploadedUrl) {
+        throw new Error("Không nhận được URL từ server");
+      }
+
       setUploadProgress(100);
 
+      // 2) Create a real Post record via the API so the video appears in the feed
+      const payload = {
+        title: caption.trim().slice(0, 300) || "Video ngắn",
+        content: caption.trim(),
+        body: caption.trim(),
+        thumbNail: uploadedUrl,
+        thumbnail: uploadedUrl,
+        videoUrl: uploadedUrl,
+        mediaType: "video",
+        images: [],
+        imageUrls: [uploadedUrl],
+        mediaUrls: [uploadedUrl],
+        status: "PUBLISHED",
+      };
+
+      const created = await postService.create(payload);
+      const createdPost = created?.data;
+
       toast.success("Đăng video thành công!");
-      
-      if (onUploadSuccess) {
-        onUploadSuccess(selectedFile);
+
+      if (onUploadSuccess && createdPost) {
+        onUploadSuccess(createdPost);
       }
 
       // Cleanup after successful upload
       handleRemoveVideo();
-
     } catch (error) {
-      toast.error("Lỗi khi tải lên video");
+      console.error("Upload error:", error);
+      toast.error("Lỗi khi tải lên video: " + (error.message || "Vui lòng thử lại"));
       setValidationError("Không thể tải lên video. Vui lòng thử lại.");
     } finally {
       setIsUploading(false);
@@ -165,17 +186,25 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
 
   if (!selectedFile) {
     return (
-      <div className="w-full max-w-sm mx-auto">
-        <div className="relative aspect-[9/16] bg-slate-100 dark:bg-zinc-800 rounded-2xl border-2 border-dashed border-slate-300 dark:border-zinc-700 flex flex-col items-center justify-center cursor-pointer hover:border-[#0866ff] hover:bg-slate-50 dark:hover:bg-zinc-700/50 transition-all group">
+      <div className="w-full max-w-md mx-auto px-4 space-y-4">
+        <textarea
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
+          placeholder="Chờính mô tả video ngắn (opcional)…"
+          rows={2}
+          maxLength={300}
+          className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 resize-none focus:outline-none focus:ring-2 focus:ring-[#0866ff]/40"
+        />
+        <div className="relative aspect-[9/16] max-h-[500px] bg-slate-100 dark:bg-zinc-800 rounded-2xl border-2 border-dashed border-slate-300 dark:border-zinc-700 flex flex-col items-center justify-center cursor-pointer hover:border-[#0866ff] hover:bg-slate-50 dark:hover:bg-zinc-700/50 transition-all group overflow-hidden">
           <input
             ref={fileInputRef}
             type="file"
             accept="video/mp4,video/webm,video/quicktime"
             onChange={handleFileSelect}
-            className="absolute inset-0 opacity-0 cursor-pointer"
+            className="absolute inset-0 opacity-0 cursor-pointer z-10"
           />
-          
-          <div className="flex flex-col items-center gap-3 p-6 text-center">
+
+          <div className="flex flex-col items-center gap-3 p-6 text-center z-0">
             <div className="w-16 h-16 rounded-full bg-slate-200 dark:bg-zinc-700 flex items-center justify-center group-hover:bg-[#0866ff]/10 group-hover:scale-110 transition-all">
               <Upload className="w-8 h-8 text-slate-400 dark:text-zinc-500 group-hover:text-[#0866ff]" />
             </div>
@@ -194,8 +223,16 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <div className="relative aspect-[9/16] bg-black rounded-2xl overflow-hidden shadow-lg">
+    <div className="w-full max-w-md mx-auto px-4 space-y-4">
+      <textarea
+        value={caption}
+        onChange={(e) => setCaption(e.target.value)}
+        placeholder="Chờính mô tả video ngắn (opcional)…"
+        rows={2}
+        maxLength={300}
+        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 resize-none focus:outline-none focus:ring-2 focus:ring-[#0866ff]/40"
+      />
+      <div className="relative aspect-[9/16] max-h-[600px] bg-black rounded-2xl overflow-hidden shadow-lg">
         {/* Video Preview */}
         <video
           ref={videoRef}
@@ -210,7 +247,7 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
 
         {/* Top Actions */}
-        <div className="absolute top-3 right-3 flex gap-2 pointer-events-auto">
+        <div className="absolute top-3 right-3 flex gap-2 pointer-events-auto z-20">
           <button
             type="button"
             onClick={handleRemoveVideo}
@@ -225,7 +262,7 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
         <button
           type="button"
           onClick={togglePlayPause}
-          className="absolute inset-0 flex items-center justify-center pointer-events-auto group"
+          className="absolute inset-0 flex items-center justify-center pointer-events-auto group z-10"
         >
           <div className={`w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all group-hover:scale-110 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
             {isPlaying ? (
@@ -237,7 +274,7 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
         </button>
 
         {/* Bottom Info */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-none">
+        <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-none z-20">
           {validationError ? (
             <div className="flex items-center gap-2 text-red-400 text-xs mb-2">
               <AlertCircle className="w-4 h-4" />
