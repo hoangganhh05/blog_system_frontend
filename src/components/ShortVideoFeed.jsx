@@ -189,6 +189,7 @@ export default function ShortVideoFeed() {
   };
 
   const handleComment = (videoId) => {
+    setShowComments(true);
     setCommentsFor(videoId);
     setCommentLoading(true);
     setCommentList([]);
