@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Heart, MessageCircle, Share2, MoreHorizontal, Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, Plus, X, Loader2, Video } from "lucide-react";
+import { Heart, MessageCircle, Share2, MoreHorizontal, Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, Plus, X, Loader2, Video, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
@@ -22,6 +22,8 @@ export default function ShortVideoFeed() {
   const [commentsFor, setCommentsFor] = useState(null);
   const [commentList, setCommentList] = useState([]);
   const [commentLoading, setCommentLoading] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [progressMap, setProgressMap] = useState({});
   const [expandedCaptions, setExpandedCaptions] = useState({});
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -190,6 +192,7 @@ export default function ShortVideoFeed() {
     setCommentsFor(videoId);
     setCommentLoading(true);
     setCommentList([]);
+    setCommentText("");
     commentService
       .getByPostId(videoId)
       .then((res) => {
@@ -198,6 +201,33 @@ export default function ShortVideoFeed() {
       })
       .catch(() => setCommentList([]))
       .finally(() => setCommentLoading(false));
+  };
+
+  const handleSubmitComment = async (e) => {
+    e.preventDefault();
+    if (!commentText.trim() || !commentsFor || isSubmittingComment) return;
+
+    setIsSubmittingComment(true);
+    try {
+      const res = await commentService.create({
+        content: commentText.trim(),
+        post: { id: commentsFor }
+      });
+      setCommentList((prev) => [...prev, res.data]);
+      setCommentText("");
+      toast.success("Đã đăng bình luận!");
+    } catch {
+      toast.error("Không thể gửi bình luận. Vui lòng thử lại!");
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
+  const closeComments = () => {
+    setShowComments(false);
+    setCommentsFor(null);
+    setCommentList([]);
+    setCommentText("");
   };
 
   const toggleMute = (e) => {
@@ -504,21 +534,29 @@ export default function ShortVideoFeed() {
       </div>
 
       {showComments && commentsFor !== null && (
-        <div className="fixed inset-0 bg-black/60 z-30 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white dark:bg-zinc-900 w-full max-w-lg rounded-t-3xl sm:rounded-3xl flex flex-col max-h-[75vh] sm:max-h-[80vh] shadow-2xl animate-in slide-in-from-bottom-10 duration-200">
+        <>
+          {/* Backdrop — click to close */}
+          <div
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            onClick={closeComments}
+          />
+
+          {/* Comments Bottom Sheet / Right Sidebar */}
+          <div
+            className="fixed inset-x-0 bottom-0 z-50 h-[65dvh] w-full bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl flex flex-col animate-in slide-in-from-bottom duration-200 sm:right-0 sm:top-0 sm:bottom-0 sm:h-auto sm:w-[400px] sm:rounded-l-3xl sm:animate-in sm:slide-in-from-right sm:duration-200"
+          >
+            {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-              <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">Bình luận</h3>
+              <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100">Bình luận</h3>
               <button
-                onClick={() => {
-                  setShowComments(false);
-                  setCommentsFor(null);
-                  setCommentList([]);
-                }}
-                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition text-zinc-500 dark:text-zinc-400"
+                onClick={closeComments}
+                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition text-zinc-500 dark:text-zinc-400 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Comments List */}
             <div className="flex-1 overflow-y-auto overscroll-y-contain p-4 space-y-4">
               {commentLoading ? (
                 <div className="flex justify-center py-10">
@@ -586,8 +624,42 @@ export default function ShortVideoFeed() {
                 })
               )}
             </div>
+
+            {/* Comment Input — fixed at bottom of sheet */}
+            <form
+              onSubmit={handleSubmitComment}
+              className="shrink-0 p-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center gap-2 bg-white dark:bg-zinc-900"
+            >
+              <Avatar
+                userId={currentUser?.id}
+                src={currentUser?.avatarUrl}
+                name={currentUser?.fullName || currentUser?.username}
+                username={currentUser?.username}
+                avatarColor={currentUser?.avatarColor}
+                size="sm"
+                className="border border-zinc-200 dark:border-zinc-700 shadow-xs shrink-0"
+              />
+              <input
+                type="text"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Viết bình luận công khai..."
+                className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#0866ff]/40"
+              />
+              <button
+                type="submit"
+                disabled={!commentText.trim() || isSubmittingComment}
+                className="p-2.5 rounded-full bg-[#0866ff] text-white hover:bg-[#0756d6] disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center justify-center shrink-0"
+              >
+                {isSubmittingComment ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+              </button>
+            </form>
           </div>
-        </div>
+        </>
       )}
 
       {showUploadModal && (
