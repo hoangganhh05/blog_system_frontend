@@ -239,14 +239,11 @@ export default function MessengerDropdown({ isOpen, onClose }) {
       window.removeEventListener("chat_message_received", handleMessageReceived);
   }, [isOpen, currentUserId]);
 
-  if (!isOpen) return null;
-
   // Handle visual viewport resize for mobile keyboard
   useEffect(() => {
     if (!isMobile) return;
     
     const handleViewportResize = () => {
-      // Auto-scroll when keyboard opens/closes
       const activeElement = document.activeElement;
       if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
         activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -258,6 +255,8 @@ export default function MessengerDropdown({ isOpen, onClose }) {
       return () => window.visualViewport.removeEventListener('resize', handleViewportResize);
     }
   }, [isMobile]);
+
+  if (!isOpen) return null;
 
   // Lọc cuộc trò chuyện theo Search và Tab Lọc
   const filteredConversations = conversations.filter((item) => {
