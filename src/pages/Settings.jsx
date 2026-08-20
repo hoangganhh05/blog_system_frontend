@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { toast } from "sonner";
 import userService from "../services/userService";
 import uploadService from "../services/uploadService";
@@ -64,6 +65,7 @@ const tabs = [
 
 export default function Settings() {
   const { currentUser } = useAuth();
+  const { setTheme: setContextTheme, themeMode: contextThemeMode } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -110,8 +112,8 @@ export default function Settings() {
     friendRequestNotifications: true,
   });
 
-  // Appearance form state
-  const [theme, setTheme] = useState("system");
+  // Appearance form state — đồng bộ với ThemeContext
+  const [theme, setTheme] = useState(() => contextThemeMode);
 
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
@@ -150,10 +152,6 @@ export default function Settings() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-
-    // Load theme from localStorage
-    const savedTheme = localStorage.getItem("theme") || "system";
-    setTheme(savedTheme);
   }, [currentUser, navigate]);
 
   // Update URL when tab changes
@@ -162,6 +160,11 @@ export default function Settings() {
     params.set("tab", activeTab);
     navigate(`/settings?${params.toString()}`, { replace: true });
   }, [activeTab, navigate]);
+
+  // Giữ local theme state đồng bộ nếu ThemeContext thay đổi từ bên ngoài
+  useEffect(() => {
+    setTheme(contextThemeMode);
+  }, [contextThemeMode]);
 
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
@@ -234,19 +237,8 @@ export default function Settings() {
 
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-    
-    // Apply theme
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-    
-    if (newTheme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(newTheme);
-    }
-    
+    // Ủy quyền hoàn toàn cho ThemeContext — nó sẽ cập nhật DOM, localStorage, data-theme
+    setContextTheme(newTheme);
     toast.success("Đã áp dụng chế độ giao diện");
   };
 
