@@ -1,12 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import {
-  Home,
-  Compass,
-  Radio,
-  Users,
-  Bookmark,
-  BarChart3,
   ChevronRight,
   ChevronLeft,
   User,
@@ -26,21 +20,6 @@ export default function LeftSidebar() {
   const { currentUser } = useAuth();
   const currentUserId = currentUser ? Number(currentUser.id || currentUser.userId) : null;
   const [isExpanded, setIsExpanded] = useState(false);
-
-  // Load saved state from localStorage
-  useEffect(() => {
-    const savedState = localStorage.getItem("sidebar_expanded");
-    if (savedState !== null) {
-      setIsExpanded(savedState === "true");
-    }
-  }, []);
-
-  // Save state to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem("sidebar_expanded", isExpanded.toString());
-    // Emit custom event for MainLayout to sync
-    window.dispatchEvent(new CustomEvent("sidebar_state_changed"));
-  }, [isExpanded]);
 
   const toggleSidebar = () => {
     setIsExpanded(!isExpanded);
@@ -73,7 +52,7 @@ export default function LeftSidebar() {
       {currentUser ? (
         <Link
           to={`/profile/${currentUserId}`}
-          className={`flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition relative group mb-2 shrink-0 ${
+          className={`flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition mb-2 shrink-0 ${
             isExpanded ? "mx-2" : "mx-auto"
           }`}
         >
@@ -96,17 +75,11 @@ export default function LeftSidebar() {
               <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">@{currentUser.username}</span>
             </div>
           )}
-          {!isExpanded && (
-            <div className="absolute left-full ml-3.5 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 dark:bg-zinc-800 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all shadow-lg z-50">
-              Trang cá nhân ({currentUser.fullName || currentUser.username})
-              <div className="absolute right-full top-1/2 -translate-y-1/2 -mr-1 border-4 border-transparent border-r-slate-900 dark:border-r-zinc-800" />
-            </div>
-          )}
         </Link>
       ) : (
         <Link
           to="/login"
-          className={`flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-400 transition mb-2 shrink-0 relative group ${
+          className={`flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-400 transition mb-2 shrink-0 ${
             isExpanded ? "mx-2" : "mx-auto"
           }`}
         >
@@ -115,12 +88,6 @@ export default function LeftSidebar() {
             <span className="text-xs font-medium text-slate-700 dark:text-slate-200 animate-in fade-in slide-in-from-left-2 duration-300">
               Đăng nhập
             </span>
-          )}
-          {!isExpanded && (
-            <div className="absolute left-full ml-3.5 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 dark:bg-zinc-800 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all shadow-lg z-50">
-              Đăng nhập
-              <div className="absolute right-full top-1/2 -translate-y-1/2 -mr-1 border-4 border-transparent border-r-slate-900 dark:border-r-zinc-800" />
-            </div>
           )}
         </Link>
       )}
@@ -135,7 +102,7 @@ export default function LeftSidebar() {
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all relative group cursor-pointer ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
                 isActive
                   ? "bg-[#0866ff]/10 dark:bg-[#0866ff]/20 text-[#0866ff]"
                   : "text-slate-600 dark:text-zinc-400 hover:text-[#0866ff] dark:hover:text-[#0866ff] hover:bg-slate-100 dark:hover:bg-zinc-800/80"
@@ -152,12 +119,6 @@ export default function LeftSidebar() {
                   <span className="text-xs font-medium text-slate-700 dark:text-slate-200 animate-in fade-in slide-in-from-left-2 duration-300">
                     {tooltip}
                   </span>
-                )}
-                {!isExpanded && (
-                  <div className="absolute left-full ml-3.5 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 dark:bg-zinc-800 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 shadow-lg z-50">
-                    {tooltip}
-                    <div className="absolute right-full top-1/2 -translate-y-1/2 -mr-1 border-4 border-transparent border-r-slate-900 dark:border-r-zinc-800" />
-                  </div>
                 )}
               </>
             )}

@@ -24,7 +24,6 @@ export default function MainLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
-  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
@@ -95,29 +94,6 @@ export default function MainLayout({ children }) {
     return () => {
       window.removeEventListener("open_ai_assistant", handleOpenAi);
       window.removeEventListener("close_ai_assistant", handleCloseAi);
-    };
-  }, []);
-
-  // Sync sidebar expanded state from localStorage
-  useEffect(() => {
-    const handleSidebarChange = () => {
-      const savedState = localStorage.getItem("sidebar_expanded");
-      setSidebarExpanded(savedState === "true");
-    };
-
-    // Initial load
-    handleSidebarChange();
-
-    // Listen for storage changes
-    window.addEventListener("storage", handleSidebarChange);
-    
-    // Also listen for custom event from sidebar
-    const handleCustomEvent = () => handleSidebarChange();
-    window.addEventListener("sidebar_state_changed", handleCustomEvent);
-
-    return () => {
-      window.removeEventListener("storage", handleSidebarChange);
-      window.removeEventListener("sidebar_state_changed", handleCustomEvent);
     };
   }, []);
 
@@ -413,9 +389,7 @@ export default function MainLayout({ children }) {
           - Profile / Posts / Tools: Balanced Centered Layout
           ====================================================================== */}
       {is3ColumnFeedPage ? (
-        <div className={`w-full max-w-[1360px] mx-auto min-h-screen grid grid-cols-12 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-4 pt-3 sm:pt-4 items-start transition-all duration-300 ${
-          sidebarExpanded ? "md:pl-72" : "md:pl-24"
-        } md:pr-4`}>
+        <div className="w-full max-w-[1360px] mx-auto min-h-screen grid grid-cols-12 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-4 md:pl-24 md:pr-4 pt-3 sm:pt-4 items-start">
           {/* CENTER COLUMN: Main Content Feed (col-span-12 on mobile, lg:col-span-8 on desktop) */}
           <main
             ref={mainRef}
@@ -434,9 +408,7 @@ export default function MainLayout({ children }) {
         <main
           ref={mainRef}
           onScroll={handleMainScroll}
-          className={`w-full flex-1 px-2 sm:px-4 pt-3 sm:pt-5 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-3 touch-pan-y animate-fade-in-up transition-all duration-300 ${
-            sidebarExpanded ? "md:pl-72" : "md:pl-24"
-          } md:pr-6 ${
+          className={`w-full flex-1 px-2 sm:px-4 md:pl-24 md:pr-6 pt-3 sm:pt-5 pb-36 sm:pb-28 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-16 flex flex-col gap-3 touch-pan-y animate-fade-in-up ${
             isProfilePage
               ? "max-w-5xl mx-auto"
               : isPostDetailPage
