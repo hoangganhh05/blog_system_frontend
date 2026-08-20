@@ -135,11 +135,7 @@ export default function LeftSidebar() {
         }`}
         title={isSidebarCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
       >
-        {isSidebarCollapsed ? (
-          <ChevronRight className="w-5 h-5" />
-        ) : (
-          <ChevronLeft className="w-5 h-5" />
-        )}
+        <ChevronRight className={`w-5 h-5 transition-transform duration-300 ${isSidebarCollapsed ? "rotate-0" : "rotate-180"}`} />
       </button>
     </aside>
   );
