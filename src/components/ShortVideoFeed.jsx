@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Heart, MessageCircle, Share2, MoreHorizontal, Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, Plus, X, Loader2, Video, Send } from "lucide-react";
+import { Heart, MessageCircle, Share2, MoreHorizontal, Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, X, Loader2, Video, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import Avatar from "./Avatar";
-import ShortVideoUpload from "./ShortVideoUpload";
 import ShareModal from "./ShareModal";
 import postService from "../services/postService";
 import likeService from "../services/likeService";
@@ -17,7 +16,6 @@ export default function ShortVideoFeed() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [showComments, setShowComments] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false);
   const [shareVideo, setShareVideo] = useState(null);
   const [commentsFor, setCommentsFor] = useState(null);
   const [commentList, setCommentList] = useState([]);
@@ -92,6 +90,14 @@ export default function ShortVideoFeed() {
 
   useEffect(() => {
     fetchVideoPosts();
+  }, [fetchVideoPosts]);
+
+  useEffect(() => {
+    const handleShortsRefresh = () => {
+      fetchVideoPosts();
+    };
+    window.addEventListener("shorts_refresh", handleShortsRefresh);
+    return () => window.removeEventListener("shorts_refresh", handleShortsRefresh);
   }, [fetchVideoPosts]);
 
   useEffect(() => {
@@ -326,13 +332,6 @@ export default function ShortVideoFeed() {
           <h1 className="text-white font-bold text-lg tracking-tight drop-shadow">Shorts</h1>
         </div>
         <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white p-2.5 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
-            title="Tải video lên"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
           <button
             onClick={() => navigate("/")}
             className="rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white p-2.5 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
@@ -661,31 +660,6 @@ export default function ShortVideoFeed() {
             </form>
           </div>
         </>
-      )}
-
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-black/80 z-40 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-md animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
-              <h3 className="font-bold text-lg">Tải video lên</h3>
-              <button
-                onClick={() => setShowUploadModal(false)}
-                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-4">
-              <ShortVideoUpload
-                onUploadSuccess={() => {
-                  setShowUploadModal(false);
-                  fetchVideoPosts();
-                }}
-                onCancel={() => setShowUploadModal(false)}
-              />
-            </div>
-          </div>
-        </div>
       )}
 
       {shareVideo && (

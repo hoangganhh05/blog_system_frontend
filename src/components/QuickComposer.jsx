@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
-import { Image, Smile, Tag, Globe, Lock, X, Loader2, ChevronDown } from "lucide-react";
+import { Image, Video, Smile, Tag, Globe, Lock, X, Loader2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import postService from "../services/postService";
 import uploadService from "../services/uploadService";
 import Avatar from "./Avatar";
+import ShortVideoUpload from "./ShortVideoUpload";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -27,6 +28,7 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showCategorySelect, setShowCategorySelect] = useState(false);
+  const [showShortVideoModal, setShowShortVideoModal] = useState(false);
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -63,6 +65,20 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
 
   const handleRemoveImage = (indexToRemove) => {
     setImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleShortVideoUploadSuccess = (createdPost) => {
+    setShowShortVideoModal(false);
+    setContent("");
+    setImages([]);
+    setSelectedCategory("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+    if (onPostCreated && createdPost) {
+      onPostCreated(createdPost);
+    }
+    window.dispatchEvent(new CustomEvent("shorts_refresh"));
   };
 
   const handleSubmit = async () => {
@@ -199,6 +215,18 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
               <Image className="w-5 h-5 text-emerald-500 shrink-0" />
               <span className="text-sm font-medium hidden sm:inline">Ảnh</span>
             </button>
+
+            {/* Nút đăng video ngắn */}
+            <button
+              type="button"
+              onClick={() => setShowShortVideoModal(true)}
+              className="flex items-center space-x-1.5 text-slate-600 dark:text-zinc-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer"
+              title="Đăng video ngắn"
+            >
+              <Video className="w-5 h-5 text-rose-500 shrink-0" />
+              <span className="text-sm font-medium hidden sm:inline">Video</span>
+            </button>
+
             <input
               ref={fileInputRef}
               type="file"
@@ -270,6 +298,29 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
           </div>
         </div>
       </div>
+
+      {/* Short Video Upload Modal */}
+      {showShortVideoModal && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-md animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
+              <h3 className="font-bold text-lg">Đăng video ngắn</h3>
+              <button
+                onClick={() => setShowShortVideoModal(false)}
+                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4">
+              <ShortVideoUpload
+                onUploadSuccess={handleShortVideoUploadSuccess}
+                onCancel={() => setShowShortVideoModal(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
