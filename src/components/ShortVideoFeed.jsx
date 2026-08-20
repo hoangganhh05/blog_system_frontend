@@ -542,9 +542,9 @@ export default function ShortVideoFeed() {
             onClick={closeComments}
           />
 
-          {/* Comments Bottom Sheet / Right Sidebar */}
+          {/* Right Sidebar Drawer */}
           <div
-            className="fixed inset-x-0 bottom-0 z-50 h-[65dvh] w-full bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl flex flex-col animate-in slide-in-from-bottom duration-200 sm:right-0 sm:top-0 sm:bottom-0 sm:h-auto sm:w-[400px] sm:rounded-l-3xl sm:animate-in sm:slide-in-from-right sm:duration-200"
+            className="fixed top-0 right-0 bottom-0 w-full sm:w-[400px] z-50 bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
@@ -626,7 +626,7 @@ export default function ShortVideoFeed() {
               )}
             </div>
 
-            {/* Comment Input — fixed at bottom of sheet */}
+            {/* Comment Input — fixed at bottom of sidebar */}
             <form
               onSubmit={handleSubmitComment}
               className="shrink-0 p-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center gap-2 bg-white dark:bg-zinc-900"
