@@ -9,12 +9,12 @@ const EmptyState = ({
   onAction
 }) => {
   return (
-    <div className="p-12 text-center flex flex-col items-center justify-center gap-4 text-zinc-500 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs animate-scale-in">
-      <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 flex items-center justify-center shadow-xs">
+    <div className="p-12 text-center flex flex-col items-center justify-center gap-4 text-zinc-500 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs animate-in fade-in zoom-in-95 duration-300">
+      <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 flex items-center justify-center shadow-xs animate-in slide-in-from-bottom-4 duration-500">
         <Icon className="w-8 h-8 stroke-[1.5]" />
       </div>
 
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 animate-in slide-in-from-bottom-2 duration-500 delay-100">
         <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100">
           {title}
         </h3>
@@ -27,7 +27,7 @@ const EmptyState = ({
         <button
           type="button"
           onClick={onAction}
-          className="mt-2 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-sm font-bold transition-transform active:scale-95 shadow-sm cursor-pointer"
+          className="mt-2 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-sm font-bold transition-transform active:scale-95 shadow-sm cursor-pointer animate-in slide-in-from-bottom-2 duration-500 delay-200"
         >
           <PenSquare className="w-4 h-4" />
           <span>{actionText}</span>

@@ -238,7 +238,7 @@ export default function Home() {
 
     observer.observe(bottomObserverRef.current);
     return () => observer.disconnect();
-  }, [hasMore, loading, loadingMore, page, fetchPosts]);
+  }, [hasMore, loading, loadingMore, page]);
 
   // Initial load
   useEffect(() => {
@@ -485,10 +485,10 @@ export default function Home() {
       <div key={activeTab} className="flex flex-col gap-2 animate-tab-fade">
         {loading && posts.length === 0 ? (
           <>
-            <PostSkeleton />
-            <PostSkeleton />
-            <PostSkeleton />
-            <PostSkeleton />
+            <PostSkeleton index={0} />
+            <PostSkeleton index={1} />
+            <PostSkeleton index={2} />
+            <PostSkeleton index={3} />
           </>
         ) : displayedPosts.length === 0 ? (
           activeTab === "following" ? (
