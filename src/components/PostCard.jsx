@@ -614,7 +614,11 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
           }
 
           // Check if the first media is a video
-          const isVideo = cardImages.length > 0 && isVideoUrl(cardImages[0]);
+          const isVideo = cardImages.length > 0 && (
+            isVideoUrl(cardImages[0]) ||
+            post.mediaType === "video" ||
+            !!post.videoUrl
+          );
 
           if (cardImages.length === 0) return null;
 

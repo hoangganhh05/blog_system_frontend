@@ -355,6 +355,7 @@ export default function ShortVideoFeed() {
                 src={video.url}
                 className="absolute inset-0 w-full h-full object-cover object-center"
                 loop
+                autoPlay
                 muted={isMuted}
                 playsInline
                 onClick={(e) => handleVideoClick(e, index)}
@@ -453,10 +454,10 @@ export default function ShortVideoFeed() {
                 </div>
 
                 <div className="flex flex-col items-start gap-1">
-                  <p className={`text-white/95 text-[13px] leading-relaxed drop-shadow-sm ${expandedCaptions[index] ? "" : "line-clamp-2"}`}>
-                    {video.description || "Video ngắn"}
-                  </p>
-                  {video.description && video.description.length > 90 && (
+                <p className={`text-white/95 text-[13px] leading-relaxed drop-shadow-sm ${expandedCaptions[index] ? "" : "line-clamp-2"}`}>
+                  {video.description || ""}
+                </p>
+                {video.description && video.description.length > 90 && (
                     <button
                       onClick={() => toggleCaption(index)}
                       className="text-white/60 text-xs font-semibold hover:text-white transition"
