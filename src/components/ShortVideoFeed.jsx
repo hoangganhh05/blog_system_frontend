@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Heart, MessageCircle, Share2, MoreHorizontal, Play, Pause, Volume2, VolumeX, Plus, X, Loader2, Video } from "lucide-react";
+import { Heart, MessageCircle, Share2, MoreHorizontal, Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, Plus, X, Loader2, Video } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Avatar from "./Avatar";
@@ -14,7 +14,10 @@ export default function ShortVideoFeed() {
   const [isMuted, setIsMuted] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  
+  const [progressMap, setProgressMap] = useState({}); // index -> { current, duration }
+  const [expandedCaptions, setExpandedCaptions] = useState({}); // index -> bool
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const videoRefs = useRef([]);
   const containerRef = useRef(null);
   const navigate = useNavigate();
@@ -150,24 +153,79 @@ export default function ShortVideoFeed() {
     navigate(`/profile/${authorId}`);
   };
 
+  // Track playback progress for the seekable progress bar
+  const handleTimeUpdate = (e, index) => {
+    const v = e.currentTarget;
+    if (!v) return;
+    setProgressMap((prev) => ({
+      ...prev,
+      [index]: {
+        current: v.currentTime || 0,
+        duration: v.duration || 0,
+      },
+    }));
+  };
+
+  // Seek the video to a percentage of playback
+  const handleSeek = (e, index) => {
+    const bar = e.currentTarget;
+    const rect = bar.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    const video = videoRefs.current[index];
+    if (video && video.duration) {
+      video.currentTime = ratio * video.duration;
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    } else {
+      document.documentElement.requestFullscreen?.();
+      setIsFullscreen(true);
+    }
+  };
+
+  const formatCount = (n) => {
+    if (n == null) return "0";
+    if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+    if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+    return String(n);
+  };
+
+  const formatTime = (sec) => {
+    if (!sec || !isFinite(sec)) return "0:00";
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${String(s).padStart(2, "0")}`;
+  };
+
+  const toggleCaption = (index) =>
+    setExpandedCaptions((prev) => ({ ...prev, [index]: !prev[index] }));
+
   return (
     <div className="w-full h-screen bg-black overflow-hidden">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
-        <h1 className="text-white font-bold text-xl">Shorts</h1>
-        <div className="flex items-center gap-2">
+      {/* Header — glass pill with safe-area top inset */}
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))]">
+        <div className="flex items-center gap-2 backdrop-blur-2xl rounded-full py-1.5 pl-3.5 pr-3 ring-1 ring-white/15 bg-black/35 shadow-lg">
+          <div className="relative w-6 h-6 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 animate-spin-slow shadow-lg" style={{ animationDuration: "4s" }} />
+          <h1 className="text-white font-bold text-lg tracking-tight drop-shadow">Shorts</h1>
+        </div>
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => setShowUploadModal(true)}
-            className="text-white hover:bg-white/20 p-2 rounded-full transition"
+            className="rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white p-2.5 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
             title="Tải video lên"
           >
-            <Plus className="w-6 h-6" />
+            <Plus className="w-5 h-5" />
           </button>
           <button
             onClick={() => navigate("/")}
-            className="text-white hover:bg-white/20 p-2 rounded-full transition"
+            className="rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white p-2.5 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
+            title="Thoát"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -219,75 +277,84 @@ export default function ShortVideoFeed() {
               muted={isMuted}
               playsInline
               onClick={(e) => togglePlay(e, index)}
+              onTimeUpdate={(e) => handleTimeUpdate(e, index)}
             />
 
+            {/* Cinematic scrims for readability on any frame */}
+            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 via-black/10 to-transparent pointer-events-none z-[5]" />
+            <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none z-[5]" />
+
             {/* Play/Pause Overlay */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[10]">
               {videoRefs.current[index]?.paused && (
-                <div className="w-20 h-20 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center">
-                  <Play className="w-10 h-10 text-white fill-white ml-1" />
+                <div className="w-24 h-24 rounded-full bg-black/40 backdrop-blur-xl ring-2 ring-white/20 flex items-center justify-center shadow-2xl animate-scale-in">
+                  <Play className="w-12 h-12 text-white fill-white ml-1 drop-shadow-lg" />
                 </div>
               )}
             </div>
 
-            {/* Mute Button */}
-            <button
-              onClick={toggleMute}
-              className="absolute right-4 top-24 p-3 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 transition z-10"
-            >
-              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-            </button>
-
-            {/* Right Side Actions */}
-            <div className="absolute right-4 bottom-24 flex flex-col items-center gap-6 z-10">
-              {/* Like */}
+            {/* Mute Button — part of top-right control cluster */}
+            <div className="absolute right-4 top-20 z-20 flex flex-col items-center gap-3">
               <button
-                onClick={() => handleLike(video.id)}
-                className="flex flex-col items-center gap-1 group"
+                onClick={toggleMute}
+                className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
+                title={isMuted ? "Bật tiếng" : "Tắt tiếng"}
               >
-                <div className={`w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center transition ${video.isLiked ? 'bg-rose-500/50' : 'group-hover:bg-black/50'}`}>
-                  <Heart className={`w-6 h-6 ${video.isLiked ? 'text-rose-500 fill-rose-500' : 'text-white'}`} />
-                </div>
-                <span className="text-white text-xs font-semibold">{video.likes.toLocaleString()}</span>
-              </button>
-
-              {/* Comment */}
-              <button
-                onClick={() => handleComment(video.id)}
-                className="flex flex-col items-center gap-1 group"
-              >
-                <div className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center group-hover:bg-black/50 transition">
-                  <MessageCircle className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-white text-xs font-semibold">{video.comments}</span>
-              </button>
-
-              {/* Share */}
-              <button
-                onClick={() => handleShare(video.id)}
-                className="flex flex-col items-center gap-1 group"
-              >
-                <div className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center group-hover:bg-black/50 transition">
-                  <Share2 className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-white text-xs font-semibold">{video.shares}</span>
-              </button>
-
-              {/* More */}
-              <button className="flex flex-col items-center gap-1 group">
-                <div className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center group-hover:bg-black/50 transition">
-                  <MoreHorizontal className="w-6 h-6 text-white" />
-                </div>
+                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
               </button>
             </div>
 
-            {/* Bottom Info */}
-            <div className="absolute left-4 right-20 bottom-24 z-10">
+            {/* Right Side Actions — glass action rail */}
+            <div className="absolute right-3 bottom-28 flex flex-col items-center gap-5 z-20">
+              {/* Like */}
+              <div className="flex flex-col items-center gap-1.5">
+                <button
+                  onClick={() => handleLike(video.id)}
+                  className={`w-12 h-12 rounded-full backdrop-blur-xl ring-1 transition-all active:scale-90 flex items-center justify-center shadow-lg ${video.isLiked ? 'bg-rose-500/80 ring-rose-300/40 scale-110' : 'bg-black/40 ring-white/20 hover:bg-black/60'}`}
+                  title="Thích"
+                >
+                  <Heart className={`w-6 h-6 transition-all ${video.isLiked ? 'text-white fill-white animate-scale-in' : 'text-white'}`} />
+                </button>
+                <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.likes)}</span>
+              </div>
+
+              {/* Comment */}
+              <div className="flex flex-col items-center gap-1.5">
+                <button
+                  onClick={() => handleComment(video.id)}
+                  className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
+                  title="Bình luận"
+                >
+                  <MessageCircle className="w-6 h-6 text-white" />
+                </button>
+                <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.comments)}</span>
+              </div>
+
+              {/* Share */}
+              <div className="flex flex-col items-center gap-1.5">
+                <button
+                  onClick={() => handleShare(video.id)}
+                  className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
+                  title="Chia sẻ"
+                >
+                  <Share2 className="w-6 h-6 text-white" />
+                </button>
+                <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.shares)}</span>
+              </div>
+
+              {/* More */}
+              <button className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg" title="Xem thêm">
+                <MoreHorizontal className="w-5 h-5 text-white" />
+              </button>
+            </div>
+
+            {/* Bottom Info — refined typography & spacing */}
+            <div className="absolute left-4 right-[4.25rem] bottom-24 z-20 flex flex-col gap-3">
               {/* Author Info */}
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => handleAuthorClick(video.author.id)}
-                  className="relative"
+                  className="relative shrink-0"
                 >
                   <Avatar
                     userId={video.author.id}
@@ -296,31 +363,70 @@ export default function ShortVideoFeed() {
                     username={video.author.username}
                     avatarColor={video.author.avatarColor}
                     size="sm"
-                    className="border-2 border-white"
+                    className="border-2 border-white/90 shadow-lg ring-2 ring-black/20"
                   />
                 </button>
-                <div>
+                <div className="flex items-center gap-2.5 min-w-0">
                   <button
                     onClick={() => handleAuthorClick(video.author.id)}
-                    className="text-white font-bold text-sm hover:underline"
+                    className="text-white font-bold text-sm tracking-tight hover:underline truncate"
                   >
                     @{video.author.username}
                   </button>
                   {Number(String(video.author.id)) !== Number(String(currentUser?.id)) && (
-                    <button className="ml-2 px-3 py-1 bg-[#0866ff] text-white text-xs font-bold rounded-full hover:bg-[#0756d6] transition">
-                      Follow
+                    <button className="px-4 py-1.5 bg-white/95 backdrop-blur-md text-black text-xs font-bold rounded-full hover:bg-white active:scale-95 transition-all shadow-lg">
+                      Theo dõi
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* Description */}
-              <p className="text-white text-sm mb-2 line-clamp-2">{video.description}</p>
+              {/* Description — collapsible */}
+              <div className="flex flex-col items-start gap-1">
+                <p className={`text-white/95 text-[13px] leading-relaxed drop-shadow-sm ${expandedCaptions[index] ? "" : "line-clamp-2"}`}>
+                  {video.description || "Video ngắn"}
+                </p>
+                {video.description && video.description.length > 90 && (
+                  <button
+                    onClick={() => toggleCaption(index)}
+                    className="text-white/60 text-xs font-semibold hover:text-white transition"
+                  >
+                    {expandedCaptions[index] ? "Thu gọn" : "Xem thêm"}
+                  </button>
+                )}
+              </div>
 
               {/* Music/Track Info */}
-              <div className="flex items-center gap-2 text-white/80 text-xs">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 animate-spin-slow" />
-                <span>Original Audio - {video.author.fullName}</span>
+              <div className="flex items-center gap-2.5 text-white/85 text-xs font-medium">
+                <div className="relative w-6 h-6 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 animate-spin-slow shadow-lg" style={{ animationDuration: "5s" }} />
+                <span className="truncate">Original Audio — {video.author.fullName}</span>
+              </div>
+            </div>
+
+            {/* Bottom progress + fullscreen bar — seekable progress with timestamp */}
+            <div className="absolute inset-x-0 bottom-0 z-30 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={toggleFullscreen}
+                  className="shrink-0 w-9 h-9 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all"
+                  title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
+                >
+                  {isFullscreen ? <Minimize2 className="w-4 h-4 text-white" /> : <Maximize2 className="w-4 h-4 text-white" />}
+                </button>
+                <div
+                  className="flex-1 h-1.5 rounded-full bg-white/25 overflow-hidden cursor-pointer group"
+                  onClick={(e) => handleSeek(e, index)}
+                >
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#0866ff] to-fuchsia-500 transition-[width] duration-150 group-hover:bg-gradient-to-r group-hover:from-lime-400 group-hover:to-fuchsia-400"
+                    style={{ width: `${progressMap[index]?.duration ? (progressMap[index].current / progressMap[index].duration) * 100 : 0}%` }}
+                  />
+                </div>
+                <span className="shrink-0 text-white/85 text-[11px] font-semibold tabular-nums drop-shadow">
+                  {progressMap[index]?.duration
+                    ? `${formatTime(progressMap[index].current)} / ${formatTime(progressMap[index].duration)}`
+                    : "0:00"}
+                </span>
               </div>
             </div>
           </div>

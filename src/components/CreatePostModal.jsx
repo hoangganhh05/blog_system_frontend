@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Image, Globe, Lock, Sparkles, Loader2 } from "lucide-react";
+import { X, Image, Globe, Lock, Sparkles, Loader2, Video, Play, Pause, Volume2, VolumeX, AlertCircle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import postService from "../services/postService";
@@ -7,6 +7,7 @@ import categoryService from "../services/categoryService";
 import uploadService from "../services/uploadService";
 import aiService from "../services/aiService";
 import Avatar from "./Avatar";
+import { isVideoUrl } from "../utils/mediaUtils";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -18,6 +19,10 @@ function getInitials(name) {
     .slice(0, 2);
 }
 
+const MAX_VIDEO_DURATION = 120; // 2 minutes in seconds
+// Không giới hạn dung lượng file — chỉ giới hạn thời lượng tối đa 2 phút.
+const ACCEPTED_VIDEO_FORMATS = ["video/mp4", "video/webm", "video/quicktime"];
+
 export default function CreatePostModal({ isOpen = true, onClose, onPostCreated, onCreated, editPost }) {
   const { currentUser } = useAuth();
   const [content, setContent] = useState("");
@@ -28,9 +33,18 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isAiGenerating, setIsAiGenerating] = useState(false);
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isVideoMuted, setIsVideoMuted] = useState(false);
+  const [videoValidationError, setVideoValidationError] = useState(null);
+  const [mediaType, setMediaType] = useState("text"); // 'text' | 'image' | 'video'
 
   const fileInputRef = useRef(null);
+  const videoFileInputRef = useRef(null);
   const textareaRef = useRef(null);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     categoryService.getAll().then((res) => {
@@ -51,12 +65,34 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
       }
       setImages(existingImgs);
       setSelectedCategory(editPost.category?.id || "");
+      // Determine media type from existing post
+      if (editPost.videoUrl || (editPost.thumbNail && isVideoUrl(editPost.thumbNail))) {
+        setMediaType("video");
+      } else if (existingImgs.length > 0) {
+        setMediaType("image");
+      } else {
+        setMediaType("text");
+      }
     } else {
       setContent("");
       setImages([]);
       setSelectedCategory("");
+      setMediaType("text");
+      setVideoFile(null);
+      setVideoPreviewUrl(null);
+      setVideoDuration(0);
+      setVideoValidationError(null);
     }
   }, [editPost, isOpen]);
+
+  // Cleanup video preview URL
+  useEffect(() => {
+    return () => {
+      if (videoPreviewUrl) {
+        URL.revokeObjectURL(videoPreviewUrl);
+      }
+    };
+  }, [videoPreviewUrl]);
 
   if (!isOpen) return null;
 
@@ -77,6 +113,7 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
       const uploadedUrls = await uploadService.uploadMultipleFiles(files.slice(0, 10));
       if (uploadedUrls && uploadedUrls.length > 0) {
         setImages((prev) => [...prev, ...uploadedUrls].slice(0, 10));
+        setMediaType("image");
       }
     } catch {
       toast.error("Lỗi tải ảnh lên. Vui lòng thử lại!");
@@ -84,6 +121,104 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const handleVideoFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate format
+    if (!ACCEPTED_VIDEO_FORMATS.includes(file.type)) {
+      setVideoValidationError("Chỉ chấp nhận định dạng MP4, WebM, MOV");
+      toast.error("Định dạng file không được hỗ trợ");
+      return;
+    }
+
+    // Create preview URL
+    if (videoPreviewUrl) {
+      URL.revokeObjectURL(videoPreviewUrl);
+    }
+
+    const url = URL.createObjectURL(file);
+    setVideoPreviewUrl(url);
+    setVideoFile(file);
+    setVideoValidationError(null);
+    setVideoDuration(0);
+    setMediaType("video");
+
+    // Load video to get duration
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.src = url;
+
+    video.onloadedmetadata = () => {
+      if (video.duration > MAX_VIDEO_DURATION) {
+        setVideoValidationError(`Thời lượng tối đa là 2 phút. Video hiện tại: ${Math.floor(video.duration / 60)}:${Math.floor(video.duration % 60).toString().padStart(2, '0')}`);
+        toast.error("Video quá dài");
+        URL.revokeObjectURL(url);
+        setVideoPreviewUrl(null);
+        setVideoFile(null);
+        setMediaType("text");
+        video.remove();
+        return;
+      }
+
+      setVideoDuration(video.duration);
+      video.remove();
+    };
+
+    video.onerror = () => {
+      setVideoValidationError("Không thể đọc file video");
+      toast.error("File video không hợp lệ");
+      URL.revokeObjectURL(url);
+      setVideoPreviewUrl(null);
+      setVideoFile(null);
+      setMediaType("text");
+      video.remove();
+    };
+
+    if (videoFileInputRef.current) {
+      videoFileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    if (videoPreviewUrl) {
+      URL.revokeObjectURL(videoPreviewUrl);
+    }
+    setVideoPreviewUrl(null);
+    setVideoFile(null);
+    setVideoDuration(0);
+    setVideoValidationError(null);
+    setIsVideoPlaying(false);
+    setMediaType(images.length > 0 ? "image" : "text");
+    if (videoFileInputRef.current) {
+      videoFileInputRef.current.value = "";
+    }
+  };
+
+  const toggleVideoPlayPause = () => {
+    if (videoRef.current) {
+      if (isVideoPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsVideoPlaying(!isVideoPlaying);
+    }
+  };
+
+  const toggleVideoMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isVideoMuted;
+      setIsVideoMuted(!isVideoMuted);
+    }
+  };
+
+  const formatDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handleRemoveImage = (indexToRemove) => {
@@ -107,21 +242,50 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
   };
 
   const handleSubmit = async () => {
-    if ((!content.trim() && images.length === 0) || isSubmitting) return;
+    const hasContent = content.trim();
+    const hasImages = images.length > 0;
+    const hasVideo = videoFile !== null;
+
+    if ((!hasContent && !hasImages && !hasVideo) || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
       const categoryIdNum = selectedCategory ? Number(selectedCategory) : null;
       const trimmedContent = content.trim();
+      
+      let videoUrl = null;
+      let thumbnailUrl = images[0] || null;
+
+      // Upload video if present
+      if (hasVideo && videoFile) {
+        setIsUploading(true);
+        try {
+          const uploadedVideoUrls = await uploadService.uploadMultipleFiles([videoFile]);
+          if (uploadedVideoUrls && uploadedVideoUrls.length > 0) {
+            videoUrl = uploadedVideoUrls[0];
+            thumbnailUrl = videoUrl; // Use video URL as thumbnail for video posts
+          }
+        } catch {
+          toast.error("Lỗi tải video lên. Vui lòng thử lại!");
+          setIsUploading(false);
+          setIsSubmitting(false);
+          return;
+        } finally {
+          setIsUploading(false);
+        }
+      }
+
       const payload = {
         title: trimmedContent.slice(0, 100) || "Bài viết",
         content: trimmedContent,
         body: trimmedContent,
-        thumbNail: images[0] || null,
-        thumbnail: images[0] || null,
-        images: images,
-        imageUrls: images,
-        mediaUrls: images.length > 0 ? images : null,
+        thumbNail: thumbnailUrl,
+        thumbnail: thumbnailUrl,
+        videoUrl: videoUrl,
+        mediaType: hasVideo ? "video" : hasImages ? "image" : "text",
+        images: hasVideo ? [] : images,
+        imageUrls: hasVideo ? [] : images,
+        mediaUrls: hasVideo ? [videoUrl] : (images.length > 0 ? images : null),
         status: "PUBLISHED",
         ...(categoryIdNum
           ? {
@@ -219,7 +383,7 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
           />
 
           {/* Preview Images */}
-          {images.length > 0 && (
+          {images.length > 0 && mediaType !== "video" && (
             <div className={`mt-2 grid gap-2 ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
               {images.map((imgUrl, idx) => (
                 <div key={idx} className="relative rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 group aspect-video max-h-56 bg-zinc-100 dark:bg-zinc-800">
@@ -233,6 +397,73 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
                   </button>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Video Preview */}
+          {videoPreviewUrl && mediaType === "video" && (
+            <div className="mt-2 relative rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-black aspect-video max-h-80">
+              <video
+                ref={videoRef}
+                src={videoPreviewUrl}
+                className="w-full h-full object-cover"
+                onPlay={() => setIsVideoPlaying(true)}
+                onPause={() => setIsVideoPlaying(false)}
+                onEnded={() => setIsVideoPlaying(false)}
+              />
+              
+              {/* Overlay Controls */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              
+              {/* Play/Pause Button */}
+              <button
+                type="button"
+                onClick={toggleVideoPlayPause}
+                className="absolute inset-0 flex items-center justify-center pointer-events-auto group"
+              >
+                <div className={`w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all group-hover:scale-110 ${isVideoPlaying ? 'opacity-0' : 'opacity-100'}`}>
+                  {isVideoPlaying ? (
+                    <Pause className="w-6 h-6 text-white" />
+                  ) : (
+                    <Play className="w-6 h-6 text-white ml-1" />
+                  )}
+                </div>
+              </button>
+
+              {/* Top Actions */}
+              <div className="absolute top-2 right-2 flex gap-2 pointer-events-auto">
+                <button
+                  type="button"
+                  onClick={toggleVideoMute}
+                  className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/70 transition cursor-pointer"
+                  title={isVideoMuted ? "Bật âm thanh" : "Tắt âm thanh"}
+                >
+                  {isVideoMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRemoveVideo}
+                  className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/70 transition cursor-pointer"
+                  title="Xóa video"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Bottom Info */}
+              <div className="absolute bottom-0 left-0 right-0 p-3 pointer-events-none">
+                {videoValidationError ? (
+                  <div className="flex items-center gap-2 text-red-400 text-xs">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{videoValidationError}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-white text-xs">
+                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    <span>{formatDuration(videoDuration)}</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -253,6 +484,7 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
                 onClick={() => fileInputRef.current?.click()}
                 className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition cursor-pointer"
                 title="Đính kèm ảnh"
+                disabled={mediaType === "video"}
               >
                 <Image className="w-4 h-4" />
               </button>
@@ -263,6 +495,25 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
                 multiple
                 onChange={handleFileChange}
                 className="hidden"
+                disabled={mediaType === "video"}
+              />
+
+              <button
+                type="button"
+                onClick={() => videoFileInputRef.current?.click()}
+                className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition cursor-pointer"
+                title="Đính kèm video"
+                disabled={mediaType === "image"}
+              >
+                <Video className="w-4 h-4" />
+              </button>
+              <input
+                ref={videoFileInputRef}
+                type="file"
+                accept="video/mp4,video/webm,video/quicktime"
+                onChange={handleVideoFileChange}
+                className="hidden"
+                disabled={mediaType === "image"}
               />
 
               {categories.length > 0 && (
@@ -296,7 +547,7 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={(!content.trim() && images.length === 0) || isSubmitting || isUploading}
+            disabled={(!content.trim() && images.length === 0 && !videoFile) || isSubmitting || isUploading}
             className="w-full py-3 min-h-[44px] rounded-full text-xs font-bold text-white dark:text-black bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : editPost ? "Lưu thay đổi" : "Đăng bài"}

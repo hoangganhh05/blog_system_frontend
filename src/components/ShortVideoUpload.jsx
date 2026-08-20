@@ -5,7 +5,7 @@ import uploadService from "../services/uploadService";
 import postService from "../services/postService";
 
 const MAX_DURATION = 120; // 2 minutes in seconds
-const MAX_SIZE = 30 * 1024 * 1024; // 30MB
+// Không giới hạn dung lượng file — chỉ giới hạn thời lượng tối đa 2 phút.
 const ACCEPTED_FORMATS = ["video/mp4", "video/webm", "video/quicktime"];
 
 export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
@@ -38,13 +38,6 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
     if (!ACCEPTED_FORMATS.includes(file.type)) {
       setValidationError("Chỉ chấp nhận định dạng MP4, WebM, MOV");
       toast.error("Định dạng file không được hỗ trợ");
-      return;
-    }
-
-    // Validate size
-    if (file.size > MAX_SIZE) {
-      setValidationError(`Dung lượng tối đa là 30MB. File hiện tại: ${(file.size / (1024 * 1024)).toFixed(1)}MB`);
-      toast.error("Dung lượng file quá lớn");
       return;
     }
 
@@ -213,7 +206,7 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
                 Tải lên video ngắn
               </p>
               <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-                MP4, WebM, MOV • Tối đa 2 phút • 30MB
+                MP4, WebM, MOV • Tối đa 2 phút
               </p>
             </div>
           </div>
