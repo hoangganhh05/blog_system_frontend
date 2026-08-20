@@ -32,7 +32,6 @@ import {
   Plus,
   Sticker as StickerIcon,
   ImagePlus,
-  Sparkles,
   MoreHorizontal
 } from "lucide-react";
 import { toast } from "sonner";
@@ -219,6 +218,26 @@ export default function ChatBoxWindow({ chat, onBack }) {
     window.addEventListener("click", handleGlobalClick);
     return () => window.removeEventListener("click", handleGlobalClick);
   }, [activeActionMessage]);
+
+  // Handle visual viewport resize for mobile keyboard
+  useEffect(() => {
+    if (!isMobile) return;
+    
+    const handleViewportResize = () => {
+      // Auto-scroll when keyboard opens/closes
+      const activeElement = document.activeElement;
+      if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }, 100);
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportResize);
+      return () => window.visualViewport.removeEventListener('resize', handleViewportResize);
+    }
+  }, [isMobile]);
 
   // Gửi tin nhắn
   const handleSendMessage = async (customContent = null) => {
@@ -456,7 +475,7 @@ export default function ChatBoxWindow({ chat, onBack }) {
 
   // Giao diện chính của Box Chat
   const chatBody = (
-    <div className="w-full h-full flex flex-col overflow-hidden select-none text-left bg-white dark:bg-zinc-900">
+    <div className="w-full h-full md:h-full h-[100dvh] flex flex-col overflow-hidden select-none text-left bg-white dark:bg-zinc-900">
       {/* 1. Header Bar */}
       <div
         className={`px-3 py-2.5 flex items-center justify-between border-b border-black/5 dark:border-white/5 transition-colors relative shrink-0 z-20 ${currentTheme.headerBg} ${currentTheme.headerText}`}
@@ -515,11 +534,16 @@ export default function ChatBoxWindow({ chat, onBack }) {
             </span>
           </div>
 
-          {/* Context Options Menu Dropdown */}
+          {/* Context Options Menu Dropdown - Desktop dropdown, Mobile BottomSheet */}
           {showOptionsMenu && (
             <div
               ref={optionsMenuRef}
-              className="absolute left-0 top-11 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-60 animate-in fade-in zoom-in-95 duration-150 text-zinc-800 dark:text-zinc-200 text-xs select-none"
+              className={`${
+                isMobile 
+                  ? "fixed inset-x-4 bottom-4 top-auto w-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl p-2 z-60 animate-in slide-in-from-bottom-10 duration-200"
+                  : "absolute left-0 top-11 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-1.5 z-60 animate-in fade-in zoom-in-95 duration-150"
+              } text-zinc-800 dark:text-zinc-200 text-xs select-none`}
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="p-2 flex items-start gap-2.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300">
                 <Lock className="w-4 h-4 mt-0.5 text-[#0866ff] shrink-0" />
@@ -674,11 +698,14 @@ export default function ChatBoxWindow({ chat, onBack }) {
                   )}
 
                   {/* 1. MENU NHỎ GỌN TRÊN PC (NỔI GỌN TRONG KHUNG CHAT, KHÔNG BỊ TRÀN RA NGOÀI) */}
+                  {/* MOBILE: BottomSheet style, DESKTOP: Compact dropdown */}
                   {activeActionMessage?.id === msg.id && (
                     <div
-                      className={`hidden md:block absolute ${
-                        isMine ? "right-0" : "left-0"
-                      } top-full mt-1.5 z-40 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 p-2 w-44 animate-in fade-in zoom-in-95 duration-100 text-left`}
+                      className={`${
+                        isMobile
+                          ? "fixed inset-x-4 bottom-4 top-auto w-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl p-3 z-50 animate-in slide-in-from-bottom-10 duration-200"
+                          : `hidden md:block absolute ${isMine ? "right-0" : "left-0"} top-full mt-1.5 z-40 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 p-2 w-44 animate-in fade-in zoom-in-95 duration-100`
+                      } text-left`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {/* Quick Reactions bar */}
@@ -696,7 +723,7 @@ export default function ChatBoxWindow({ chat, onBack }) {
                       </div>
 
                       {/* Action List nhỏ gọn */}
-                      <div className="space-y-0.5 text-xs text-zinc-700 dark:text-zinc-200 font-medium">
+                      <div className={`${isMobile ? "space-y-1" : "space-y-0.5"} text-xs text-zinc-700 dark:text-zinc-200 font-medium`}>
                         <button
                           type="button"
                           onClick={() => {
@@ -704,28 +731,28 @@ export default function ChatBoxWindow({ chat, onBack }) {
                             setActiveActionMessage(null);
                             textInputRef.current?.focus();
                           }}
-                          className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-left transition cursor-pointer"
+                          className={`w-full flex items-center gap-2 ${isMobile ? "px-3 py-3" : "px-2 py-1.5"} hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-left transition cursor-pointer`}
                         >
-                          <Reply className="w-3.5 h-3.5 text-blue-500" />
-                          <span>Trả lời</span>
+                          <Reply className={`${isMobile ? "w-5 h-5" : "w-3.5 h-3.5"} text-blue-500`} />
+                          <span className={isMobile ? "text-sm" : ""}>Trả lời</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => handleCopyMessage(msg.content)}
-                          className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-left transition cursor-pointer"
+                          className={`w-full flex items-center gap-2 ${isMobile ? "px-3 py-3" : "px-2 py-1.5"} hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-left transition cursor-pointer`}
                         >
-                          <Copy className="w-3.5 h-3.5 text-emerald-500" />
-                          <span>Sao chép</span>
+                          <Copy className={`${isMobile ? "w-5 h-5" : "w-3.5 h-3.5"} text-emerald-500`} />
+                          <span className={isMobile ? "text-sm" : ""}>Sao chép</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => handlePinMessage(msg)}
-                          className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-left transition cursor-pointer"
+                          className={`w-full flex items-center gap-2 ${isMobile ? "px-3 py-3" : "px-2 py-1.5"} hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-left transition cursor-pointer`}
                         >
-                          <Pin className="w-3.5 h-3.5 text-amber-500" />
-                          <span>Ghim</span>
+                          <Pin className={`${isMobile ? "w-5 h-5" : "w-3.5 h-3.5"} text-amber-500`} />
+                          <span className={isMobile ? "text-sm" : ""}>Ghim</span>
                         </button>
 
                         {isMine && (
@@ -738,19 +765,19 @@ export default function ChatBoxWindow({ chat, onBack }) {
                                 setActiveActionMessage(null);
                                 textInputRef.current?.focus();
                               }}
-                              className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-blue-600 dark:text-blue-400 text-left transition cursor-pointer"
+                              className={`w-full flex items-center gap-2 ${isMobile ? "px-3 py-3" : "px-2 py-1.5"} hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-blue-600 dark:text-blue-400 text-left transition cursor-pointer`}
                             >
-                              <Edit3 className="w-3.5 h-3.5" />
-                              <span>Chỉnh sửa</span>
+                              <Edit3 className={`${isMobile ? "w-5 h-5" : "w-3.5 h-3.5"}`} />
+                              <span className={isMobile ? "text-sm" : ""}>Chỉnh sửa</span>
                             </button>
 
                             <button
                               type="button"
                               onClick={() => handleDeleteMessage(msg.id)}
-                              className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg text-rose-600 dark:text-rose-400 text-left transition cursor-pointer"
+                              className={`w-full flex items-center gap-2 ${isMobile ? "px-3 py-3" : "px-2 py-1.5"} hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg text-rose-600 dark:text-rose-400 text-left transition cursor-pointer`}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>Thu hồi</span>
+                              <Trash2 className={`${isMobile ? "w-5 h-5" : "w-3.5 h-3.5"}`} />
+                              <span className={isMobile ? "text-sm" : ""}>Thu hồi</span>
                             </button>
                           </>
                         )}

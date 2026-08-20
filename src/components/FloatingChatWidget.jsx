@@ -26,7 +26,6 @@ import {
   Clock,
   Search,
   Heart,
-  Sparkles,
   Settings,
   SquarePen,
   Bell,

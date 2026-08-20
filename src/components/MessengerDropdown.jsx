@@ -5,7 +5,6 @@ import {
   Search,
   Check,
   CheckCheck,
-  Sparkles,
   X,
   Settings,
   Volume2,
@@ -242,6 +241,24 @@ export default function MessengerDropdown({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
+  // Handle visual viewport resize for mobile keyboard
+  useEffect(() => {
+    if (!isMobile) return;
+    
+    const handleViewportResize = () => {
+      // Auto-scroll when keyboard opens/closes
+      const activeElement = document.activeElement;
+      if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+        activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportResize);
+      return () => window.visualViewport.removeEventListener('resize', handleViewportResize);
+    }
+  }, [isMobile]);
+
   // Lọc cuộc trò chuyện theo Search và Tab Lọc
   const filteredConversations = conversations.filter((item) => {
     const partnerName = item.user?.fullName || item.user?.username || "";
@@ -294,7 +311,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
   const innerContent = (
     <>
       {/* 1. Header: Tiêu đề + Trạng thái hoạt động + Cài đặt */}
-      <div className="p-3.5 pb-2.5 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800/80 shrink-0 bg-white dark:bg-zinc-900">
+      <div className={`p-3.5 pb-2.5 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800/80 shrink-0 bg-white dark:bg-zinc-900 ${isMobile ? "sticky top-0 z-10" : ""}`}>
         <div className="flex items-center gap-2">
           {/* Nút Quay Lại trên Mobile */}
           <button
@@ -629,7 +646,7 @@ export default function MessengerDropdown({ isOpen, onClose }) {
                   : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
               }`}
             >
-              <Sparkles className="w-3 h-3 text-amber-500" />
+              <Bot className="w-3 h-3 text-amber-500" />
               <span>AI Bot</span>
             </button>
 
