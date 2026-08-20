@@ -14,8 +14,11 @@ import {
   Check,
   Sparkles,
   Volume2,
+  VolumeX,
   CornerDownRight,
-  X
+  X,
+  Play,
+  Pause
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import likeService from "../services/likeService";
@@ -29,6 +32,7 @@ import ConfirmModal from "./ConfirmModal";
 import ShareModal from "./ShareModal";
 import PostTheaterModal from "./PostTheaterModal";
 import Avatar from "./Avatar";
+import { isVideoUrl } from "../utils/mediaUtils";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -85,11 +89,32 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
   const [isPopping, setIsPopping] = useState(false);
   const [isTheaterOpen, setIsTheaterOpen] = useState(false);
   const [theaterInitialImageIndex, setTheaterInitialImageIndex] = useState(0);
+  const [isVideoPlaying, setIsVideoPlaying] = useState({});
+  const [isVideoMuted, setIsVideoMuted] = useState({});
+
+  const postVideoRef = useRef(null);
+  const postVideoObserverRef = useRef(null);
 
   const openTheater = (e, index = 0) => {
     if (e) e.stopPropagation();
     setTheaterInitialImageIndex(index);
     setIsTheaterOpen(true);
+  };
+
+  const toggleVideoPlay = (e, postId) => {
+    e.stopPropagation();
+    setIsVideoPlaying((prev) => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
+  const toggleVideoMute = (e, postId) => {
+    e.stopPropagation();
+    setIsVideoMuted((prev) => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
   };
 
   // Load preview names when hovering over like section
@@ -171,6 +196,33 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Autoplay single video when it enters viewport
+  useEffect(() => {
+    const videoEl = postVideoRef.current;
+    if (!videoEl) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            videoEl.play().catch(() => {});
+          } else {
+            videoEl.pause();
+          }
+        });
+      },
+      { threshold: 0.6 }
+    );
+
+    observer.observe(videoEl);
+    postVideoObserverRef.current = observer;
+
+    return () => {
+      observer.disconnect();
+      postVideoObserverRef.current = null;
+    };
+  }, [post?.id]);
 
   // Optimistic Like
   const handleToggleLike = async (e) => {
@@ -279,13 +331,25 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
   };
 
   const handleCardClick = (e) => {
-    // Avoid triggering card click when interacting with buttons, links or menu
     if (e.target.closest("button") || e.target.closest("a") || e.target.closest("input") || e.target.closest(".no-card-click")) {
       return;
     }
     if (!isDetailed) {
       e.preventDefault();
-      openTheater(e, 0);
+      const cardImages = [];
+      if (Array.isArray(post.images) && post.images.length > 0) {
+        cardImages.push(...post.images);
+      } else if (Array.isArray(post.imageUrls) && post.imageUrls.length > 0) {
+        cardImages.push(...post.imageUrls);
+      } else if (post.thumbNail) {
+        cardImages.push(post.thumbNail);
+      }
+      const isVideoPost = post.mediaType === "video" || post.videoUrl || (cardImages.length > 0 && isVideoUrl(cardImages[0]));
+      if (isVideoPost) {
+        navigate(`/posts/${post.id}`);
+      } else {
+        openTheater(e, 0);
+      }
     }
   };
 
@@ -549,8 +613,32 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
             cardImages.push(post.thumbNail);
           }
 
+          // Check if the first media is a video
+          const isVideo = cardImages.length > 0 && isVideoUrl(cardImages[0]);
+
           if (cardImages.length === 0) return null;
 
+          // Single video player
+          if (cardImages.length === 1 && isVideo) {
+            const videoSrc = post.videoUrl || cardImages[0];
+            return (
+              <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[540px] relative group/media">
+                <video
+                  ref={postVideoRef}
+                  src={videoSrc}
+                  className="w-full h-auto max-h-[540px] object-cover"
+                  controls
+                  playsInline
+                  autoPlay
+                  muted
+                  onPlay={() => setIsVideoPlaying(prev => ({ ...prev, [post.id]: true }))}
+                  onPause={() => setIsVideoPlaying(prev => ({ ...prev, [post.id]: false }))}
+                />
+              </div>
+            );
+          }
+
+          // Single image
           if (cardImages.length === 1) {
             return (
               <div

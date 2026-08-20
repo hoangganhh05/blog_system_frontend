@@ -96,6 +96,20 @@ export default function MobileBottomNav() {
       </NavLink>
 
       <NavLink
+        to="/shorts"
+        className={({ isActive }) => `mobile-nav-item ${isActive ? "active" : ""}`}
+        title="Shorts"
+        aria-label="Shorts"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M7 4v16"/>
+          <path d="M17 4v16"/>
+          <path d="M2 8h20"/>
+          <path d="M2 16h20"/>
+        </svg>
+      </NavLink>
+
+      <NavLink
         to="/friends"
         className={({ isActive }) => `mobile-nav-item ${isActive ? "active" : ""}`}
         title="Bạn bè"

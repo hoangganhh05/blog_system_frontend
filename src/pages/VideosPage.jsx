@@ -25,8 +25,12 @@ function VideosPage() {
     try {
       const res = await postService.getAll(0, 100);
       const allPosts = res.data?.content || res.data || [];
-      // Lọc động bài viết có đính kèm Video thực tế từ người dùng
-      const videoPosts = allPosts.filter((p) => p.thumbNail && isVideoUrl(p.thumbNail));
+      // Filter posts that have mediaType === 'video' OR have videoUrl OR have thumbNail that is a video URL
+      const videoPosts = allPosts.filter((p) => 
+        p.mediaType === 'video' || 
+        p.videoUrl || 
+        (p.thumbNail && isVideoUrl(p.thumbNail))
+      );
       setAllVideoPosts(videoPosts);
       filterPosts(videoPosts, activeCategory);
     } catch {

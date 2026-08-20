@@ -19,6 +19,7 @@ import TrendingPage from "./pages/TrendingPage";
 import GamesPage from "./pages/GamesPage";
 import AiCreatorPage from "./pages/AiCreatorPage";
 import VideosPage from "./pages/VideosPage";
+import ShortVideoFeed from "./components/ShortVideoFeed";
 import NotificationsPage from "./pages/NotificationsPage";
 import SecuritySettingsPage from "./pages/SecuritySettingsPage";
 import Settings from "./pages/Settings";
@@ -88,6 +89,7 @@ function AppContent() {
           <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
           <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
           <Route path="/videos" element={<ProtectedRoute><VideosPage /></ProtectedRoute>} />
+          <Route path="/shorts" element={<ProtectedRoute><ShortVideoFeed /></ProtectedRoute>} />
           <Route path="/radio" element={<ProtectedRoute><RadioPage /></ProtectedRoute>} />
           <Route path="/trending" element={<ProtectedRoute><TrendingPage /></ProtectedRoute>} />
           <Route path="/games" element={<ProtectedRoute><GamesPage /></ProtectedRoute>} />

@@ -9,6 +9,7 @@ import {
   BarChart3,
   ChevronRight,
   ChevronLeft,
+  Film,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Avatar from "./Avatar";
@@ -16,6 +17,7 @@ import Avatar from "./Avatar";
 const SIDEBAR_ITEMS = [
   { to: "/", tooltip: "Bảng tin trang chủ", icon: Home },
   { to: "/trending", tooltip: "Khám phá xu hướng", icon: Compass },
+  { to: "/shorts", tooltip: "Video ngắn Shorts", icon: Film },
   { to: "/radio", tooltip: "Phòng nhạc & Radio", icon: Radio },
   { to: "/friends", tooltip: "Bạn bè & Kết nối", icon: Users },
   { to: "/saved", tooltip: "Bài viết đã lưu", icon: Bookmark },

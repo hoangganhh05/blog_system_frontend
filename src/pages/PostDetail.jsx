@@ -9,6 +9,7 @@ import PostCard from "../components/PostCard";
 import Comment from "../components/Comment";
 import GifPicker from "../components/GifPicker";
 import Avatar from "../components/Avatar";
+import { isVideoUrl } from "../utils/mediaUtils";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -37,6 +38,7 @@ export default function PostDetail() {
 
   const replyInputRef = useRef(null);
   const composerRef = useRef(null);
+  const postVideoRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +70,50 @@ export default function PostDetail() {
       cancelled = true;
     };
   }, [id]);
+
+  // Autoplay video when PostDetail loads for video posts
+  useEffect(() => {
+    const videoEl = postVideoRef.current;
+    if (!videoEl || !post) return;
+
+    const isVideoPost = post.mediaType === "video" || post.videoUrl || isVideoUrl(post.thumbNail);
+    if (!isVideoPost) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            videoEl.play().catch(() => {});
+          } else {
+            videoEl.pause();
+          }
+        });
+      },
+      { threshold: 0.6 }
+    );
+
+    observer.observe(videoEl);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [post?.id, post?.videoUrl, post?.thumbNail]);
+
+  // Attempt direct autoplay for video posts after load
+  useEffect(() => {
+    if (!post) return;
+    const isVideoPost = post.mediaType === "video" || post.videoUrl || isVideoUrl(post.thumbNail);
+    if (!isVideoPost) return;
+
+    const timer = setTimeout(() => {
+      const videoEl = postVideoRef.current;
+      if (videoEl && videoEl.paused) {
+        videoEl.play().catch(() => {});
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [post?.id]);
 
   const handleCreateComment = async (e) => {
     if (e) e.preventDefault();
