@@ -318,7 +318,7 @@ export default function ShortVideoFeed() {
   };
 
   return (
-    <div className="w-full h-[100dvh] bg-black overflow-hidden">
+    <div className="w-full h-[100dvh] bg-black overflow-y-auto">
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-2 backdrop-blur-2xl rounded-full py-1.5 pl-3.5 pr-3 ring-1 ring-white/15 bg-black/35 shadow-lg">
@@ -346,7 +346,7 @@ export default function ShortVideoFeed() {
       {/* Video Feed Container */}
       <div
         ref={containerRef}
-        className="h-[100dvh] overflow-y-scroll scroll-smooth snap-y snap-mandatory no-scrollbar overscroll-y-contain touch-pan-y"
+        className="w-full h-[100dvh] overflow-y-auto snap-y snap-mandatory no-scrollbar overscroll-y-contain touch-pan-y"
         style={{ scrollSnapType: "y mandatory" }}
       >
         {loading ? (
@@ -378,7 +378,7 @@ export default function ShortVideoFeed() {
           videos.map((video, index) => (
             <div
               key={video.id}
-              className="relative w-full h-[100dvh] snap-start overflow-hidden bg-black flex items-center justify-center"
+              className="relative w-full h-[100dvh] snap-start snap-always shrink-0 overflow-hidden bg-black flex items-center justify-center"
               style={{ scrollSnapAlign: "start" }}
             >
               <video
@@ -404,7 +404,7 @@ export default function ShortVideoFeed() {
                 )}
               </div>
 
-              <div className="absolute right-4 top-20 z-20 flex flex-col items-center gap-3">
+              <div className="absolute right-4 top-20 z-30 flex flex-col items-center gap-3 pointer-events-auto">
                 <button
                   onClick={toggleMute}
                   className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
@@ -414,7 +414,7 @@ export default function ShortVideoFeed() {
                 </button>
               </div>
 
-              <div className="absolute right-3 bottom-28 flex flex-col items-center gap-5 z-20">
+              <div className="absolute right-3 bottom-28 flex flex-col items-center gap-5 z-30 pointer-events-auto">
                 <div className="flex flex-col items-center gap-1.5">
                   <button
                     onClick={() => handleLike(video.id)}
@@ -453,7 +453,7 @@ export default function ShortVideoFeed() {
                 </button>
               </div>
 
-              <div className="absolute left-4 right-[4.25rem] bottom-24 z-20 flex flex-col gap-3">
+              <div className="absolute left-4 right-[4.25rem] bottom-24 z-30 flex flex-col gap-3 pointer-events-auto">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => handleAuthorClick(video.author.id)}
