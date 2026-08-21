@@ -400,7 +400,7 @@ export default function MainLayout({ children }) {
           - Profile / Posts / Tools: Balanced Centered Layout
           ====================================================================== */}
       {isShortsPage ? (
-        <main className={`w-full flex-1 flex flex-col items-center justify-center p-2 sm:p-4 transition-all duration-300 ${
+        <main className={`w-full flex-1 flex flex-col p-2 sm:p-4 transition-all duration-300 ${
           isSidebarCollapsed ? "md:pl-20" : "md:pl-64"
         }`}>
           {children}

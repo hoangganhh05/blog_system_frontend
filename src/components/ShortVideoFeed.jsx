@@ -472,11 +472,12 @@ export default function ShortVideoFeed() {
   const isCommentOpen = showComments && commentsFor !== null;
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto flex flex-col md:flex-row items-center md:items-start justify-center gap-3 py-2 px-2 sm:px-4 transition-all duration-300">
-      {/* Video Area (Occupies 2/3 ratio) */}
-      <div className={`w-full flex items-center justify-center transition-all duration-300 ${isCommentOpen ? "md:w-2/3" : "md:w-2/3"}`}>
+    <div className="w-full flex-1 flex flex-col md:flex-row items-center md:items-stretch justify-center gap-3 transition-all duration-300">
+      {/* 1. VIDEO BOX: 70% width when comment open, 100% width when comment closed */}
+      <div className={`flex-1 ${isCommentOpen ? "md:flex-[7] md:w-7/12" : "md:flex-1 md:w-full"} flex items-center justify-center transition-all duration-300`}>
+        {/* Shorts Video: Centered inside Video Box with fixed ~430px width */}
         <div
-          className="relative w-full max-w-[400px] bg-black rounded-2xl md:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-zinc-800 shrink-0 transition-all duration-300"
+          className="relative w-full max-w-[430px] bg-black rounded-2xl md:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-zinc-800 shrink-0 transition-all duration-300"
           style={{ height: "min(calc(100vh - 5rem), 740px)", aspectRatio: "9/16" }}
         >
         {/* Header */}
@@ -727,9 +728,9 @@ export default function ShortVideoFeed() {
       </div>
       </div>
 
-      {/* Desktop Side Comment Panel (Occupies 1/3 ratio when open) */}
+      {/* 2. COMMENT BOX: ~30% width (flex-[3]) when open */}
       {isCommentOpen && (
-        <div className="hidden md:flex flex-col md:w-1/3 max-w-[380px] shrink-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl md:rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-right duration-200" style={{ height: "min(calc(100vh - 5rem), 740px)" }}>
+        <div className="hidden md:flex flex-col md:flex-[3] md:w-5/12 max-w-[420px] w-full shrink-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl md:rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-right duration-200" style={{ height: "min(calc(100vh - 5rem), 740px)" }}>
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-[#0866ff]" />
