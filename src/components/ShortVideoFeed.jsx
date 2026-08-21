@@ -633,7 +633,7 @@ export default function ShortVideoFeed() {
                     ref={(el) => (videoRefs.current[index] = el)}
                     src={video.url}
                     className="w-full h-full object-contain object-center transition-all duration-300"
-                    style={{ aspectRatio: videoAspectRatios[index] || "auto" }}
+                    style={videoAspectRatios[index] ? { aspectRatio: videoAspectRatios[index] } : {}}
                     onLoadedMetadata={(e) => handleShortVideoMetadata(e, index)}
                     loop={!autoPlayNext}
                     playsInline

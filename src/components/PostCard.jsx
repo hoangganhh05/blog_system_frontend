@@ -708,13 +708,13 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
             return (
               <div
                 className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-950 my-2 max-h-[580px] w-full flex items-center justify-center relative group/media"
-                style={{ aspectRatio: videoAspectRatio || "auto" }}
+                style={videoAspectRatio ? { aspectRatio: videoAspectRatio } : {}}
               >
                 <video
                   ref={postVideoRef}
                   src={videoSrc}
                   className="w-full h-auto max-h-[580px] object-contain block mx-auto"
-                  style={{ aspectRatio: videoAspectRatio || "auto" }}
+                  style={videoAspectRatio ? { aspectRatio: videoAspectRatio } : {}}
                   onLoadedMetadata={handleVideoMetadata}
                   controls
                   playsInline
