@@ -422,8 +422,8 @@ export default function ShortVideoFeed() {
 
   return (
     <div
-      className="relative w-full bg-black overflow-hidden flex flex-col"
-      style={{ height: "calc(100dvh - 3.5rem - env(safe-area-inset-bottom, 0px))" }}
+      className="relative w-full max-w-[420px] mx-auto bg-black rounded-2xl md:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-zinc-800"
+      style={{ height: "min(calc(100vh - 4.5rem), 750px)", aspectRatio: "9/16" }}
     >
 
       {/* Header */}
@@ -520,7 +520,7 @@ export default function ShortVideoFeed() {
                 <video
                   ref={(el) => (videoRefs.current[index] = el)}
                   src={video.url}
-                  className="absolute inset-0 w-full h-full object-cover object-center"
+                  className="absolute inset-0 w-full h-full object-contain object-center"
                   loop
                   playsInline
                   onClick={(e) => handleVideoClick(e, index)}
