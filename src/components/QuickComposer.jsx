@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Image, Video, Smile, Tag, Globe, Lock, X, Loader2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -300,14 +301,22 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
       </div>
 
       {/* Short Video Upload Modal */}
-      {showShortVideoModal && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-md animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
-              <h3 className="font-bold text-lg">Đăng video ngắn</h3>
+      {showShortVideoModal && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setShowShortVideoModal(false)}
+        >
+          <div
+            className="bg-white dark:bg-zinc-900 rounded-2xl sm:rounded-3xl w-full max-w-md max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 bg-white dark:bg-zinc-900 flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
+              <h3 className="font-bold text-base sm:text-lg text-zinc-900 dark:text-zinc-100">Đăng video ngắn</h3>
               <button
+                type="button"
                 onClick={() => setShowShortVideoModal(false)}
-                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition"
+                className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
+                title="Đóng"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -319,7 +328,8 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
               />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
