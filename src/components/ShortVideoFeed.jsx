@@ -491,22 +491,26 @@ export default function ShortVideoFeed() {
     const container = containerRef.current;
     if (!container) return;
 
-    let wheelTimeout = null;
-    const handleWheel = (e) => {
-      e.preventDefault();
-      if (isAnimatingRef.current) return;
-      if (Math.abs(e.deltaY) > 20) {
-        const direction = e.deltaY > 0 ? 1 : -1;
-        scrollToVideo(currentIndexRef.current + direction);
-      }
-    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = itemRefs.current.findIndex((el) => el === entry.target);
+            if (index !== -1 && index !== currentIndexRef.current) {
+              setCurrentVideoIndex(index);
+            }
+          }
+        });
+      },
+      { root: container, threshold: 0.6 }
+    );
 
-    container.addEventListener("wheel", handleWheel, { passive: false });
-    return () => {
-      container.removeEventListener("wheel", handleWheel);
-      if (wheelTimeout) clearTimeout(wheelTimeout);
-    };
-  }, [scrollToVideo]);
+    itemRefs.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [videos.length]);
 
   const formatCount = (n) => {
     if (n == null) return "0";
@@ -559,8 +563,8 @@ export default function ShortVideoFeed() {
           </button>
         </div>
 
-        {/* Shorts Video: Fixed TikTok 100dvh container on mobile */}
-        <div className="relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800 shrink-0 transition-all duration-300 w-full md:w-auto h-[100dvh] md:h-[min(calc(100vh-5rem),760px)]">
+        {/* Shorts Video: Fixed TikTok 100dvh container on mobile reserving space for bottom nav */}
+        <div className="relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800 shrink-0 transition-all duration-300 w-full md:w-auto h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom,0px))] md:h-[min(calc(100vh-5rem),760px)]">
         {/* Header (Top Left Controls: Back X, Sound Mute/Unmute, More Options ...) */}
         <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
           <div className="flex items-center gap-2 pointer-events-auto">
@@ -602,11 +606,11 @@ export default function ShortVideoFeed() {
                 <MoreHorizontal className="w-5 h-5" />
               </button>
 
-              {/* Desktop Floating Menu cho nút ... */}
+              {/* Floating Popover Menu cho nút ... (Works cleanly on both Desktop & Mobile without dimming overlay) */}
               {showSettingsMenu && (
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="hidden md:block absolute left-0 top-12 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-3 z-50 text-zinc-900 dark:text-zinc-100 animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute left-0 top-12 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-3 z-50 text-zinc-900 dark:text-zinc-100 animate-in fade-in zoom-in-95 duration-150"
                 >
                   <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 pb-1.5 uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800/80 mb-2">
                     Cài đặt player
@@ -682,14 +686,10 @@ export default function ShortVideoFeed() {
           </div>
         </div>
 
-        {/* Video Feed Container */}
+        {/* Video Feed Container with native vertical scroll & snap */}
         <div
           ref={containerRef}
-          className="w-full flex-1 overflow-y-hidden select-none"
-          style={{ touchAction: "pan-y" }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          className="w-full flex-1 overflow-y-auto snap-y snap-proximity select-none custom-scrollbar"
         >
           {loading ? (
             <div className="w-full h-full flex items-center justify-center bg-black">
@@ -746,7 +746,7 @@ export default function ShortVideoFeed() {
                 <div
                   key={video.id}
                   ref={(el) => (itemRefs.current[index] = el)}
-                  className="relative w-full h-full shrink-0 overflow-hidden bg-black flex items-center justify-center"
+                  className="relative w-full h-full shrink-0 overflow-hidden bg-black flex items-center justify-center snap-start"
                 >
                   <video
                     ref={(el) => (videoRefs.current[index] = el)}
@@ -861,11 +861,11 @@ export default function ShortVideoFeed() {
                   </div>
 
                   {/* Bottom Video Info Overlay (Username, Caption, Hashtags, Audio) */}
-                  <div className="absolute left-3.5 right-[4.5rem] md:right-3.5 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] md:bottom-[3.2rem] z-30 flex flex-col gap-2 pointer-events-auto">
+                  <div className="absolute left-3.5 right-[4.5rem] md:right-3.5 bottom-12 md:bottom-[3.2rem] z-30 flex flex-col gap-2 pointer-events-auto">
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
                         onClick={() => navigate(`/profile/${video.author.id}`)}
-                        className="text-white font-bold text-sm tracking-tight hover:underline truncate max-w-[150px]"
+                        className="text-[#ffffff] dark:text-[#ffffff] font-bold text-sm tracking-tight hover:underline truncate max-w-[150px]"
                       >
                         @{video.author.username}
                       </button>
@@ -890,8 +890,8 @@ export default function ShortVideoFeed() {
                     </div>
                   </div>
 
-                  {/* Progress bar (Vạch tua video siêu mượt, nổi bật) - Tự động đẩy cao trên Mobile để không bị Mobile Bottom Nav che */}
-                  <div className="absolute inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] md:bottom-0 z-40 px-3.5 pb-2.5 pointer-events-auto">
+                  {/* Progress bar (Vạch tua video) - Sát đáy container video (không bị che bởi bottom nav) */}
+                  <div className="absolute inset-x-0 bottom-0 z-40 px-3.5 pb-2.5 pointer-events-auto">
                     <div className="flex items-center gap-2.5">
                       <button
                         onClick={toggleFullscreen}
@@ -1204,90 +1204,6 @@ export default function ShortVideoFeed() {
                 {isSubmittingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </form>
-          </div>
-        </>,
-        document.body
-      )}
-
-      {/* Mobile Bottom Sheet for More Options (...) */}
-      {showSettingsMenu && typeof document !== "undefined" && createPortal(
-        <>
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs md:hidden" onClick={() => setShowSettingsMenu(false)} />
-          <div className="fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-zinc-900 rounded-t-3xl border-t border-zinc-200 dark:border-zinc-800 shadow-2xl p-5 flex flex-col gap-4 md:hidden animate-in slide-in-from-bottom duration-250 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-            <div className="flex justify-center -mt-2 -mb-1 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-            </div>
-            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
-              <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100">Tùy chọn video</h3>
-              <button onClick={() => setShowSettingsMenu(false)} className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {/* Tự động cuộn */}
-              <div
-                className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 transition cursor-pointer"
-                onClick={() => setAutoPlayNext(!autoPlayNext)}
-              >
-                <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Tự động cuộn khi hết video</span>
-                <div className={`w-10 h-5.5 rounded-full transition-colors relative ${autoPlayNext ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-700"}`}>
-                  <div className={`w-4 h-4 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${autoPlayNext ? "right-0.5" : "left-0.5"}`} />
-                </div>
-              </div>
-
-              {/* Tốc độ phát */}
-              <div>
-                <div className="text-xs font-bold text-zinc-400 dark:text-zinc-500 mb-2">Tốc độ phát</div>
-                <div className="grid grid-cols-3 gap-2">
-                  {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
-                    <button
-                      key={speed}
-                      onClick={() => setPlaybackSpeed(speed)}
-                      className={`py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-                        playbackSpeed === speed
-                          ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-md"
-                          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
-                      }`}
-                    >
-                      {speed === 1 ? "1x (Chuẩn)" : `${speed}x`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Chất lượng */}
-              <div>
-                <div className="text-xs font-bold text-zinc-400 dark:text-zinc-500 mb-2">Chất lượng video</div>
-                <div className="grid grid-cols-3 gap-2">
-                  {["Auto", "360p", "480p", "720p", "1080p"].map((q) => (
-                    <button
-                      key={q}
-                      onClick={() => setQualitySetting(q)}
-                      className={`py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-                        qualitySetting === q
-                          ? "bg-[#0866ff] text-white shadow-md"
-                          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
-                      }`}
-                    >
-                      {q}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Báo cáo */}
-              <button
-                onClick={() => {
-                  setShowSettingsMenu(false);
-                  setShowReportModal(true);
-                }}
-                className="w-full py-3 px-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-bold text-xs flex items-center justify-center gap-2 transition"
-              >
-                <span>🚩</span>
-                <span>Báo cáo video này</span>
-              </button>
-            </div>
           </div>
         </>,
         document.body
