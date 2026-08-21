@@ -22,7 +22,12 @@ export default function ShortVideoFeed() {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false); // Default sound ON
+  const [autoPlayNext, setAutoPlayNext] = useState(true);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [qualitySetting, setQualitySetting] = useState("Auto");
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [shareVideo, setShareVideo] = useState(null);
   const [showUpload, setShowUpload] = useState(false);
@@ -120,17 +125,26 @@ export default function ShortVideoFeed() {
     videoRefs.current.forEach((v, index) => {
       if (!v) return;
       v.muted = isMuted;
+      v.playbackRate = playbackSpeed;
       if (index === currentVideoIndex) {
         v.play().then(() => {
           setPlayingMap((prev) => ({ ...prev, [index]: true }));
-        }).catch(() => {});
+        }).catch(() => {
+          // If browser blocks unmuted autoplay, mute as fallback
+          if (!isMuted) {
+            v.muted = true;
+            v.play().then(() => {
+              setPlayingMap((prev) => ({ ...prev, [index]: true }));
+            }).catch(() => {});
+          }
+        });
       } else {
         v.pause();
         v.currentTime = 0;
         setPlayingMap((prev) => ({ ...prev, [index]: false }));
       }
     });
-  }, [currentVideoIndex, isMuted, videos]);
+  }, [currentVideoIndex, isMuted, playbackSpeed, videos]);
 
   useEffect(() => {
     if (videos.length === 0) return;
@@ -507,19 +521,109 @@ export default function ShortVideoFeed() {
           }}
         >
         {/* Header */}
-        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/65 to-transparent pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
           <div className="flex items-center gap-2.5 pointer-events-auto">
             <button
               onClick={() => navigate("/")}
-              className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-white/20 active:scale-90 transition-all shadow-md"
+              className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-md cursor-pointer"
               title="Quay lại"
             >
               <X className="w-4 h-4" />
             </button>
-            <div className="flex items-center gap-1.5">
+
+            {/* Icon Âm thanh cạnh nút X */}
+            <button
+              onClick={toggleMute}
+              className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-md cursor-pointer"
+              title={isMuted ? "Bật âm thanh" : "Tắt âm thanh"}
+            >
+              {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-white" />}
+            </button>
+
+            <div className="flex items-center gap-1.5 ml-1">
               <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow" />
-              <h1 className="text-white font-bold text-lg tracking-tight drop-shadow">Shorts</h1>
+              <h1 className="text-white font-bold text-base tracking-tight drop-shadow">Shorts</h1>
             </div>
+          </div>
+
+          {/* Nút "..." bên phải header */}
+          <div className="flex items-center gap-2 pointer-events-auto relative">
+            <button
+              onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+              className={`w-9 h-9 rounded-full backdrop-blur-xl ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md cursor-pointer ${
+                showSettingsMenu
+                  ? "bg-white text-black ring-white"
+                  : "bg-black/40 ring-white/20 text-white hover:bg-black/60"
+              }`}
+              title="Tùy chỉnh Shorts"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+
+            {/* Desktop Popover Menu (MD trở lên) */}
+            {showSettingsMenu && (
+              <div className="hidden md:block absolute right-0 top-11 w-64 bg-zinc-900/95 backdrop-blur-2xl border border-zinc-800 rounded-2xl shadow-2xl p-2.5 z-50 text-white animate-in fade-in zoom-in-95 duration-150">
+                <div className="text-[11px] font-bold text-zinc-400 px-2 py-1 uppercase tracking-wider">Cài đặt phát video</div>
+                
+                {/* Tự động chuyển video */}
+                <div className="flex items-center justify-between p-2 rounded-xl hover:bg-white/10 transition cursor-pointer" onClick={() => setAutoPlayNext(!autoPlayNext)}>
+                  <span className="text-xs font-medium">Tự động chuyển video</span>
+                  <div className={`w-8 h-4.5 rounded-full transition-colors relative ${autoPlayNext ? "bg-emerald-500" : "bg-zinc-700"}`}>
+                    <div className={`w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-transform ${autoPlayNext ? "right-0.5" : "left-0.5"}`} />
+                  </div>
+                </div>
+
+                {/* Tốc độ phát */}
+                <div className="mt-2 pt-2 border-t border-zinc-800">
+                  <div className="text-[11px] font-bold text-zinc-400 px-2 mb-1.5">Tốc độ phát</div>
+                  <div className="grid grid-cols-4 gap-1">
+                    {[0.5, 1, 1.5, 2].map((speed) => (
+                      <button
+                        key={speed}
+                        onClick={() => setPlaybackSpeed(speed)}
+                        className={`py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                          playbackSpeed === speed ? "bg-white text-black" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                        }`}
+                      >
+                        {speed === 1 ? "Chuẩn" : `${speed}x`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Chất lượng */}
+                <div className="mt-2 pt-2 border-t border-zinc-800">
+                  <div className="text-[11px] font-bold text-zinc-400 px-2 mb-1.5">Chất lượng video</div>
+                  <div className="grid grid-cols-3 gap-1">
+                    {["Auto", "360p", "480p", "720p", "1080p"].map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => setQualitySetting(q)}
+                        className={`py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
+                          qualitySetting === q ? "bg-[#0866ff] text-white" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                        }`}
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Báo cáo */}
+                <div className="mt-2 pt-2 border-t border-zinc-800">
+                  <button
+                    onClick={() => {
+                      setShowSettingsMenu(false);
+                      setShowReportModal(true);
+                    }}
+                    className="w-full text-left px-2 py-1.5 text-xs text-rose-400 hover:bg-rose-500/20 rounded-xl transition flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>🚩</span>
+                    <span>Báo cáo video này</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -593,10 +697,15 @@ export default function ShortVideoFeed() {
                     ref={(el) => (videoRefs.current[index] = el)}
                     src={video.url}
                     className="absolute inset-0 w-full h-full object-contain object-center"
-                    loop
+                    loop={!autoPlayNext}
                     playsInline
                     onClick={(e) => handleVideoClick(e, index)}
                     onTimeUpdate={(e) => handleTimeUpdate(e, index)}
+                    onEnded={() => {
+                      if (autoPlayNext && index < videos.length - 1) {
+                        scrollToIndex(index + 1);
+                      }
+                    }}
                     onPlay={() => setPlayingMap((prev) => ({ ...prev, [index]: true }))}
                     onPause={() => setPlayingMap((prev) => ({ ...prev, [index]: false }))}
                   />
@@ -614,16 +723,7 @@ export default function ShortVideoFeed() {
                     </div>
                   )}
 
-                  {/* Mute button */}
-                  <div className="absolute right-3.5 top-[4.5rem] z-30 pointer-events-auto">
-                    <button
-                      onClick={toggleMute}
-                      className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-md"
-                      title={isMuted ? "Bật tiếng" : "Tắt tiếng"}
-                    >
-                      {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                    </button>
-                  </div>
+
 
                   {/* TikTok Style Sleek Vertical Action Column */}
                   <div className="absolute right-3.5 bottom-[4.2rem] flex flex-col items-center gap-3 z-30 pointer-events-auto">
@@ -937,6 +1037,134 @@ export default function ShortVideoFeed() {
                 onCancel={() => setShowUpload(false)}
               />
             </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Mobile Bottom-Sheet for Settings Menu */}
+      {showSettingsMenu && typeof document !== "undefined" && createPortal(
+        <>
+          <div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs md:hidden"
+            onClick={() => setShowSettingsMenu(false)}
+          />
+          <div className="fixed inset-x-0 bottom-0 z-50 bg-zinc-900 text-white rounded-t-3xl border-t border-zinc-800 shadow-2xl p-5 md:hidden animate-in slide-in-from-bottom duration-250 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+            <div className="flex justify-center pb-3">
+              <div className="w-10 h-1 rounded-full bg-zinc-700" />
+            </div>
+
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
+              <h3 className="font-bold text-base text-white">Tùy chỉnh Shorts</h3>
+              <button
+                onClick={() => setShowSettingsMenu(false)}
+                className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Tự động chuyển video */}
+              <div
+                className="flex items-center justify-between p-3 rounded-2xl bg-zinc-800/70 border border-zinc-700/60 active:scale-[0.98] transition cursor-pointer"
+                onClick={() => setAutoPlayNext(!autoPlayNext)}
+              >
+                <span className="text-sm font-semibold">Tự động chuyển video tiếp theo</span>
+                <div className={`w-11 h-6 rounded-full transition-colors relative ${autoPlayNext ? "bg-emerald-500" : "bg-zinc-700"}`}>
+                  <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${autoPlayNext ? "right-0.5" : "left-0.5"}`} />
+                </div>
+              </div>
+
+              {/* Tốc độ phát */}
+              <div>
+                <div className="text-xs font-bold text-zinc-400 mb-2 uppercase tracking-wider">Tốc độ phát</div>
+                <div className="grid grid-cols-4 gap-2">
+                  {[0.5, 1, 1.5, 2].map((speed) => (
+                    <button
+                      key={speed}
+                      onClick={() => setPlaybackSpeed(speed)}
+                      className={`py-2.5 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer ${
+                        playbackSpeed === speed ? "bg-white text-black" : "bg-zinc-800 text-zinc-300"
+                      }`}
+                    >
+                      {speed === 1 ? "Chuẩn" : `${speed}x`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chất lượng */}
+              <div>
+                <div className="text-xs font-bold text-zinc-400 mb-2 uppercase tracking-wider">Chất lượng video</div>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {["Auto", "360p", "480p", "720p", "1080p"].map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => setQualitySetting(q)}
+                      className={`py-2 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer ${
+                        qualitySetting === q ? "bg-[#0866ff] text-white" : "bg-zinc-800 text-zinc-300"
+                      }`}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Báo cáo */}
+              <div className="pt-2 border-t border-zinc-800">
+                <button
+                  onClick={() => {
+                    setShowSettingsMenu(false);
+                    setShowReportModal(true);
+                  }}
+                  className="w-full py-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition cursor-pointer"
+                >
+                  <span>🚩</span>
+                  <span>Báo cáo video này</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
+
+      {/* Report Modal */}
+      {showReportModal && typeof document !== "undefined" && createPortal(
+        <div
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowReportModal(false); }}
+        >
+          <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 text-white rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-base">Báo cáo vi phạm</h3>
+              <button onClick={() => setShowReportModal(false)} className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-zinc-400 mb-4">Chọn lý do bạn muốn báo cáo nội dung video ngắn này:</p>
+            <div className="space-y-2 mb-5">
+              {["Nội dung vi phạm bản quyền", "Spam hoặc quảng cáo sai sự thật", "Bạo lực, nhạy cảm", "Lý do khác"].map((reason) => (
+                <button
+                  key={reason}
+                  onClick={() => {
+                    setShowReportModal(false);
+                    toast.success("Cảm ơn bạn đã gửi báo cáo. Chúng tôi sẽ xem xét trong thời gian sớm nhất!");
+                  }}
+                  className="w-full text-left p-3 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 text-xs font-medium transition cursor-pointer"
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowReportModal(false)}
+              className="w-full py-2.5 rounded-xl bg-zinc-800 text-xs font-bold text-zinc-300 hover:bg-zinc-700 transition"
+            >
+              Hủy
+            </button>
           </div>
         </div>,
         document.body
