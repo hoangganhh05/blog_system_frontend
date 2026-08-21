@@ -86,7 +86,6 @@ function ReelCard({ reel, index, onReelClick }) {
         playsInline
         loop
         preload="metadata"
-        crossOrigin="anonymous"
         onTimeUpdate={handleTimeUpdate}
         className="w-full h-full object-cover object-center block"
       />
