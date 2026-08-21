@@ -848,23 +848,34 @@ export default function ShortVideoFeed() {
                     </div>
                   </div>
 
-                  {/* Progress bar */}
-                  <div className="absolute inset-x-0 bottom-0 z-30 px-3.5 pb-2.5">
+                  {/* Progress bar (Vạch tua video siêu mượt, nổi bật) */}
+                  <div className="absolute inset-x-0 bottom-0 z-40 px-3.5 pb-2.5 pointer-events-auto">
                     <div className="flex items-center gap-2.5">
                       <button
                         onClick={toggleFullscreen}
-                        className="shrink-0 w-8 h-8 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/15 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all"
+                        className="shrink-0 w-7 h-7 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center hover:bg-black/70 active:scale-90 transition-all cursor-pointer shadow-md"
                         title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
                       >
                         {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 text-white" /> : <Maximize2 className="w-3.5 h-3.5 text-white" />}
                       </button>
-                      <div className="flex-1 h-1 rounded-full bg-white/20 overflow-hidden cursor-pointer group" onClick={(e) => handleSeek(e, index)}>
-                        <div
-                          className="h-full rounded-full bg-white/90 group-hover:bg-white transition-[width] duration-100"
-                          style={{ width: `${prog?.duration ? (prog.current / prog.duration) * 100 : 0}%` }}
-                        />
+                      
+                      {/* Interactive Progress Seeker */}
+                      <div
+                        className="flex-1 py-2 cursor-pointer group"
+                        onClick={(e) => handleSeek(e, index)}
+                      >
+                        <div className="h-1.5 w-full rounded-full bg-white/30 backdrop-blur-xs relative overflow-visible transition-all group-hover:h-2">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-white relative transition-[width] duration-75 shadow-sm"
+                            style={{ width: `${prog?.duration ? (prog.current / prog.duration) * 100 : 0}%` }}
+                          >
+                            {/* Thumb dot */}
+                            <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md scale-0 group-hover:scale-100 transition-transform" />
+                          </div>
+                        </div>
                       </div>
-                      <span className="shrink-0 text-white/60 text-[10px] font-semibold tabular-nums">
+
+                      <span className="shrink-0 text-white/90 text-[11px] font-bold tabular-nums drop-shadow-md">
                         {prog?.duration ? `${formatTime(prog.current)} / ${formatTime(prog.duration)}` : "0:00"}
                       </span>
                     </div>
