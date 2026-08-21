@@ -857,7 +857,7 @@ export default function ShortVideoFeed() {
       {/* Mobile Modal/Drawer for Comments */}
       {showComments && commentsFor !== null && typeof document !== "undefined" && createPortal(
         <>
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm md:hidden" onClick={closeComments} />
+          <div className="fixed inset-0 z-50 bg-transparent md:hidden" onClick={closeComments} />
           <div className="fixed inset-x-0 bottom-0 z-50 h-[70dvh] bg-white dark:bg-zinc-900 rounded-t-3xl border-t border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col md:hidden animate-in slide-in-from-bottom duration-250">
             <div className="flex justify-center pt-3 pb-1 shrink-0">
               <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
