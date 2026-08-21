@@ -541,8 +541,8 @@ export default function ShortVideoFeed() {
 
   return (
     <div className="w-full h-full flex-1 flex flex-col md:flex-row items-start md:items-stretch justify-start md:justify-center p-0 md:p-1 gap-0 md:gap-3 transition-all duration-300 overflow-hidden">
-      {/* 1. VIDEO BOX: Fixed Layout space on desktop when comment opens */}
-      <div className={`w-full h-full flex-1 ${isCommentOpen ? "md:max-w-[calc(100%-370px)]" : "md:w-full"} flex items-start md:items-center justify-start md:justify-center p-0 md:p-1 transition-all duration-300 min-w-0 relative group/videobox`}>
+      {/* 1. VIDEO BOX: Dynamic Layout space scaled by vh/vw */}
+      <div className={`w-full h-full flex-1 ${isCommentOpen ? "md:max-w-[calc(100%-25vw)]" : "md:w-full"} flex items-start md:items-center justify-start md:justify-center p-0 md:p-1 transition-all duration-300 min-w-0 relative group/videobox`}>
         {/* Dedicated Up / Down Navigation Arrow Controls */}
         <div className="hidden md:flex flex-col gap-3 absolute left-4 z-40">
           <button
@@ -563,8 +563,8 @@ export default function ShortVideoFeed() {
           </button>
         </div>
 
-        {/* Shorts Video: Full-bleed on mobile & centered 9:16 frame on desktop */}
-        <div className="relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800/80 shrink-0 transition-all duration-300 w-full h-full md:w-auto md:aspect-[9/16] md:h-[min(calc(100vh-5.5rem),760px)]">
+        {/* Shorts Video: Scaled by vh (full-bleed on mobile, 88vh centered frame on desktop) */}
+        <div className="relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800/80 shrink-0 transition-all duration-300 w-full h-full md:w-auto md:aspect-[9/16] md:h-[88vh] md:max-h-[88vh]">
         {/* Header (Top Left Controls: Back X, Sound Mute/Unmute, More Options ...) */}
         <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
           <div className="flex items-center gap-2 pointer-events-auto">
@@ -758,7 +758,6 @@ export default function ShortVideoFeed() {
                     ref={(el) => (videoRefs.current[index] = el)}
                     src={video.url}
                     className="w-full h-full object-contain object-center block"
-                    style={videoAspectRatios[index] ? { aspectRatio: videoAspectRatios[index] } : {}}
                     onLoadedMetadata={(e) => handleShortVideoMetadata(e, index)}
                     loop={!autoPlayNext}
                     playsInline
@@ -1052,9 +1051,9 @@ export default function ShortVideoFeed() {
       )}
       </div>
 
-      {/* 2. COMMENT BOX: Fixed 360px Sidebar on Desktop */}
+      {/* 2. COMMENT BOX: Scaled with vh/vw on Desktop */}
       {isCommentOpen && (
-        <div className="hidden md:flex flex-col w-[360px] shrink-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl md:rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-right duration-200" style={{ height: "min(calc(100vh - 5rem), 760px)" }}>
+        <div className="hidden md:flex flex-col w-[22vw] min-w-[320px] max-w-[400px] md:h-[88vh] shrink-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl md:rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-right duration-200">
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-[#0866ff]" />
