@@ -447,7 +447,7 @@ export default function MainLayout({ children }) {
           MOBILE FLOATING SOUNDSCAPE BAR (Fixed above bottom nav on mobile)
           ====================================================================== */}
       {!isShortsPage && (
-        <div className="lg:hidden fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px)+8px)] left-3 right-3 sm:left-4 sm:right-4 z-40 max-w-lg mx-auto pointer-events-auto">
+        <div className="lg:hidden fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px)+8px)] left-0 right-0 px-3 z-40 flex justify-center pointer-events-auto">
           <MiniSoundscapePlayer isMobileFloating={true} />
         </div>
       )}

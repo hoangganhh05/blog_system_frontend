@@ -359,7 +359,7 @@ export default function SoundscapesPage() {
       {/* 3. Category Filter Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 scroll-smooth touch-pan-x">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 scroll-smooth touch-pan-x overscroll-x-contain flex-nowrap w-full sm:w-auto -mx-1 px-1">
           {CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             const isSelected = selectedCategory === cat.id;
@@ -368,7 +368,7 @@ export default function SoundscapesPage() {
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer shadow-2xs ${
+                className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer shadow-2xs shrink-0 ${
                   isSelected
                     ? "bg-indigo-600 text-white shadow-md scale-105"
                     : "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"
@@ -652,6 +652,18 @@ export default function SoundscapesPage() {
           </div>
         </div>
       )}
+
+      {/* Mobile Floating Action Button (FAB) for Sharing Soundscape */}
+      <div className="sm:hidden fixed bottom-20 right-4 z-30">
+        <button
+          type="button"
+          onClick={() => setShowShareModal(true)}
+          className="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-xl active:scale-95 transition-transform cursor-pointer border border-indigo-400/30"
+          title="Chia sẻ âm thanh mới"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      </div>
     </div>
   );
 }
