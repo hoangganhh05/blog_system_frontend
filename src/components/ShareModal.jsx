@@ -39,7 +39,9 @@ export default function ShareModal({
   const [isSendingMsg, setIsSendingMsg] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  const postUrl = typeof window !== "undefined" ? `${window.location.origin}/posts/${post?.id}` : "";
+  const postUrl = typeof window !== "undefined" 
+    ? `${window.location.origin}${post?.isShort ? '/shorts' : '/posts'}/${post?.id}` 
+    : "";
 
   // Load friends when message tab is active
   useEffect(() => {

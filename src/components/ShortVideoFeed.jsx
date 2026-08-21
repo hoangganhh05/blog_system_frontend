@@ -222,6 +222,7 @@ export default function ShortVideoFeed() {
       title: video.description || "",
       thumbNail: video.url,
       sharedPost: null,
+      isShort: true,
     });
   };
 
