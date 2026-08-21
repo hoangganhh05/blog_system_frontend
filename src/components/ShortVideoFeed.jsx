@@ -470,7 +470,7 @@ export default function ShortVideoFeed() {
   };
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto flex flex-col md:flex-row items-center md:items-start justify-center gap-4 lg:gap-6 py-2 px-2 sm:px-4">
+    <div className="w-full flex flex-col md:flex-row items-center justify-center gap-3 py-2 px-2 sm:px-4">
       {/* Short Video Card */}
       <div
         className="relative w-full max-w-[400px] bg-black rounded-2xl md:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-zinc-800 shrink-0"
