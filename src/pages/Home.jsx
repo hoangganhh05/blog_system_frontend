@@ -409,9 +409,6 @@ export default function Home() {
       {/* Quick Composer ở đầu bảng tin */}
       <QuickComposer onPostCreated={handlePostCreated} categories={categories} />
 
-      {/* Reels / Shorts Carousel Widget */}
-      <ReelsCarousel />
-
       {/* Mobile Suggested Friends Carousel (Đồng bộ 100% tính năng gợi ý theo dõi lên Mobile) */}
       {suggestedUsers.length > 0 && activeTab === "forYou" && (
         <div className="lg:hidden p-3.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs flex flex-col gap-2.5 overflow-hidden">
@@ -568,17 +565,25 @@ export default function Home() {
           )
         ) : (
           filteredDisplayedPosts.map((post, idx) => (
-            <div
-              key={post.id}
-              className="animate-fade-in-up"
-              style={{ animationDelay: `${Math.min(idx * 40, 240)}ms` }}
-            >
-              <PostCard
-                post={post}
-                onDelete={handleDeletePost}
-                onEdit={handleEditPost}
-                onPostCreated={handlePostCreated}
-              />
+            <div key={post.id} className="flex flex-col gap-2">
+              <div
+                className="animate-fade-in-up"
+                style={{ animationDelay: `${Math.min(idx * 40, 240)}ms` }}
+              >
+                <PostCard
+                  post={post}
+                  onDelete={handleDeletePost}
+                  onEdit={handleEditPost}
+                  onPostCreated={handlePostCreated}
+                />
+              </div>
+
+              {/* Chèn Reels Carousel ngẫu nhiên/tối ưu giữa các bài viết trong Newsfeed (ví dụ: sau bài viết thứ 3 hoặc sau bài cuối nếu < 3 bài) */}
+              {(idx === 2 || (filteredDisplayedPosts.length < 3 && idx === filteredDisplayedPosts.length - 1) || (idx === 14 && filteredDisplayedPosts.length >= 18)) && (
+                <div className="py-1">
+                  <ReelsCarousel />
+                </div>
+              )}
             </div>
           ))
         )}
