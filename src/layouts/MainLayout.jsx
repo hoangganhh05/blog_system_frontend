@@ -13,7 +13,7 @@ import AiAssistantModal from "../components/AiAssistantModal";
 import MessengerDropdown from "../components/MessengerDropdown";
 import LeftSidebar from "../components/LeftSidebar";
 import RightSidebar from "../components/RightSidebar";
-import MiniMusicPlayer from "../components/MiniMusicPlayer";
+import MiniSoundscapePlayer from "../components/MiniSoundscapePlayer";
 import MobileNavDrawer from "../components/MobileNavDrawer";
 import Logo from "../components/Logo";
 import Avatar from "../components/Avatar";
@@ -444,11 +444,11 @@ export default function MainLayout({ children }) {
       )}
 
       {/* ======================================================================
-          MOBILE FLOATING MUSIC BAR (Fixed above bottom nav on mobile)
+          MOBILE FLOATING SOUNDSCAPE BAR (Fixed above bottom nav on mobile)
           ====================================================================== */}
       {!isShortsPage && (
         <div className="lg:hidden">
-          <MiniMusicPlayer />
+          <MiniSoundscapePlayer />
         </div>
       )}
 

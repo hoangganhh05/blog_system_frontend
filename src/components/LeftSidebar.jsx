@@ -3,7 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import {
   Home,
   Compass,
-  Radio,
+  Headphones,
   Users,
   Bookmark,
   BarChart3,
@@ -18,7 +18,7 @@ const SIDEBAR_ITEMS = [
   { to: "/", tooltip: "Bảng tin trang chủ", icon: Home },
   { to: "/trending", tooltip: "Khám phá xu hướng", icon: Compass },
   { to: "/shorts", tooltip: "Video ngắn Shorts", icon: Film },
-  { to: "/radio", tooltip: "Phòng nhạc & Radio", icon: Radio },
+  { to: "/soundscapes", tooltip: "Trạm Âm Thanh Môi Trường", icon: Headphones },
   { to: "/friends", tooltip: "Bạn bè & Kết nối", icon: Users },
   { to: "/saved", tooltip: "Bài viết đã lưu", icon: Bookmark },
   { to: "/dashboard", tooltip: "Bảng điều khiển & Công cụ", icon: BarChart3 },

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import userService from "../services/userService";
 import followService from "../services/followService";
-import MiniMusicPlayer from "./MiniMusicPlayer";
+import MiniSoundscapePlayer from "./MiniSoundscapePlayer";
 import { isUserOnline, formatLastActive } from "../utils/statusUtils";
 import Avatar from "./Avatar";
 
@@ -121,8 +121,8 @@ export default function RightSidebar() {
 
   return (
     <div className="w-full min-h-0 flex flex-col space-y-3 px-1 pb-16">
-      {/* 1. Mini Music Player (Vinahouse / Lofi Focus) */}
-      <MiniMusicPlayer />
+      {/* 1. Mini Soundscape Player (Environmental Ambient Audio) */}
+      <MiniSoundscapePlayer />
 
       {/* Đường gạch ngang phân cách dài */}
       <div className="border-t border-slate-200 dark:border-zinc-800 my-1" />

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useMusic } from "../context/MusicContext";
+import { useSoundscape } from "../context/SoundscapeContext";
 import { useTheme } from "../context/ThemeContext";
 import userService from "../services/userService";
 import friendService from "../services/friendService";
@@ -11,7 +11,7 @@ import Avatar from "./Avatar";
 import {
   Home,
   Compass,
-  Radio,
+  Headphones,
   Users,
   Bookmark,
   BarChart2,
@@ -49,12 +49,11 @@ export default function MobileNavDrawer({
 }) {
   const { currentUser, logout } = useAuth();
   const {
-    showMiniPlayer,
     toggleMiniPlayer,
     isMiniPlayerVisible,
     isPlaying,
     currentTrack,
-  } = useMusic();
+  } = useSoundscape();
   const { isDark, setTheme, themeMode } = useTheme();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
   const navigate = useNavigate();
@@ -210,7 +209,7 @@ export default function MobileNavDrawer({
     { to: "/", label: "Bảng tin trang chủ", icon: Home },
     { to: "/shorts", label: "Short Video", icon: Film },
     { to: "/trending", label: "Khám phá chủ đề", icon: Compass },
-    { to: "/radio", label: "Phòng nhạc & Radio", icon: Radio },
+    { to: "/soundscapes", label: "Trạm Âm Thanh", icon: Headphones },
     { to: "/friends", label: "Bạn bè & Kết nối", icon: Users },
     { to: "/saved", label: "Bài viết đã lưu", icon: Bookmark },
     { to: "/dashboard", label: "Bảng điều khiển", icon: BarChart2 },

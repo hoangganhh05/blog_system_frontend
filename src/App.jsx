@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation, Link } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "./context/AuthContext";
-import { MusicProvider } from "./context/MusicContext";
+import { SoundscapeProvider } from "./context/SoundscapeContext";
 import { ChatProvider } from "./context/ChatContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -14,7 +14,7 @@ import PostDetail from "./pages/PostDetail";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import SavedPosts from "./pages/SavedPosts";
-import RadioPage from "./pages/RadioPage";
+import SoundscapesPage from "./pages/SoundscapesPage";
 import TrendingPage from "./pages/TrendingPage";
 import GamesPage from "./pages/GamesPage";
 import AiCreatorPage from "./pages/AiCreatorPage";
@@ -90,7 +90,8 @@ function AppContent() {
           <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
           <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
-          <Route path="/radio" element={<ProtectedRoute><RadioPage /></ProtectedRoute>} />
+          <Route path="/soundscapes" element={<ProtectedRoute><SoundscapesPage /></ProtectedRoute>} />
+          <Route path="/radio" element={<ProtectedRoute><SoundscapesPage /></ProtectedRoute>} />
           <Route path="/trending" element={<ProtectedRoute><TrendingPage /></ProtectedRoute>} />
           <Route path="/games" element={<ProtectedRoute><GamesPage /></ProtectedRoute>} />
           <Route path="/ai-creator" element={<ProtectedRoute><AiCreatorPage /></ProtectedRoute>} />
@@ -130,7 +131,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <MusicProvider>
+        <SoundscapeProvider>
           <ChatProvider>
             <ThemeProvider>
               <LanguageProvider>
@@ -138,7 +139,7 @@ export default function App() {
               </LanguageProvider>
             </ThemeProvider>
           </ChatProvider>
-        </MusicProvider>
+        </SoundscapeProvider>
       </AuthProvider>
     </BrowserRouter>
   );
