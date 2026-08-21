@@ -630,7 +630,7 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
                 <video
                   ref={postVideoRef}
                   src={videoSrc}
-                  className="w-full h-auto max-h-[540px] object-cover"
+                  className="w-full h-auto max-h-[540px] object-contain"
                   controls
                   playsInline
                   autoPlay
