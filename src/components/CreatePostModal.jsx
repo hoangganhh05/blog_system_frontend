@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X, Image, Globe, Lock, Sparkles, Loader2, Video, Play, Pause, Volume2, VolumeX, AlertCircle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -309,7 +310,7 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
       if (onPostCreated) onPostCreated(result.data);
       if (onCreated) onCreated(result.data);
       onClose();
-    } catch (err) {
+} catch (err) {
       console.error("Lỗi đăng bài:", err.response?.data || err);
       const serverMsg =
         typeof err.response?.data === "string"
@@ -321,8 +322,13 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+  if (!isOpen || typeof document === "undefined" || !document.body) return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[85vh] animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
@@ -346,7 +352,7 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
         <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
           {/* User Meta Row */}
           <div className="flex items-center gap-3">
-                        <Avatar
+            <Avatar
               userId={currentUser?.id}
               src={currentUser?.avatarUrl}
               name={currentUser?.fullName || currentUser?.username}
@@ -371,27 +377,87 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
             </div>
           </div>
 
-          {/* Textarea */}
+          {/* Text Area */}
           <textarea
             ref={textareaRef}
-            autoFocus
-            value={content}
-            onChange={handleInput}
-            placeholder="Bạn đang nghĩ gì thế? Chia sẻ câu chuyện của bạn..."
             rows={4}
-            className="w-full bg-transparent border-none resize-none text-[15px] leading-relaxed text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none scrollbar-none my-1"
+            placeholder={
+              mediaType === "video"
+                ? "Viết mô tả hoặc tiêu đề cho video của bạn..."
+                : "Bạn đang nghĩ gì thế? Chia sẻ câu chuyện của bạn..."
+            }
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="w-full bg-transparent border-none focus:outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 resize-none"
           />
 
-          {/* Preview Images */}
-          {images.length > 0 && mediaType !== "video" && (
-            <div className={`mt-2 grid gap-2 ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
-              {images.map((imgUrl, idx) => (
-                <div key={idx} className="relative rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 group aspect-video max-h-56 bg-zinc-100 dark:bg-zinc-800">
-                  <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+          {/* Video ValidationError */}
+          {videoValidationError && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{videoValidationError}</span>
+            </div>
+          )}
+
+          {/* Video Attachment Preview */}
+          {videoPreviewUrl && (
+            <div className="relative rounded-2xl overflow-hidden bg-black aspect-video flex items-center justify-center group border border-zinc-200 dark:border-zinc-800">
+              <video
+                ref={videoRef}
+                src={videoPreviewUrl}
+                className="w-full h-full object-contain"
+                onEnded={() => setIsVideoPlaying(false)}
+              />
+
+              {/* Video Overlay Controls */}
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={toggleVideoPlayPause}
+                  className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/40 transition cursor-pointer"
+                >
+                  {isVideoPlaying ? <Pause className="w-5 h-5 fill-white" /> : <Play className="w-5 h-5 fill-white ml-0.5" />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={toggleVideoMute}
+                  className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/40 transition cursor-pointer"
+                >
+                  {isVideoMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {/* Remove Video Button */}
+              <button
+                type="button"
+                onClick={handleRemoveVideo}
+                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition cursor-pointer z-10"
+                title="Gỡ video"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Video Info Badge */}
+              {videoDuration > 0 && (
+                <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded-md bg-black/60 backdrop-blur-md text-white text-[10px] font-medium flex items-center gap-1.5">
+                  <Video className="w-3 h-3" />
+                  <span>{formatDuration(videoDuration)}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Image Previews Grid */}
+          {images.length > 0 && (
+            <div className={`grid gap-2 ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+              {images.map((img, idx) => (
+                <div key={idx} className="relative rounded-2xl overflow-hidden group aspect-video bg-zinc-100 dark:bg-zinc-800">
+                  <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(idx)}
-                    className="absolute top-2 right-2 p-1 rounded-full bg-black/70 hover:bg-black text-white transition cursor-pointer"
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition cursor-pointer opacity-0 group-hover:opacity-100"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -399,91 +465,17 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
               ))}
             </div>
           )}
-
-          {/* Video Preview */}
-          {videoPreviewUrl && mediaType === "video" && (
-            <div className="mt-2 relative rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-black aspect-video max-h-80">
-              <video
-                ref={videoRef}
-                src={videoPreviewUrl}
-                className="w-full h-full object-cover"
-                onPlay={() => setIsVideoPlaying(true)}
-                onPause={() => setIsVideoPlaying(false)}
-                onEnded={() => setIsVideoPlaying(false)}
-              />
-              
-              {/* Overlay Controls */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-              
-              {/* Play/Pause Button */}
-              <button
-                type="button"
-                onClick={toggleVideoPlayPause}
-                className="absolute inset-0 flex items-center justify-center pointer-events-auto group"
-              >
-                <div className={`w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all group-hover:scale-110 ${isVideoPlaying ? 'opacity-0' : 'opacity-100'}`}>
-                  {isVideoPlaying ? (
-                    <Pause className="w-6 h-6 text-white" />
-                  ) : (
-                    <Play className="w-6 h-6 text-white ml-1" />
-                  )}
-                </div>
-              </button>
-
-              {/* Top Actions */}
-              <div className="absolute top-2 right-2 flex gap-2 pointer-events-auto">
-                <button
-                  type="button"
-                  onClick={toggleVideoMute}
-                  className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/70 transition cursor-pointer"
-                  title={isVideoMuted ? "Bật âm thanh" : "Tắt âm thanh"}
-                >
-                  {isVideoMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRemoveVideo}
-                  className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/70 transition cursor-pointer"
-                  title="Xóa video"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Bottom Info */}
-              <div className="absolute bottom-0 left-0 right-0 p-3 pointer-events-none">
-                {videoValidationError ? (
-                  <div className="flex items-center gap-2 text-red-400 text-xs">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>{videoValidationError}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-white text-xs">
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
-                    <span>{formatDuration(videoDuration)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {isUploading && (
-            <div className="flex items-center gap-2 text-xs text-zinc-400 my-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>Đang tải ảnh...</span>
-            </div>
-          )}
         </div>
 
-        {/* Footer Toolbar & Submit Button */}
-        <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-3 bg-zinc-50/50 dark:bg-zinc-900/50">
-          <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
-            <div className="flex items-center gap-2">
+        {/* Footer Actions */}
+        <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition cursor-pointer"
-                title="Đính kèm ảnh"
+                title="Đính kèm hình ảnh"
                 disabled={mediaType === "video"}
               >
                 <Image className="w-4 h-4" />
@@ -491,9 +483,9 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
                 multiple
-                onChange={handleFileChange}
+                accept="image/*"
+                onChange={handleImageFileChange}
                 className="hidden"
                 disabled={mediaType === "video"}
               />
@@ -554,6 +546,7 @@ export default function CreatePostModal({ isOpen = true, onClose, onPostCreated,
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

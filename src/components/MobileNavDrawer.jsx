@@ -208,7 +208,6 @@ export default function MobileNavDrawer({
 
   const navLinks = [
     { to: "/", label: "Bảng tin trang chủ", icon: Home },
-    { to: "/videos", label: "Video Clips", icon: Video },
     { to: "/shorts", label: "Short Video", icon: Film },
     { to: "/trending", label: "Khám phá chủ đề", icon: Compass },
     { to: "/radio", label: "Phòng nhạc & Radio", icon: Radio },

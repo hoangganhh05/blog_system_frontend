@@ -481,20 +481,7 @@ export default function MainLayout({ children }) {
           {({ isActive }) => <Compass strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />}
         </NavLink>
 
-        {/* 3. Video */}
-        <NavLink
-          to="/videos"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition-all duration-150 active:scale-90 ${
-              isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
-            }`
-          }
-          title="Video"
-        >
-          {({ isActive }) => <Video strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />}
-        </NavLink>
-
-        {/* 4. Shorts */}
+        {/* 3. Shorts */}
         <NavLink
           to="/shorts"
           className={({ isActive }) =>
@@ -504,7 +491,7 @@ export default function MainLayout({ children }) {
           }
           title="Shorts"
         >
-          {({ isActive }) => <LayoutGrid strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />}
+          {({ isActive }) => <Film strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />}
         </NavLink>
 
         {/* 5. Thông báo */}
