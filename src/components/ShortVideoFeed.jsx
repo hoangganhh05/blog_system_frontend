@@ -875,6 +875,8 @@ export default function ShortVideoFeed() {
                     ref={(el) => (videoRefs.current[index] = el)}
                     src={video.url}
                     className="w-full h-full object-contain object-center block"
+                    preload="metadata"
+                    crossOrigin="anonymous"
                     onLoadedMetadata={(e) => handleShortVideoMetadata(e, index)}
                     loop={!autoPlayNext}
                     playsInline

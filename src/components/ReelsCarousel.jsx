@@ -86,6 +86,7 @@ function ReelCard({ reel, index, onReelClick }) {
         playsInline
         loop
         preload="metadata"
+        crossOrigin="anonymous"
         onTimeUpdate={handleTimeUpdate}
         className="w-full h-full object-cover object-center block"
       />
@@ -202,11 +203,8 @@ export default function ReelsCarousel() {
             <Film className="w-4 h-4 stroke-[2.5]" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 leading-tight">
-              Shorts &amp; Reels
-              <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.2 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/70 dark:border-rose-900/60">
-                Hot
-              </span>
+            <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
+              Reels
             </span>
             <span className="text-[11px] text-zinc-400">Xem thước phim ngắn đề xuất cho bạn</span>
           </div>
