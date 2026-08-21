@@ -268,7 +268,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg h-[92dvh] sm:h-[580px] max-h-[100dvh] sm:max-h-[calc(100vh-64px)] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
+        className="w-full max-w-lg h-[92dvh] sm:h-[580px] max-h-[100dvh] sm:max-h-[calc(100dvh-64px)] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

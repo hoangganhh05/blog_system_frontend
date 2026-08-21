@@ -95,7 +95,7 @@ const PostCardDemoPage = () => {
   ];
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', background: 'var(--bg-main)', paddingTop: '80px' }}>
+    <div style={{ width: '100%', minHeight: '100dvh', background: 'var(--bg-main)', paddingTop: '80px' }}>
       <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <div style={{ width: '100%', maxWidth: '680px', padding: '0 16px' }}>
           {/* Header */}
