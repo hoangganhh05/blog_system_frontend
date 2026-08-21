@@ -549,54 +549,61 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
                 </p>
               )}
 
-              {/* Translate Action Button */}
-              {displayContent && (
-                <div className="my-1 flex items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={isTranslating}
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      if (isTranslated) {
-                        setIsTranslated(false);
-                        return;
-                      }
-                      if (translatedData) {
-                        setIsTranslated(true);
-                        return;
-                      }
-                      setIsTranslating(true);
-                      try {
-                        const targetLang = language || "vi";
-                        const res = await postService.translate(post.id, targetLang);
-                        if (res.data) {
-                          setTranslatedData(res.data);
-                          setIsTranslated(true);
+              {/* Translate Action Button: Chỉ hiển thị khi ngôn ngữ bài viết KHÁC ngôn ngữ hiện tại của trang web */}
+              {displayContent && (() => {
+                const currentLang = (language || "vi").toLowerCase().trim().split("-")[0];
+                const postLang = (post.language || post.locale || post.sourceLanguage || "vi").toLowerCase().trim().split("-")[0];
+                const shouldShowTranslate = postLang !== currentLang || isTranslated;
+                if (!shouldShowTranslate) return null;
+
+                return (
+                  <div className="my-1 flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={isTranslating}
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (isTranslated) {
+                          setIsTranslated(false);
+                          return;
                         }
-                      } catch {
-                        toast.error(t("post.translationFailed"));
-                      } finally {
-                        setIsTranslating(false);
-                      }
-                    }}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0866ff] hover:underline cursor-pointer transition disabled:opacity-50"
-                  >
-                    <Globe className="w-3.5 h-3.5" />
-                    <span>
-                      {isTranslating
-                        ? t("post.translating")
-                        : isTranslated
-                        ? t("post.viewOriginal")
-                        : t("post.translate")}
-                    </span>
-                  </button>
-                  {isTranslated && (
-                    <span className="text-[11px] text-zinc-400">
-                      • {t("post.translatedFrom", { lang: post.sourceLanguage?.toUpperCase() || "VI" })}
-                    </span>
-                  )}
-                </div>
-              )}
+                        if (translatedData) {
+                          setIsTranslated(true);
+                          return;
+                        }
+                        setIsTranslating(true);
+                        try {
+                          const targetLang = language || "vi";
+                          const res = await postService.translate(post.id, targetLang);
+                          if (res.data) {
+                            setTranslatedData(res.data);
+                            setIsTranslated(true);
+                          }
+                        } catch {
+                          toast.error(t("post.translationFailed"));
+                        } finally {
+                          setIsTranslating(false);
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0866ff] hover:underline cursor-pointer transition disabled:opacity-50"
+                    >
+                      <Globe className="w-3.5 h-3.5" />
+                      <span>
+                        {isTranslating
+                          ? t("post.translating")
+                          : isTranslated
+                          ? t("post.viewOriginal")
+                          : t("post.translate")}
+                      </span>
+                    </button>
+                    {isTranslated && (
+                      <span className="text-[11px] text-zinc-400">
+                        • {t("post.translatedFrom", { lang: (post.language || post.sourceLanguage || "VI").toUpperCase() })}
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
             </>
           );
         })()}
