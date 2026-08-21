@@ -12,6 +12,7 @@ import {
   Headphones,
   SlidersHorizontal,
   X,
+  Minus,
   ExternalLink,
 } from "lucide-react";
 import { useSoundscape } from "../context/SoundscapeContext";
@@ -34,6 +35,7 @@ export default function MiniSoundscapePlayer({ isMobileFloating = false }) {
 
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [showMobileSettings, setShowMobileSettings] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const location = useLocation();
 
   // Ẩn khi đang ở trang Soundscapes chính để tránh trùng 2 player
@@ -46,6 +48,33 @@ export default function MiniSoundscapePlayer({ isMobileFloating = false }) {
     const s = seconds % 60;
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
+
+  // --- Dạng thu gọn: Chỉ hiện bong bóng nhỏ ở góc màn hình ---
+  if (isMinimized) {
+    return (
+      <button
+        type="button"
+        onClick={() => setIsMinimized(false)}
+        title="Mở lại player âm thanh"
+        className={`fixed z-50 flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xl border-2 border-white/30 transition-all active:scale-95 cursor-pointer ${
+          isMobileFloating
+            ? "bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px)+12px)] right-4"
+            : "bottom-4 right-4 sm:bottom-6 sm:right-6"
+        }`}
+      >
+        {/* Equalizer animation khi đang phát */}
+        {isPlaying ? (
+          <span className="flex items-end gap-[2px] h-4">
+            <span className="w-[3px] bg-white rounded-full animate-bounce [animation-delay:-0.3s]" style={{ height: "60%" }} />
+            <span className="w-[3px] bg-white rounded-full animate-bounce [animation-delay:-0.15s]" style={{ height: "100%" }} />
+            <span className="w-[3px] bg-white rounded-full animate-bounce" style={{ height: "45%" }} />
+          </span>
+        ) : (
+          <Headphones className="w-5 h-5" />
+        )}
+      </button>
+    );
+  }
 
   return (
     <>
@@ -64,12 +93,24 @@ export default function MiniSoundscapePlayer({ isMobileFloating = false }) {
             <span className="truncate">Trạm Âm Thanh Môi Trường</span>
           </Link>
 
-          {sleepTimeRemaining > 0 && (
-            <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50/90 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-full border border-amber-200/60">
-              <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              <span>{formatTimer(sleepTimeRemaining)}</span>
-            </span>
-          )}
+          <div className="flex items-center gap-1 shrink-0">
+            {sleepTimeRemaining > 0 && (
+              <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50/90 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-full border border-amber-200/60">
+                <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                <span>{formatTimer(sleepTimeRemaining)}</span>
+              </span>
+            )}
+            {/* Nút thu nhỏ / ẩn player */}
+            <button
+              type="button"
+              onClick={() => setIsMinimized(true)}
+              title="Thu nhỏ player"
+              className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+              aria-label="Thu nhỏ"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Main Track Display & Controls */}
