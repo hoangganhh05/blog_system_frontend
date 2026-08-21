@@ -748,8 +748,21 @@ export default function PostTheaterModal({
     </div>
   );
 
-  // Khối Hiển Thị Ảnh (Nằm Ngay Dưới Caption Chữ)
-  const imageGalleryBlock = hasImages && (
+  // Khối Hiển Thị Media (Ảnh hoặc Video - Nằm Ngay Dưới Caption Chữ)
+  const isVideoPost = post?.mediaType === "video" || post?.videoUrl || (images.length > 0 && isVideoUrl(images[0]));
+  const videoSrc = post?.videoUrl || (images.length > 0 && isVideoUrl(images[0]) ? images[0] : null);
+
+  const imageGalleryBlock = isVideoPost ? (
+    <div className="relative w-full rounded-2xl overflow-hidden bg-black flex items-center justify-center my-2 max-h-[70vh] sm:max-h-[75vh]">
+      <video
+        src={videoSrc || currentImage}
+        className="w-full h-auto max-h-[70vh] sm:max-h-[75vh] object-contain"
+        controls
+        playsInline
+        autoPlay
+      />
+    </div>
+  ) : hasImages && (
     <div className="relative w-full rounded-2xl overflow-hidden bg-black flex items-center justify-center my-2 select-none group/media">
       {/* Ảnh chính */}
       <img

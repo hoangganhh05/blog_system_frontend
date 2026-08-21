@@ -820,7 +820,20 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
             onClick={(e) => {
               e.stopPropagation();
               if (isDetailed) return;
-              openTheater(e, 0);
+              const cardImages = [];
+              if (Array.isArray(post.images) && post.images.length > 0) {
+                cardImages.push(...post.images);
+              } else if (Array.isArray(post.imageUrls) && post.imageUrls.length > 0) {
+                cardImages.push(...post.imageUrls);
+              } else if (post.thumbNail) {
+                cardImages.push(post.thumbNail);
+              }
+              const isVideoPost = post.mediaType === "video" || post.videoUrl || (cardImages.length > 0 && isVideoUrl(cardImages[0]));
+              if (isVideoPost) {
+                navigate(`/posts/${post.id}`);
+              } else {
+                openTheater(e, 0);
+              }
             }}
             className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer active:scale-95"
             title="Bình luận"
