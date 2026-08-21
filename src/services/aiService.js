@@ -65,6 +65,15 @@ const aiService = {
 
       // Fallback NLP nếu server chưa kết nối
       const lowerMsg = msg.toLowerCase();
+      if (lowerMsg.includes("âm thanh") || lowerMsg.includes("soundscape") || lowerMsg.includes("mưa") || lowerMsg.includes("cafe")) {
+        return "Bạn có thể ghé thăm **Trạm Âm Thanh Môi Trường (/soundscapes)** trên thanh menu để nghe tiếng mưa rơi, quán cafe Sài Gòn, sóng biển và rừng thông thư giãn khi đọc Blog hoặc làm việc! 🎧🌧️";
+      }
+      if (lowerMsg.includes("shorts") || lowerMsg.includes("reels") || lowerMsg.includes("video")) {
+        return "Để xem các video ngắn giải trí hoặc khám phá nội dung mới, bạn hãy bấm vào mục **Shorts (/shorts)** trên thanh menu hoặc lướt xem hàng thẻ Reels ngay trên Bản tin trang chủ nhé! 🎬✨";
+      }
+      if (lowerMsg.includes("tính năng") || lowerMsg.includes("web có gì")) {
+        return "BlogViet hiện có các tính năng nổi bật:\n• **Bảng tin & Soạn bài viết:** Chia sẻ cảm nghĩ, hình ảnh, video với 2 tab 'Dành cho bạn' và 'Đang theo dõi'.\n• **Shorts & Reels (/shorts):** Lướt video ngắn chuẩn TikTok full-screen.\n• **Trạm Âm Thanh (/soundscapes):** Lắng nghe âm thanh thực địa thiên nhiên, mưa, cafe kèm bộ hẹn giờ tắt Sleep Timer.\n• **Nhắn tin & Gọi HD:** Trò chuyện riêng tư, gọi thoại, gọi video và kho ảnh GIF.\n• **Trợ lý AI Gemini:** Hỗ trợ viết bài, tóm tắt nội dung và phân tích hình ảnh! ✨";
+      }
       if (lowerMsg.includes("đăng bài") || lowerMsg.includes("tạo bài")) {
         return "Để đăng bài viết mới, bạn bấm vào nút **(+) Đăng bài** ở góc trên bên phải thanh Header hoặc trên ô tạo bài viết tại Trang chủ nhé! ✨";
       }
