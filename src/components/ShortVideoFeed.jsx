@@ -641,7 +641,7 @@ export default function ShortVideoFeed() {
                     onTimeUpdate={(e) => handleTimeUpdate(e, index)}
                     onEnded={() => {
                       if (autoPlayNext && index < videos.length - 1) {
-                        scrollToIndex(index + 1);
+                        scrollToVideo(index + 1);
                       }
                     }}
                     onPlay={() => setPlayingMap((prev) => ({ ...prev, [index]: true }))}
