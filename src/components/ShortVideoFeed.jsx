@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   Heart, MessageCircle, Share2, MoreHorizontal, Play,
   Volume2, VolumeX, Maximize2, Minimize2, X, Loader2,
@@ -672,9 +673,9 @@ export default function ShortVideoFeed() {
       </div>
 
       {/* Comment Panel */}
-      {showComments && commentsFor !== null && (
+      {showComments && commentsFor !== null && typeof document !== "undefined" && createPortal(
         <>
-          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={closeComments} />
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={closeComments} />
           <div className="fixed inset-x-0 bottom-0 z-50 h-[65dvh] sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[400px] sm:h-auto bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-none border-t sm:border-l border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col animate-in slide-in-from-bottom sm:slide-in-from-right duration-250">
             <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0">
               <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
@@ -772,30 +773,32 @@ export default function ShortVideoFeed() {
               </button>
             </form>
           </div>
-        </>
+        </>,
+        document.body
       )}
 
       {/* Upload Modal */}
-      {showUpload && (
+      {showUpload && typeof document !== "undefined" && createPortal(
         <div
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={(e) => { if (e.target === e.currentTarget) setShowUpload(false); }}
         >
-          <div className="w-full sm:w-auto sm:max-w-md bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-250">
+          <div className="w-full sm:max-w-md bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-250">
             <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
               <h2 className="font-bold text-base text-zinc-900 dark:text-zinc-100">Đăng video ngắn</h2>
               <button onClick={() => setShowUpload(false)} className="w-8 h-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition text-zinc-400">
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="py-4 max-h-[88dvh] overflow-y-auto">
+            <div className="py-4 max-h-[85dvh] overflow-y-auto">
               <ShortVideoUpload
                 onUploadSuccess={() => { setShowUpload(false); fetchVideoPosts(); }}
                 onCancel={() => setShowUpload(false)}
               />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Share Modal */}
