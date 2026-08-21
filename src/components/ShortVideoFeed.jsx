@@ -22,6 +22,8 @@ import { isVideoUrl } from "../utils/mediaUtils";
 export default function ShortVideoFeed() {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(false); // Default sound ON
   const [autoPlayNext, setAutoPlayNext] = useState(true);
@@ -46,6 +48,9 @@ export default function ShortVideoFeed() {
   const [viewedSet, setViewedSet] = useState(new Set());
   const [videoAspectRatios, setVideoAspectRatios] = useState({});
 
+  const pageRef = useRef(0);
+  const sessionViewedIdsRef = useRef(new Set());
+
   const handleShortVideoMetadata = (e, index) => {
     const { videoWidth, videoHeight } = e.currentTarget;
     if (videoWidth && videoHeight) {
@@ -68,11 +73,29 @@ export default function ShortVideoFeed() {
 
   const [hasError, setHasError] = useState(false);
 
+  const formatVideoPost = (post) => ({
+    id: post.id,
+    url: post.videoUrl || post.thumbNail || post.imageUrls?.[0] || "",
+    author: {
+      id: post.user?.id || post.userId,
+      username: post.user?.username,
+      fullName: post.user?.fullName || post.user?.username,
+      avatarUrl: post.user?.avatarUrl,
+      avatarColor: post.user?.avatarColor,
+    },
+    description: post.content || post.title || "",
+    likes: post.likesCount || 0,
+    comments: post.commentsCount || 0,
+    shares: post.sharesCount || 0,
+    isLiked: post.likedByMe || false,
+  });
+
   const fetchVideoPosts = useCallback(async () => {
     setLoading(true);
     setHasError(false);
+    pageRef.current = 0;
     try {
-      const res = await postService.getAll(0, 50);
+      const res = await postService.getRecommendedShorts(0, 10, Array.from(sessionViewedIdsRef.current));
       const allPosts = res.data?.content || res.data || [];
       const videoPosts = allPosts
         .filter((post) =>
@@ -81,25 +104,13 @@ export default function ShortVideoFeed() {
           (post.thumbNail && isVideoUrl(post.thumbNail)) ||
           (Array.isArray(post.imageUrls) && post.imageUrls.some(isVideoUrl))
         )
-        .map((post) => ({
-          id: post.id,
-          url: post.videoUrl || post.thumbNail || post.imageUrls?.[0] || "",
-          author: {
-            id: post.user?.id || post.userId,
-            username: post.user?.username,
-            fullName: post.user?.fullName || post.user?.username,
-            avatarUrl: post.user?.avatarUrl,
-            avatarColor: post.user?.avatarColor,
-          },
-          description: post.content || post.title || "",
-          likes: post.likesCount || 0,
-          comments: post.commentsCount || 0,
-          shares: post.sharesCount || 0,
-          isLiked: post.likedByMe || false,
-        }));
+        .map(formatVideoPost);
+
       setVideos(videoPosts);
+      setHasMore(allPosts.length >= 8);
 
       videoPosts.forEach((v) => {
+        sessionViewedIdsRef.current.add(v.id);
         likeService
           .checkLiked(v.id)
           .then((r) => {
@@ -124,6 +135,66 @@ export default function ShortVideoFeed() {
       setLoading(false);
     }
   }, []);
+
+  const fetchMoreVideos = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const nextPage = pageRef.current + 1;
+    try {
+      const res = await postService.getRecommendedShorts(nextPage, 8, Array.from(sessionViewedIdsRef.current));
+      const allPosts = res.data?.content || res.data || [];
+      const videoPosts = allPosts
+        .filter((post) =>
+          post.mediaType === "video" ||
+          post.videoUrl ||
+          (post.thumbNail && isVideoUrl(post.thumbNail)) ||
+          (Array.isArray(post.imageUrls) && post.imageUrls.some(isVideoUrl))
+        )
+        .map(formatVideoPost);
+
+      if (videoPosts.length === 0) {
+        setHasMore(false);
+      } else {
+        setVideos((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const unique = videoPosts.filter((p) => !existingIds.has(p.id));
+          return [...prev, ...unique];
+        });
+
+        videoPosts.forEach((v) => {
+          sessionViewedIdsRef.current.add(v.id);
+          likeService
+            .checkLiked(v.id)
+            .then((r) => {
+              setVideos((prev) =>
+                prev.map((item) =>
+                  item.id === v.id
+                    ? {
+                        ...item,
+                        isLiked: !!r.data?.liked,
+                        likes: typeof r.data?.count === "number" ? r.data.count : item.likes,
+                      }
+                    : item
+                )
+              );
+            })
+            .catch(() => {});
+        });
+
+        pageRef.current = nextPage;
+      }
+    } catch {
+      // Ignored
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore]);
+
+  useEffect(() => {
+    if (videos.length > 0 && currentVideoIndex >= videos.length - 3) {
+      fetchMoreVideos();
+    }
+  }, [currentVideoIndex, videos.length, fetchMoreVideos]);
 
   useEffect(() => { fetchVideoPosts(); }, [fetchVideoPosts]);
 

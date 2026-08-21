@@ -102,6 +102,34 @@ const postService = {
       return { data: { message: "Lượt xem thực tế đã ghi nhận." } };
     });
   },
+
+  // Lấy danh sách video đề xuất (TikTok/Reels Recommendation Feed)
+  getRecommendedShorts(page = 0, size = 10, excludeIds = []) {
+    const params = new URLSearchParams();
+    params.append("page", page);
+    params.append("size", size);
+    if (Array.isArray(excludeIds) && excludeIds.length > 0) {
+      params.append("excludeIds", excludeIds.join(","));
+    }
+    return axiosClient.get(`/posts/feed/shorts?${params.toString()}`).catch(() => {
+      // Client-side fallback nếu kết nối API feed chưa sẵn sàng
+      return axiosClient.get(`/posts?page=${page}&size=50`).then((res) => {
+        const rawList = res.data?.content || res.data || [];
+        const excludeSet = new Set(excludeIds || []);
+        const videoList = rawList.filter(
+          (p) =>
+            (p.mediaType === "video" || p.videoUrl || p.thumbNail?.includes(".mp4")) &&
+            !excludeSet.has(p.id)
+        );
+        const ranked = videoList.sort((a, b) => {
+          const scoreA = (a.likesCount || 0) * 3 + (a.commentsCount || 0) * 4 + (a.viewCount || 0) * 0.5 + Math.random() * 6;
+          const scoreB = (b.likesCount || 0) * 3 + (b.commentsCount || 0) * 4 + (b.viewCount || 0) * 0.5 + Math.random() * 6;
+          return scoreB - scoreA;
+        });
+        return { data: { content: ranked.slice(0, size), totalElements: ranked.length } };
+      });
+    });
+  },
 };
 
 export const getAll = postService.getAll.bind(postService);
