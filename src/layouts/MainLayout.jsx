@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Bell, Plus, ChevronDown, LogOut,
   Sun, Moon, Shield, User, Settings, Home,
-  Compass, Bookmark, Users, BarChart2, X, Hash, ArrowUp, ArrowLeft, MessageCircle, Menu,
+  Compass, Bookmark, Users, BarChart2, X, Hash, ArrowUp, ArrowLeft, MessageCircle, Menu, Video,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -477,7 +477,20 @@ export default function MainLayout({ children }) {
           {({ isActive }) => <Compass strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />}
         </NavLink>
 
-        {/* 3. Tạo bài viết (Nút cộng ở giữa nổi bật) */}
+        {/* 3. Video */}
+        <NavLink
+          to="/videos"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition-all duration-150 active:scale-90 ${
+              isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
+            }`
+          }
+          title="Video"
+        >
+          {({ isActive }) => <Video strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />}
+        </NavLink>
+
+        {/* 4. Tạo bài viết (Nút cộng ở giữa nổi bật) */}
         <button
           type="button"
           onClick={() => {
@@ -493,7 +506,7 @@ export default function MainLayout({ children }) {
           <Plus strokeWidth={2.5} className="w-5 h-5" />
         </button>
 
-        {/* 4. Thông báo */}
+        {/* 5. Thông báo */}
         <NavLink
           to="/notifications"
           className={({ isActive }) =>
@@ -513,7 +526,7 @@ export default function MainLayout({ children }) {
           )}
         </NavLink>
 
-        {/* 5. Trang cá nhân (Avatar thu nhỏ cạnh Chuông thông báo) */}
+        {/* 6. Trang cá nhân (Avatar thu nhỏ cạnh Chuông thông báo) */}
         <NavLink
           to={currentUser ? `/profile/${currentUserId}` : "/login"}
           className={({ isActive }) =>
