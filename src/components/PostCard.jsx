@@ -353,15 +353,162 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
     }
   };
 
+  const cardImagesList = [];
+  if (Array.isArray(post.images) && post.images.length > 0) {
+    cardImagesList.push(...post.images);
+  } else if (Array.isArray(post.imageUrls) && post.imageUrls.length > 0) {
+    cardImagesList.push(...post.imageUrls);
+  } else if (post.thumbNail) {
+    cardImagesList.push(post.thumbNail);
+  }
+
+  const isVideoPostType = !originalPost && (
+    post?.mediaType === "video" ||
+    !!post?.videoUrl ||
+    (cardImagesList.length > 0 && isVideoUrl(cardImagesList[0]))
+  );
+
   return (
     <article
       onClick={handleCardClick}
-      className={`rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs card-dynamic-hover hover:border-zinc-300 dark:hover:border-zinc-700 flex gap-3.5 relative transition-all ${
-        menuOpen ? "z-30" : "z-0"
-      } ${!isDetailed ? "cursor-pointer" : ""}`}
+      className={`relative transition-all ${
+        isVideoPostType
+          ? "w-full md:w-auto -mx-2 sm:mx-0 rounded-none sm:rounded-2xl border-0 sm:border border-zinc-200/90 dark:border-zinc-800 bg-black sm:bg-white dark:sm:bg-zinc-900 p-0 sm:p-4 shadow-none sm:shadow-2xs overflow-hidden flex flex-col sm:flex-row gap-0 sm:gap-3.5"
+          : "rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs card-dynamic-hover hover:border-zinc-300 dark:hover:border-zinc-700 flex gap-3.5"
+      } ${menuOpen ? "z-30" : "z-0"} ${!isDetailed ? "cursor-pointer" : ""}`}
     >
-      {/* Avatar */}
-      <div className="shrink-0">
+      {/* Mobile-only Video Fullscreen Layout */}
+      {isVideoPostType ? (
+        <div className="w-full relative bg-black flex flex-col sm:hidden overflow-hidden min-h-[82dvh] max-h-[88dvh] justify-center">
+          {/* Main Video */}
+          <video
+            ref={postVideoRef}
+            src={post.videoUrl || cardImagesList[0]}
+            className="w-full h-full object-cover max-h-[88dvh]"
+            controls={false}
+            playsInline
+            loop
+            autoPlay
+            muted={isVideoMuted[post.id] ?? true}
+            onClick={(e) => toggleVideoPlay(e, post.id)}
+            onPlay={() => setIsVideoPlaying((prev) => ({ ...prev, [post.id]: true }))}
+            onPause={() => setIsVideoPlaying((prev) => ({ ...prev, [post.id]: false }))}
+          />
+
+          {/* Pause Overlay Indicator */}
+          {isVideoPlaying[post.id] === false && (
+            <div
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+              onClick={(e) => toggleVideoPlay(e, post.id)}
+            >
+              <div className="w-16 h-16 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white">
+                <Play className="w-8 h-8 fill-white ml-1" />
+              </div>
+            </div>
+          )}
+
+          {/* Mute/Unmute Control Top Right */}
+          <button
+            type="button"
+            onClick={(e) => toggleVideoMute(e, post.id)}
+            className="absolute top-3 right-3 z-20 w-9 h-9 rounded-full bg-black/50 backdrop-blur-md text-white flex items-center justify-center cursor-pointer shadow-md"
+            title={isVideoMuted[post.id] ? "Bật tiếng" : "Tắt tiếng"}
+          >
+            {isVideoMuted[post.id] ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+
+          {/* Bottom Gradient Overlay */}
+          <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none z-10" />
+
+          {/* Right Vertical Action Rail (TikTok Style) */}
+          <div className="absolute right-3 bottom-6 z-20 flex flex-col items-center gap-4 text-white">
+            {/* Like */}
+            <div className="flex flex-col items-center gap-1">
+              <button
+                type="button"
+                onClick={handleToggleLike}
+                className={`w-11 h-11 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-90 cursor-pointer ${
+                  liked ? "bg-rose-500 text-white shadow-lg" : "bg-black/40 text-white hover:bg-black/60"
+                }`}
+              >
+                <Heart className={`w-5 h-5 ${liked ? "fill-white" : ""}`} />
+              </button>
+              <span className="text-[11px] font-bold text-white drop-shadow-md">{likeCount}</span>
+            </div>
+
+            {/* Comment */}
+            <div className="flex flex-col items-center gap-1">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/posts/${post.id}`);
+                }}
+                className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition active:scale-90 cursor-pointer shadow-md"
+              >
+                <MessageCircle className="w-5 h-5" />
+              </button>
+              <span className="text-[11px] font-bold text-white drop-shadow-md">{commentCount}</span>
+            </div>
+
+            {/* Bookmark */}
+            <div className="flex flex-col items-center gap-1">
+              <button
+                type="button"
+                onClick={handleToggleBookmark}
+                className={`w-11 h-11 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-90 cursor-pointer ${
+                  bookmarked ? "bg-amber-500 text-white shadow-lg" : "bg-black/40 text-white hover:bg-black/60"
+                }`}
+              >
+                <Bookmark className={`w-5 h-5 ${bookmarked ? "fill-white" : ""}`} />
+              </button>
+            </div>
+
+            {/* Share */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsShareModalOpen(true);
+              }}
+              className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition active:scale-90 cursor-pointer shadow-md"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Bottom Left Info Overlay */}
+          <div className="absolute left-3 right-16 bottom-5 z-20 flex flex-col gap-1.5 text-white pointer-events-auto">
+            <Link
+              to={`/profile/${author.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-2 group w-fit"
+            >
+              <Avatar
+                userId={author.id}
+                src={authorAvatarUrl}
+                name={authorName}
+                username={author.username}
+                avatarColor={authorAvatarColor}
+                size="sm"
+                className="border border-white/40 shadow-md"
+              />
+              <span className="font-bold text-sm text-white drop-shadow-md hover:underline">
+                @{author.username || authorName}
+              </span>
+            </Link>
+
+            {(post?.content || post?.title) && (
+              <p className="text-xs text-white/90 line-clamp-2 leading-relaxed drop-shadow-md pr-2">
+                {post?.content || post?.title}
+              </p>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Desktop / Non-video Avatar (Hidden on Mobile Video) */}
+      <div className={`${isVideoPostType ? "hidden sm:block" : ""} shrink-0`}>
         <Avatar
           userId={author.id}
           src={authorAvatarUrl}
@@ -377,7 +524,7 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
       </div>
 
       {/* Cột Nội Dung & Tương Tác */}
-      <div className="flex-1 min-w-0 flex flex-col">
+      <div className={`flex-1 min-w-0 flex flex-col ${isVideoPostType ? "hidden sm:flex" : ""}`}>
         {/* Header Bài Viết */}
         <div className="flex items-center justify-between gap-1 mb-1.5">
           <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
