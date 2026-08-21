@@ -530,15 +530,13 @@ export default function ShortVideoFeed() {
           </button>
         </div>
 
-        {/* Shorts Video: Dynamically scaled based on available viewport height & 9/16 aspect ratio */}
+        {/* Shorts Video: Dynamically scaled based on available viewport height */}
         <div
-          className="relative bg-black rounded-2xl md:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-zinc-800 shrink-0 transition-all duration-300"
+          className="relative bg-black rounded-2xl md:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-zinc-800 shrink-0 transition-all duration-300 w-full md:w-auto h-full max-h-[100dvh]"
           style={{
-            height: "min(calc(100vh - 5rem), 760px)",
+            height: "min(calc(100vh - 4.5rem), 760px)",
             maxHeight: "100%",
             maxWidth: "100%",
-            aspectRatio: "9 / 16",
-            width: "auto",
           }}
         >
         {/* Header */}
