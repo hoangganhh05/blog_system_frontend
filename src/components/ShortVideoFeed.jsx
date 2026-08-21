@@ -37,9 +37,11 @@ export default function ShortVideoFeed() {
   const [viewedSet, setViewedSet] = useState(new Set());
 
   const videoRefs = useRef([]);
+  const itemRefs = useRef([]);
   const containerRef = useRef(null);
   const lastTapRef = useRef(0);
   const currentIndexRef = useRef(0);
+  const isAnimatingRef = useRef(false);
   const touchState = useRef({ startY: 0, startX: 0, startTime: 0, isVertical: false });
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -107,30 +109,22 @@ export default function ShortVideoFeed() {
     return () => window.removeEventListener("shorts_refresh", onRefresh);
   }, [fetchVideoPosts]);
 
+  // Active Video Playback Controller
   useEffect(() => {
-    const els = videoRefs.current.filter(Boolean);
-    if (els.length === 0) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const video = entry.target;
-          const index = videoRefs.current.indexOf(video);
-          if (entry.isIntersecting) {
-            setCurrentVideoIndex(index);
-            video.play().catch(() => {});
-            setPlayingMap((prev) => ({ ...prev, [index]: true }));
-          } else {
-            video.pause();
-            video.currentTime = 0;
-            setPlayingMap((prev) => ({ ...prev, [index]: false }));
-          }
-        });
-      },
-      { threshold: 0.75, root: containerRef.current }
-    );
-    els.forEach((v) => observer.observe(v));
-    return () => els.forEach((v) => observer.unobserve(v));
-  }, [videos]);
+    videoRefs.current.forEach((v, index) => {
+      if (!v) return;
+      v.muted = isMuted;
+      if (index === currentVideoIndex) {
+        v.play().then(() => {
+          setPlayingMap((prev) => ({ ...prev, [index]: true }));
+        }).catch(() => {});
+      } else {
+        v.pause();
+        v.currentTime = 0;
+        setPlayingMap((prev) => ({ ...prev, [index]: false }));
+      }
+    });
+  }, [currentVideoIndex, isMuted, videos]);
 
   useEffect(() => {
     if (videos.length === 0) return;
@@ -327,18 +321,30 @@ export default function ShortVideoFeed() {
 
   const toggleCaption = (index) => setExpandedCaptions((prev) => ({ ...prev, [index]: !prev[index] }));
 
-  const scrollToVideo = useCallback((index) => {
+  const scrollToVideo = useCallback((targetIndex) => {
     const container = containerRef.current;
     if (!container || videos.length === 0) return;
-    const target = container.children[index];
-    if (!target) return;
-    const containerRect = container.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    container.scrollTo({ top: container.scrollTop + targetRect.top - containerRect.top, behavior: "smooth" });
+    const clampedIndex = Math.max(0, Math.min(videos.length - 1, targetIndex));
+    if (clampedIndex === currentIndexRef.current && isAnimatingRef.current) return;
+    
+    isAnimatingRef.current = true;
+    const targetElement = itemRefs.current[clampedIndex];
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    setCurrentVideoIndex(clampedIndex);
+    setTimeout(() => {
+      isAnimatingRef.current = false;
+    }, 400);
   }, [videos.length]);
 
   const handleTouchStart = (e) => {
-    touchState.current = { startY: e.touches[0].clientY, startX: e.touches[0].clientX, startTime: Date.now(), isVertical: false };
+    touchState.current = {
+      startY: e.touches[0].clientY,
+      startX: e.touches[0].clientX,
+      startTime: Date.now(),
+      isVertical: false,
+    };
   };
 
   const handleTouchMove = (e) => {
@@ -351,19 +357,38 @@ export default function ShortVideoFeed() {
   };
 
   const handleTouchEnd = (e) => {
-    if (!touchState.current.isVertical) return;
+    if (!touchState.current.isVertical || isAnimatingRef.current) return;
     const { startY, startTime } = touchState.current;
     const deltaY = startY - e.changedTouches[0].clientY;
     const deltaTime = Date.now() - startTime;
-    if (Math.abs(deltaY) > 60 && deltaTime < 600) {
+    if (Math.abs(deltaY) > 40 && deltaTime < 600) {
       const direction = deltaY > 0 ? 1 : -1;
-      const newIndex = Math.max(0, Math.min(videos.length - 1, currentIndexRef.current + direction));
-      if (newIndex !== currentIndexRef.current) {
-        scrollToVideo(newIndex);
-      }
+      const newIndex = currentIndexRef.current + direction;
+      scrollToVideo(newIndex);
     }
     touchState.current.isVertical = false;
   };
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let wheelTimeout = null;
+    const handleWheel = (e) => {
+      e.preventDefault();
+      if (isAnimatingRef.current) return;
+      if (Math.abs(e.deltaY) > 20) {
+        const direction = e.deltaY > 0 ? 1 : -1;
+        scrollToVideo(currentIndexRef.current + direction);
+      }
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => {
+      container.removeEventListener("wheel", handleWheel);
+      if (wheelTimeout) clearTimeout(wheelTimeout);
+    };
+  }, [scrollToVideo]);
 
   const formatCount = (n) => {
     if (n == null) return "0";
@@ -424,21 +449,21 @@ export default function ShortVideoFeed() {
       {/* Video Feed */}
       <div
         ref={containerRef}
-        className="w-full flex-1 overflow-y-auto snap-y snap-mandatory no-scrollbar overscroll-y-contain touch-pan-y"
-        style={{ scrollSnapType: "y mandatory", scrollBehavior: "smooth" }}
+        className="w-full flex-1 overflow-y-hidden select-none"
+        style={{ touchAction: "pan-y" }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {loading ? (
-          <div className="w-full flex-1 flex items-center justify-center bg-black">
+          <div className="w-full h-full flex items-center justify-center bg-black">
             <div className="flex flex-col items-center gap-3">
               <Loader2 className="w-8 h-8 text-white animate-spin" />
               <span className="text-white/60 text-sm">Đang tải video...</span>
             </div>
           </div>
         ) : videos.length === 0 ? (
-          <div className="w-full flex-1 flex items-center justify-center bg-black">
+          <div className="w-full h-full flex items-center justify-center bg-black">
             <div className="flex flex-col items-center gap-5 text-center px-8">
               <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
                 <Video className="w-10 h-10 text-white/50" />
@@ -457,25 +482,23 @@ export default function ShortVideoFeed() {
           </div>
         ) : (
           videos.map((video, index) => {
-            const isPlaying = !!playingMap[index];
+            const isPlaying = index === currentVideoIndex && !!playingMap[index];
             const authorId = Number(video.author?.id);
             const isOwnVideo = authorId === Number(currentUser?.id);
             const isFollowing = !!followMap[authorId];
             const prog = progressMap[index];
 
             return (
-            <div
-              key={video.id}
-              className="relative w-full snap-start snap-always shrink-0 overflow-hidden bg-black flex items-center justify-center"
-              style={{ scrollSnapAlign: "start", height: "calc(100dvh - 3.5rem - env(safe-area-inset-bottom, 0px))" }}
-            >
+              <div
+                key={video.id}
+                ref={(el) => (itemRefs.current[index] = el)}
+                className="relative w-full h-full shrink-0 overflow-hidden bg-black flex items-center justify-center"
+              >
                 <video
                   ref={(el) => (videoRefs.current[index] = el)}
                   src={video.url}
                   className="absolute inset-0 w-full h-full object-cover object-center"
                   loop
-                  autoPlay={index === 0}
-                  muted={isMuted}
                   playsInline
                   onClick={(e) => handleVideoClick(e, index)}
                   onTimeUpdate={(e) => handleTimeUpdate(e, index)}
@@ -488,7 +511,7 @@ export default function ShortVideoFeed() {
                 <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none z-[5]" />
 
                 {/* Pause indicator */}
-                {!isPlaying && (
+                {!isPlaying && index === currentVideoIndex && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[10]">
                     <div className="w-20 h-20 rounded-full bg-black/45 backdrop-blur-xl ring-1 ring-white/15 flex items-center justify-center">
                       <Play className="w-9 h-9 text-white fill-white ml-1 drop-shadow-lg" />
@@ -600,7 +623,7 @@ export default function ShortVideoFeed() {
                 </div>
 
                 {/* Progress bar */}
-                <div className="absolute inset-x-0 bottom-0 z-30 px-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <div className="absolute inset-x-0 bottom-0 z-30 px-3.5 pb-2.5">
                   <div className="flex items-center gap-2.5">
                     <button
                       onClick={toggleFullscreen}
