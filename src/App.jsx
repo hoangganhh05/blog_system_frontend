@@ -19,7 +19,7 @@ import TrendingPage from "./pages/TrendingPage";
 import GamesPage from "./pages/GamesPage";
 import AiCreatorPage from "./pages/AiCreatorPage";
 import VideosPage from "./pages/VideosPage";
-import ShortVideoFeed from "./components/ShortVideoFeed";
+import ShortsPage from "./pages/ShortsPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import SecuritySettingsPage from "./pages/SecuritySettingsPage";
 import Settings from "./pages/Settings";
@@ -103,7 +103,7 @@ function AppContent() {
           <Route path="/saved" element={<ProtectedRoute><SavedPosts /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-          <Route path="/shorts" element={<ProtectedRoute><ShortVideoFeed /></ProtectedRoute>} />
+          <Route path="/shorts" element={<ProtectedRoute><ShortsPage /></ProtectedRoute>} />
           {/* 404 */}
           <Route
             path="*"

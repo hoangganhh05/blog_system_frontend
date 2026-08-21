@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import {
   Heart, MessageCircle, Share2, MoreHorizontal, Play,
   Volume2, VolumeX, Maximize2, Minimize2, X, Loader2,
-  Video, Send, Plus, Trash2, Home, LayoutGrid, ChevronUp, ChevronDown, Bookmark, Smile,
+  Video, Send, Bookmark, ChevronUp, ChevronDown, Link as LinkIcon,
 } from "lucide-react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -25,7 +25,7 @@ export default function ShortVideoFeed() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(false); // Default sound ON
+  const [isMuted, setIsMuted] = useState(false);
   const [autoPlayNext, setAutoPlayNext] = useState(true);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [qualitySetting, setQualitySetting] = useState("Auto");
@@ -63,9 +63,11 @@ export default function ShortVideoFeed() {
   const handleShortVideoMetadata = (e, index) => {
     const { videoWidth, videoHeight } = e.currentTarget;
     if (videoWidth && videoHeight) {
+      const isLandscape = videoWidth > videoHeight;
+      const ratio = videoWidth / videoHeight;
       setVideoAspectRatios((prev) => ({
         ...prev,
-        [index]: videoWidth / videoHeight,
+        [index]: { ratio, isLandscape, width: videoWidth, height: videoHeight },
       }));
     }
   };
@@ -102,7 +104,7 @@ export default function ShortVideoFeed() {
     setHasError(false);
     pageRef.current = 0;
 
-    // 1. Ưu tiên Playlist truyền từ ReelsCarousel (Chuyển trang ngay lập tức)
+    // 1. Uu tien playlist truyen tu ReelsCarousel
     if (Array.isArray(initialVideosFromState) && initialVideosFromState.length > 0) {
       const formatted = initialVideosFromState.map(formatVideoPost);
       let targetIdx = 0;
@@ -120,7 +122,7 @@ export default function ShortVideoFeed() {
       return;
     }
 
-    // 2. Lấy danh sách đề xuất từ Backend API
+    // 2. Lay danh sach de xuat tu Backend API
     try {
       const res = await postService.getRecommendedShorts(0, 10, Array.from(sessionViewedIdsRef.current));
       const allPosts = res.data?.content || res.data || [];
@@ -257,7 +259,6 @@ export default function ShortVideoFeed() {
         v.play().then(() => {
           setPlayingMap((prev) => ({ ...prev, [index]: true }));
         }).catch(() => {
-          // If browser blocks unmuted autoplay, mute as fallback
           if (!isMuted) {
             v.muted = true;
             v.play().then(() => {
@@ -316,6 +317,30 @@ export default function ShortVideoFeed() {
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);
   }, [showSettingsMenu]);
+
+  const fetchComments = useCallback(async (videoId) => {
+    if (!videoId) return;
+    setCommentLoading(true);
+    try {
+      const r = await commentService.getByPostId(videoId);
+      const list = r.data || [];
+      setCommentList(Array.isArray(list) ? list : []);
+    } catch {
+      setCommentList([]);
+    } finally {
+      setCommentLoading(false);
+    }
+  }, []);
+
+  // Auto load comments on PC when active video changes
+  useEffect(() => {
+    if (videos.length === 0) return;
+    const activeVideo = videos[currentVideoIndex];
+    if (activeVideo?.id) {
+      setCommentsFor(activeVideo.id);
+      fetchComments(activeVideo.id);
+    }
+  }, [currentVideoIndex, videos, fetchComments]);
 
   const handleLike = async (videoId) => {
     setVideos((prev) =>
@@ -408,39 +433,26 @@ export default function ShortVideoFeed() {
     });
   };
 
+  const handleCopyLink = (videoId) => {
+    const targetId = videoId || currentVideo?.id;
+    if (!targetId) return;
+    const link = `${window.location.origin}/shorts?id=${targetId}`;
+    navigator.clipboard.writeText(link);
+    toast.success("Đã sao chép liên kết video!");
+  };
+
   const handleComment = (videoId) => {
-    if (showComments && commentsFor === videoId) {
-      setShowComments(false);
-      setCommentsFor(null);
-      return;
-    }
     setShowComments(true);
     setCommentsFor(videoId);
-    setCommentLoading(true);
-    setCommentList([]);
-    setCommentText("");
-    commentService
-      .getByPostId(videoId)
-      .then((r) => {
-        const list = r.data || [];
-        setCommentList(Array.isArray(list) ? list : []);
-      })
-      .catch(() => setCommentList([]))
-      .finally(() => setCommentLoading(false));
+    fetchComments(videoId);
   };
 
   const [mentionSuggestions, setMentionSuggestions] = useState([]);
   const [showMentionDropdown, setShowMentionDropdown] = useState(false);
 
   const currentVideo = videos[currentVideoIndex];
-
-  // Reset comments view on video swipe
-  useEffect(() => {
-    setShowComments(false);
-    setCommentsFor(null);
-    setCommentList([]);
-    setCommentText("");
-  }, [currentVideoIndex]);
+  const currentRatioData = videoAspectRatios[currentVideoIndex];
+  const isLandscape = currentRatioData ? currentRatioData.isLandscape : false;
 
   const handleCommentTextChange = async (e) => {
     const val = e.target.value;
@@ -474,14 +486,15 @@ export default function ShortVideoFeed() {
 
   const handleSubmitComment = async (e) => {
     e.preventDefault();
-    if (!commentText.trim() || !commentsFor || isSubmittingComment) return;
+    const targetId = commentsFor || currentVideo?.id;
+    if (!commentText.trim() || !targetId || isSubmittingComment) return;
     setIsSubmittingComment(true);
     try {
-      const r = await commentService.create({ content: commentText.trim(), post: { id: commentsFor } });
+      const r = await commentService.create({ content: commentText.trim(), post: { id: targetId } });
       setCommentList((prev) => [r.data, ...prev]);
       setCommentText("");
       setVideos((prev) =>
-        prev.map((v) => v.id === commentsFor ? { ...v, comments: v.comments + 1 } : v)
+        prev.map((v) => v.id === targetId ? { ...v, comments: v.comments + 1 } : v)
       );
       toast.success("Đã đăng bình luận!");
     } catch {
@@ -493,17 +506,15 @@ export default function ShortVideoFeed() {
 
   const closeComments = () => {
     setShowComments(false);
-    setCommentsFor(null);
-    setCommentList([]);
-    setCommentText("");
   };
 
   const handleDeleteComment = async (commentId) => {
+    const targetId = commentsFor || currentVideo?.id;
     try {
       await commentService.delete(commentId);
       setCommentList((prev) => prev.filter((c) => c.id !== commentId));
       setVideos((prev) =>
-        prev.map((v) => v.id === commentsFor ? { ...v, comments: Math.max(0, v.comments - 1) } : v)
+        prev.map((v) => v.id === targetId ? { ...v, comments: Math.max(0, v.comments - 1) } : v)
       );
       toast.success("Đã xóa bình luận!");
     } catch {
@@ -512,7 +523,7 @@ export default function ShortVideoFeed() {
   };
 
   const toggleMute = (e) => {
-    e.stopPropagation();
+    e?.stopPropagation();
     setIsMuted((prev) => {
       const next = !prev;
       videoRefs.current.forEach((v) => { if (v) v.muted = next; });
@@ -521,7 +532,7 @@ export default function ShortVideoFeed() {
   };
 
   const togglePlay = (e, index) => {
-    e.stopPropagation();
+    e?.stopPropagation();
     const v = videoRefs.current[index];
     if (!v) return;
     if (v.paused) {
@@ -569,6 +580,28 @@ export default function ShortVideoFeed() {
       isAnimatingRef.current = false;
     }, 400);
   }, [videos.length]);
+
+  // Keyboard navigation on PC (ArrowUp / ArrowDown / Space / M)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
+      if (e.key === "ArrowDown" || e.key === "j") {
+        e.preventDefault();
+        scrollToVideo(currentIndexRef.current + 1);
+      } else if (e.key === "ArrowUp" || e.key === "k") {
+        e.preventDefault();
+        scrollToVideo(currentIndexRef.current - 1);
+      } else if (e.key === " ") {
+        e.preventDefault();
+        togglePlay(e, currentIndexRef.current);
+      } else if (e.key === "m" || e.key === "M") {
+        e.preventDefault();
+        toggleMute(e);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [scrollToVideo]);
 
   const handleTouchStart = (e) => {
     touchState.current = {
@@ -640,30 +673,25 @@ export default function ShortVideoFeed() {
     return `${m}:${String(s).padStart(2, "0")}`;
   };
 
-  const relativeTime = (dateStr) => {
-    if (!dateStr) return "";
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const m = Math.floor(diff / 60000);
-    if (m < 1) return "vừa xong";
-    if (m < 60) return `${m}p`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h`;
-    return `${Math.floor(h / 24)}d`;
-  };
-
-  const isCommentOpen = showComments && commentsFor !== null;
-
   return (
-    <div className="w-full h-full flex-1 flex flex-col md:flex-row items-start md:items-stretch justify-start md:justify-center p-0 md:p-1 gap-0 md:gap-3 transition-all duration-300 overflow-hidden">
-      {/* 1. VIDEO BOX: Dynamic Layout space scaled by vh/vw */}
-      <div className={`w-full h-full flex-1 ${isCommentOpen ? "md:max-w-[calc(100%-25vw)]" : "md:w-full"} flex items-start md:items-center justify-start md:justify-center p-0 md:p-1 transition-all duration-300 min-w-0 relative group/videobox`}>
-        {/* Dedicated Up / Down Navigation Arrow Controls */}
-        <div className="hidden md:flex flex-col gap-3 absolute left-4 z-40">
+    <div
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className="w-full h-full flex flex-col md:flex-row items-center justify-center p-0 md:p-2 lg:p-4 gap-0 md:gap-4 lg:gap-6 overflow-hidden max-w-[1680px] mx-auto select-none"
+    >
+      {/* ======================================================================
+          1. LEFT SECTION: Dynamic Aspect Video Box + Floating Controls + Action Rail
+          ====================================================================== */}
+      <div className="w-full h-full flex-1 flex items-center justify-center p-0 md:p-1 transition-all duration-300 min-w-0 relative">
+        
+        {/* Navigation Arrow Controls on Desktop (Left side) */}
+        <div className="hidden md:flex flex-col gap-3 absolute left-1 lg:left-3 z-40">
           <button
             onClick={() => scrollToVideo(currentVideoIndex - 1)}
             disabled={currentVideoIndex === 0}
             className="w-10 h-10 rounded-full bg-zinc-200/80 dark:bg-zinc-800/80 backdrop-blur-md text-zinc-700 dark:text-zinc-200 flex items-center justify-center hover:bg-zinc-300 dark:hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed transition shadow-md cursor-pointer"
-            title="Video trước"
+            title="Video trước (Phím K hoặc Mũi tên lên)"
           >
             <ChevronUp className="w-5 h-5" />
           </button>
@@ -671,628 +699,726 @@ export default function ShortVideoFeed() {
             onClick={() => scrollToVideo(currentVideoIndex + 1)}
             disabled={currentVideoIndex >= videos.length - 1}
             className="w-10 h-10 rounded-full bg-zinc-200/80 dark:bg-zinc-800/80 backdrop-blur-md text-zinc-700 dark:text-zinc-200 flex items-center justify-center hover:bg-zinc-300 dark:hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed transition shadow-md cursor-pointer"
-            title="Video kế tiếp"
+            title="Video tiếp theo (Phím J hoặc Mũi tên xuống)"
           >
             <ChevronDown className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Shorts Video: Scaled by vh (full-bleed on mobile, 88vh centered frame on desktop) */}
-        <div className="relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800/80 shrink-0 transition-all duration-300 w-full h-full md:w-auto md:aspect-[9/16] md:h-[88vh] md:max-h-[88vh]">
+        {/* Outer Flex Container grouping Video and Desktop Action Rail */}
+        <div className="flex items-end justify-center gap-3 lg:gap-4 max-w-full">
+          
+          {/* Shorts Video Box: Dynamic Sizing (16:9 Landscape widescreen vs 9:16 Portrait phone format) */}
+          <div
+            className={`relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800/80 shrink-0 transition-all duration-300 w-full h-full ${
+              isLandscape
+                ? "md:w-full md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:h-[82vh] md:max-h-[85vh] md:aspect-video"
+                : "md:w-auto md:aspect-[9/16] md:h-[85vh] md:max-h-[88vh] md:max-w-[420px]"
+            }`}
+          >
+            {/* Ambient Background Blur for Desktop */}
+            {currentVideo && (
+              <div className="hidden md:block absolute inset-0 z-0 overflow-hidden rounded-3xl pointer-events-none">
+                <img
+                  src={currentVideo.url}
+                  alt=""
+                  aria-hidden="true"
+                  className="w-full h-full object-cover scale-125 blur-3xl brightness-40 saturate-150 select-none"
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                />
+              </div>
+            )}
 
-          {/* PC Background Blur: Dùng thumbnail/video hiện tại làm nền mờ phía sau (chỉ hiện trên Desktop md+) */}
-          {currentVideo && (
-            <div className="hidden md:block absolute inset-0 z-0 overflow-hidden rounded-3xl">
-              <img
-                src={currentVideo.url}
-                alt=""
-                aria-hidden="true"
-                className="w-full h-full object-cover scale-110 blur-3xl brightness-50 saturate-150 pointer-events-none select-none"
-                onError={(e) => { e.currentTarget.style.display = "none"; }}
-              />
-            </div>
-          )}
-
-        {/* Header (Top Left Controls: Back X, Sound Mute/Unmute, More Options ...) */}
-        <div
-          className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pb-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none"
-          style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
-        >
-          <div className="flex items-center gap-2 pointer-events-auto">
-            <button
-              onClick={() => navigate("/")}
-              aria-label="Back to home"
-              className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition shadow-md cursor-pointer"
-              title="Quay lại"
+            {/* Top Controls Overlay (Back, Mute/Unmute, Settings) */}
+            <div
+              className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pb-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none"
+              style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
             >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* DUY NHẤT 1 Nút Âm Thanh ở góc trên bên trái */}
-            <button
-              onClick={toggleMute}
-              aria-label={isMuted ? "Unmute video" : "Mute video"}
-              className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition shadow-md cursor-pointer"
-              title={isMuted ? "Bật âm thanh (Unmute)" : "Tắt âm thanh (Mute)"}
-            >
-              {isMuted ? <VolumeX className="w-5 h-5 text-rose-400" /> : <Volume2 className="w-5 h-5 text-white" />}
-            </button>
-
-            {/* Nút Ba Chấm (...) Ngay Cạnh Nút Âm Thanh */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowSettingsMenu(!showSettingsMenu);
-                }}
-                aria-label="More options"
-                className={`w-10 h-10 rounded-full backdrop-blur-xl ring-1 transition active:scale-90 flex items-center justify-center shadow-md cursor-pointer ${
-                  showSettingsMenu
-                    ? "bg-white text-zinc-900 ring-white"
-                    : "bg-black/40 ring-white/20 text-white hover:bg-black/60"
-                }`}
-                title="Tùy chọn video (...)"
-              >
-                <MoreHorizontal className="w-5 h-5" />
-              </button>
-
-              {/* Floating Popover Menu cho nút ... (Works cleanly on both Desktop & Mobile without dimming overlay) */}
-              {showSettingsMenu && (
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  className="absolute left-0 top-12 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-3 z-50 text-zinc-900 dark:text-zinc-100 animate-in fade-in zoom-in-95 duration-150"
-                >
-                  <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 pb-1.5 uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800/80 mb-2">
-                    Cài đặt player
-                  </div>
-
-                  {/* Tự động cuộn */}
-                  <div
-                    className="flex items-center justify-between p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
-                    onClick={() => setAutoPlayNext(!autoPlayNext)}
-                  >
-                    <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Tự động cuộn video tiếp theo</span>
-                    <div className={`w-8 h-4.5 rounded-full transition-colors relative ${autoPlayNext ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-700"}`}>
-                      <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${autoPlayNext ? "right-0.5" : "left-0.5"}`} />
-                    </div>
-                  </div>
-
-                  {/* Tốc độ phát */}
-                  <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
-                    <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 mb-1.5">Tốc độ phát (Playback Speed)</div>
-                    <div className="grid grid-cols-3 gap-1">
-                      {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
-                        <button
-                          key={speed}
-                          onClick={() => setPlaybackSpeed(speed)}
-                          className={`py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                            playbackSpeed === speed
-                              ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs"
-                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-                          }`}
-                        >
-                          {speed === 1 ? "1x" : `${speed}x`}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Chất lượng */}
-                  <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
-                    <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 mb-1.5">Chất lượng (Quality)</div>
-                    <div className="grid grid-cols-3 gap-1">
-                      {["Auto", "360p", "480p", "720p", "1080p"].map((q) => (
-                        <button
-                          key={q}
-                          onClick={() => setQualitySetting(q)}
-                          className={`py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
-                            qualitySetting === q
-                              ? "bg-[#0866ff] text-white shadow-xs"
-                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-                          }`}
-                        >
-                          {q}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Báo cáo */}
-                  <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
-                    <button
-                      onClick={() => {
-                        setShowSettingsMenu(false);
-                        setShowReportModal(true);
-                      }}
-                      className="w-full text-left px-2 py-1.5 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition flex items-center gap-2 cursor-pointer"
-                    >
-                      <span>🚩</span>
-                      <span>Báo cáo video</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Video Feed Container with native TikTok-style vertical scroll & snap */}
-        <div
-          ref={containerRef}
-          className="w-full flex-1 overflow-y-scroll snap-y snap-mandatory select-none custom-scrollbar"
-          style={{
-            scrollSnapType: "y mandatory",
-            WebkitOverflowScrolling: "touch",
-            overscrollBehaviorY: "contain",
-          }}
-        >
-          {loading ? (
-            <div className="w-full h-full flex items-center justify-center bg-black">
-              <div className="flex flex-col items-center gap-3">
-                <Loader2 className="w-8 h-8 text-white animate-spin" />
-                <span className="text-white/60 text-sm">Đang tải video...</span>
-              </div>
-            </div>
-          ) : hasError ? (
-            <div className="w-full h-full flex items-center justify-center bg-black">
-              <div className="flex flex-col items-center gap-5 text-center px-8">
-                <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
-                  <Video className="w-10 h-10 text-white/50" />
-                </div>
-                <div>
-                  <h3 className="text-white font-bold text-xl mb-2">Không thể tải video</h3>
-                  <p className="text-white/55 text-sm">Có lỗi xảy ra khi kết nối máy chủ. Vui lòng thử lại!</p>
-                </div>
+              <div className="flex items-center gap-2 pointer-events-auto">
                 <button
-                  onClick={fetchVideoPosts}
-                  className="px-8 py-3.5 bg-white text-black font-bold rounded-full text-sm hover:bg-white/90 active:scale-95 transition-all shadow-lg"
+                  onClick={() => navigate("/")}
+                  aria-label="Back to home"
+                  className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition shadow-md cursor-pointer"
+                  title="Quay lại"
                 >
-                  Thử lại
+                  <X className="w-5 h-5" />
                 </button>
-              </div>
-            </div>
-          ) : videos.length === 0 ? (
-            <div className="w-full h-full flex items-center justify-center bg-black">
-              <div className="flex flex-col items-center gap-5 text-center px-8">
-                <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
-                  <Video className="w-10 h-10 text-white/50" />
-                </div>
-                <div>
-                  <h3 className="text-white font-bold text-xl mb-2">Chưa có video nào</h3>
-                  <p className="text-white/55 text-sm">Hãy là người đầu tiên đăng tải video ngắn!</p>
-                </div>
-                <button
-                  onClick={() => setShowUpload(true)}
-                  className="px-8 py-3.5 bg-white text-black font-bold rounded-full text-sm hover:bg-white/90 active:scale-95 transition-all shadow-lg"
-                >
-                  Đăng video ngay
-                </button>
-              </div>
-            </div>
-          ) : (
-            videos.map((video, index) => {
-              const isPlaying = index === currentVideoIndex && !!playingMap[index];
-              const authorId = Number(video.author?.id);
-              const isOwnVideo = authorId === Number(currentUser?.id);
-              const isFollowing = !!followMap[authorId];
-              const prog = progressMap[index];
 
-              return (
-                <div
-                  key={video.id}
-                  ref={(el) => (itemRefs.current[index] = el)}
-                  className="relative w-full h-full shrink-0 overflow-hidden bg-black flex items-center justify-center snap-start"
-                  style={{ scrollSnapAlign: "start", scrollSnapStop: "always" }}
+                <button
+                  onClick={toggleMute}
+                  aria-label={isMuted ? "Unmute video" : "Mute video"}
+                  className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition shadow-md cursor-pointer"
+                  title={isMuted ? "Bật âm thanh (Phím M)" : "Tắt âm thanh (Phím M)"}
                 >
-                  <video
-                    ref={(el) => (videoRefs.current[index] = el)}
-                    src={video.url}
-                    className="w-full h-full object-contain object-center block"
-                    preload="metadata"
-                    onLoadedMetadata={(e) => handleShortVideoMetadata(e, index)}
-                    loop={!autoPlayNext}
-                    playsInline
-                    onClick={(e) => handleVideoClick(e, index)}
-                    onTimeUpdate={(e) => handleTimeUpdate(e, index)}
-                    onEnded={() => {
-                      if (autoPlayNext && index < videos.length - 1) {
-                        scrollToVideo(index + 1);
-                      }
+                  {isMuted ? <VolumeX className="w-5 h-5 text-rose-400" /> : <Volume2 className="w-5 h-5 text-white" />}
+                </button>
+
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowSettingsMenu(!showSettingsMenu);
                     }}
-                    onPlay={() => setPlayingMap((prev) => ({ ...prev, [index]: true }))}
-                    onPause={() => setPlayingMap((prev) => ({ ...prev, [index]: false }))}
-                  />
+                    aria-label="More options"
+                    className={`w-10 h-10 rounded-full backdrop-blur-xl ring-1 transition active:scale-90 flex items-center justify-center shadow-md cursor-pointer ${
+                      showSettingsMenu
+                        ? "bg-white text-zinc-900 ring-white"
+                        : "bg-black/40 ring-white/20 text-white hover:bg-black/60"
+                    }`}
+                    title="Tùy chọn video (...)"
+                  >
+                    <MoreHorizontal className="w-5 h-5" />
+                  </button>
 
-                  {/* Gradient overlays */}
-                  <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-[5]" />
-                  <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none z-[5]" />
+                  {/* Floating Popover Settings Menu */}
+                  {showSettingsMenu && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute left-0 top-12 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-3 z-50 text-zinc-900 dark:text-zinc-100 animate-in fade-in zoom-in-95 duration-150"
+                    >
+                      <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 pb-1.5 uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800/80 mb-2">
+                        Cài đặt player
+                      </div>
 
-                  {/* Pause indicator */}
-                  {!isPlaying && index === currentVideoIndex && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[10]">
-                      <div className="w-16 h-16 rounded-full bg-black/45 backdrop-blur-xl ring-1 ring-white/15 flex items-center justify-center">
-                        <Play className="w-8 h-8 text-white fill-white ml-1 drop-shadow-lg" />
+                      {/* Auto play next */}
+                      <div
+                        className="flex items-center justify-between p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                        onClick={() => setAutoPlayNext(!autoPlayNext)}
+                      >
+                        <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Tự động cuộn video tiếp</span>
+                        <div className={`w-8 h-4.5 rounded-full transition-colors relative ${autoPlayNext ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-700"}`}>
+                          <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${autoPlayNext ? "right-0.5" : "left-0.5"}`} />
+                        </div>
+                      </div>
+
+                      {/* Playback speed */}
+                      <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
+                        <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 mb-1.5">Tốc độ phát</div>
+                        <div className="grid grid-cols-3 gap-1">
+                          {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+                            <button
+                              key={speed}
+                              onClick={() => setPlaybackSpeed(speed)}
+                              className={`py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                                playbackSpeed === speed
+                                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs"
+                                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                              }`}
+                            >
+                              {speed === 1 ? "1x" : `${speed}x`}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Quality */}
+                      <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
+                        <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 mb-1.5">Chất lượng</div>
+                        <div className="grid grid-cols-3 gap-1">
+                          {["Auto", "360p", "480p", "720p", "1080p"].map((q) => (
+                            <button
+                              key={q}
+                              onClick={() => setQualitySetting(q)}
+                              className={`py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
+                                qualitySetting === q
+                                  ? "bg-[#0866ff] text-white shadow-xs"
+                                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                              }`}
+                            >
+                              {q}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Report */}
+                      <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
+                        <button
+                          onClick={() => {
+                            setShowSettingsMenu(false);
+                            setShowReportModal(true);
+                          }}
+                          className="w-full text-left px-2 py-1.5 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition flex items-center gap-2 cursor-pointer"
+                        >
+                          <span>🚩</span>
+                          <span>Báo cáo video</span>
+                        </button>
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
 
-
-
-                  {/* MOBILE-ONLY ACTION RAIL OVERLAY (Hidden on Desktop md+) */}
-                  <div className="md:hidden absolute right-3 bottom-14 flex flex-col items-center gap-3 z-30 pointer-events-auto">
-                    {/* Author Avatar with Follow Overlay */}
-                    <div className="relative mb-0.5">
-                      <button onClick={() => navigate(`/profile/${video.author.id}`)} className="block shrink-0 ring-2 ring-white/90 rounded-full shadow-md active:scale-95 transition">
-                        <Avatar
-                          userId={video.author.id}
-                          src={video.author.avatarUrl}
-                          name={video.author.fullName}
-                          username={video.author.username}
-                          avatarColor={video.author.avatarColor}
-                          size="sm"
-                        />
-                      </button>
-                      {!isOwnVideo && (
-                        <button
-                          onClick={() => handleFollow(video.author.id)}
-                          aria-label={isFollowing ? "Unfollow" : "Follow"}
-                          className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px] font-extrabold transition-all shadow-md active:scale-90 ${isFollowing ? "bg-emerald-500" : "bg-rose-500 hover:bg-rose-600"}`}
-                          title={isFollowing ? "Đang theo dõi" : "Theo dõi"}
-                        >
-                          {isFollowing ? "✓" : "+"}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Like Action */}
-                    <div className="flex flex-col items-center gap-0.5">
-                      <button
-                        type="button"
-                        onClick={() => handleLike(video.id)}
-                        aria-label="Like"
-                        className={`w-10 h-10 min-w-[40px] min-h-[40px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md ${video.isLiked ? "bg-rose-500/90 ring-rose-400/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
-                      >
-                        <Heart className={`w-5 h-5 transition-all ${video.isLiked ? "text-white fill-white" : "text-white"}`} />
-                      </button>
-                      <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.likes)}</span>
-                    </div>
-
-                    {/* Comment Action */}
-                    <div className="flex flex-col items-center gap-0.5">
-                      <button
-                        type="button"
-                        onClick={() => handleComment(video.id)}
-                        aria-label="Comments"
-                        className={`w-10 h-10 min-w-[40px] min-h-[40px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md ${showComments && commentsFor === video.id ? "bg-[#0866ff]/90 ring-[#0866ff]/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
-                      >
-                        <MessageCircle className="w-5 h-5 text-white" />
-                      </button>
-                      <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.comments)}</span>
-                    </div>
-
-                    {/* Save / Bookmark Action */}
-                    <div className="flex flex-col items-center gap-0.5">
-                      <button
-                        type="button"
-                        onClick={() => handleBookmark(video.id)}
-                        aria-label="Save video"
-                        className={`w-10 h-10 min-w-[40px] min-h-[40px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md ${bookmarkMap[video.id] ? "bg-amber-500/90 ring-amber-400/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
-                      >
-                        <Bookmark className={`w-5 h-5 transition-all ${bookmarkMap[video.id] ? "text-white fill-white" : "text-white"}`} />
-                      </button>
-                      <span className="text-white text-[11px] font-bold drop-shadow">Lưu</span>
-                    </div>
-
-                    {/* Share Action */}
-                    <div className="flex flex-col items-center gap-0.5">
-                      <button
-                        type="button"
-                        onClick={() => handleShare(video)}
-                        aria-label="Share video"
-                        className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-black/40 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-md"
-                      >
-                        <Share2 className="w-5 h-5 text-white" />
-                      </button>
-                      <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.shares)}</span>
-                    </div>
-                  </div>
-
-                  {/* Bottom Video Info Overlay (Username, Caption, Audio, Time & Fullscreen) */}
-                  <div className="absolute left-3.5 right-16 md:right-4 bottom-3.5 md:bottom-4 z-30 flex flex-col gap-1.5 pointer-events-auto">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <button
-                        onClick={() => navigate(`/profile/${video.author.id}`)}
-                        className="text-white font-bold text-sm tracking-tight hover:underline truncate max-w-[180px] drop-shadow"
-                      >
-                        @{video.author.username}
-                      </button>
-                    </div>
-
-                    {video.description && (
-                      <div className="flex flex-col gap-0.5">
-                        <p className={`text-white/95 text-[13px] leading-relaxed drop-shadow-sm ${expandedCaptions[index] ? "" : "line-clamp-2"}`}>
-                          {video.description}
-                        </p>
-                        {video.description.length > 80 && (
-                          <button onClick={() => toggleCaption(index)} className="text-white/70 text-xs font-semibold hover:text-white transition text-left">
-                            {expandedCaptions[index] ? "Thu gọn" : "Xem thêm"}
-                          </button>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between gap-2 pr-1 text-white/85 text-xs font-medium drop-shadow-sm">
-                      <div className="flex items-center gap-1.5 truncate">
-                        <div className="w-3.5 h-3.5 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow animate-spin" style={{ animationDuration: "3s" }} />
-                        <span className="truncate">Âm thanh gốc — {video.author.fullName || video.author.username}</span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-white/75 text-[10px] font-semibold tabular-nums">
-                          {prog?.duration ? `${formatTime(prog.current)} / ${formatTime(prog.duration)}` : "0:00"}
-                        </span>
-                        <button
-                          onClick={toggleFullscreen}
-                          className="w-5 h-5 rounded-full hover:bg-white/20 flex items-center justify-center transition text-white/80 hover:text-white cursor-pointer"
-                          title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
-                        >
-                          {isFullscreen ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Progress bar (Full-width edge-to-edge seek bar |━━━━━━━━━━━━━━━━━━━━━━━━━━━━| - ALWAYS VISIBLE) */}
-                  <div
-                    className="absolute inset-x-0 bottom-0 z-40 w-full h-5 flex items-end cursor-pointer pointer-events-auto group/seekbar"
-                    onClick={(e) => handleSeek(e, index)}
-                    title="Tua video"
-                  >
-                    {/* Background Track (Always visible across 100% width) */}
-                    <div className="h-[2.5px] group-hover/seekbar:h-1 w-full bg-white/25 backdrop-blur-xs relative transition-all duration-150">
-                      {/* Active Progress Fill */}
-                      <div
-                        className="h-full bg-white relative shadow-sm"
-                        style={{ width: `${prog?.duration ? (prog.current / prog.duration) * 100 : 0}%` }}
-                      >
-                        {/* Thumb Scrubber Dot on hover/scrub */}
-                        <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-md opacity-0 group-hover/seekbar:opacity-100 transition-opacity" />
-                      </div>
-                    </div>
+            {/* Video Feed Scroll/Snap Container */}
+            <div
+              ref={containerRef}
+              className="w-full flex-1 overflow-y-scroll snap-y snap-mandatory select-none custom-scrollbar relative z-10"
+              style={{
+                scrollSnapType: "y mandatory",
+                WebkitOverflowScrolling: "touch",
+                overscrollBehaviorY: "contain",
+              }}
+            >
+              {loading ? (
+                <div className="w-full h-full flex items-center justify-center bg-black">
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="w-8 h-8 text-white animate-spin" />
+                    <span className="text-white/60 text-sm">Đang tải video...</span>
                   </div>
                 </div>
-              );
-            })
+              ) : hasError ? (
+                <div className="w-full h-full flex items-center justify-center bg-black">
+                  <div className="flex flex-col items-center gap-5 text-center px-8">
+                    <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
+                      <Video className="w-10 h-10 text-white/50" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-bold text-xl mb-2">Không thể tải video</h3>
+                      <p className="text-white/55 text-sm">Có lỗi xảy ra khi kết nối máy chủ. Vui lòng thử lại!</p>
+                    </div>
+                    <button
+                      onClick={fetchVideoPosts}
+                      className="px-8 py-3.5 bg-white text-black font-bold rounded-full text-sm hover:bg-white/90 active:scale-95 transition-all shadow-lg"
+                    >
+                      Thử lại
+                    </button>
+                  </div>
+                </div>
+              ) : videos.length === 0 ? (
+                <div className="w-full h-full flex items-center justify-center bg-black">
+                  <div className="flex flex-col items-center gap-5 text-center px-8">
+                    <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
+                      <Video className="w-10 h-10 text-white/50" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-bold text-xl mb-2">Chưa có video nào</h3>
+                      <p className="text-white/55 text-sm">Hãy là người đầu tiên đăng tải video ngắn!</p>
+                    </div>
+                    <button
+                      onClick={() => setShowUpload(true)}
+                      className="px-8 py-3.5 bg-white text-black font-bold rounded-full text-sm hover:bg-white/90 active:scale-95 transition-all shadow-lg"
+                    >
+                      Đăng video ngay
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                videos.map((video, index) => {
+                  const isPlaying = index === currentVideoIndex && !!playingMap[index];
+                  const authorId = Number(video.author?.id);
+                  const isOwnVideo = authorId === Number(currentUser?.id);
+                  const isFollowing = !!followMap[authorId];
+                  const prog = progressMap[index];
+
+                  return (
+                    <div
+                      key={video.id}
+                      ref={(el) => (itemRefs.current[index] = el)}
+                      className="relative w-full h-full shrink-0 overflow-hidden bg-black flex items-center justify-center snap-start"
+                      style={{ scrollSnapAlign: "start", scrollSnapStop: "always" }}
+                    >
+                      {/* Video element with dynamic aspect ratio & object-contain */}
+                      <video
+                        ref={(el) => (videoRefs.current[index] = el)}
+                        src={video.url}
+                        className="w-full h-full object-contain object-center block"
+                        preload="metadata"
+                        onLoadedMetadata={(e) => handleShortVideoMetadata(e, index)}
+                        loop={!autoPlayNext}
+                        playsInline
+                        onClick={(e) => handleVideoClick(e, index)}
+                        onTimeUpdate={(e) => handleTimeUpdate(e, index)}
+                        onEnded={() => {
+                          if (autoPlayNext && index < videos.length - 1) {
+                            scrollToVideo(index + 1);
+                          }
+                        }}
+                        onPlay={() => setPlayingMap((prev) => ({ ...prev, [index]: true }))}
+                        onPause={() => setPlayingMap((prev) => ({ ...prev, [index]: false }))}
+                      />
+
+                      {/* Gradient overlays */}
+                      <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-[5]" />
+                      <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none z-[5]" />
+
+                      {/* Pause indicator */}
+                      {!isPlaying && index === currentVideoIndex && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[10]">
+                          <div className="w-16 h-16 rounded-full bg-black/45 backdrop-blur-xl ring-1 ring-white/15 flex items-center justify-center">
+                            <Play className="w-8 h-8 text-white fill-white ml-1 drop-shadow-lg" />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* MOBILE-ONLY ACTION RAIL OVERLAY (< 768px) */}
+                      <div className="md:hidden absolute right-3 bottom-14 flex flex-col items-center gap-3 z-30 pointer-events-auto">
+                        {/* Author Avatar with Follow Overlay */}
+                        <div className="relative mb-0.5">
+                          <button onClick={() => navigate(`/profile/${video.author.id}`)} className="block shrink-0 ring-2 ring-white/90 rounded-full shadow-md active:scale-95 transition">
+                            <Avatar
+                              userId={video.author.id}
+                              src={video.author.avatarUrl}
+                              name={video.author.fullName}
+                              username={video.author.username}
+                              avatarColor={video.author.avatarColor}
+                              size="sm"
+                            />
+                          </button>
+                          {!isOwnVideo && (
+                            <button
+                              onClick={() => handleFollow(video.author.id)}
+                              aria-label={isFollowing ? "Unfollow" : "Follow"}
+                              className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px] font-extrabold transition-all shadow-md active:scale-90 ${isFollowing ? "bg-emerald-500" : "bg-rose-500 hover:bg-rose-600"}`}
+                              title={isFollowing ? "Đang theo dõi" : "Theo dõi"}
+                            >
+                              {isFollowing ? "✓" : "+"}
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Like Action */}
+                        <div className="flex flex-col items-center gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => handleLike(video.id)}
+                            aria-label="Like"
+                            className={`w-10 h-10 min-w-[40px] min-h-[40px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md ${video.isLiked ? "bg-rose-500/90 ring-rose-400/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
+                          >
+                            <Heart className={`w-5 h-5 transition-all ${video.isLiked ? "text-white fill-white" : "text-white"}`} />
+                          </button>
+                          <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.likes)}</span>
+                        </div>
+
+                        {/* Comment Action */}
+                        <div className="flex flex-col items-center gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => handleComment(video.id)}
+                            aria-label="Comments"
+                            className={`w-10 h-10 min-w-[40px] min-h-[40px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md ${showComments && commentsFor === video.id ? "bg-[#0866ff]/90 ring-[#0866ff]/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
+                          >
+                            <MessageCircle className="w-5 h-5 text-white" />
+                          </button>
+                          <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.comments)}</span>
+                        </div>
+
+                        {/* Save / Bookmark Action */}
+                        <div className="flex flex-col items-center gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => handleBookmark(video.id)}
+                            aria-label="Save video"
+                            className={`w-10 h-10 min-w-[40px] min-h-[40px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md ${bookmarkMap[video.id] ? "bg-amber-500/90 ring-amber-400/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
+                          >
+                            <Bookmark className={`w-5 h-5 transition-all ${bookmarkMap[video.id] ? "text-white fill-white" : "text-white"}`} />
+                          </button>
+                          <span className="text-white text-[11px] font-bold drop-shadow">Lưu</span>
+                        </div>
+
+                        {/* Share Action */}
+                        <div className="flex flex-col items-center gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => handleShare(video)}
+                            aria-label="Share video"
+                            className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-black/40 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-md"
+                          >
+                            <Share2 className="w-5 h-5 text-white" />
+                          </button>
+                          <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.shares)}</span>
+                        </div>
+                      </div>
+
+                      {/* Mobile Video Info Overlay (< 768px: Username, Caption, Audio) */}
+                      <div className="md:hidden absolute left-3.5 right-16 bottom-3.5 z-30 flex flex-col gap-1.5 pointer-events-auto">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            onClick={() => navigate(`/profile/${video.author.id}`)}
+                            className="text-white font-bold text-sm tracking-tight hover:underline truncate max-w-[180px] drop-shadow"
+                          >
+                            @{video.author.username}
+                          </button>
+                        </div>
+
+                        {video.description && (
+                          <div className="flex flex-col gap-0.5">
+                            <p className={`text-white/95 text-[13px] leading-relaxed drop-shadow-sm ${expandedCaptions[index] ? "" : "line-clamp-2"}`}>
+                              {video.description}
+                            </p>
+                            {video.description.length > 80 && (
+                              <button onClick={() => toggleCaption(index)} className="text-white/70 text-xs font-semibold hover:text-white transition text-left">
+                                {expandedCaptions[index] ? "Thu gọn" : "Xem thêm"}
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between gap-2 pr-1 text-white/85 text-xs font-medium drop-shadow-sm">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <div className="w-3.5 h-3.5 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow animate-spin" style={{ animationDuration: "3s" }} />
+                            <span className="truncate">Âm thanh gốc — {video.author.fullName || video.author.username}</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-white/75 text-[10px] font-semibold tabular-nums">
+                              {prog?.duration ? `${formatTime(prog.current)} / ${formatTime(prog.duration)}` : "0:00"}
+                            </span>
+                            <button
+                              onClick={toggleFullscreen}
+                              className="w-5 h-5 rounded-full hover:bg-white/20 flex items-center justify-center transition text-white/80 hover:text-white cursor-pointer"
+                              title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
+                            >
+                              {isFullscreen ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Desktop Minimal Caption & Audio Info Overlay on Video Frame */}
+                      <div className="hidden md:flex absolute left-4 right-4 bottom-3 z-30 items-center justify-between text-white/90 text-xs font-medium drop-shadow-sm pointer-events-auto">
+                        <div className="flex items-center gap-2 max-w-[70%] truncate">
+                          <div className="w-3.5 h-3.5 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow animate-spin" style={{ animationDuration: "3s" }} />
+                          <span className="truncate font-semibold">@{video.author.username}</span>
+                          <span className="text-white/60">•</span>
+                          <span className="truncate text-white/80">Âm thanh gốc</span>
+                        </div>
+                        <div className="flex items-center gap-2.5 shrink-0">
+                          <span className="text-white/75 text-[11px] font-semibold tabular-nums">
+                            {prog?.duration ? `${formatTime(prog.current)} / ${formatTime(prog.duration)}` : "0:00"}
+                          </span>
+                          <button
+                            onClick={toggleFullscreen}
+                            className="w-6 h-6 rounded-full hover:bg-white/20 flex items-center justify-center transition text-white/80 hover:text-white cursor-pointer"
+                            title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
+                          >
+                            {isFullscreen ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Edge-to-edge Seekbar Progress Bar */}
+                      <div
+                        className="absolute inset-x-0 bottom-0 z-40 w-full h-5 flex items-end cursor-pointer pointer-events-auto group/seekbar"
+                        onClick={(e) => handleSeek(e, index)}
+                        title="Tua video"
+                      >
+                        <div className="h-[2.5px] group-hover/seekbar:h-1 w-full bg-white/25 backdrop-blur-xs relative transition-all duration-150">
+                          <div
+                            className="h-full bg-white relative shadow-sm"
+                            style={{ width: `${prog?.duration ? (prog.current / prog.duration) * 100 : 0}%` }}
+                          >
+                            <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-md opacity-0 group-hover/seekbar:opacity-100 transition-opacity" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* DESKTOP VERTICAL ACTION RAIL (Sát cạnh phải video frame) */}
+          {currentVideo && (
+            <div
+              className="hidden md:flex flex-col items-center justify-end gap-4 pb-6 shrink-0 z-30 select-none self-end"
+              style={{ height: "82vh", maxHeight: "85vh" }}
+            >
+              {/* Creator Avatar & Follow Button */}
+              <div className="flex flex-col items-center gap-1">
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/profile/${currentVideo.author.id}`)}
+                    className="block shrink-0 ring-2 ring-zinc-300 dark:ring-zinc-700 rounded-full shadow-md hover:scale-105 transition cursor-pointer"
+                  >
+                    <Avatar
+                      userId={currentVideo.author.id}
+                      src={currentVideo.author.avatarUrl}
+                      name={currentVideo.author.fullName}
+                      username={currentVideo.author.username}
+                      avatarColor={currentVideo.author.avatarColor}
+                      size="md"
+                    />
+                  </button>
+                  {Number(currentVideo.author.id) !== Number(currentUser?.id) && (
+                    <button
+                      type="button"
+                      onClick={() => handleFollow(currentVideo.author.id)}
+                      aria-label={followMap[currentVideo.author.id] ? "Unfollow" : "Follow"}
+                      className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold transition-all shadow-md active:scale-90 cursor-pointer ${
+                        followMap[currentVideo.author.id] ? "bg-emerald-500 hover:bg-emerald-600" : "bg-rose-500 hover:bg-rose-600"
+                      }`}
+                      title={followMap[currentVideo.author.id] ? "Đang theo dõi" : "Theo dõi"}
+                    >
+                      {followMap[currentVideo.author.id] ? "✓" : "+"}
+                    </button>
+                  )}
+                </div>
+                <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 truncate max-w-[64px] text-center">
+                  @{currentVideo.author.username}
+                </span>
+              </div>
+
+              {/* Like Action */}
+              <div className="flex flex-col items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleLike(currentVideo.id)}
+                  aria-label="Like"
+                  className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 cursor-pointer ${
+                    currentVideo.isLiked
+                      ? "bg-rose-500 text-white shadow-rose-500/30 scale-105"
+                      : "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-rose-100 dark:hover:bg-zinc-700 hover:text-rose-500"
+                  }`}
+                  title="Thích"
+                >
+                  <Heart className={`w-6 h-6 ${currentVideo.isLiked ? "fill-white text-white" : ""}`} />
+                </button>
+                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  {formatCount(currentVideo.likes)}
+                </span>
+              </div>
+
+              {/* Comment Action */}
+              <div className="flex flex-col items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleComment(currentVideo.id)}
+                  aria-label="Comments"
+                  className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 cursor-pointer ${
+                    showComments && commentsFor === currentVideo.id
+                      ? "bg-[#0866ff] text-white shadow-blue-500/30 scale-105"
+                      : "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-blue-100 dark:hover:bg-zinc-700 hover:text-[#0866ff]"
+                  }`}
+                  title="Bình luận"
+                >
+                  <MessageCircle className="w-6 h-6" />
+                </button>
+                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  {formatCount(currentVideo.comments)}
+                </span>
+              </div>
+
+              {/* Bookmark / Save Action */}
+              <div className="flex flex-col items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleBookmark(currentVideo.id)}
+                  aria-label="Save video"
+                  className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 cursor-pointer ${
+                    bookmarkMap[currentVideo.id]
+                      ? "bg-amber-500 text-white shadow-amber-500/30 scale-105"
+                      : "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-amber-100 dark:hover:bg-zinc-700 hover:text-amber-500"
+                  }`}
+                  title="Lưu video"
+                >
+                  <Bookmark className={`w-6 h-6 ${bookmarkMap[currentVideo.id] ? "fill-white text-white" : ""}`} />
+                </button>
+                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Lưu</span>
+              </div>
+
+              {/* Share Action */}
+              <div className="flex flex-col items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleShare(currentVideo)}
+                  aria-label="Share video"
+                  className="w-12 h-12 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-emerald-100 dark:hover:bg-zinc-700 hover:text-emerald-500 flex items-center justify-center shadow-md transition-all active:scale-90 cursor-pointer"
+                  title="Chia sẻ"
+                >
+                  <Share2 className="w-6 h-6" />
+                </button>
+                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  {formatCount(currentVideo.shares)}
+                </span>
+              </div>
+            </div>
           )}
         </div>
       </div>
 
-      {/* DESKTOP-ONLY SLEEK ACTION COLUMN (OUTSIDE VIDEO BOX ON THE RIGHT) */}
-      {currentVideo && (
-        <div className="hidden md:flex flex-col items-center justify-end gap-5 pb-8 shrink-0 z-30 select-none self-end"
-          style={{ height: "88vh", maxHeight: "88vh" }}
-        >
-          {/* Author Avatar with Follow Button */}
-          <div className="flex flex-col items-center gap-1">
-            <div className="relative">
+      {/* ======================================================================
+          2. RIGHT SECTION: TikTok PC Standard Comments & Creator Info Panel (>= 1024px)
+          ====================================================================== */}
+      <div className="hidden lg:flex flex-col w-[360px] xl:w-[390px] h-[82vh] max-h-[85vh] shrink-0 bg-white dark:bg-[#242526] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-right duration-200">
+        
+        {/* Creator Info & Caption Header */}
+        <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 shrink-0 flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <button
+              onClick={() => navigate(`/profile/${currentVideo?.author?.id}`)}
+              className="flex items-center gap-3 text-left group min-w-0"
+            >
+              <Avatar
+                userId={currentVideo?.author?.id}
+                src={currentVideo?.author?.avatarUrl}
+                name={currentVideo?.author?.fullName}
+                username={currentVideo?.author?.username}
+                avatarColor={currentVideo?.author?.avatarColor}
+                size="md"
+              />
+              <div className="min-w-0">
+                <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100 group-hover:underline truncate">
+                  {currentVideo?.author?.fullName || currentVideo?.author?.username}
+                </div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                  @{currentVideo?.author?.username}
+                </div>
+              </div>
+            </button>
+
+            {Number(currentVideo?.author?.id) !== Number(currentUser?.id) && (
               <button
-                type="button"
-                onClick={() => navigate(`/profile/${currentVideo.author.id}`)}
-                className="block shrink-0 ring-2 ring-zinc-300 dark:ring-zinc-700 rounded-full shadow-md hover:scale-105 transition"
+                onClick={() => handleFollow(currentVideo?.author?.id)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                  followMap[currentVideo?.author?.id]
+                    ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                    : "bg-rose-500 text-white hover:bg-rose-600 shadow-sm"
+                }`}
               >
-                <Avatar
-                  userId={currentVideo.author.id}
-                  src={currentVideo.author.avatarUrl}
-                  name={currentVideo.author.fullName}
-                  username={currentVideo.author.username}
-                  avatarColor={currentVideo.author.avatarColor}
-                  size="md"
-                />
+                {followMap[currentVideo?.author?.id] ? "Đang theo dõi" : "Theo dõi"}
               </button>
-              {Number(currentVideo.author.id) !== Number(currentUser?.id) && (
-                <button
-                  type="button"
-                  onClick={() => handleFollow(currentVideo.author.id)}
-                  aria-label={followMap[currentVideo.author.id] ? "Unfollow" : "Follow"}
-                  className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold transition-all shadow-md active:scale-90 ${
-                    followMap[currentVideo.author.id] ? "bg-emerald-500 hover:bg-emerald-600" : "bg-rose-500 hover:bg-rose-600"
-                  }`}
-                  title={followMap[currentVideo.author.id] ? "Đang theo dõi" : "Theo dõi"}
-                >
-                  {followMap[currentVideo.author.id] ? "✓" : "+"}
-                </button>
-              )}
+            )}
+          </div>
+
+          {/* Video Description */}
+          {currentVideo?.description && (
+            <div className="text-xs text-zinc-800 dark:text-zinc-200 leading-relaxed max-h-20 overflow-y-auto custom-scrollbar">
+              {currentVideo.description}
             </div>
-            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 truncate max-w-[64px] text-center">
-              @{currentVideo.author.username}
-            </span>
+          )}
+
+          {/* Original Audio Banner */}
+          <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400 font-medium truncate">
+            <div className="w-3.5 h-3.5 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow animate-spin" style={{ animationDuration: "3s" }} />
+            <span className="truncate">Âm thanh gốc — {currentVideo?.author?.fullName || currentVideo?.author?.username}</span>
           </div>
 
-          {/* Like Action Button */}
-          <div className="flex flex-col items-center gap-1">
-            <button
-              type="button"
-              onClick={() => handleLike(currentVideo.id)}
-              aria-label="Like"
-              className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 cursor-pointer ${
-                currentVideo.isLiked
-                  ? "bg-rose-500 text-white shadow-rose-500/30 scale-105"
-                  : "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-rose-100 dark:hover:bg-zinc-700 hover:text-rose-500"
-              }`}
-              title="Thích"
-            >
-              <Heart className={`w-6 h-6 ${currentVideo.isLiked ? "fill-white text-white" : ""}`} />
-            </button>
-            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-              {formatCount(currentVideo.likes)}
-            </span>
-          </div>
-
-          {/* Comment Action Button */}
-          <div className="flex flex-col items-center gap-1">
-            <button
-              type="button"
-              onClick={() => handleComment(currentVideo.id)}
-              aria-label="Comments"
-              className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 cursor-pointer ${
-                showComments && commentsFor === currentVideo.id
-                  ? "bg-[#0866ff] text-white shadow-blue-500/30 scale-105"
-                  : "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-blue-100 dark:hover:bg-zinc-700 hover:text-[#0866ff]"
-              }`}
-              title="Bình luận"
-            >
-              <MessageCircle className="w-6 h-6" />
-            </button>
-            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-              {formatCount(currentVideo.comments)}
-            </span>
-          </div>
-
-          {/* Bookmark / Save Action Button */}
-          <div className="flex flex-col items-center gap-1">
-            <button
-              type="button"
-              onClick={() => handleBookmark(currentVideo.id)}
-              aria-label="Save video"
-              className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 cursor-pointer ${
-                bookmarkMap[currentVideo.id]
-                  ? "bg-amber-500 text-white shadow-amber-500/30 scale-105"
-                  : "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-amber-100 dark:hover:bg-zinc-700 hover:text-amber-500"
-              }`}
-              title="Lưu video"
-            >
-              <Bookmark className={`w-6 h-6 ${bookmarkMap[currentVideo.id] ? "fill-white text-white" : ""}`} />
-            </button>
-            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Lưu</span>
-          </div>
-
-          {/* Share Action Button */}
-          <div className="flex flex-col items-center gap-1">
-            <button
-              type="button"
-              onClick={() => handleShare(currentVideo)}
-              aria-label="Share video"
-              className="w-12 h-12 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-emerald-100 dark:hover:bg-zinc-700 hover:text-emerald-500 flex items-center justify-center shadow-md transition-all active:scale-90 cursor-pointer"
-              title="Chia sẻ"
-            >
-              <Share2 className="w-6 h-6" />
-            </button>
-            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-              {formatCount(currentVideo.shares)}
-            </span>
-          </div>
-        </div>
-      )}
-      </div>
-
-      {/* 2. COMMENT BOX: Scaled with vh/vw on Desktop */}
-      {isCommentOpen && (
-        <div className="hidden md:flex flex-col w-[22vw] min-w-[320px] max-w-[400px] md:h-[88vh] shrink-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl md:rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-right duration-200">
-          <div className="flex items-center justify-between px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
-            <div className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-[#0866ff]" />
-              <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Bình luận</h3>
-              <span className="text-xs font-semibold text-zinc-400">
-                ({currentVideo ? formatCount(currentVideo.comments) : 0})
+          {/* Interaction Counts & Copy Link Button */}
+          <div className="flex items-center justify-between pt-1 border-t border-zinc-100 dark:border-zinc-800/80 text-xs text-zinc-500 dark:text-zinc-400">
+            <div className="flex items-center gap-3 font-semibold">
+              <span className="flex items-center gap-1">
+                <Heart className={`w-3.5 h-3.5 ${currentVideo?.isLiked ? "text-rose-500 fill-rose-500" : "text-zinc-400"}`} />
+                {formatCount(currentVideo?.likes)}
+              </span>
+              <span className="flex items-center gap-1">
+                <MessageCircle className="w-3.5 h-3.5 text-[#0866ff]" />
+                {formatCount(currentVideo?.comments)}
               </span>
             </div>
             <button
-              onClick={closeComments}
-              className="w-7 h-7 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-              title="Đóng bình luận"
+              onClick={() => handleCopyLink(currentVideo?.id)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-semibold transition text-[11px] cursor-pointer"
+              title="Sao chép liên kết video"
             >
-              <X className="w-4 h-4" />
+              <LinkIcon className="w-3 h-3" />
+              <span>Sao chép link</span>
             </button>
           </div>
+        </div>
 
-          <div className="flex-1 overflow-y-auto overscroll-contain p-3.5 space-y-2 custom-scrollbar">
-            {commentLoading ? (
-              <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-zinc-300" /></div>
-            ) : commentList.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-14 text-center">
-                <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-3">
-                  <MessageCircle className="w-6 h-6 text-zinc-400" />
-                </div>
-                <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Chưa có bình luận nào</p>
-                <p className="text-[11px] text-zinc-400 mt-1">Hãy là người đầu tiên thảo luận!</p>
-              </div>
-            ) : (
-              commentList.map((c) => (
-                <Comment
-                  key={c.id}
-                  comment={c}
-                  onDelete={handleDeleteComment}
-                  onUpdate={() => handleComment(currentVideo.id)}
-                  onReplyCreated={() => handleComment(currentVideo.id)}
-                />
-              ))
-            )}
+        {/* Scrollable Comments List */}
+        <div className="flex-1 overflow-y-auto overscroll-contain p-3.5 space-y-2 custom-scrollbar">
+          <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 px-1 pb-1">
+            Bình luận ({currentVideo ? formatCount(currentVideo.comments) : 0})
           </div>
 
-          <form
-            onSubmit={handleSubmitComment}
-            className="shrink-0 p-3 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-2 bg-white dark:bg-zinc-900"
-          >
-            {showMentionDropdown && mentionSuggestions.length > 0 && (
-              <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg p-1 max-h-36 overflow-y-auto">
-                {mentionSuggestions.map((u) => (
-                  <button
-                    key={u.id}
-                    type="button"
-                    onClick={() => selectMentionUser(u.username)}
-                    className="flex items-center gap-2 w-full p-2 text-left hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg text-xs"
-                  >
-                    <Avatar userId={u.id} src={u.avatarUrl} name={u.fullName || u.username} size="xs" />
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">@{u.username}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <Avatar
-                userId={currentUser?.id}
-                src={currentUser?.avatarUrl}
-                name={currentUser?.fullName || currentUser?.username}
-                username={currentUser?.username}
-                avatarColor={currentUser?.avatarColor}
-                size="sm"
-                className="border border-zinc-200 dark:border-zinc-700 shrink-0"
-              />
-              <input
-                type="text"
-                value={commentText}
-                onChange={handleCommentTextChange}
-                placeholder="Viết bình luận (@bạn_bè)..."
-                className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full px-4 py-2 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#0866ff]/30"
-              />
-              <button
-                type="submit"
-                disabled={!commentText.trim() || isSubmittingComment}
-                className="shrink-0 w-8 h-8 rounded-full bg-[#0866ff] text-white hover:bg-[#0756d6] disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center"
-              >
-                {isSubmittingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-              </button>
+          {commentLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-2 text-zinc-400">
+              <Loader2 className="w-6 h-6 animate-spin text-[#0866ff]" />
+              <span className="text-xs">Đang tải bình luận...</span>
             </div>
-          </form>
+          ) : commentList.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 text-center">
+              <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-3">
+                <MessageCircle className="w-6 h-6 text-zinc-400" />
+              </div>
+              <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Chưa có bình luận nào</p>
+              <p className="text-[11px] text-zinc-400 mt-1">Hãy là người đầu tiên thảo luận!</p>
+            </div>
+          ) : (
+            commentList.map((c) => (
+              <Comment
+                key={c.id}
+                comment={c}
+                onDelete={handleDeleteComment}
+                onUpdate={() => fetchComments(currentVideo?.id)}
+                onReplyCreated={() => fetchComments(currentVideo?.id)}
+              />
+            ))
+          )}
         </div>
-      )}
 
-      {/* Mobile Modal/Drawer for Comments */}
+        {/* Comment Input Form at Bottom */}
+        <form
+          onSubmit={handleSubmitComment}
+          className="shrink-0 p-3 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-2 bg-white dark:bg-[#242526]"
+        >
+          {showMentionDropdown && mentionSuggestions.length > 0 && (
+            <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg p-1 max-h-36 overflow-y-auto">
+              {mentionSuggestions.map((u) => (
+                <button
+                  key={u.id}
+                  type="button"
+                  onClick={() => selectMentionUser(u.username)}
+                  className="flex items-center gap-2 w-full p-2 text-left hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg text-xs"
+                >
+                  <Avatar userId={u.id} src={u.avatarUrl} name={u.fullName || u.username} size="xs" />
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">@{u.username}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <Avatar
+              userId={currentUser?.id}
+              src={currentUser?.avatarUrl}
+              name={currentUser?.fullName || currentUser?.username}
+              username={currentUser?.username}
+              avatarColor={currentUser?.avatarColor}
+              size="sm"
+              className="border border-zinc-200 dark:border-zinc-700 shrink-0"
+            />
+            <input
+              type="text"
+              value={commentText}
+              onChange={handleCommentTextChange}
+              placeholder="Thêm bình luận (@bạn_bè)..."
+              className="flex-1 bg-zinc-100 dark:bg-zinc-800/90 rounded-full px-4 py-2 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#0866ff]/30"
+            />
+            <button
+              type="submit"
+              disabled={!commentText.trim() || isSubmittingComment}
+              className="shrink-0 w-8 h-8 rounded-full bg-[#0866ff] text-white hover:bg-[#0756d6] disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center cursor-pointer shadow-xs"
+            >
+              {isSubmittingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* ======================================================================
+          3. MOBILE COMMENTS BOTTOM DRAWER SHEET (< 768px)
+          ====================================================================== */}
       {showComments && commentsFor !== null && typeof document !== "undefined" && createPortal(
         <>
-          <div className="fixed inset-0 z-50 bg-transparent md:hidden" onClick={closeComments} />
-          <div className="fixed inset-x-0 bottom-0 z-50 h-[70dvh] bg-white dark:bg-zinc-900 rounded-t-3xl border-t border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col md:hidden animate-in slide-in-from-bottom duration-250">
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs md:hidden" onClick={closeComments} />
+          <div className="fixed inset-x-0 bottom-0 z-50 h-[72dvh] bg-white dark:bg-zinc-900 rounded-t-3xl border-t border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col md:hidden animate-in slide-in-from-bottom duration-250">
             <div className="flex justify-center pt-3 pb-1 shrink-0">
               <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
             </div>
             <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
-              <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Bình luận</h3>
+              <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                Bình luận ({currentVideo ? formatCount(currentVideo.comments) : 0})
+              </h3>
               <button onClick={closeComments} className="w-8 h-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition text-zinc-400">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3.5">
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3.5 custom-scrollbar">
               {commentLoading ? (
                 <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-zinc-300" /></div>
               ) : commentList.length === 0 ? (
@@ -1309,8 +1435,8 @@ export default function ShortVideoFeed() {
                     key={c.id}
                     comment={c}
                     onDelete={handleDeleteComment}
-                    onUpdate={() => handleComment(commentsFor)}
-                    onReplyCreated={() => handleComment(commentsFor)}
+                    onUpdate={() => fetchComments(commentsFor)}
+                    onReplyCreated={() => fetchComments(commentsFor)}
                   />
                 ))
               )}
@@ -1334,13 +1460,13 @@ export default function ShortVideoFeed() {
                 type="text"
                 value={commentText}
                 onChange={handleCommentTextChange}
-                placeholder="Viết bình luận..."
+                placeholder="Thêm bình luận..."
                 className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#0866ff]/30"
               />
               <button
                 type="submit"
                 disabled={!commentText.trim() || isSubmittingComment}
-                className="shrink-0 w-9 h-9 rounded-full bg-[#0866ff] text-white hover:bg-[#0756d6] disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center"
+                className="shrink-0 w-9 h-9 rounded-full bg-[#0866ff] text-white hover:bg-[#0756d6] disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center cursor-pointer shadow-xs"
               >
                 {isSubmittingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
@@ -1350,7 +1476,7 @@ export default function ShortVideoFeed() {
         document.body
       )}
 
-      {/* Upload Modal */}
+      {/* Upload Video Modal */}
       {showUpload && typeof document !== "undefined" && createPortal(
         <div
           className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
@@ -1373,8 +1499,6 @@ export default function ShortVideoFeed() {
         </div>,
         document.body
       )}
-
-
 
       {/* Report Modal */}
       {showReportModal && typeof document !== "undefined" && createPortal(
@@ -1406,7 +1530,7 @@ export default function ShortVideoFeed() {
             </div>
             <button
               onClick={() => setShowReportModal(false)}
-              className="w-full py-2.5 rounded-xl bg-zinc-800 text-xs font-bold text-zinc-300 hover:bg-zinc-700 transition"
+              className="w-full py-2.5 rounded-xl bg-zinc-800 text-xs font-bold text-zinc-300 hover:bg-zinc-700 transition cursor-pointer"
             >
               Hủy
             </button>
