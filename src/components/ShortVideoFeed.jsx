@@ -1,13 +1,19 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Heart, MessageCircle, Share2, MoreHorizontal, Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, X, Loader2, Video, Send } from "lucide-react";
+﻿import { useState, useRef, useEffect, useCallback } from "react";
+import {
+  Heart, MessageCircle, Share2, MoreHorizontal, Play,
+  Volume2, VolumeX, Maximize2, Minimize2, X, Loader2,
+  Video, Send, Plus, Trash2,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import Avatar from "./Avatar";
 import ShareModal from "./ShareModal";
+import ShortVideoUpload from "./ShortVideoUpload";
 import postService from "../services/postService";
 import likeService from "../services/likeService";
 import commentService from "../services/commentService";
+import followService from "../services/followService";
 import { isVideoUrl } from "../utils/mediaUtils";
 
 export default function ShortVideoFeed() {
@@ -17,6 +23,7 @@ export default function ShortVideoFeed() {
   const [isMuted, setIsMuted] = useState(true);
   const [showComments, setShowComments] = useState(false);
   const [shareVideo, setShareVideo] = useState(null);
+  const [showUpload, setShowUpload] = useState(false);
   const [commentsFor, setCommentsFor] = useState(null);
   const [commentList, setCommentList] = useState([]);
   const [commentLoading, setCommentLoading] = useState(false);
@@ -25,6 +32,9 @@ export default function ShortVideoFeed() {
   const [progressMap, setProgressMap] = useState({});
   const [expandedCaptions, setExpandedCaptions] = useState({});
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [followMap, setFollowMap] = useState({});
+  const [playingMap, setPlayingMap] = useState({});
+  const [viewedSet, setViewedSet] = useState(new Set());
 
   const videoRefs = useRef([]);
   const containerRef = useRef(null);
@@ -38,49 +48,48 @@ export default function ShortVideoFeed() {
       const res = await postService.getAll(0, 50);
       const allPosts = res.data?.content || res.data || [];
       const videoPosts = allPosts
-        .filter((post) => 
-          post.mediaType === "video" || 
-          post.videoUrl || 
-          (post.thumbNail && isVideoUrl(post.thumbNail))
+        .filter((post) =>
+          post.mediaType === "video" ||
+          post.videoUrl ||
+          (post.thumbNail && isVideoUrl(post.thumbNail)) ||
+          (Array.isArray(post.imageUrls) && post.imageUrls.some(isVideoUrl))
         )
         .map((post) => ({
           id: post.id,
-          url: post.videoUrl || post.imageUrls?.[0] || post.thumbNail,
-          user: post.user || null,
+          url: post.videoUrl || post.thumbNail || post.imageUrls?.[0] || "",
           author: {
             id: post.user?.id || post.userId,
             username: post.user?.username,
             fullName: post.user?.fullName || post.user?.username,
             avatarUrl: post.user?.avatarUrl,
-            avatarColor: post.user?.avatarColor
+            avatarColor: post.user?.avatarColor,
           },
-          description: post.content || post.body || post.title || "",
+          description: post.content || post.title || "",
           likes: post.likesCount || 0,
           comments: post.commentsCount || 0,
           shares: post.sharesCount || 0,
-          isLiked: post.likedByMe || false
+          isLiked: post.likedByMe || false,
         }));
       setVideos(videoPosts);
 
-      if (videoPosts.length > 0) {
-        videoPosts.forEach((v) => {
-          likeService.checkLiked(v.id)
-            .then((res) => {
-              setVideos((prev) =>
-                prev.map((item) =>
-                  item.id === v.id
-                    ? {
-                        ...item,
-                        isLiked: !!res.data?.liked,
-                        likes: typeof res.data?.count === "number" ? res.data.count : item.likes
-                      }
-                    : item
-                )
-              );
-            })
-            .catch(() => {});
-        });
-      }
+      videoPosts.forEach((v) => {
+        likeService
+          .checkLiked(v.id)
+          .then((r) => {
+            setVideos((prev) =>
+              prev.map((item) =>
+                item.id === v.id
+                  ? {
+                      ...item,
+                      isLiked: !!r.data?.liked,
+                      likes: typeof r.data?.count === "number" ? r.data.count : item.likes,
+                    }
+                  : item
+              )
+            );
+          })
+          .catch(() => {});
+      });
     } catch {
       setVideos([]);
     } finally {
@@ -88,101 +97,124 @@ export default function ShortVideoFeed() {
     }
   }, []);
 
+  useEffect(() => { fetchVideoPosts(); }, [fetchVideoPosts]);
+
   useEffect(() => {
-    fetchVideoPosts();
+    const onRefresh = () => fetchVideoPosts();
+    window.addEventListener("shorts_refresh", onRefresh);
+    return () => window.removeEventListener("shorts_refresh", onRefresh);
   }, [fetchVideoPosts]);
 
   useEffect(() => {
-    const handleShortsRefresh = () => {
-      fetchVideoPosts();
-    };
-    window.addEventListener("shorts_refresh", handleShortsRefresh);
-    return () => window.removeEventListener("shorts_refresh", handleShortsRefresh);
-  }, [fetchVideoPosts]);
-
-  useEffect(() => {
-    const videosElements = videoRefs.current.filter(Boolean);
-    if (videosElements.length === 0) return;
-
+    const els = videoRefs.current.filter(Boolean);
+    if (els.length === 0) return;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           const video = entry.target;
           const index = videoRefs.current.indexOf(video);
-          
           if (entry.isIntersecting) {
             setCurrentVideoIndex(index);
             video.play().catch(() => {});
+            setPlayingMap((prev) => ({ ...prev, [index]: true }));
           } else {
             video.pause();
             video.currentTime = 0;
+            setPlayingMap((prev) => ({ ...prev, [index]: false }));
           }
         });
       },
-      {
-        threshold: 0.75,
-        root: containerRef.current
-      }
+      { threshold: 0.75, root: containerRef.current }
     );
-
-    videosElements.forEach((video) => observer.observe(video));
-
-    return () => {
-      videosElements.forEach((video) => observer.unobserve(video));
-    };
+    els.forEach((v) => observer.observe(v));
+    return () => els.forEach((v) => observer.unobserve(v));
   }, [videos]);
+
+  useEffect(() => {
+    if (videos.length === 0) return;
+    const cv = videos[currentVideoIndex];
+    if (!cv?.author?.id) return;
+    const authorId = Number(cv.author.id);
+    if (authorId === Number(currentUser?.id)) return;
+    if (followMap[authorId] !== undefined) return;
+    followService
+      .checkFollowStatus(authorId)
+      .then((r) => { setFollowMap((prev) => ({ ...prev, [authorId]: !!r.data?.isFollowing })); })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentVideoIndex, videos]);
+
+  useEffect(() => {
+    if (videos.length === 0) return;
+    const cv = videos[currentVideoIndex];
+    if (!cv?.id || viewedSet.has(cv.id)) return;
+    setViewedSet((prev) => new Set(prev).add(cv.id));
+    postService.incrementViewCount(cv.id).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentVideoIndex, videos]);
 
   const handleLike = async (videoId) => {
     setVideos((prev) =>
-      prev.map((video) =>
-        video.id === videoId
-          ? {
-              ...video,
-              likes: video.isLiked ? video.likes - 1 : video.likes + 1,
-              isLiked: !video.isLiked
-            }
-          : video
+      prev.map((v) =>
+        v.id === videoId
+          ? { ...v, likes: v.isLiked ? v.likes - 1 : v.likes + 1, isLiked: !v.isLiked }
+          : v
       )
     );
-
     try {
-      const res = await likeService.toggleLike(videoId);
-      const liked = !!res.data?.liked;
-      const count = typeof res.data?.count === "number" ? res.data.count : null;
+      const r = await likeService.toggleLike(videoId);
+      const liked = !!r.data?.liked;
+      const count = typeof r.data?.count === "number" ? r.data.count : null;
       setVideos((prev) =>
-        prev.map((video) =>
-          video.id === videoId
-            ? { ...video, isLiked: liked, likes: count != null ? count : video.likes }
-            : video
+        prev.map((v) =>
+          v.id === videoId
+            ? { ...v, isLiked: liked, likes: count != null ? count : v.likes }
+            : v
         )
       );
     } catch {
       setVideos((prev) =>
-        prev.map((video) =>
-          video.id === videoId
-            ? {
-                ...video,
-                likes: video.isLiked ? video.likes - 1 : video.likes + 1,
-                isLiked: !video.isLiked
-              }
-            : video
+        prev.map((v) =>
+          v.id === videoId
+            ? { ...v, likes: v.isLiked ? v.likes + 1 : v.likes - 1, isLiked: !v.isLiked }
+            : v
         )
       );
       toast.error("Không thể thích video. Vui lòng thử lại!");
     }
   };
 
-  const handleDoubleTap = (videoId) => {
+  const handleFollow = async (authorId) => {
+    const wasFollowing = !!followMap[authorId];
+    setFollowMap((prev) => ({ ...prev, [authorId]: !wasFollowing }));
+    try {
+      if (wasFollowing) {
+        await followService.unfollowUser(authorId);
+        toast.success("Đã hủy theo dõi");
+      } else {
+        await followService.followUser(authorId);
+        toast.success("Đã theo dõi");
+      }
+    } catch {
+      setFollowMap((prev) => ({ ...prev, [authorId]: wasFollowing }));
+      toast.error("Không thể cập nhật theo dõi. Vui lòng thử lại!");
+    }
+  };
+
+  const handleVideoClick = (e, index) => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      handleLike(videoId);
+      e.stopPropagation();
+      handleLike(videos[index].id);
+    } else {
+      togglePlay(e, index);
     }
     lastTapRef.current = now;
   };
 
   const handleShare = (video) => {
     if (!video?.id) return;
-    const postForShare = {
+    setShareVideo({
       id: video.id,
       user: video.author || {},
       content: video.description || "",
@@ -190,8 +222,7 @@ export default function ShortVideoFeed() {
       title: video.description || "",
       thumbNail: video.url,
       sharedPost: null,
-    };
-    setShareVideo(postForShare);
+    });
   };
 
   const handleComment = (videoId) => {
@@ -202,32 +233,12 @@ export default function ShortVideoFeed() {
     setCommentText("");
     commentService
       .getByPostId(videoId)
-      .then((res) => {
-        const list = res.data || [];
+      .then((r) => {
+        const list = r.data || [];
         setCommentList(Array.isArray(list) ? list : []);
       })
       .catch(() => setCommentList([]))
       .finally(() => setCommentLoading(false));
-  };
-
-  const handleSubmitComment = async (e) => {
-    e.preventDefault();
-    if (!commentText.trim() || !commentsFor || isSubmittingComment) return;
-
-    setIsSubmittingComment(true);
-    try {
-      const res = await commentService.create({
-        content: commentText.trim(),
-        post: { id: commentsFor }
-      });
-      setCommentList((prev) => [...prev, res.data]);
-      setCommentText("");
-      toast.success("Đã đăng bình luận!");
-    } catch {
-      toast.error("Không thể gửi bình luận. Vui lòng thử lại!");
-    } finally {
-      setIsSubmittingComment(false);
-    }
   };
 
   const closeComments = () => {
@@ -237,69 +248,84 @@ export default function ShortVideoFeed() {
     setCommentText("");
   };
 
+  const handleSubmitComment = async (e) => {
+    e.preventDefault();
+    if (!commentText.trim() || !commentsFor || isSubmittingComment) return;
+    setIsSubmittingComment(true);
+    try {
+      const r = await commentService.create({ content: commentText.trim(), post: { id: commentsFor } });
+      setCommentList((prev) => [r.data, ...prev]);
+      setCommentText("");
+      setVideos((prev) =>
+        prev.map((v) => v.id === commentsFor ? { ...v, comments: v.comments + 1 } : v)
+      );
+      toast.success("Đã đăng bình luận!");
+    } catch {
+      toast.error("Không thể gửi bình luận. Vui lòng thử lại!");
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await commentService.delete(commentId);
+      setCommentList((prev) => prev.filter((c) => c.id !== commentId));
+      setVideos((prev) =>
+        prev.map((v) => v.id === commentsFor ? { ...v, comments: Math.max(0, v.comments - 1) } : v)
+      );
+      toast.success("Đã xóa bình luận!");
+    } catch {
+      toast.error("Không thể xóa bình luận. Vui lòng thử lại!");
+    }
+  };
+
   const toggleMute = (e) => {
     e.stopPropagation();
     setIsMuted((prev) => {
       const next = !prev;
-      videoRefs.current.forEach((video) => {
-        if (video) video.muted = next;
-      });
+      videoRefs.current.forEach((v) => { if (v) v.muted = next; });
       return next;
     });
   };
 
   const togglePlay = (e, index) => {
     e.stopPropagation();
-    const video = videoRefs.current[index];
-    if (video) {
-      if (video.paused) {
-        video.play();
-      } else {
-        video.pause();
-      }
+    const v = videoRefs.current[index];
+    if (!v) return;
+    if (v.paused) {
+      v.play();
+      setPlayingMap((prev) => ({ ...prev, [index]: true }));
+    } else {
+      v.pause();
+      setPlayingMap((prev) => ({ ...prev, [index]: false }));
     }
-  };
-
-  const handleAuthorClick = (authorId) => {
-    navigate(`/profile/${authorId}`);
   };
 
   const handleTimeUpdate = (e, index) => {
     const v = e.currentTarget;
     if (!v) return;
-    setProgressMap((prev) => ({
-      ...prev,
-      [index]: {
-        current: v.currentTime || 0,
-        duration: v.duration || 0,
-      },
-    }));
+    setProgressMap((prev) => ({ ...prev, [index]: { current: v.currentTime || 0, duration: v.duration || 0 } }));
   };
 
   const handleSeek = (e, index) => {
-    const bar = e.currentTarget;
-    const rect = bar.getBoundingClientRect();
+    const rect = e.currentTarget.getBoundingClientRect();
     const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-    const video = videoRefs.current[index];
-    if (video && video.duration) {
-      video.currentTime = ratio * video.duration;
-    }
+    const v = videoRefs.current[index];
+    if (v && v.duration) v.currentTime = ratio * v.duration;
   };
 
   const toggleFullscreen = () => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    } else {
-      document.documentElement.requestFullscreen?.();
-      setIsFullscreen(true);
-    }
+    if (document.fullscreenElement) { document.exitFullscreen(); setIsFullscreen(false); }
+    else { document.documentElement.requestFullscreen?.(); setIsFullscreen(true); }
   };
+
+  const toggleCaption = (index) => setExpandedCaptions((prev) => ({ ...prev, [index]: !prev[index] }));
 
   const formatCount = (n) => {
     if (n == null) return "0";
-    if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
-    if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+    if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "k";
     return String(n);
   };
 
@@ -310,39 +336,46 @@ export default function ShortVideoFeed() {
     return `${m}:${String(s).padStart(2, "0")}`;
   };
 
-  const toggleCaption = (index) =>
-    setExpandedCaptions((prev) => ({ ...prev, [index]: !prev[index] }));
-
-  const handleVideoClick = (e, index) => {
-    const now = Date.now();
-    if (now - lastTapRef.current < 300) {
-      handleDoubleTap(videos[index].id);
-    } else {
-      togglePlay(e, index);
-    }
-    lastTapRef.current = now;
+  const relativeTime = (dateStr) => {
+    if (!dateStr) return "";
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return "vừa xong";
+    if (m < 60) return `${m}p`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h`;
+    return `${Math.floor(h / 24)}d`;
   };
 
   return (
-    <div className="w-full h-[100dvh] bg-black overflow-y-auto">
+    <div className="relative w-full h-[100dvh] bg-black overflow-hidden">
+
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
-        <div className="flex items-center gap-2 backdrop-blur-2xl rounded-full py-1.5 pl-3.5 pr-3 ring-1 ring-white/15 bg-black/35 shadow-lg">
-          <div className="relative w-6 h-6 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 animate-spin-slow shadow-lg" style={{ animationDuration: "4s" }} />
-          <h1 className="text-white font-bold text-lg tracking-tight drop-shadow">Shorts</h1>
-        </div>
-        <div className="flex items-center gap-2.5">
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/65 to-transparent pointer-events-none">
+        <div className="flex items-center gap-2.5 pointer-events-auto">
           <button
             onClick={() => navigate("/")}
-            className="rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white p-2.5 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
-            title="Thoát"
+            className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-white/20 active:scale-90 transition-all shadow-md"
+            title="Quay lại"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow" />
+            <h1 className="text-white font-bold text-lg tracking-tight drop-shadow">Shorts</h1>
+          </div>
         </div>
+        <button
+          onClick={() => setShowUpload(true)}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/15 backdrop-blur-xl ring-1 ring-white/25 text-white text-xs font-bold hover:bg-white/25 active:scale-95 transition-all pointer-events-auto shadow-lg"
+          title="Đăng video ngắn"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Đăng
+        </button>
       </div>
 
-      {/* Video Feed Container */}
+      {/* Video Feed */}
       <div
         ref={containerRef}
         className="w-full h-[100dvh] overflow-y-auto snap-y snap-mandatory no-scrollbar overscroll-y-contain touch-pan-y"
@@ -352,218 +385,218 @@ export default function ShortVideoFeed() {
           <div className="w-full h-[100dvh] flex items-center justify-center bg-black">
             <div className="flex flex-col items-center gap-3">
               <Loader2 className="w-8 h-8 text-white animate-spin" />
-              <span className="text-white text-sm">Đang tải video...</span>
+              <span className="text-white/60 text-sm">Đang tải video...</span>
             </div>
           </div>
         ) : videos.length === 0 ? (
           <div className="w-full h-[100dvh] flex items-center justify-center bg-black">
-            <div className="flex flex-col items-center gap-4 text-center px-8">
-              <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
-                <Video className="w-8 h-8 text-white" />
+            <div className="flex flex-col items-center gap-5 text-center px-8">
+              <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
+                <Video className="w-10 h-10 text-white/50" />
               </div>
               <div>
-                <h3 className="text-white font-bold text-lg mb-2">Chưa có video nào</h3>
-                <p className="text-white/70 text-sm">Hãy là người đầu tiên đăng tải video ngắn!</p>
+                <h3 className="text-white font-bold text-xl mb-2">Chưa có video nào</h3>
+                <p className="text-white/55 text-sm">Hãy là người đầu tiên đăng tải video ngắn!</p>
               </div>
               <button
-                onClick={() => setShowUploadModal(true)}
-                className="px-6 py-3 bg-white text-black font-bold rounded-full hover:bg-white/90 transition"
+                onClick={() => setShowUpload(true)}
+                className="px-8 py-3.5 bg-white text-black font-bold rounded-full text-sm hover:bg-white/90 active:scale-95 transition-all shadow-lg"
               >
                 Đăng video ngay
               </button>
             </div>
           </div>
         ) : (
-          videos.map((video, index) => (
-            <div
-              key={video.id}
-              className="relative w-full h-[100dvh] snap-start snap-always shrink-0 overflow-hidden bg-black flex items-center justify-center"
-              style={{ scrollSnapAlign: "start" }}
-            >
-              <video
-                ref={(el) => (videoRefs.current[index] = el)}
-                src={video.url}
-                className="absolute inset-0 w-full h-full object-cover object-center"
-                loop
-                autoPlay
-                muted={isMuted}
-                playsInline
-                onClick={(e) => handleVideoClick(e, index)}
-                onTimeUpdate={(e) => handleTimeUpdate(e, index)}
-              />
+          videos.map((video, index) => {
+            const isPlaying = !!playingMap[index];
+            const authorId = Number(video.author?.id);
+            const isOwnVideo = authorId === Number(currentUser?.id);
+            const isFollowing = !!followMap[authorId];
+            const prog = progressMap[index];
 
-              <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 via-black/10 to-transparent pointer-events-none z-[5]" />
-              <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none z-[5]" />
+            return (
+              <div
+                key={video.id}
+                className="relative w-full h-[100dvh] snap-start snap-always shrink-0 overflow-hidden bg-black flex items-center justify-center"
+                style={{ scrollSnapAlign: "start" }}
+              >
+                <video
+                  ref={(el) => (videoRefs.current[index] = el)}
+                  src={video.url}
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                  loop
+                  autoPlay={index === 0}
+                  muted={isMuted}
+                  playsInline
+                  onClick={(e) => handleVideoClick(e, index)}
+                  onTimeUpdate={(e) => handleTimeUpdate(e, index)}
+                  onPlay={() => setPlayingMap((prev) => ({ ...prev, [index]: true }))}
+                  onPause={() => setPlayingMap((prev) => ({ ...prev, [index]: false }))}
+                />
 
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[10]">
-                {videoRefs.current[index]?.paused && (
-                  <div className="w-24 h-24 rounded-full bg-black/40 backdrop-blur-xl ring-2 ring-white/20 flex items-center justify-center shadow-2xl animate-scale-in">
-                    <Play className="w-12 h-12 text-white fill-white ml-1 drop-shadow-lg" />
+                {/* Gradient overlays */}
+                <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-[5]" />
+                <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none z-[5]" />
+
+                {/* Pause indicator */}
+                {!isPlaying && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[10]">
+                    <div className="w-20 h-20 rounded-full bg-black/45 backdrop-blur-xl ring-1 ring-white/15 flex items-center justify-center">
+                      <Play className="w-9 h-9 text-white fill-white ml-1 drop-shadow-lg" />
+                    </div>
                   </div>
                 )}
-              </div>
 
-              <div className="absolute right-4 top-20 z-30 flex flex-col items-center gap-3 pointer-events-auto">
-                <button
-                  onClick={toggleMute}
-                  className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
-                  title={isMuted ? "Bật tiếng" : "Tắt tiếng"}
-                >
-                  {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                </button>
-              </div>
-
-              <div className="absolute right-3 bottom-28 flex flex-col items-center gap-5 z-30 pointer-events-auto">
-                <div className="flex flex-col items-center gap-1.5">
+                {/* Mute button */}
+                <div className="absolute right-3.5 top-[5rem] z-30 pointer-events-auto">
                   <button
-                    onClick={() => handleLike(video.id)}
-                    className={`w-12 h-12 rounded-full backdrop-blur-xl ring-1 transition-all active:scale-90 flex items-center justify-center shadow-lg ${video.isLiked ? 'bg-rose-500/80 ring-rose-300/40 scale-110' : 'bg-black/40 ring-white/20 hover:bg-black/60'}`}
-                    title="Thích"
+                    onClick={toggleMute}
+                    className="w-11 h-11 rounded-full bg-black/45 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/65 active:scale-90 transition-all shadow-lg"
+                    title={isMuted ? "Bật tiếng" : "Tắt tiếng"}
                   >
-                    <Heart className={`w-6 h-6 transition-all ${video.isLiked ? 'text-white fill-white animate-scale-in' : 'text-white'}`} />
+                    {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                   </button>
-                  <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.likes)}</span>
                 </div>
 
-                <div className="flex flex-col items-center gap-1.5">
-                  <button
-                    onClick={() => handleComment(video.id)}
-                    className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
-                    title="Bình luận"
-                  >
-                    <MessageCircle className="w-6 h-6 text-white" />
-                  </button>
-                  <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.comments)}</span>
-                </div>
-
-                <div className="flex flex-col items-center gap-1.5">
-                  <button
-                    onClick={() => handleShare(video)}
-                    className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
-                    title="Chia sẻ"
-                  >
-                    <Share2 className="w-6 h-6 text-white" />
-                  </button>
-                  <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.shares)}</span>
-                </div>
-
-                <button className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg" title="Xem thêm">
-                  <MoreHorizontal className="w-5 h-5 text-white" />
-                </button>
-              </div>
-
-              <div className="absolute left-4 right-[4.25rem] bottom-24 z-30 flex flex-col gap-3 pointer-events-auto">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => handleAuthorClick(video.author.id)}
-                    className="relative shrink-0"
-                  >
-                    <Avatar
-                      userId={video.author.id}
-                      src={video.author.avatarUrl}
-                      name={video.author.fullName}
-                      username={video.author.username}
-                      avatarColor={video.author.avatarColor}
-                      size="sm"
-                      className="border-2 border-white/90 shadow-lg ring-2 ring-black/20"
-                    />
-                  </button>
-                  <div className="flex items-center gap-2.5 min-w-0">
+                {/* Action buttons — right */}
+                <div className="absolute right-3 bottom-[5.5rem] flex flex-col items-center gap-5 z-30 pointer-events-auto">
+                  <div className="flex flex-col items-center gap-1.5">
                     <button
-                      onClick={() => handleAuthorClick(video.author.id)}
-                      className="text-white font-bold text-sm tracking-tight hover:underline truncate"
+                      onClick={() => handleLike(video.id)}
+                      className={`w-12 h-12 rounded-full backdrop-blur-xl ring-1 transition-all active:scale-90 flex items-center justify-center shadow-lg ${video.isLiked ? "bg-rose-500/90 ring-rose-400/40 scale-105" : "bg-black/45 ring-white/20 hover:bg-black/65"}`}
+                      title="Thích"
+                    >
+                      <Heart className={`w-6 h-6 transition-all ${video.isLiked ? "text-white fill-white" : "text-white"}`} />
+                    </button>
+                    <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.likes)}</span>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-1.5">
+                    <button
+                      onClick={() => handleComment(video.id)}
+                      className="w-12 h-12 rounded-full bg-black/45 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/65 active:scale-90 transition-all shadow-lg"
+                      title="Bình luận"
+                    >
+                      <MessageCircle className="w-6 h-6 text-white" />
+                    </button>
+                    <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.comments)}</span>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-1.5">
+                    <button
+                      onClick={() => handleShare(video)}
+                      className="w-12 h-12 rounded-full bg-black/45 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/65 active:scale-90 transition-all shadow-lg"
+                      title="Chia sẻ"
+                    >
+                      <Share2 className="w-6 h-6 text-white" />
+                    </button>
+                    <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.shares)}</span>
+                  </div>
+
+                  <button
+                    className="w-11 h-11 rounded-full bg-black/45 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/65 active:scale-90 transition-all shadow-lg"
+                    title="Thêm"
+                  >
+                    <MoreHorizontal className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+
+                {/* Author + caption — bottom left */}
+                <div className="absolute left-3.5 right-[4.5rem] bottom-[3.5rem] z-30 flex flex-col gap-2.5 pointer-events-auto">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <button onClick={() => navigate(`/profile/${video.author.id}`)} className="shrink-0">
+                      <Avatar
+                        userId={video.author.id}
+                        src={video.author.avatarUrl}
+                        name={video.author.fullName}
+                        username={video.author.username}
+                        avatarColor={video.author.avatarColor}
+                        size="sm"
+                        className="border-2 border-white/80 shadow-md"
+                      />
+                    </button>
+                    <button
+                      onClick={() => navigate(`/profile/${video.author.id}`)}
+                      className="text-white font-bold text-sm tracking-tight hover:underline truncate max-w-[120px]"
                     >
                       @{video.author.username}
                     </button>
-                    {Number(String(video.author.id)) !== Number(String(currentUser?.id)) && (
-                      <button className="px-4 py-1.5 bg-white/95 backdrop-blur-md text-black text-xs font-bold rounded-full hover:bg-white active:scale-95 transition-all shadow-lg">
-                        Theo dõi
+                    {!isOwnVideo && (
+                      <button
+                        onClick={() => handleFollow(video.author.id)}
+                        className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 ${isFollowing ? "bg-white/15 backdrop-blur-md ring-1 ring-white/30 text-white hover:bg-white/25" : "bg-white text-black hover:bg-white/90 shadow-md"}`}
+                      >
+                        {isFollowing ? "Đang theo dõi" : "Theo dõi"}
                       </button>
                     )}
                   </div>
-                </div>
 
-                <div className="flex flex-col items-start gap-1">
-                <p className={`text-white/95 text-[13px] leading-relaxed drop-shadow-sm ${expandedCaptions[index] ? "" : "line-clamp-2"}`}>
-                  {video.description || ""}
-                </p>
-                {video.description && video.description.length > 90 && (
-                    <button
-                      onClick={() => toggleCaption(index)}
-                      className="text-white/60 text-xs font-semibold hover:text-white transition"
-                    >
-                      {expandedCaptions[index] ? "Thu gọn" : "Xem thêm"}
-                    </button>
+                  {video.description && (
+                    <div className="flex flex-col gap-0.5">
+                      <p className={`text-white/95 text-[13px] leading-relaxed drop-shadow-sm ${expandedCaptions[index] ? "" : "line-clamp-2"}`}>
+                        {video.description}
+                      </p>
+                      {video.description.length > 90 && (
+                        <button onClick={() => toggleCaption(index)} className="text-white/55 text-xs font-semibold hover:text-white transition text-left">
+                          {expandedCaptions[index] ? "Thu gọn" : "Xem thêm"}
+                        </button>
+                      )}
+                    </div>
                   )}
-                </div>
 
-                <div className="flex items-center gap-2.5 text-white/85 text-xs font-medium">
-                  <div className="relative w-6 h-6 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 animate-spin-slow shadow-lg" style={{ animationDuration: "5s" }} />
-                  <span className="truncate">Original Audio — {video.author.fullName}</span>
-                </div>
-              </div>
-
-              <div className="absolute inset-x-0 bottom-0 z-30 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={toggleFullscreen}
-                    className="shrink-0 w-9 h-9 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all"
-                    title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
-                  >
-                    {isFullscreen ? <Minimize2 className="w-4 h-4 text-white" /> : <Maximize2 className="w-4 h-4 text-white" />}
-                  </button>
-                  <div
-                    className="flex-1 h-1.5 rounded-full bg-white/25 overflow-hidden cursor-pointer group"
-                    onClick={(e) => handleSeek(e, index)}
-                  >
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#0866ff] to-fuchsia-500 transition-[width] duration-150 group-hover:bg-gradient-to-r group-hover:from-lime-400 group-hover:to-fuchsia-400"
-                      style={{ width: `${progressMap[index]?.duration ? (progressMap[index].current / progressMap[index].duration) * 100 : 0}%` }}
-                    />
+                  <div className="flex items-center gap-2 text-white/75 text-xs font-medium">
+                    <div className="w-5 h-5 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow animate-spin" style={{ animationDuration: "3s" }} />
+                    <span className="truncate">Original Audio — {video.author.fullName || video.author.username}</span>
                   </div>
-                  <span className="shrink-0 text-white/85 text-[11px] font-semibold tabular-nums drop-shadow">
-                    {progressMap[index]?.duration
-                      ? `${formatTime(progressMap[index].current)} / ${formatTime(progressMap[index].duration)}`
-                      : "0:00"}
-                  </span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="absolute inset-x-0 bottom-0 z-30 px-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      onClick={toggleFullscreen}
+                      className="shrink-0 w-8 h-8 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/15 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all"
+                      title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
+                    >
+                      {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 text-white" /> : <Maximize2 className="w-3.5 h-3.5 text-white" />}
+                    </button>
+                    <div className="flex-1 h-1 rounded-full bg-white/20 overflow-hidden cursor-pointer group" onClick={(e) => handleSeek(e, index)}>
+                      <div
+                        className="h-full rounded-full bg-white/90 group-hover:bg-white transition-[width] duration-100"
+                        style={{ width: `${prog?.duration ? (prog.current / prog.duration) * 100 : 0}%` }}
+                      />
+                    </div>
+                    <span className="shrink-0 text-white/60 text-[10px] font-semibold tabular-nums">
+                      {prog?.duration ? `${formatTime(prog.current)} / ${formatTime(prog.duration)}` : "0:00"}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
+      {/* Comment Panel */}
       {showComments && commentsFor !== null && (
         <>
-          {/* Backdrop — click to close */}
-          <div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-            onClick={closeComments}
-          />
-
-          {/* Right Sidebar Drawer */}
-          <div
-            className="fixed top-0 right-0 bottom-0 w-full sm:w-[400px] z-50 bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-              <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100">Bình luận</h3>
-              <button
-                onClick={closeComments}
-                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition text-zinc-500 dark:text-zinc-400 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
+          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={closeComments} />
+          <div className="fixed inset-x-0 bottom-0 z-50 h-[78dvh] sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[400px] sm:h-auto bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-none border-t sm:border-l border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col animate-in slide-in-from-bottom sm:slide-in-from-right duration-250">
+            <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+            </div>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
+              <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Bình luận</h3>
+              <button onClick={closeComments} className="w-8 h-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition text-zinc-400">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Comments List */}
-            <div className="flex-1 overflow-y-auto overscroll-y-contain p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3.5">
               {commentLoading ? (
-                <div className="flex justify-center py-10">
-                  <Loader2 className="w-7 h-7 animate-spin text-zinc-400" />
-                </div>
+                <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-zinc-300" /></div>
               ) : commentList.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="flex flex-col items-center justify-center py-14 text-center">
                   <div className="w-14 h-14 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-3">
                     <MessageCircle className="w-6 h-6 text-zinc-400" />
                   </div>
@@ -573,50 +606,41 @@ export default function ShortVideoFeed() {
               ) : (
                 commentList.map((comment) => {
                   const author = comment.user || {};
-                  const authorName = author.fullName || author.username || "Người dùng";
-                  const timeStr = comment.createdAt
-                    ? (() => {
-                        const diff = Date.now() - new Date(comment.createdAt).getTime();
-                        const m = Math.floor(diff / 60000);
-                        if (m < 1) return "vừa xong";
-                        if (m < 60) return `${m}p`;
-                        const h = Math.floor(m / 60);
-                        if (h < 24) return `${h}h`;
-                        const d = Math.floor(h / 24);
-                        return `${d}d`;
-                      })()
-                    : "";
+                  const name = author.fullName || author.username || "Người dùng";
+                  const isOwn = Number(author.id) === Number(currentUser?.id);
                   return (
-                    <div key={comment.id} className="flex gap-3">
+                    <div key={comment.id} className="flex gap-2.5 group">
                       <div className="shrink-0">
                         <Avatar
                           userId={author.id}
                           src={author.avatarUrl}
-                          name={authorName}
+                          name={name}
                           username={author.username}
                           avatarColor={author.avatarColor}
                           size="sm"
-                          className="border border-zinc-200 dark:border-zinc-700 shadow-xs"
+                          className="border border-zinc-100 dark:border-zinc-700"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="bg-zinc-100 dark:bg-zinc-800/80 rounded-2xl rounded-tl-sm px-3.5 py-2.5 border border-zinc-200/60 dark:border-zinc-700/40">
-                          <div className="flex items-center gap-1.5 mb-0.5">
-                            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{authorName}</span>
-                            {author.username && (
-                              <span className="text-[10px] text-zinc-400 truncate">@{author.username}</span>
-                            )}
-                            {timeStr && (
-                              <>
-                                <span className="text-zinc-400 text-[10px]">·</span>
-                                <span className="text-[10px] text-zinc-400">{timeStr}</span>
-                              </>
+                        <div className="bg-zinc-100 dark:bg-zinc-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5">
+                          <div className="flex items-center justify-between gap-2 mb-0.5">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{name}</span>
+                              {comment.createdAt && (
+                                <span className="text-[10px] text-zinc-400 shrink-0">· {relativeTime(comment.createdAt)}</span>
+                              )}
+                            </div>
+                            {isOwn && (
+                              <button
+                                onClick={() => handleDeleteComment(comment.id)}
+                                className="shrink-0 opacity-0 group-hover:opacity-100 w-6 h-6 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 flex items-center justify-center transition-all"
+                                title="Xóa bình luận"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                              </button>
                             )}
                           </div>
                           <p className="text-sm text-zinc-800 dark:text-zinc-200 leading-relaxed break-words whitespace-pre-wrap">{comment.content}</p>
-                        </div>
-                        <div className="flex items-center gap-4 mt-1 pl-1">
-                          <span className="text-[11px] text-zinc-400 font-medium">{comment.likesCount || 0} thích</span>
                         </div>
                       </div>
                     </div>
@@ -625,10 +649,9 @@ export default function ShortVideoFeed() {
               )}
             </div>
 
-            {/* Comment Input — fixed at bottom of sidebar */}
             <form
               onSubmit={handleSubmitComment}
-              className="shrink-0 p-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center gap-2 bg-white dark:bg-zinc-900"
+              className="shrink-0 px-3 py-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center gap-2 bg-white dark:bg-zinc-900 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
             >
               <Avatar
                 userId={currentUser?.id}
@@ -637,37 +660,52 @@ export default function ShortVideoFeed() {
                 username={currentUser?.username}
                 avatarColor={currentUser?.avatarColor}
                 size="sm"
-                className="border border-zinc-200 dark:border-zinc-700 shadow-xs shrink-0"
+                className="border border-zinc-200 dark:border-zinc-700 shrink-0"
               />
               <input
                 type="text"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Viết bình luận công khai..."
-                className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#0866ff]/40"
+                placeholder="Viết bình luận..."
+                className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#0866ff]/30"
               />
               <button
                 type="submit"
                 disabled={!commentText.trim() || isSubmittingComment}
-                className="p-2.5 rounded-full bg-[#0866ff] text-white hover:bg-[#0756d6] disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center justify-center shrink-0"
+                className="shrink-0 w-9 h-9 rounded-full bg-[#0866ff] text-white hover:bg-[#0756d6] disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center"
               >
-                {isSubmittingComment ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
+                {isSubmittingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </form>
           </div>
         </>
       )}
 
-      {shareVideo && (
-        <ShareModal
-          post={shareVideo}
-          onClose={() => setShareVideo(null)}
-        />
+      {/* Upload Modal */}
+      {showUpload && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowUpload(false); }}
+        >
+          <div className="w-full sm:w-auto sm:max-w-md bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-250">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
+              <h2 className="font-bold text-base text-zinc-900 dark:text-zinc-100">Đăng video ngắn</h2>
+              <button onClick={() => setShowUpload(false)} className="w-8 h-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition text-zinc-400">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="py-4 max-h-[88dvh] overflow-y-auto">
+              <ShortVideoUpload
+                onUploadSuccess={() => { setShowUpload(false); fetchVideoPosts(); }}
+                onCancel={() => setShowUpload(false)}
+              />
+            </div>
+          </div>
+        </div>
       )}
+
+      {/* Share Modal */}
+      {shareVideo && <ShareModal post={shareVideo} onClose={() => setShareVideo(null)} />}
     </div>
   );
 }
