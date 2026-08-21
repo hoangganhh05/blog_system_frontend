@@ -348,7 +348,7 @@ export default function ShortVideoFeed() {
   };
 
   return (
-    <div className="relative w-full h-[calc(100dvh-(3.5rem+env(safe-area-inset-bottom,0px)))] bg-black overflow-hidden">
+    <div className="relative w-full h-[100dvh] bg-black overflow-hidden">
 
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/65 to-transparent pointer-events-none">
@@ -378,18 +378,18 @@ export default function ShortVideoFeed() {
       {/* Video Feed */}
       <div
         ref={containerRef}
-        className="w-full h-[calc(100dvh-(3.5rem+env(safe-area-inset-bottom,0px)))] overflow-y-auto snap-y snap-mandatory no-scrollbar overscroll-y-contain touch-pan-y"
+        className="w-full h-[100dvh] overflow-y-auto snap-y snap-mandatory no-scrollbar overscroll-y-contain touch-pan-y"
         style={{ scrollSnapType: "y mandatory" }}
       >
         {loading ? (
-          <div className="w-full h-[calc(100dvh-(3.5rem+env(safe-area-inset-bottom,0px)))] flex items-center justify-center bg-black">
+          <div className="w-full h-[100dvh] flex items-center justify-center bg-black">
             <div className="flex flex-col items-center gap-3">
               <Loader2 className="w-8 h-8 text-white animate-spin" />
               <span className="text-white/60 text-sm">Đang tải video...</span>
             </div>
           </div>
         ) : videos.length === 0 ? (
-          <div className="w-full h-[calc(100dvh-(3.5rem+env(safe-area-inset-bottom,0px)))] flex items-center justify-center bg-black">
+          <div className="w-full h-[100dvh] flex items-center justify-center bg-black">
             <div className="flex flex-col items-center gap-5 text-center px-8">
               <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
                 <Video className="w-10 h-10 text-white/50" />
@@ -417,7 +417,7 @@ export default function ShortVideoFeed() {
             return (
               <div
                 key={video.id}
-                className="relative w-full h-[calc(100dvh-(3.5rem+env(safe-area-inset-bottom,0px)))] snap-start snap-always shrink-0 overflow-hidden bg-black flex items-center justify-center"
+                className="relative w-full h-[100dvh] snap-start snap-always shrink-0 overflow-hidden bg-black flex items-center justify-center"
                 style={{ scrollSnapAlign: "start" }}
               >
                 <video

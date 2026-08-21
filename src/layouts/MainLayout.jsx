@@ -490,23 +490,7 @@ export default function MainLayout({ children }) {
           {({ isActive }) => <Video strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />}
         </NavLink>
 
-        {/* 4. Tạo bài viết (Nút cộng ở giữa nổi bật) */}
-        <button
-          type="button"
-          onClick={() => {
-            if (!currentUser) {
-              navigate("/login");
-            } else {
-              setIsCreateModalOpen(true);
-            }
-          }}
-          className="w-11 h-11 rounded-full bg-[#0866ff] hover:bg-[#0756d6] text-white flex items-center justify-center shadow-md active:scale-90 hover:scale-105 transition-all duration-150 cursor-pointer shrink-0"
-          title="Tạo bài viết mới"
-        >
-          <Plus strokeWidth={2.5} className="w-5 h-5" />
-        </button>
-
-        {/* 5. Thông báo */}
+        {/* 4. Thông báo */}
         <NavLink
           to="/notifications"
           className={({ isActive }) =>
@@ -526,7 +510,7 @@ export default function MainLayout({ children }) {
           )}
         </NavLink>
 
-        {/* 6. Trang cá nhân (Avatar thu nhỏ cạnh Chuông thông báo) */}
+        {/* 5. Trang cá nhân (Avatar thu nhỏ cạnh Chuông thông báo) */}
         <NavLink
           to={currentUser ? `/profile/${currentUserId}` : "/login"}
           className={({ isActive }) =>
