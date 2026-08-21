@@ -5,7 +5,6 @@ import uploadService from "../services/uploadService";
 import postService from "../services/postService";
 
 const MAX_DURATION = 120; // 2 minutes in seconds
-// Không giới hạn dung lượng file — chỉ giới hạn thời lượng tối đa 2 phút.
 const ACCEPTED_FORMATS = ["video/mp4", "video/webm", "video/quicktime"];
 
 export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
@@ -118,7 +117,7 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
     setUploadProgress(0);
 
     try {
-      // 1) Upload the actual video file to the API (multipart FormData) → real public URL
+      // 1) Upload the actual video file to the API
       const result = await uploadService.uploadMedia(
         selectedFile,
         (progress) => {
@@ -135,7 +134,7 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
 
       setUploadProgress(100);
 
-      // 2) Create a real Post record via the API so the video appears in the feed
+      // 2) Create a real Post record via the API
       const payload = {
         title: caption.trim().slice(0, 300) || "",
         content: caption.trim(),
@@ -179,16 +178,19 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
 
   if (!selectedFile) {
     return (
-      <div className="w-full max-w-md mx-auto px-4 space-y-4">
+      <div className="w-full flex flex-col gap-3 sm:gap-4">
+        {/* Caption Textarea */}
         <textarea
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
           placeholder="Thêm mô tả video ngắn (tùy chọn)..."
           rows={2}
           maxLength={300}
-          className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 resize-none focus:outline-none focus:ring-2 focus:ring-[#0866ff]/40"
+          className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/60 p-2.5 sm:p-3 text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#0866ff]/40 resize-none transition"
         />
-        <div className="relative aspect-[9/16] max-h-[500px] bg-slate-100 dark:bg-zinc-800 rounded-2xl border-2 border-dashed border-slate-300 dark:border-zinc-700 flex flex-col items-center justify-center cursor-pointer hover:border-[#0866ff] hover:bg-slate-50 dark:hover:bg-zinc-700/50 transition-all group overflow-hidden">
+
+        {/* Upload Box Dropzone */}
+        <div className="relative w-full h-[250px] xs:h-[280px] sm:h-[360px] md:h-[400px] bg-slate-50 dark:bg-zinc-800/40 rounded-2xl border-2 border-dashed border-slate-300 dark:border-zinc-700 flex flex-col items-center justify-center cursor-pointer hover:border-[#0866ff] hover:bg-slate-100/80 dark:hover:bg-zinc-800/80 transition-all group overflow-hidden shrink-0">
           <input
             ref={fileInputRef}
             type="file"
@@ -197,15 +199,15 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
             className="absolute inset-0 opacity-0 cursor-pointer z-10"
           />
 
-          <div className="flex flex-col items-center gap-3 p-6 text-center z-0">
-            <div className="w-16 h-16 rounded-full bg-slate-200 dark:bg-zinc-700 flex items-center justify-center group-hover:bg-[#0866ff]/10 group-hover:scale-110 transition-all">
-              <Upload className="w-8 h-8 text-slate-400 dark:text-zinc-500 group-hover:text-[#0866ff]" />
+          <div className="flex flex-col items-center gap-2 sm:gap-3 p-4 sm:p-6 text-center z-0">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-slate-200/80 dark:bg-zinc-700 flex items-center justify-center group-hover:bg-[#0866ff]/10 group-hover:scale-110 transition-all">
+              <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-slate-400 dark:text-zinc-500 group-hover:text-[#0866ff]" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <p className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200">
                 Tải lên video ngắn
               </p>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-zinc-400 mt-1">
                 MP4, WebM, MOV • Tối đa 2 phút
               </p>
             </div>
@@ -216,35 +218,38 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto px-4 space-y-4">
+    <div className="w-full flex flex-col gap-3 sm:gap-4 pb-[env(safe-area-inset-bottom,0px)]">
+      {/* Caption Textarea */}
       <textarea
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
         placeholder="Thêm mô tả video ngắn (tùy chọn)..."
         rows={2}
         maxLength={300}
-        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 resize-none focus:outline-none focus:ring-2 focus:ring-[#0866ff]/40"
+        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/60 p-2.5 sm:p-3 text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#0866ff]/40 resize-none transition"
       />
-      <div className="relative aspect-[9/16] max-h-[600px] bg-black rounded-2xl overflow-hidden shadow-lg">
+
+      {/* Video Preview Card */}
+      <div className="relative w-full h-[260px] xs:h-[300px] sm:h-[380px] md:h-[420px] bg-black rounded-2xl overflow-hidden shadow-lg shrink-0 flex items-center justify-center">
         {/* Video Preview */}
         <video
           ref={videoRef}
           src={previewUrl}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}
         />
 
-        {/* Overlay Controls */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+        {/* Overlay Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
 
         {/* Top Actions */}
         <div className="absolute top-3 right-3 flex gap-2 pointer-events-auto z-20">
           <button
             type="button"
             onClick={handleRemoveVideo}
-            className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/70 transition cursor-pointer"
+            className="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/80 transition cursor-pointer"
             title="Xóa video"
           >
             <X className="w-4 h-4" />
@@ -257,34 +262,34 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
           onClick={togglePlayPause}
           className="absolute inset-0 flex items-center justify-center pointer-events-auto group z-10"
         >
-          <div className={`w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all group-hover:scale-110 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
+          <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center transition-all group-hover:scale-110 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
             {isPlaying ? (
-              <Pause className="w-6 h-6 text-white" />
+              <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             ) : (
-              <Play className="w-6 h-6 text-white ml-1" />
+              <Play className="w-5 h-5 sm:w-6 sm:h-6 text-white ml-0.5" />
             )}
           </div>
         </button>
 
-        {/* Bottom Info */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-none z-20">
+        {/* Bottom Info Overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 pointer-events-none z-20 flex flex-col gap-1.5">
           {validationError ? (
-            <div className="flex items-center gap-2 text-red-400 text-xs mb-2">
-              <AlertCircle className="w-4 h-4" />
-              <span>{validationError}</span>
+            <div className="flex items-center gap-1.5 text-red-400 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span className="truncate">{validationError}</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-white text-xs mb-2">
-              <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center gap-1.5 text-white text-xs">
+              <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{formatDuration(duration)}</span>
             </div>
           )}
 
           {/* Upload Progress */}
           {isUploading && (
-            <div className="mb-3">
-              <div className="flex items-center justify-between text-white text-xs mb-1">
-                <span>Đang tải lên...</span>
+            <div className="w-full">
+              <div className="flex items-center justify-between text-white text-[11px] mb-1 font-medium">
+                <span>Đang tải lên server...</span>
                 <span>{uploadProgress}%</span>
               </div>
               <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
@@ -295,45 +300,42 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
               </div>
             </div>
           )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-2 pointer-events-auto">
-            <button
-              type="button"
-              onClick={handleRemoveVideo}
-              disabled={isUploading}
-              className="flex-1 py-2.5 rounded-xl bg-white/10 backdrop-blur-sm text-white text-xs font-semibold hover:bg-white/20 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              Chọn video khác
-            </button>
-            <button
-              type="button"
-              onClick={handleUpload}
-              disabled={isUploading || !!validationError}
-              className="flex-1 py-2.5 rounded-xl bg-[#0866ff] text-white text-xs font-semibold hover:bg-[#0756d6] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Đang tải...
-                </>
-              ) : (
-                "Đăng video"
-              )}
-            </button>
-          </div>
         </div>
       </div>
 
       {/* File Info */}
-      <div className="mt-3 px-2">
-        <p className="text-xs text-slate-600 dark:text-zinc-400 truncate">
-          {selectedFile.name}
-        </p>
-        <p className="text-[10px] text-slate-500 dark:text-zinc-500">
-          {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
-        </p>
+      <div className="px-1 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+        <span className="truncate max-w-[70%]">{selectedFile.name}</span>
+        <span className="shrink-0 font-medium">{(selectedFile.size / (1024 * 1024)).toFixed(1)} MB</span>
+      </div>
+
+      {/* Footer Action Buttons */}
+      <div className="flex gap-2 pt-1 min-h-[44px]">
+        <button
+          type="button"
+          onClick={handleRemoveVideo}
+          disabled={isUploading}
+          className="flex-1 py-2.5 sm:py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          Chọn video khác
+        </button>
+        <button
+          type="button"
+          onClick={handleUpload}
+          disabled={isUploading || !!validationError}
+          className="flex-1 py-2.5 sm:py-3 rounded-xl bg-[#0866ff] hover:bg-[#0756d6] text-white text-xs font-bold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+        >
+          {isUploading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Đang tải...</span>
+            </>
+          ) : (
+            <span>Đăng video</span>
+          )}
+        </button>
       </div>
     </div>
   );
 }
+

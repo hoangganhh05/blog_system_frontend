@@ -303,25 +303,28 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
       {/* Short Video Upload Modal */}
       {showShortVideoModal && createPortal(
         <div
-          className="fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+          className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
           onClick={() => setShowShortVideoModal(false)}
         >
           <div
-            className="bg-white dark:bg-zinc-900 rounded-2xl sm:rounded-3xl w-full max-w-md max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-150"
+            className="bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg max-h-[94dvh] sm:max-h-[90vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 z-10 bg-white dark:bg-zinc-900 flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
+            {/* Header Modal - Sticky Top */}
+            <div className="shrink-0 bg-white dark:bg-zinc-900 flex items-center justify-between px-4 py-3.5 sm:px-5 sm:py-4 border-b border-zinc-100 dark:border-zinc-800">
               <h3 className="font-bold text-base sm:text-lg text-zinc-900 dark:text-zinc-100">Đăng video ngắn</h3>
               <button
                 type="button"
                 onClick={() => setShowShortVideoModal(false)}
-                className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
+                className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
                 title="Đóng"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-4">
+
+            {/* Modal Body - Scrollable Content */}
+            <div className="p-3.5 sm:p-5 overflow-y-auto flex-1 custom-scrollbar">
               <ShortVideoUpload
                 onUploadSuccess={handleShortVideoUploadSuccess}
                 onCancel={() => setShowShortVideoModal(false)}
