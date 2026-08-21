@@ -44,13 +44,21 @@ export default function Login() {
       login(res.data);
       navigate(from, { replace: true });
     } catch (err) {
+      const status = err.response?.status;
       const serverMsg =
         typeof err.response?.data === "string"
           ? err.response.data
           : err.response?.data?.message;
-      setError(
-        serverMsg || "Đăng nhập thất bại. Vui lòng kiểm tra lại Email và Mật khẩu!"
-      );
+
+      if (status === 504 || status === 502 || status === 503) {
+        setError("Máy chủ đang phản hồi quá lâu hoặc gặp sự cố kết nối (504 Gateway Timeout). Vui lòng thử lại sau giây lát!");
+      } else if (status === 500) {
+        setError("Đã xảy ra lỗi nội bộ máy chủ (500 Internal Server Error). Vui lòng thử lại!");
+      } else if (status === 401 || status === 400) {
+        setError(serverMsg || "Tên đăng nhập hoặc mật khẩu không chính xác!");
+      } else {
+        setError(serverMsg || "Đăng nhập thất bại. Vui lòng kiểm tra lại kết nối mạng!");
+      }
     } finally {
       setLoading(false);
     }
