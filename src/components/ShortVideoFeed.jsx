@@ -231,6 +231,11 @@ export default function ShortVideoFeed() {
   };
 
   const handleComment = (videoId) => {
+    if (showComments && commentsFor === videoId) {
+      setShowComments(false);
+      setCommentsFor(null);
+      return;
+    }
     setShowComments(true);
     setCommentsFor(videoId);
     setCommentLoading(true);
@@ -251,19 +256,13 @@ export default function ShortVideoFeed() {
 
   const currentVideo = videos[currentVideoIndex];
 
-  // Auto-fetch comments for active video on Desktop persistent side panel
+  // Reset comments view on video swipe
   useEffect(() => {
-    if (!currentVideo?.id) return;
-    setCommentLoading(true);
-    commentService
-      .getByPostId(currentVideo.id)
-      .then((r) => {
-        const list = r.data || [];
-        setCommentList(Array.isArray(list) ? list : []);
-      })
-      .catch(() => setCommentList([]))
-      .finally(() => setCommentLoading(false));
-  }, [currentVideoIndex, currentVideo?.id]);
+    setShowComments(false);
+    setCommentsFor(null);
+    setCommentList([]);
+    setCommentText("");
+  }, [currentVideoIndex]);
 
   const handleCommentTextChange = async (e) => {
     const val = e.target.value;
@@ -724,88 +723,97 @@ export default function ShortVideoFeed() {
         </div>
       </div>
 
-      {/* Desktop Persistent Side Comment Panel (Displayed concurrently beside video) */}
-      <div className="hidden md:flex flex-col w-[340px] lg:w-[380px] shrink-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl md:rounded-3xl shadow-xl overflow-hidden" style={{ height: "min(calc(100vh - 5rem), 740px)" }}>
-        <div className="flex items-center justify-between px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
-          <div className="flex items-center gap-2">
-            <MessageCircle className="w-4 h-4 text-[#0866ff]" />
-            <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Bình luận</h3>
-          </div>
-          <span className="text-xs font-semibold text-zinc-400">
-            {currentVideo ? formatCount(currentVideo.comments) : 0}
-          </span>
-        </div>
-
-        <div className="flex-1 overflow-y-auto overscroll-contain p-3.5 space-y-2 custom-scrollbar">
-          {commentLoading ? (
-            <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-zinc-300" /></div>
-          ) : commentList.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-14 text-center">
-              <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-3">
-                <MessageCircle className="w-6 h-6 text-zinc-400" />
-              </div>
-              <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Chưa có bình luận nào</p>
-              <p className="text-[11px] text-zinc-400 mt-1">Hãy là người đầu tiên thảo luận!</p>
+      {/* Desktop Side Comment Panel (Displayed beside video when showComments is true) */}
+      {showComments && commentsFor !== null && (
+        <div className="hidden md:flex flex-col w-[340px] lg:w-[380px] shrink-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl md:rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-right duration-200" style={{ height: "min(calc(100vh - 5rem), 740px)" }}>
+          <div className="flex items-center justify-between px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-[#0866ff]" />
+              <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Bình luận</h3>
+              <span className="text-xs font-semibold text-zinc-400">
+                ({currentVideo ? formatCount(currentVideo.comments) : 0})
+              </span>
             </div>
-          ) : (
-            commentList.map((c) => (
-              <Comment
-                key={c.id}
-                comment={c}
-                onDelete={handleDeleteComment}
-                onUpdate={() => handleComment(currentVideo.id)}
-                onReplyCreated={() => handleComment(currentVideo.id)}
-              />
-            ))
-          )}
-        </div>
-
-        <form
-          onSubmit={handleSubmitComment}
-          className="shrink-0 p-3 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-2 bg-white dark:bg-zinc-900"
-        >
-          {showMentionDropdown && mentionSuggestions.length > 0 && (
-            <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg p-1 max-h-36 overflow-y-auto">
-              {mentionSuggestions.map((u) => (
-                <button
-                  key={u.id}
-                  type="button"
-                  onClick={() => selectMentionUser(u.username)}
-                  className="flex items-center gap-2 w-full p-2 text-left hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg text-xs"
-                >
-                  <Avatar userId={u.id} src={u.avatarUrl} name={u.fullName || u.username} size="xs" />
-                  <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">@{u.username}</span>
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="flex items-center gap-2">
-            <Avatar
-              userId={currentUser?.id}
-              src={currentUser?.avatarUrl}
-              name={currentUser?.fullName || currentUser?.username}
-              username={currentUser?.username}
-              avatarColor={currentUser?.avatarColor}
-              size="sm"
-              className="border border-zinc-200 dark:border-zinc-700 shrink-0"
-            />
-            <input
-              type="text"
-              value={commentText}
-              onChange={handleCommentTextChange}
-              placeholder="Viết bình luận (@bạn_bè)..."
-              className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full px-4 py-2 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#0866ff]/30"
-            />
             <button
-              type="submit"
-              disabled={!commentText.trim() || isSubmittingComment}
-              className="shrink-0 w-8 h-8 rounded-full bg-[#0866ff] text-white hover:bg-[#0756d6] disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center"
+              onClick={closeComments}
+              className="w-7 h-7 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+              title="Đóng bình luận"
             >
-              {isSubmittingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+              <X className="w-4 h-4" />
             </button>
           </div>
-        </form>
-      </div>
+
+          <div className="flex-1 overflow-y-auto overscroll-contain p-3.5 space-y-2 custom-scrollbar">
+            {commentLoading ? (
+              <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-zinc-300" /></div>
+            ) : commentList.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-14 text-center">
+                <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-3">
+                  <MessageCircle className="w-6 h-6 text-zinc-400" />
+                </div>
+                <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Chưa có bình luận nào</p>
+                <p className="text-[11px] text-zinc-400 mt-1">Hãy là người đầu tiên thảo luận!</p>
+              </div>
+            ) : (
+              commentList.map((c) => (
+                <Comment
+                  key={c.id}
+                  comment={c}
+                  onDelete={handleDeleteComment}
+                  onUpdate={() => handleComment(currentVideo.id)}
+                  onReplyCreated={() => handleComment(currentVideo.id)}
+                />
+              ))
+            )}
+          </div>
+
+          <form
+            onSubmit={handleSubmitComment}
+            className="shrink-0 p-3 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-2 bg-white dark:bg-zinc-900"
+          >
+            {showMentionDropdown && mentionSuggestions.length > 0 && (
+              <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg p-1 max-h-36 overflow-y-auto">
+                {mentionSuggestions.map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => selectMentionUser(u.username)}
+                    className="flex items-center gap-2 w-full p-2 text-left hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg text-xs"
+                  >
+                    <Avatar userId={u.id} src={u.avatarUrl} name={u.fullName || u.username} size="xs" />
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">@{u.username}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <Avatar
+                userId={currentUser?.id}
+                src={currentUser?.avatarUrl}
+                name={currentUser?.fullName || currentUser?.username}
+                username={currentUser?.username}
+                avatarColor={currentUser?.avatarColor}
+                size="sm"
+                className="border border-zinc-200 dark:border-zinc-700 shrink-0"
+              />
+              <input
+                type="text"
+                value={commentText}
+                onChange={handleCommentTextChange}
+                placeholder="Viết bình luận (@bạn_bè)..."
+                className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full px-4 py-2 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#0866ff]/30"
+              />
+              <button
+                type="submit"
+                disabled={!commentText.trim() || isSubmittingComment}
+                className="shrink-0 w-8 h-8 rounded-full bg-[#0866ff] text-white hover:bg-[#0756d6] disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center"
+              >
+                {isSubmittingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Mobile Modal/Drawer for Comments */}
       {showComments && commentsFor !== null && typeof document !== "undefined" && createPortal(
