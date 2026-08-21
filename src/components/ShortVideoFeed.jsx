@@ -540,9 +540,9 @@ export default function ShortVideoFeed() {
   const isCommentOpen = showComments && commentsFor !== null;
 
   return (
-    <div className="w-full flex-1 flex flex-col md:flex-row items-center md:items-stretch justify-center gap-3 transition-all duration-300 overflow-hidden">
+    <div className="w-full h-full flex-1 flex flex-col md:flex-row items-start md:items-stretch justify-start md:justify-center p-0 md:p-1 gap-0 md:gap-3 transition-all duration-300 overflow-hidden">
       {/* 1. VIDEO BOX: Fixed Layout space on desktop when comment opens */}
-      <div className={`flex-1 ${isCommentOpen ? "md:max-w-[calc(100%-370px)]" : "md:w-full"} flex items-center justify-center p-1 transition-all duration-300 min-w-0 relative group/videobox`}>
+      <div className={`w-full h-full flex-1 ${isCommentOpen ? "md:max-w-[calc(100%-370px)]" : "md:w-full"} flex items-start md:items-center justify-start md:justify-center p-0 md:p-1 transition-all duration-300 min-w-0 relative group/videobox`}>
         {/* Dedicated Up / Down Navigation Arrow Controls */}
         <div className="hidden md:flex flex-col gap-3 absolute left-4 z-40">
           <button
@@ -563,8 +563,8 @@ export default function ShortVideoFeed() {
           </button>
         </div>
 
-        {/* Shorts Video: Fixed TikTok container on mobile reserving space for bottom nav & centered 9:16 frame on desktop */}
-        <div className="relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800/80 shrink-0 transition-all duration-300 w-full md:w-auto md:aspect-[9/16] h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom,0px))] md:h-[min(calc(100vh-5.5rem),760px)]">
+        {/* Shorts Video: Full-bleed on mobile & centered 9:16 frame on desktop */}
+        <div className="relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800/80 shrink-0 transition-all duration-300 w-full h-full md:w-auto md:aspect-[9/16] md:h-[min(calc(100vh-5.5rem),760px)]">
         {/* Header (Top Left Controls: Back X, Sound Mute/Unmute, More Options ...) */}
         <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
           <div className="flex items-center gap-2 pointer-events-auto">
@@ -867,8 +867,8 @@ export default function ShortVideoFeed() {
                     </div>
                   </div>
 
-                  {/* Bottom Video Info Overlay (Username, Caption, Audio) */}
-                  <div className="absolute left-3.5 right-16 md:right-4 bottom-10 md:bottom-12 z-30 flex flex-col gap-1.5 pointer-events-auto">
+                  {/* Bottom Video Info Overlay (Username, Caption, Audio, Time & Fullscreen) */}
+                  <div className="absolute left-3.5 right-16 md:right-4 bottom-3.5 md:bottom-4 z-30 flex flex-col gap-1.5 pointer-events-auto">
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
                         onClick={() => navigate(`/profile/${video.author.id}`)}
@@ -891,42 +891,42 @@ export default function ShortVideoFeed() {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-2 text-white/85 text-xs font-medium drop-shadow-sm">
-                      <div className="w-3.5 h-3.5 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow animate-spin" style={{ animationDuration: "3s" }} />
-                      <span className="truncate">Âm thanh gốc — {video.author.fullName || video.author.username}</span>
+                    <div className="flex items-center justify-between gap-2 pr-1 text-white/85 text-xs font-medium drop-shadow-sm">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <div className="w-3.5 h-3.5 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow animate-spin" style={{ animationDuration: "3s" }} />
+                        <span className="truncate">Âm thanh gốc — {video.author.fullName || video.author.username}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-white/75 text-[10px] font-semibold tabular-nums">
+                          {prog?.duration ? `${formatTime(prog.current)} / ${formatTime(prog.duration)}` : "0:00"}
+                        </span>
+                        <button
+                          onClick={toggleFullscreen}
+                          className="w-5 h-5 rounded-full hover:bg-white/20 flex items-center justify-center transition text-white/80 hover:text-white cursor-pointer"
+                          title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
+                        >
+                          {isFullscreen ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Progress bar (Vạch tua video) - Sát đáy container video (không bị che bởi bottom nav) */}
-                  <div className="absolute inset-x-0 bottom-0 z-40 px-3.5 pb-2 pt-2 pointer-events-auto bg-gradient-to-t from-black/70 to-transparent">
-                    <div className="flex items-center gap-2.5">
-                      <button
-                        onClick={toggleFullscreen}
-                        className="shrink-0 w-7 h-7 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center hover:bg-black/70 active:scale-90 transition-all cursor-pointer shadow-md"
-                        title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
-                      >
-                        {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 text-white" /> : <Maximize2 className="w-3.5 h-3.5 text-white" />}
-                      </button>
-                      
-                      {/* Interactive Progress Seeker */}
+                  {/* Progress bar (Full-width edge-to-edge seek bar |━━━━━━━━━━━━━━━━━━━━━━━━━━━━| - ALWAYS VISIBLE) */}
+                  <div
+                    className="absolute inset-x-0 bottom-0 z-40 w-full h-5 flex items-end cursor-pointer pointer-events-auto group/seekbar"
+                    onClick={(e) => handleSeek(e, index)}
+                    title="Tua video"
+                  >
+                    {/* Background Track (Always visible across 100% width) */}
+                    <div className="h-[2.5px] group-hover/seekbar:h-1 w-full bg-white/25 backdrop-blur-xs relative transition-all duration-150">
+                      {/* Active Progress Fill */}
                       <div
-                        className="flex-1 py-1.5 cursor-pointer group flex items-center"
-                        onClick={(e) => handleSeek(e, index)}
+                        className="h-full bg-white relative shadow-sm"
+                        style={{ width: `${prog?.duration ? (prog.current / prog.duration) * 100 : 0}%` }}
                       >
-                        <div className="h-1.5 w-full rounded-full bg-white/30 backdrop-blur-xs relative overflow-visible transition-all group-hover:h-2">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-white relative transition-[width] duration-75 shadow-sm"
-                            style={{ width: `${prog?.duration ? (prog.current / prog.duration) * 100 : 0}%` }}
-                          >
-                            {/* Thumb dot */}
-                            <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md scale-0 group-hover:scale-100 transition-transform" />
-                          </div>
-                        </div>
+                        {/* Thumb Scrubber Dot on hover/scrub */}
+                        <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-md opacity-0 group-hover/seekbar:opacity-100 transition-opacity" />
                       </div>
-
-                      <span className="shrink-0 text-white/90 text-[11px] font-bold tabular-nums drop-shadow-md">
-                        {prog?.duration ? `${formatTime(prog.current)} / ${formatTime(prog.duration)}` : "0:00"}
-                      </span>
                     </div>
                   </div>
                 </div>
