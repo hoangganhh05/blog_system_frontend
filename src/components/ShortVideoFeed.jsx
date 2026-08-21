@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import {
   Heart, MessageCircle, Share2, MoreHorizontal, Play,
   Volume2, VolumeX, Maximize2, Minimize2, X, Loader2,
-  Video, Send, Plus, Trash2, Home, LayoutGrid,
+  Video, Send, Plus, Trash2, Home, LayoutGrid, ChevronUp, ChevronDown, Bookmark, Smile,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -474,7 +474,27 @@ export default function ShortVideoFeed() {
   return (
     <div className="w-full flex-1 flex flex-col md:flex-row items-center md:items-stretch justify-center gap-3 transition-all duration-300 overflow-hidden">
       {/* 1. VIDEO BOX: 70% width when comment open, 100% width when comment closed */}
-      <div className={`flex-1 ${isCommentOpen ? "md:flex-[7] md:w-7/12" : "md:flex-1 md:w-full"} flex items-center justify-center p-1 transition-all duration-300 min-w-0`}>
+      <div className={`flex-1 ${isCommentOpen ? "md:flex-[7] md:w-7/12" : "md:flex-1 md:w-full"} flex items-center justify-center p-1 transition-all duration-300 min-w-0 relative group/videobox`}>
+        {/* Dedicated Up / Down Navigation Arrow Controls */}
+        <div className="hidden md:flex flex-col gap-3 absolute left-4 z-40">
+          <button
+            onClick={() => scrollToVideo(currentVideoIndex - 1)}
+            disabled={currentVideoIndex === 0}
+            className="w-10 h-10 rounded-full bg-zinc-200/80 dark:bg-zinc-800/80 backdrop-blur-md text-zinc-700 dark:text-zinc-200 flex items-center justify-center hover:bg-zinc-300 dark:hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed transition shadow-md cursor-pointer"
+            title="Video trước"
+          >
+            <ChevronUp className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => scrollToVideo(currentVideoIndex + 1)}
+            disabled={currentVideoIndex >= videos.length - 1}
+            className="w-10 h-10 rounded-full bg-zinc-200/80 dark:bg-zinc-800/80 backdrop-blur-md text-zinc-700 dark:text-zinc-200 flex items-center justify-center hover:bg-zinc-300 dark:hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed transition shadow-md cursor-pointer"
+            title="Video kế tiếp"
+          >
+            <ChevronDown className="w-5 h-5" />
+          </button>
+        </div>
+
         {/* Shorts Video: Dynamically scaled based on available viewport height & 9/16 aspect ratio */}
         <div
           className="relative bg-black rounded-2xl md:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-zinc-800 shrink-0 transition-all duration-300"
@@ -613,77 +633,85 @@ export default function ShortVideoFeed() {
                     </button>
                   </div>
 
-                  {/* Action buttons — right */}
-                  <div className="absolute right-3 bottom-[5.5rem] flex flex-col items-center gap-5 z-30 pointer-events-auto">
-                    <div className="flex flex-col items-center gap-1.5">
-                      <button
-                        onClick={() => handleLike(video.id)}
-                        className={`w-12 h-12 rounded-full backdrop-blur-xl ring-1 transition-all active:scale-90 flex items-center justify-center shadow-lg ${video.isLiked ? "bg-rose-500/90 ring-rose-400/40 scale-105" : "bg-black/45 ring-white/20 hover:bg-black/65"}`}
-                        title="Thích"
-                      >
-                        <Heart className={`w-6 h-6 transition-all ${video.isLiked ? "text-white fill-white" : "text-white"}`} />
-                      </button>
-                      <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.likes)}</span>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-1.5">
-                      <button
-                        onClick={() => handleComment(video.id)}
-                        className={`w-12 h-12 rounded-full backdrop-blur-xl ring-1 transition-all active:scale-90 flex items-center justify-center shadow-lg ${showComments && commentsFor === video.id ? "bg-[#0866ff]/90 ring-[#0866ff]/40 scale-105" : "bg-black/45 ring-white/20 hover:bg-black/65"}`}
-                        title="Bình luận"
-                      >
-                        <MessageCircle className="w-6 h-6 text-white" />
-                      </button>
-                      <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.comments)}</span>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-1.5">
-                      <button
-                        onClick={() => handleShare(video)}
-                        className="w-12 h-12 rounded-full bg-black/45 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/65 active:scale-90 transition-all shadow-lg"
-                        title="Chia sẻ"
-                      >
-                        <Share2 className="w-6 h-6 text-white" />
-                      </button>
-                      <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.shares)}</span>
-                    </div>
-
-                    <button
-                      className="w-11 h-11 rounded-full bg-black/45 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/65 active:scale-90 transition-all shadow-lg"
-                      title="Thêm"
-                    >
-                      <MoreHorizontal className="w-5 h-5 text-white" />
-                    </button>
-                  </div>
-
-                  {/* Author + caption — bottom left */}
-                  <div className="absolute left-3.5 right-[4.5rem] bottom-[3.5rem] z-30 flex flex-col gap-2.5 pointer-events-auto">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <button onClick={() => navigate(`/profile/${video.author.id}`)} className="shrink-0">
+                  {/* TikTok Style Vertical Action Column (Avatar + Follow, Like, Comment, Share, Bookmark/More) */}
+                  <div className="absolute right-3.5 bottom-[4.5rem] flex flex-col items-center gap-4 z-30 pointer-events-auto">
+                    {/* Author Avatar with Follow Overlay Badge */}
+                    <div className="relative mb-1">
+                      <button onClick={() => navigate(`/profile/${video.author.id}`)} className="block shrink-0 ring-2 ring-white/80 rounded-full shadow-lg">
                         <Avatar
                           userId={video.author.id}
                           src={video.author.avatarUrl}
                           name={video.author.fullName}
                           username={video.author.username}
                           avatarColor={video.author.avatarColor}
-                          size="sm"
-                          className="border-2 border-white/80 shadow-md"
+                          size="md"
                         />
-                      </button>
-                      <button
-                        onClick={() => navigate(`/profile/${video.author.id}`)}
-                        className="text-white font-bold text-sm tracking-tight hover:underline truncate max-w-[120px]"
-                      >
-                        @{video.author.username}
                       </button>
                       {!isOwnVideo && (
                         <button
                           onClick={() => handleFollow(video.author.id)}
-                          className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 ${isFollowing ? "bg-white/15 backdrop-blur-md ring-1 ring-white/30 text-white hover:bg-white/25" : "bg-white text-black hover:bg-white/90 shadow-md"}`}
+                          className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold transition-all shadow-md active:scale-90 ${isFollowing ? "bg-emerald-500" : "bg-rose-500 hover:bg-rose-600"}`}
+                          title={isFollowing ? "Đang theo dõi" : "Theo dõi"}
                         >
-                          {isFollowing ? "Đang theo dõi" : "Theo dõi"}
+                          {isFollowing ? "✓" : "+"}
                         </button>
                       )}
+                    </div>
+
+                    {/* Like Action */}
+                    <div className="flex flex-col items-center gap-1">
+                      <button
+                        onClick={() => handleLike(video.id)}
+                        className={`w-11 h-11 rounded-full backdrop-blur-xl ring-1 transition-all active:scale-90 flex items-center justify-center shadow-lg ${video.isLiked ? "bg-rose-500/90 ring-rose-400/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
+                        title="Thích"
+                      >
+                        <Heart className={`w-5 h-5 transition-all ${video.isLiked ? "text-white fill-white" : "text-white"}`} />
+                      </button>
+                      <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.likes)}</span>
+                    </div>
+
+                    {/* Comment Action */}
+                    <div className="flex flex-col items-center gap-1">
+                      <button
+                        onClick={() => handleComment(video.id)}
+                        className={`w-11 h-11 rounded-full backdrop-blur-xl ring-1 transition-all active:scale-90 flex items-center justify-center shadow-lg ${showComments && commentsFor === video.id ? "bg-[#0866ff]/90 ring-[#0866ff]/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
+                        title="Bình luận"
+                      >
+                        <MessageCircle className="w-5 h-5 text-white" />
+                      </button>
+                      <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.comments)}</span>
+                    </div>
+
+                    {/* Share Action */}
+                    <div className="flex flex-col items-center gap-1">
+                      <button
+                        onClick={() => handleShare(video)}
+                        className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
+                        title="Chia sẻ"
+                      >
+                        <Share2 className="w-5 h-5 text-white" />
+                      </button>
+                      <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.shares)}</span>
+                    </div>
+
+                    {/* Bookmark / More Action */}
+                    <button
+                      className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-lg"
+                      title="Thêm"
+                    >
+                      <MoreHorizontal className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
+
+                  {/* Bottom Video Info Overlay (Username, Caption, Hashtags, Audio) */}
+                  <div className="absolute left-3.5 right-[4.5rem] bottom-[3.2rem] z-30 flex flex-col gap-2 pointer-events-auto">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={() => navigate(`/profile/${video.author.id}`)}
+                        className="text-white font-bold text-sm tracking-tight hover:underline truncate max-w-[150px]"
+                      >
+                        @{video.author.username}
+                      </button>
                     </div>
 
                     {video.description && (
@@ -692,16 +720,16 @@ export default function ShortVideoFeed() {
                           {video.description}
                         </p>
                         {video.description.length > 90 && (
-                          <button onClick={() => toggleCaption(index)} className="text-white/55 text-xs font-semibold hover:text-white transition text-left">
+                          <button onClick={() => toggleCaption(index)} className="text-white/60 text-xs font-semibold hover:text-white transition text-left">
                             {expandedCaptions[index] ? "Thu gọn" : "Xem thêm"}
                           </button>
                         )}
                       </div>
                     )}
 
-                    <div className="flex items-center gap-2 text-white/75 text-xs font-medium">
-                      <div className="w-5 h-5 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow animate-spin" style={{ animationDuration: "3s" }} />
-                      <span className="truncate">Original Audio — {video.author.fullName || video.author.username}</span>
+                    <div className="flex items-center gap-2 text-white/80 text-xs font-medium">
+                      <div className="w-4 h-4 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow animate-spin" style={{ animationDuration: "3s" }} />
+                      <span className="truncate">Am thanh goc — {video.author.fullName || video.author.username}</span>
                     </div>
                   </div>
 
