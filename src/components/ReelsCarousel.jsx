@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Film, Play, ChevronLeft, ChevronRight } from "lucide-react";
+import { Film, Play, ChevronLeft, ChevronRight, X } from "lucide-react";
 import postService from "../services/postService";
 import { isVideoUrl } from "../utils/mediaUtils";
 
@@ -115,6 +115,16 @@ export default function ReelsCarousel() {
   const [canScrollRight, setCanScrollRight] = useState(true);
   const navigate = useNavigate();
 
+  // Trạng thái hiển thị — đọc từ localStorage để nhớ qua phiên
+  const [isCarouselVisible, setIsCarouselVisible] = useState(
+    () => localStorage.getItem("hideReelsCarousel") !== "true"
+  );
+
+  const handleDismiss = () => {
+    localStorage.setItem("hideReelsCarousel", "true");
+    setIsCarouselVisible(false);
+  };
+
   useEffect(() => {
     let mounted = true;
     const fetchReels = async () => {
@@ -194,6 +204,10 @@ export default function ReelsCarousel() {
     return null; // Không hiển thị nếu không có video
   }
 
+  if (!isCarouselVisible) {
+    return null; // Đã bị ẩn theo lựa chọn của người dùng
+  }
+
   return (
     <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs p-3.5 flex flex-col gap-3 relative group/carousel overflow-hidden my-1">
       {/* Header */}
@@ -210,13 +224,25 @@ export default function ReelsCarousel() {
           </div>
         </div>
 
-        <Link
-          to="/shorts"
-          className="text-xs font-semibold text-[#0866ff] hover:underline flex items-center gap-1 shrink-0"
-        >
-          <span>Xem tất cả</span>
-          <span>→</span>
-        </Link>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            to="/shorts"
+            className="text-xs font-semibold text-[#0866ff] hover:underline flex items-center gap-1"
+          >
+            <span>Xem tất cả</span>
+            <span>→</span>
+          </Link>
+          {/* Nút đóng / ẩn Carousel */}
+          <button
+            type="button"
+            onClick={handleDismiss}
+            className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition cursor-pointer"
+            title="Ẩn Reels"
+            aria-label="Đóng Reels Carousel"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Desktop Navigation Arrows */}

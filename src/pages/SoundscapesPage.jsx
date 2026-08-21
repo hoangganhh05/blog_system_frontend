@@ -267,9 +267,9 @@ export default function SoundscapesPage() {
             </div>
 
             {/* Controls Row */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+            <div className="flex flex-col items-center gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800 w-full">
               {/* Playback action buttons */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center gap-3">
                 <button
                   type="button"
                   onClick={handlePrev}
@@ -314,7 +314,7 @@ export default function SoundscapesPage() {
               </div>
 
               {/* Volume & Sleep Timer Quick Dropdown */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center gap-3">
                 {/* Volume Slider */}
                 <div className="flex items-center gap-2 text-zinc-400">
                   <button
