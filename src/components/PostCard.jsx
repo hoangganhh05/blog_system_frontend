@@ -94,6 +94,14 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
   const [theaterInitialImageIndex, setTheaterInitialImageIndex] = useState(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState({});
   const [isVideoMuted, setIsVideoMuted] = useState({});
+  const [videoAspectRatio, setVideoAspectRatio] = useState(null);
+
+  const handleVideoMetadata = (e) => {
+    const { videoWidth, videoHeight } = e.currentTarget;
+    if (videoWidth && videoHeight) {
+      setVideoAspectRatio(videoWidth / videoHeight);
+    }
+  };
 
   // Translation states
   const [isTranslated, setIsTranslated] = useState(false);
@@ -392,7 +400,9 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
           <video
             ref={postVideoRef}
             src={post.videoUrl || cardImagesList[0]}
-            className="w-full h-full object-cover max-h-[88dvh]"
+            className="w-full h-full object-contain max-h-[88dvh]"
+            style={{ aspectRatio: videoAspectRatio || "auto" }}
+            onLoadedMetadata={handleVideoMetadata}
             controls={false}
             playsInline
             loop
@@ -835,15 +845,20 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
 
           if (cardImages.length === 0) return null;
 
-          // Single video player
+          // Single video player (Dung tỉ lệ thực tế của video, không crop)
           if (cardImages.length === 1 && isVideo) {
             const videoSrc = post.videoUrl || cardImages[0];
             return (
-              <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[540px] relative group/media">
+              <div
+                className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-950 my-2 max-h-[580px] w-full flex items-center justify-center relative group/media"
+                style={{ aspectRatio: videoAspectRatio || "auto" }}
+              >
                 <video
                   ref={postVideoRef}
                   src={videoSrc}
-                  className="w-full h-auto max-h-[540px] object-contain"
+                  className="w-full h-auto max-h-[580px] object-contain block mx-auto"
+                  style={{ aspectRatio: videoAspectRatio || "auto" }}
+                  onLoadedMetadata={handleVideoMetadata}
                   controls
                   playsInline
                   autoPlay

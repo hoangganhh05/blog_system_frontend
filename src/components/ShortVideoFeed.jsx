@@ -42,6 +42,17 @@ export default function ShortVideoFeed() {
   const [followMap, setFollowMap] = useState({});
   const [playingMap, setPlayingMap] = useState({});
   const [viewedSet, setViewedSet] = useState(new Set());
+  const [videoAspectRatios, setVideoAspectRatios] = useState({});
+
+  const handleShortVideoMetadata = (e, index) => {
+    const { videoWidth, videoHeight } = e.currentTarget;
+    if (videoWidth && videoHeight) {
+      setVideoAspectRatios((prev) => ({
+        ...prev,
+        [index]: videoWidth / videoHeight,
+      }));
+    }
+  };
 
   const videoRefs = useRef([]);
   const itemRefs = useRef([]);
@@ -621,7 +632,9 @@ export default function ShortVideoFeed() {
                   <video
                     ref={(el) => (videoRefs.current[index] = el)}
                     src={video.url}
-                    className="absolute inset-0 w-full h-full object-contain object-center"
+                    className="w-full h-full object-contain object-center transition-all duration-300"
+                    style={{ aspectRatio: videoAspectRatios[index] || "auto" }}
+                    onLoadedMetadata={(e) => handleShortVideoMetadata(e, index)}
                     loop={!autoPlayNext}
                     playsInline
                     onClick={(e) => handleVideoClick(e, index)}
