@@ -549,17 +549,6 @@ export default function ShortVideoFeed() {
             >
               {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-white" />}
             </button>
-
-            <div className="flex items-center gap-1.5 ml-1">
-              <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow" />
-              <h1 className="text-white font-bold text-base tracking-tight drop-shadow">Shorts</h1>
-            </div>
-          </div>
-
-          {/* Title bên phải header */}
-          <div className="flex items-center gap-1.5 pointer-events-auto">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-white/70 font-semibold text-xs tracking-wider uppercase">Live Feed</span>
           </div>
         </div>
 
@@ -819,7 +808,7 @@ export default function ShortVideoFeed() {
                   </div>
 
                   {/* Bottom Video Info Overlay (Username, Caption, Hashtags, Audio) */}
-                  <div className="absolute left-3.5 right-[4.5rem] bottom-[3.2rem] z-30 flex flex-col gap-2 pointer-events-auto">
+                  <div className="absolute left-3.5 right-[4.5rem] bottom-[calc(3.5rem+env(safe-area-inset-bottom))] md:bottom-[3.2rem] z-30 flex flex-col gap-2 pointer-events-auto">
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
                         onClick={() => navigate(`/profile/${video.author.id}`)}
@@ -848,8 +837,8 @@ export default function ShortVideoFeed() {
                     </div>
                   </div>
 
-                  {/* Progress bar (Vạch tua video siêu mượt, nổi bật) */}
-                  <div className="absolute inset-x-0 bottom-0 z-40 px-3.5 pb-2.5 pointer-events-auto">
+                  {/* Progress bar (Vạch tua video siêu mượt, nổi bật) - Tự động đẩy cao trên Mobile để không bị Mobile Bottom Nav che */}
+                  <div className="absolute inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] md:bottom-0 z-40 px-3.5 pb-2.5 pointer-events-auto">
                     <div className="flex items-center gap-2.5">
                       <button
                         onClick={toggleFullscreen}
