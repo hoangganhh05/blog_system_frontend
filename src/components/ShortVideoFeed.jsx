@@ -469,13 +469,16 @@ export default function ShortVideoFeed() {
     return `${Math.floor(h / 24)}d`;
   };
 
+  const isCommentOpen = showComments && commentsFor !== null;
+
   return (
-    <div className="w-full max-w-fit mx-auto flex flex-col md:flex-row items-center justify-center gap-3 py-2 px-2 sm:px-4">
-      {/* Short Video Card */}
-      <div
-        className="relative w-full max-w-[400px] bg-black rounded-2xl md:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-zinc-800 shrink-0"
-        style={{ height: "min(calc(100vh - 5rem), 740px)", aspectRatio: "9/16" }}
-      >
+    <div className="w-full max-w-[1200px] mx-auto flex flex-col md:flex-row items-center md:items-start justify-center gap-3 py-2 px-2 sm:px-4 transition-all duration-300">
+      {/* Video Area (Occupies 2/3 ratio) */}
+      <div className={`w-full flex items-center justify-center transition-all duration-300 ${isCommentOpen ? "md:w-2/3" : "md:w-2/3"}`}>
+        <div
+          className="relative w-full max-w-[400px] bg-black rounded-2xl md:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-zinc-800 shrink-0 transition-all duration-300"
+          style={{ height: "min(calc(100vh - 5rem), 740px)", aspectRatio: "9/16" }}
+        >
         {/* Header */}
         <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/65 to-transparent pointer-events-none">
           <div className="flex items-center gap-2.5 pointer-events-auto">
@@ -722,10 +725,11 @@ export default function ShortVideoFeed() {
           )}
         </div>
       </div>
+      </div>
 
-      {/* Desktop Side Comment Panel (Displayed beside video when showComments is true) */}
-      {showComments && commentsFor !== null && (
-        <div className="hidden md:flex flex-col w-[340px] lg:w-[380px] shrink-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl md:rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-right duration-200" style={{ height: "min(calc(100vh - 5rem), 740px)" }}>
+      {/* Desktop Side Comment Panel (Occupies 1/3 ratio when open) */}
+      {isCommentOpen && (
+        <div className="hidden md:flex flex-col md:w-1/3 max-w-[380px] shrink-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl md:rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-right duration-200" style={{ height: "min(calc(100vh - 5rem), 740px)" }}>
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-[#0866ff]" />
