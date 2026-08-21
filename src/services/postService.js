@@ -130,6 +130,15 @@ const postService = {
       });
     });
   },
+
+  // Lấy danh sách video ngắn cho Reels Carousel ở trang chủ
+  getReelsCarousel(limit = 10) {
+    return axiosClient.get(`/posts/feed/reels-carousel?limit=${limit}`).catch(() => {
+      return this.getRecommendedShorts(0, limit).then((res) => ({
+        data: res.data?.content || res.data || [],
+      }));
+    });
+  },
 };
 
 export const getAll = postService.getAll.bind(postService);

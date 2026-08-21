@@ -5,7 +5,7 @@ import {
   Volume2, VolumeX, Maximize2, Minimize2, X, Loader2,
   Video, Send, Plus, Trash2, Home, LayoutGrid, ChevronUp, ChevronDown, Bookmark, Smile,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import Avatar from "./Avatar";
@@ -51,6 +51,15 @@ export default function ShortVideoFeed() {
   const pageRef = useRef(0);
   const sessionViewedIdsRef = useRef(new Set());
 
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const { currentUser } = useAuth();
+
+  const initialVideoId = location.state?.initialVideoId || (searchParams.get("id") ? Number(searchParams.get("id")) : null);
+  const initialVideosFromState = location.state?.initialVideos || null;
+  const initialIndexFromState = location.state?.startIndex;
+
   const handleShortVideoMetadata = (e, index) => {
     const { videoWidth, videoHeight } = e.currentTarget;
     if (videoWidth && videoHeight) {
@@ -68,8 +77,6 @@ export default function ShortVideoFeed() {
   const currentIndexRef = useRef(0);
   const isAnimatingRef = useRef(false);
   const touchState = useRef({ startY: 0, startX: 0, startTime: 0, isVertical: false });
-  const navigate = useNavigate();
-  const { currentUser } = useAuth();
 
   const [hasError, setHasError] = useState(false);
 
@@ -94,6 +101,26 @@ export default function ShortVideoFeed() {
     setLoading(true);
     setHasError(false);
     pageRef.current = 0;
+
+    // 1. Ưu tiên Playlist truyền từ ReelsCarousel (Chuyển trang ngay lập tức)
+    if (Array.isArray(initialVideosFromState) && initialVideosFromState.length > 0) {
+      const formatted = initialVideosFromState.map(formatVideoPost);
+      let targetIdx = 0;
+      if (typeof initialIndexFromState === "number" && initialIndexFromState >= 0 && initialIndexFromState < formatted.length) {
+        targetIdx = initialIndexFromState;
+      } else if (initialVideoId) {
+        const found = formatted.findIndex((v) => Number(v.id) === Number(initialVideoId));
+        if (found !== -1) targetIdx = found;
+      }
+      setVideos(formatted);
+      setCurrentVideoIndex(targetIdx);
+      setHasMore(true);
+      formatted.forEach((v) => sessionViewedIdsRef.current.add(v.id));
+      setLoading(false);
+      return;
+    }
+
+    // 2. Lấy danh sách đề xuất từ Backend API
     try {
       const res = await postService.getRecommendedShorts(0, 10, Array.from(sessionViewedIdsRef.current));
       const allPosts = res.data?.content || res.data || [];
@@ -106,7 +133,23 @@ export default function ShortVideoFeed() {
         )
         .map(formatVideoPost);
 
+      let targetIdx = 0;
+      if (initialVideoId) {
+        const foundIdx = videoPosts.findIndex((v) => Number(v.id) === Number(initialVideoId));
+        if (foundIdx !== -1) {
+          targetIdx = foundIdx;
+        } else {
+          try {
+            const singleRes = await postService.getById(initialVideoId);
+            if (singleRes.data) {
+              videoPosts.unshift(formatVideoPost(singleRes.data));
+            }
+          } catch (ignored) {}
+        }
+      }
+
       setVideos(videoPosts);
+      setCurrentVideoIndex(targetIdx);
       setHasMore(allPosts.length >= 8);
 
       videoPosts.forEach((v) => {
@@ -134,7 +177,7 @@ export default function ShortVideoFeed() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [initialVideoId, initialVideosFromState, initialIndexFromState]);
 
   const fetchMoreVideos = useCallback(async () => {
     if (loadingMore || !hasMore) return;

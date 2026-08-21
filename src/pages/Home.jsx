@@ -11,6 +11,7 @@ import PostSkeleton from "../components/PostSkeleton";
 import EmptyState from "../components/EmptyState";
 import StoryBar from "../components/StoryBar";
 import QuickComposer from "../components/QuickComposer";
+import ReelsCarousel from "../components/ReelsCarousel";
 import Avatar from "../components/Avatar";
 import {
   Loader2,
@@ -407,6 +408,9 @@ export default function Home() {
 
       {/* Quick Composer ở đầu bảng tin */}
       <QuickComposer onPostCreated={handlePostCreated} categories={categories} />
+
+      {/* Reels / Shorts Carousel Widget */}
+      <ReelsCarousel />
 
       {/* Mobile Suggested Friends Carousel (Đồng bộ 100% tính năng gợi ý theo dõi lên Mobile) */}
       {suggestedUsers.length > 0 && activeTab === "forYou" && (
