@@ -347,9 +347,6 @@ export default function MobileNavDrawer({
                 key={to}
                 to={to}
                 onClick={() => {
-                  if (to === "/radio") {
-                    showMiniPlayer();
-                  }
                   onClose();
                 }}
                 className={({ isActive }) =>
@@ -464,23 +461,23 @@ export default function MobileNavDrawer({
 
         {/* Drawer Footer Actions (Always bottom-pinned, clean alignment) */}
         <div className="p-3 border-t border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] flex flex-col gap-1 shrink-0">
-          {/* Nút bật/mở thanh phát nhạc Mini */}
+          {/* Nút bật/mở thanh phát Trạm Âm Thanh Mini */}
           <button
             type="button"
             onClick={() => {
-              showMiniPlayer();
+              toggleMiniPlayer();
               onClose();
             }}
             className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] hover:bg-slate-100 dark:hover:bg-[#303031] transition cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
-              <Radio className="w-4 h-4 text-rose-500 animate-pulse" />
-              <span>Thanh phát nhạc Mini</span>
+              <Headphones className="w-4 h-4 text-indigo-500 animate-pulse" />
+              <span>Trạm Âm Thanh Mini</span>
             </div>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${
                 isMiniPlayerVisible
-                  ? "bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400"
+                  ? "bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400"
                   : "bg-[#f0f2f5] dark:bg-[#18191a] text-[#65676b] dark:text-[#b0b3b8]"
               }`}
             >
