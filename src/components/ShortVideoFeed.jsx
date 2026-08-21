@@ -379,7 +379,7 @@ export default function ShortVideoFeed() {
       <div
         ref={containerRef}
         className="w-full h-[100dvh] overflow-y-auto snap-y snap-mandatory no-scrollbar overscroll-y-contain touch-pan-y"
-        style={{ scrollSnapType: "y mandatory" }}
+        style={{ scrollSnapType: "y mandatory", scrollBehavior: "smooth" }}
       >
         {loading ? (
           <div className="w-full h-[100dvh] flex items-center justify-center bg-black">

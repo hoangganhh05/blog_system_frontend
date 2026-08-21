@@ -137,7 +137,7 @@ export default function ShortVideoUpload({ onUploadSuccess, onCancel }) {
 
       // 2) Create a real Post record via the API so the video appears in the feed
       const payload = {
-        title: caption.trim().slice(0, 300) || "Video ngắn",
+        title: caption.trim().slice(0, 300) || "",
         content: caption.trim(),
         body: caption.trim(),
         thumbNail: uploadedUrl,
