@@ -67,26 +67,27 @@ function VideosPage() {
   };
 
   return (
-    <div className="app-layout videos-page">
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "20px 16px 80px 16px" }}>
+    <div className="app-layout videos-page w-full min-h-screen">
+      <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 pt-2 sm:pt-4 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-16">
         
         {/* Header Banner Video */}
         <div
           className="card"
           style={{
-            padding: "24px 28px",
-            borderRadius: 24,
-            marginBottom: 24,
+            padding: "20px 20px",
+            borderRadius: 20,
+            marginBottom: 20,
             background: "linear-gradient(135deg, #1877f2 0%, #0052d4 100%)",
             color: "#fff",
             display: "flex",
+            flexWrap: "wrap",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 20,
+            gap: 16,
             boxShadow: "0 12px 30px rgba(24, 119, 242, 0.25)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, minWidth: 0, flex: "1 1 280px" }}>
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -107,13 +108,13 @@ function VideosPage() {
             >
               <ArrowLeft style={{ width: 20, height: 20 }} />
             </button>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, color: "#fff" }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                <h1 style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 800, margin: 0, color: "#fff" }}>
                   BlogViet Video Feeds
                 </h1>
               </div>
-              <p style={{ fontSize: 14.5, margin: 0, opacity: 0.9, lineHeight: 1.4 }}>
+              <p style={{ fontSize: 13.5, margin: 0, opacity: 0.9, lineHeight: 1.4 }}>
                 Không gian đăng tải và thưởng thức các thước phim Video trực tiếp từ cộng đồng người dùng.
               </p>
             </div>
@@ -127,8 +128,8 @@ function VideosPage() {
               color: "#1877f2",
               fontWeight: 700,
               fontSize: 14,
-              padding: "12px 22px",
-              borderRadius: 14,
+              padding: "10px 18px",
+              borderRadius: 12,
               boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
               whiteSpace: "nowrap",
               cursor: "pointer",

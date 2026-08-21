@@ -446,9 +446,11 @@ export default function MainLayout({ children }) {
       {/* ======================================================================
           MOBILE FLOATING MUSIC BAR (Fixed above bottom nav on mobile)
           ====================================================================== */}
-      <div className="lg:hidden">
-        <MiniMusicPlayer />
-      </div>
+      {!isShortsPage && (
+        <div className="lg:hidden">
+          <MiniMusicPlayer />
+        </div>
+      )}
 
       {/* ======================================================================
           MOBILE BOTTOM NAVIGATION (Fixed Instagram-style, md:hidden with Safe Area)

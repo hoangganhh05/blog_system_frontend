@@ -333,7 +333,7 @@ export default function MiniMusicPlayer() {
         isPlaying && (
           <div
             onClick={() => showMiniPlayer()}
-            className="lg:hidden fixed bottom-16 right-3 z-40 bg-black/90 dark:bg-white/90 text-white dark:text-black p-2 px-2.5 rounded-full shadow-xl border border-white/20 dark:border-black/20 flex items-center gap-1.5 cursor-pointer animate-in zoom-in-95 duration-200 backdrop-blur-md active:scale-95"
+            className="lg:hidden fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] right-3 z-40 bg-black/90 dark:bg-white/90 text-white dark:text-black p-2 px-2.5 rounded-full shadow-xl border border-white/20 dark:border-black/20 flex items-center gap-1.5 cursor-pointer animate-in zoom-in-95 duration-200 backdrop-blur-md active:scale-95"
             title="Mở thanh phát nhạc"
           >
             <Disc3 className="w-4 h-4 animate-spin text-rose-500" style={{ animationDuration: "3s" }} />
@@ -341,7 +341,7 @@ export default function MiniMusicPlayer() {
           </div>
         )
       ) : (
-        <div className="lg:hidden fixed bottom-14 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 px-3 py-2 flex items-center justify-between shadow-md">
+        <div className="lg:hidden fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-40 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 px-3 py-2 flex items-center justify-between shadow-md">
           {/* Top Progress Line */}
           <div className="absolute top-0 left-0 right-0 h-0.5 bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
             <div
