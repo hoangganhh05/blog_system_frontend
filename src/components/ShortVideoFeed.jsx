@@ -182,6 +182,15 @@ export default function ShortVideoFeed() {
 
   useEffect(() => { currentIndexRef.current = currentVideoIndex; }, [currentVideoIndex]);
 
+  // Lock document body overflow while on ShortVideoFeed page
+  useEffect(() => {
+    const originalStyle = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
   // Click outside to close settings popup menu
   useEffect(() => {
     if (!showSettingsMenu) return;
@@ -530,15 +539,8 @@ export default function ShortVideoFeed() {
           </button>
         </div>
 
-        {/* Shorts Video: Dynamically scaled based on available viewport height */}
-        <div
-          className="relative bg-black rounded-2xl md:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-zinc-800 shrink-0 transition-all duration-300 w-full md:w-auto h-full max-h-[100dvh]"
-          style={{
-            height: "min(calc(100vh - 4.5rem), 760px)",
-            maxHeight: "100%",
-            maxWidth: "100%",
-          }}
-        >
+        {/* Shorts Video: Fixed TikTok 100dvh container on mobile */}
+        <div className="relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800 shrink-0 transition-all duration-300 w-full md:w-auto h-[100dvh] md:h-[min(calc(100vh-5rem),760px)]">
         {/* Header */}
         <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
           <div className="flex items-center gap-2.5 pointer-events-auto">
@@ -630,7 +632,7 @@ export default function ShortVideoFeed() {
                   <video
                     ref={(el) => (videoRefs.current[index] = el)}
                     src={video.url}
-                    className="w-full h-full object-contain object-center transition-all duration-300"
+                    className="w-full h-full object-contain object-center block"
                     style={videoAspectRatios[index] ? { aspectRatio: videoAspectRatios[index] } : {}}
                     onLoadedMetadata={(e) => handleShortVideoMetadata(e, index)}
                     loop={!autoPlayNext}

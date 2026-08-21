@@ -149,8 +149,8 @@ export default function MainLayout({ children }) {
   const isPostDetailPage = pathname.startsWith("/posts/");
 
   return (
-    <div className="min-h-screen w-full bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col transition-colors duration-200">
-      <header className="w-full h-14 shrink-0 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50 shadow-xs">
+    <div className={`min-h-screen w-full bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col transition-colors duration-200 ${isShortsPage ? "h-[100dvh] overflow-hidden" : ""}`}>
+      <header className={`w-full h-14 shrink-0 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50 shadow-xs ${isShortsPage ? "hidden md:block" : ""}`}>
         {mobileSearchOpen ? (
           /* FULL WIDTH MOBILE SEARCH BAR OVERLAY */
           <div className="w-full h-14 px-3 sm:px-6 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
@@ -400,7 +400,7 @@ export default function MainLayout({ children }) {
           - Profile / Posts / Tools: Balanced Centered Layout
           ====================================================================== */}
       {isShortsPage ? (
-        <main className={`w-full flex-1 flex flex-col p-2 sm:p-4 transition-all duration-300 ${
+        <main className={`w-full flex-1 flex flex-col p-0 md:p-4 h-full max-h-[100dvh] overflow-hidden transition-all duration-300 ${
           isSidebarCollapsed ? "md:pl-20" : "md:pl-64"
         }`}>
           {children}
