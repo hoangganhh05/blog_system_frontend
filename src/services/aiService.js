@@ -1,5 +1,5 @@
 /**
- * AI Assistant Service - Gọi trực tiếp Spring Boot Backend Proxy (Gemini 3.7 Flash bảo mật API Key)
+ * AI Assistant Service - Gọi trực tiếp Spring Boot Backend Proxy (Gemini AI bảo mật API Key)
  */
 import axiosClient from "../api/axiosClient";
 
@@ -43,36 +43,26 @@ const aiService = {
     if (!msg && !imageBase64) return "Bạn hãy nhập nội dung hoặc đính kèm ảnh để trò chuyện với Trợ lý AI nhé! ✨";
 
     try {
-      // Truyền mốc thời gian thực tế của hệ thống vào prompt để AI luôn biết ngày giờ hiện tại
-      const now = new Date();
-      const currentDateTime = now.toLocaleString("vi-VN", {
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-      });
-      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const systemTimeContext = `[Thời gian thực tế hiện tại của hệ thống: ${currentDateTime} (Múi giờ: ${timeZone}). Hãy luôn sử dụng mốc thời gian này khi người dùng hỏi về ngày, giờ, thời gian hiện tại.]\n\n`;
-      const promptWithTime = systemTimeContext + (msg || "Hãy phân tích hình ảnh này giúp tôi.");
-
       const payload = {
-        prompt: promptWithTime,
+        prompt: msg || "Hãy phân tích hình ảnh này giúp tôi.",
         imageBase64: imageBase64 || null,
         imageMimeType: imageMimeType || null,
       };
 
-      const response = await axiosClient.post("/ai/chat", payload);
+      const response = await axiosClient.post("/ai/chat", payload, {
+        timeout: 60000, // 60s timeout
+      });
+
       if (response.data && response.data.reply) {
         return response.data.reply;
       }
       return typeof response.data === "string" ? response.data : "Trợ lý BlogViet đã nhận thông điệp!";
     } catch (err) {
-      console.warn("Backend AI chat error, falling back:", err);
+      console.warn("Backend AI chat error:", err);
+      if (err.response?.status === 504 || err.code === "ECONNABORTED" || err.message?.includes("504")) {
+        return "Hệ thống AI đang quá tải, vui lòng thử lại sau giây lát!";
+      }
+
       // Fallback NLP nếu server chưa kết nối
       const lowerMsg = msg.toLowerCase();
       if (lowerMsg.includes("đăng bài") || lowerMsg.includes("tạo bài")) {
@@ -107,11 +97,11 @@ const aiService = {
       return;
     }
 
-    // Xây dựng ngữ cảnh tinh gọn (chỉ 5-6 lượt trao đổi gần nhất để tối ưu TTFT)
+    // Xây dựng ngữ cảnh tinh gọn (chỉ 3-5 lượt trao đổi gần nhất để tối ưu TTFT)
     let promptText = msg || "Hãy phân tích hình ảnh này giúp tôi.";
     if (Array.isArray(history) && history.length > 0) {
       const historyStr = history
-        .slice(-5)
+        .slice(-4)
         .map((h) => `${h.role === "user" ? "Người dùng" : "Trợ lý AI"}: ${h.content}`)
         .join("\n");
       promptText = `[Ngữ cảnh hội thoại gần nhất]:\n${historyStr}\n\n[Câu hỏi hiện tại]:\n${promptText}`;
@@ -147,6 +137,10 @@ const aiService = {
         signal,
         credentials: "include",
       });
+
+      if (response.status === 504) {
+        throw new Error("HTTP 504: Hệ thống AI đang quá tải, vui lòng thử lại sau giây lát!");
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -186,8 +180,12 @@ const aiService = {
               if (typeof parsed === "string") {
                 safeEmitChunk(parsed);
               } else if (parsed && typeof parsed === "object") {
+                // Bỏ qua gói tin initial connection status
+                if (parsed.status === "connected" || parsed.status === "connecting") {
+                  continue;
+                }
                 if (parsed.error) {
-                  throw new Error(typeof parsed.error === "string" ? parsed.error : "AI Service Error");
+                  throw new Error(typeof parsed.error === "string" ? parsed.error : "Hệ thống AI đang quá tải, vui lòng thử lại sau giây lát!");
                 }
                 const chunkContent =
                   parsed.chunk ??
@@ -202,7 +200,7 @@ const aiService = {
                 }
               }
             } catch (e) {
-              if (e.message && e.message.includes("AI Service Error")) {
+              if (e.message && (e.message.includes("quá tải") || e.message.includes("504"))) {
                 throw e;
               }
               // Plain text stream chunk
@@ -215,6 +213,9 @@ const aiService = {
               if (typeof parsed === "string") {
                 safeEmitChunk(parsed);
               } else if (parsed && typeof parsed === "object") {
+                if (parsed.status === "connected" || parsed.status === "connecting") {
+                  continue;
+                }
                 const chunkContent =
                   parsed.chunk ??
                   parsed.text ??
@@ -242,11 +243,13 @@ const aiService = {
           if (dataStr && dataStr !== "[DONE]") {
             try {
               const parsed = JSON.parse(dataStr);
-              const chunkContent =
-                typeof parsed === "string"
-                  ? parsed
-                  : parsed?.chunk ?? parsed?.text ?? parsed?.content ?? parsed?.reply ?? "";
-              if (chunkContent) safeEmitChunk(chunkContent);
+              if (parsed.status !== "connected") {
+                const chunkContent =
+                  typeof parsed === "string"
+                    ? parsed
+                    : parsed?.chunk ?? parsed?.text ?? parsed?.content ?? parsed?.reply ?? "";
+                if (chunkContent) safeEmitChunk(chunkContent);
+              }
             } catch {
               safeEmitChunk(dataStr);
             }
@@ -269,6 +272,9 @@ const aiService = {
         return;
       }
       console.warn("[STREAM FAIL, FALLBACK TO SYNC]", err);
+      if (err.message?.includes("504") || err.message?.includes("quá tải")) {
+        throw new Error("Hệ thống AI đang quá tải, vui lòng thử lại sau giây lát!");
+      }
       try {
         const fallbackReply = await this.chatWithAI(userMessage, imageBase64, imageMimeType);
         if (fallbackReply) {
@@ -320,36 +326,6 @@ const aiService = {
       return POEMS_DATA[topic] || POEMS_DATA["Cuộc Sống"];
     }
   },
-
-  async summarize(text) {
-    if (!text || text.trim().length < 20) {
-      return ["Nội dung bài viết quá ngắn để tóm tắt."];
-    }
-    try {
-      const prompt = `Hãy tóm tắt bài viết sau thành 3 gạch đầu dòng ngắn gọn và súc tích:\n\n${text}`;
-      const reply = await this.chatWithAI(prompt);
-      return reply.split("\n").filter((l) => l.trim().length > 0);
-    } catch {
-      const lines = text.split("\n").filter((l) => l.trim().length > 0);
-      return [
-        `📌 **Ý chính**: ${lines[0] || text.slice(0, 80)}`,
-        `💡 **Điểm nổi bật**: Bài viết chia sẻ thông tin chi tiết và góc nhìn thực tế.`,
-        `🚀 **Kết luận**: Đáng đọc và ứng dụng cho nhu cầu tham khảo hàng ngày.`
-      ];
-    }
-  },
-
-  async summarizePost(text) {
-    const points = await this.summarize(text);
-    return Array.isArray(points) ? points.join("\n") : String(points);
-  },
 };
-
-export const chatWithAI = aiService.chatWithAI.bind(aiService);
-export const generatePost = aiService.generatePost.bind(aiService);
-export const generatePostContent = aiService.generatePostContent.bind(aiService);
-export const generatePoem = aiService.generatePoem.bind(aiService);
-export const summarize = aiService.summarize.bind(aiService);
-export const summarizePost = aiService.summarizePost.bind(aiService);
 
 export default aiService;

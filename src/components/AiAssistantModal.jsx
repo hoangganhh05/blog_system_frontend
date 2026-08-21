@@ -228,12 +228,13 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
                 content:
                   msg.content ||
                   accumulatedContent ||
-                  "Không thể kết nối hoặc phản hồi từ máy chủ AI bị gián đoạn. Vui lòng bấm Thử lại!",
+                  err.message ||
+                  "Hệ thống AI đang quá tải, vui lòng thử lại sau giây lát!",
               }
             : msg
         )
       );
-      toast.error("Không thể kết nối với Trợ lý AI. Bạn có thể bấm Thử lại!");
+      toast.error("Hệ thống AI đang quá tải, vui lòng thử lại sau giây lát!");
     } finally {
       setIsThinking(false);
       setIsStreaming(false);
