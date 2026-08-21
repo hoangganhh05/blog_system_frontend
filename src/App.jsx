@@ -28,6 +28,7 @@ import SearchPage from "./pages/SearchPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import { LanguageProvider } from "./context/LanguageContext";
+import FloatingChatDock from "./components/FloatingChatDock";
 
 function AppContent() {
   const location = useLocation();
