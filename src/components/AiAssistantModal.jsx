@@ -152,6 +152,15 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
 
     let accumulatedContent = "";
 
+    // Trích xuất 5 tin nhắn gần nhất để giữ ngữ cảnh ngắn gọn, tối ưu TTFT
+    const recentHistory = messages
+      .filter((m) => m.id !== "ai-intro" && m.id !== "ai-intro-new" && !m.isError && m.content)
+      .slice(-5)
+      .map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
     try {
       await aiService.streamChatWithAI(
         text,
@@ -169,7 +178,8 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
             )
           );
         },
-        controller.signal
+        controller.signal,
+        recentHistory
       );
 
       // Finish streaming and ensure content is populated
@@ -288,7 +298,7 @@ export default function AiAssistantModal({ isOpen = true, onClose }) {
               </div>
               <span className="text-[10px] text-emerald-500 font-medium flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Phản hồi nhanh 24/7
+                Trợ lý AI 24/7
               </span>
             </div>
           </div>

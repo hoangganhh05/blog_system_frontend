@@ -92,38 +92,33 @@ const aiService = {
   },
 
   /**
-   * Stream dữ liệu thời gian thực (SSE) từ Gemini 3.7 qua Backend Spring Boot
+   * Stream dữ liệu thời gian thực (SSE) từ Gemini qua Backend Spring Boot
    * @param {string} userMessage
    * @param {string} [imageBase64]
    * @param {string} [imageMimeType]
    * @param {function(string): void} onChunk
    * @param {AbortSignal} [signal]
+   * @param {Array<{role: string, content: string}>} [history]
    */
-  async streamChatWithAI(userMessage, imageBase64 = null, imageMimeType = null, onChunk, signal = null) {
+  async streamChatWithAI(userMessage, imageBase64 = null, imageMimeType = null, onChunk, signal = null, history = []) {
     const msg = (userMessage || "").trim();
     if (!msg && !imageBase64) {
       onChunk?.("Bạn hãy nhập nội dung hoặc đính kèm ảnh để trò chuyện với Trợ lý AI nhé! ✨");
       return;
     }
 
-    const now = new Date();
-    const currentDateTime = now.toLocaleString("vi-VN", {
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    });
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const systemTimeContext = `[Thời gian thực tế hiện tại của hệ thống: ${currentDateTime} (Múi giờ: ${timeZone}). Hãy luôn sử dụng mốc thời gian này khi người dùng hỏi về ngày, giờ, thời gian hiện tại.]\n\n`;
-    const promptWithTime = systemTimeContext + (msg || "Hãy phân tích hình ảnh này giúp tôi.");
+    // Xây dựng ngữ cảnh tinh gọn (chỉ 5-6 lượt trao đổi gần nhất để tối ưu TTFT)
+    let promptText = msg || "Hãy phân tích hình ảnh này giúp tôi.";
+    if (Array.isArray(history) && history.length > 0) {
+      const historyStr = history
+        .slice(-5)
+        .map((h) => `${h.role === "user" ? "Người dùng" : "Trợ lý AI"}: ${h.content}`)
+        .join("\n");
+      promptText = `[Ngữ cảnh hội thoại gần nhất]:\n${historyStr}\n\n[Câu hỏi hiện tại]:\n${promptText}`;
+    }
 
     const payload = {
-      prompt: promptWithTime,
+      prompt: promptText,
       imageBase64: imageBase64 || null,
       imageMimeType: imageMimeType || null,
     };
