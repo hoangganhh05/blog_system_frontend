@@ -566,7 +566,10 @@ export default function ShortVideoFeed() {
         {/* Shorts Video: Scaled by vh (full-bleed on mobile, 88vh centered frame on desktop) */}
         <div className="relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800/80 shrink-0 transition-all duration-300 w-full h-full md:w-auto md:aspect-[9/16] md:h-[88vh] md:max-h-[88vh]">
         {/* Header (Top Left Controls: Back X, Sound Mute/Unmute, More Options ...) */}
-        <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
+        <div
+          className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pb-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none"
+          style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+        >
           <div className="flex items-center gap-2 pointer-events-auto">
             <button
               onClick={() => navigate("/")}
@@ -1184,7 +1187,8 @@ export default function ShortVideoFeed() {
 
             <form
               onSubmit={handleSubmitComment}
-              className="shrink-0 px-3 py-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center gap-2 bg-white dark:bg-zinc-900 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+              className="shrink-0 px-3 py-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center gap-2 bg-white dark:bg-zinc-900"
+              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)" }}
             >
               <Avatar
                 userId={currentUser?.id}
