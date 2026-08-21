@@ -616,10 +616,10 @@ export default function ShortVideoFeed() {
                       <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(video.likes)}</span>
                     </div>
 
-                    <div className="flex flex-col items-center gap-1.5 md:hidden">
+                    <div className="flex flex-col items-center gap-1.5">
                       <button
                         onClick={() => handleComment(video.id)}
-                        className="w-12 h-12 rounded-full bg-black/45 backdrop-blur-xl ring-1 ring-white/20 flex items-center justify-center hover:bg-black/65 active:scale-90 transition-all shadow-lg"
+                        className={`w-12 h-12 rounded-full backdrop-blur-xl ring-1 transition-all active:scale-90 flex items-center justify-center shadow-lg ${showComments && commentsFor === video.id ? "bg-[#0866ff]/90 ring-[#0866ff]/40 scale-105" : "bg-black/45 ring-white/20 hover:bg-black/65"}`}
                         title="Bình luận"
                       >
                         <MessageCircle className="w-6 h-6 text-white" />
