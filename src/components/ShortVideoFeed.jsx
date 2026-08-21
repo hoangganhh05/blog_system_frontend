@@ -537,8 +537,8 @@ export default function ShortVideoFeed() {
 
   return (
     <div className="w-full flex-1 flex flex-col md:flex-row items-center md:items-stretch justify-center gap-3 transition-all duration-300 overflow-hidden">
-      {/* 1. VIDEO BOX: 70% width when comment open, 100% width when comment closed */}
-      <div className={`flex-1 ${isCommentOpen ? "md:flex-[7] md:w-7/12" : "md:flex-1 md:w-full"} flex items-center justify-center p-1 transition-all duration-300 min-w-0 relative group/videobox`}>
+      {/* 1. VIDEO BOX: Fixed Layout space on desktop when comment opens */}
+      <div className={`flex-1 ${isCommentOpen ? "md:max-w-[calc(100%-370px)]" : "md:w-full"} flex items-center justify-center p-1 transition-all duration-300 min-w-0 relative group/videobox`}>
         {/* Dedicated Up / Down Navigation Arrow Controls */}
         <div className="hidden md:flex flex-col gap-3 absolute left-4 z-40">
           <button
@@ -561,25 +561,124 @@ export default function ShortVideoFeed() {
 
         {/* Shorts Video: Fixed TikTok 100dvh container on mobile */}
         <div className="relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800 shrink-0 transition-all duration-300 w-full md:w-auto h-[100dvh] md:h-[min(calc(100vh-5rem),760px)]">
-        {/* Header */}
+        {/* Header (Top Left Controls: Back X, Sound Mute/Unmute, More Options ...) */}
         <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
-          <div className="flex items-center gap-2.5 pointer-events-auto">
+          <div className="flex items-center gap-2 pointer-events-auto">
             <button
               onClick={() => navigate("/")}
-              className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-md cursor-pointer"
+              aria-label="Back to home"
+              className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition shadow-md cursor-pointer"
               title="Quay lại"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
 
-            {/* Icon Âm thanh cạnh nút X */}
+            {/* DUY NHẤT 1 Nút Âm Thanh ở góc trên bên trái */}
             <button
               onClick={toggleMute}
-              className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-md cursor-pointer"
-              title={isMuted ? "Bật âm thanh" : "Tắt âm thanh"}
+              aria-label={isMuted ? "Unmute video" : "Mute video"}
+              className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-xl ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/60 active:scale-90 transition shadow-md cursor-pointer"
+              title={isMuted ? "Bật âm thanh (Unmute)" : "Tắt âm thanh (Mute)"}
             >
-              {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-white" />}
+              {isMuted ? <VolumeX className="w-5 h-5 text-rose-400" /> : <Volume2 className="w-5 h-5 text-white" />}
             </button>
+
+            {/* Nút Ba Chấm (...) Ngay Cạnh Nút Âm Thanh */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSettingsMenu(!showSettingsMenu);
+                }}
+                aria-label="More options"
+                className={`w-10 h-10 rounded-full backdrop-blur-xl ring-1 transition active:scale-90 flex items-center justify-center shadow-md cursor-pointer ${
+                  showSettingsMenu
+                    ? "bg-white text-zinc-900 ring-white"
+                    : "bg-black/40 ring-white/20 text-white hover:bg-black/60"
+                }`}
+                title="Tùy chọn video (...)"
+              >
+                <MoreHorizontal className="w-5 h-5" />
+              </button>
+
+              {/* Desktop Floating Menu cho nút ... */}
+              {showSettingsMenu && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="hidden md:block absolute left-0 top-12 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-3 z-50 text-zinc-900 dark:text-zinc-100 animate-in fade-in zoom-in-95 duration-150"
+                >
+                  <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 pb-1.5 uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800/80 mb-2">
+                    Cài đặt player
+                  </div>
+
+                  {/* Tự động cuộn */}
+                  <div
+                    className="flex items-center justify-between p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                    onClick={() => setAutoPlayNext(!autoPlayNext)}
+                  >
+                    <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Tự động cuộn video tiếp theo</span>
+                    <div className={`w-8 h-4.5 rounded-full transition-colors relative ${autoPlayNext ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-700"}`}>
+                      <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${autoPlayNext ? "right-0.5" : "left-0.5"}`} />
+                    </div>
+                  </div>
+
+                  {/* Tốc độ phát */}
+                  <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
+                    <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 mb-1.5">Tốc độ phát (Playback Speed)</div>
+                    <div className="grid grid-cols-3 gap-1">
+                      {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+                        <button
+                          key={speed}
+                          onClick={() => setPlaybackSpeed(speed)}
+                          className={`py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                            playbackSpeed === speed
+                              ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs"
+                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                          }`}
+                        >
+                          {speed === 1 ? "1x" : `${speed}x`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Chất lượng */}
+                  <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
+                    <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 mb-1.5">Chất lượng (Quality)</div>
+                    <div className="grid grid-cols-3 gap-1">
+                      {["Auto", "360p", "480p", "720p", "1080p"].map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => setQualitySetting(q)}
+                          className={`py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
+                            qualitySetting === q
+                              ? "bg-[#0866ff] text-white shadow-xs"
+                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                          }`}
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Báo cáo */}
+                  <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
+                    <button
+                      onClick={() => {
+                        setShowSettingsMenu(false);
+                        setShowReportModal(true);
+                      }}
+                      className="w-full text-left px-2 py-1.5 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition flex items-center gap-2 cursor-pointer"
+                    >
+                      <span>🚩</span>
+                      <span>Báo cáo video</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -682,118 +781,6 @@ export default function ShortVideoFeed() {
                   )}
 
 
-
-                  {/* Controls Phụ (Mute/Sound + More Options): Top Right Overlay */}
-                  {/* Desktop: opacity-0 group-hover:opacity-100; Mobile: always visible */}
-                  <div className="absolute top-3.5 right-3.5 z-40 flex items-center gap-2 pointer-events-auto transition-opacity duration-200 opacity-100 md:opacity-0 md:group-hover/videobox:opacity-100">
-                    {/* Sound / Mute Toggle Button */}
-                    <button
-                      type="button"
-                      onClick={toggleMute}
-                      aria-label={isMuted ? "Unmute video" : "Mute video"}
-                      className="w-10 h-10 min-w-[44px] min-h-[44px] rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/20 text-white flex items-center justify-center hover:bg-black/70 active:scale-95 transition cursor-pointer shadow-md"
-                      title={isMuted ? "Bật âm thanh (Unmute)" : "Tắt âm thanh (Mute)"}
-                    >
-                      {isMuted ? <VolumeX className="w-5 h-5 text-rose-400" /> : <Volume2 className="w-5 h-5 text-white" />}
-                    </button>
-
-                    {/* More Options (...) Button */}
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowSettingsMenu(!showSettingsMenu);
-                        }}
-                        aria-label="More options"
-                        className={`w-10 h-10 min-w-[44px] min-h-[44px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-95 flex items-center justify-center shadow-md cursor-pointer ${
-                          showSettingsMenu
-                            ? "bg-white text-zinc-900 ring-white"
-                            : "bg-black/50 ring-white/20 text-white hover:bg-black/70"
-                        }`}
-                        title="Tùy chọn video"
-                      >
-                        <MoreHorizontal className="w-5 h-5" />
-                      </button>
-
-                      {/* Desktop Popover Floating Menu */}
-                      {showSettingsMenu && (
-                        <div
-                          onClick={(e) => e.stopPropagation()}
-                          className="hidden md:block absolute right-0 top-12 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-3 z-50 text-zinc-900 dark:text-zinc-100 animate-in fade-in zoom-in-95 duration-150"
-                        >
-                          <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 pb-1.5 uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800/80 mb-2">
-                            Cài đặt video
-                          </div>
-
-                          {/* Tự động cuộn video */}
-                          <div
-                            className="flex items-center justify-between p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
-                            onClick={() => setAutoPlayNext(!autoPlayNext)}
-                          >
-                            <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Tự động cuộn khi hết</span>
-                            <div className={`w-8 h-4.5 rounded-full transition-colors relative ${autoPlayNext ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-700"}`}>
-                              <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${autoPlayNext ? "right-0.5" : "left-0.5"}`} />
-                            </div>
-                          </div>
-
-                          {/* Tốc độ phát */}
-                          <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
-                            <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 mb-1.5">Tốc độ phát</div>
-                            <div className="grid grid-cols-3 gap-1">
-                              {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
-                                <button
-                                  key={speed}
-                                  onClick={() => setPlaybackSpeed(speed)}
-                                  className={`py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                                    playbackSpeed === speed
-                                      ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs"
-                                      : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-                                  }`}
-                                >
-                                  {speed === 1 ? "1x" : `${speed}x`}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Chất lượng */}
-                          <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
-                            <div className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-1 mb-1.5">Chất lượng video</div>
-                            <div className="grid grid-cols-3 gap-1">
-                              {["Auto", "360p", "480p", "720p", "1080p"].map((q) => (
-                                <button
-                                  key={q}
-                                  onClick={() => setQualitySetting(q)}
-                                  className={`py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
-                                    qualitySetting === q
-                                      ? "bg-[#0866ff] text-white shadow-xs"
-                                      : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-                                  }`}
-                                >
-                                  {q}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Báo cáo */}
-                          <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
-                            <button
-                              onClick={() => {
-                                setShowSettingsMenu(false);
-                                setShowReportModal(true);
-                              }}
-                              className="w-full text-left px-2 py-1.5 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition flex items-center gap-2 cursor-pointer"
-                            >
-                              <span>🚩</span>
-                              <span>Báo cáo video</span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
 
                   {/* MOBILE-ONLY ACTION RAIL OVERLAY (Hidden on Desktop md+) */}
                   <div className="md:hidden absolute right-3.5 bottom-[18%] flex flex-col items-center gap-3.5 z-30 pointer-events-auto">
@@ -1058,9 +1045,9 @@ export default function ShortVideoFeed() {
       )}
       </div>
 
-      {/* 2. COMMENT BOX: ~30% width (flex-[3]) when open */}
+      {/* 2. COMMENT BOX: Fixed 360px Sidebar on Desktop */}
       {isCommentOpen && (
-        <div className="hidden md:flex flex-col md:flex-[3] md:w-5/12 max-w-[420px] w-full shrink-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl md:rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-right duration-200" style={{ height: "min(calc(100vh - 5rem), 740px)" }}>
+        <div className="hidden md:flex flex-col w-[360px] shrink-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl md:rounded-3xl shadow-xl overflow-hidden animate-in slide-in-from-right duration-200" style={{ height: "min(calc(100vh - 5rem), 760px)" }}>
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-[#0866ff]" />
