@@ -96,8 +96,6 @@ export default function ReactionsModal({
     };
   }, [isOpen, postId, currentUserId]);
 
-  if (!isOpen) return null;
-
   const getUserData = (item) => {
     if (item.userId && item.username) {
       return {
@@ -144,6 +142,8 @@ export default function ReactionsModal({
       return 0;
     });
   }, [reactionsList, friendIds, followingIds, currentUserId]);
+
+  if (!isOpen) return null;
 
   const handleToggleFollow = async (targetUser) => {
     if (!currentUserId) {
