@@ -472,13 +472,19 @@ export default function ShortVideoFeed() {
   const isCommentOpen = showComments && commentsFor !== null;
 
   return (
-    <div className="w-full flex-1 flex flex-col md:flex-row items-center md:items-stretch justify-center gap-3 transition-all duration-300">
+    <div className="w-full flex-1 flex flex-col md:flex-row items-center md:items-stretch justify-center gap-3 transition-all duration-300 overflow-hidden">
       {/* 1. VIDEO BOX: 70% width when comment open, 100% width when comment closed */}
-      <div className={`flex-1 ${isCommentOpen ? "md:flex-[7] md:w-7/12" : "md:flex-1 md:w-full"} flex items-center justify-center transition-all duration-300`}>
-        {/* Shorts Video: Centered inside Video Box with fixed ~430px width */}
+      <div className={`flex-1 ${isCommentOpen ? "md:flex-[7] md:w-7/12" : "md:flex-1 md:w-full"} flex items-center justify-center p-1 transition-all duration-300 min-w-0`}>
+        {/* Shorts Video: Dynamically scaled based on available viewport height & 9/16 aspect ratio */}
         <div
-          className="relative w-full max-w-[430px] bg-black rounded-2xl md:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-zinc-800 shrink-0 transition-all duration-300"
-          style={{ height: "min(calc(100vh - 5rem), 740px)", aspectRatio: "9/16" }}
+          className="relative bg-black rounded-2xl md:rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-zinc-800 shrink-0 transition-all duration-300"
+          style={{
+            height: "min(calc(100vh - 5rem), 760px)",
+            maxHeight: "100%",
+            maxWidth: "100%",
+            aspectRatio: "9 / 16",
+            width: "auto",
+          }}
         >
         {/* Header */}
         <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/65 to-transparent pointer-events-none">
