@@ -85,6 +85,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/posts/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
           <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
@@ -101,6 +102,7 @@ function AppContent() {
           <Route path="/saved" element={<ProtectedRoute><SavedPosts /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/shorts" element={<ProtectedRoute><ShortVideoFeed /></ProtectedRoute>} />
           {/* 404 */}
           <Route
             path="*"
@@ -117,11 +119,6 @@ function AppContent() {
           />
         </Routes>
       </MainLayout>
-
-      {/* Shorts page outside MainLayout to avoid header/bottom nav overlap */}
-      <Routes>
-        <Route path="/shorts" element={<ProtectedRoute><ShortVideoFeed /></ProtectedRoute>} />
-      </Routes>
 
       {/* Docked Floating Chat Tabs (Multi-window chat tabs) */}
       <FloatingChatDock />
