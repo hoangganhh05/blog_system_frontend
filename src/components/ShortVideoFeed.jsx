@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Heart, MessageCircle, Share2, MoreHorizontal, Play,
   Volume2, VolumeX, Maximize2, Minimize2, X, Loader2,
@@ -581,7 +581,7 @@ export default function ShortVideoFeed() {
       {showComments && commentsFor !== null && (
         <>
           <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={closeComments} />
-          <div className="fixed inset-x-0 bottom-0 z-50 h-[78dvh] sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[400px] sm:h-auto bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-none border-t sm:border-l border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col animate-in slide-in-from-bottom sm:slide-in-from-right duration-250">
+          <div className="fixed inset-x-0 bottom-0 z-50 h-[65dvh] sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[400px] sm:h-auto bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-none border-t sm:border-l border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col animate-in slide-in-from-bottom sm:slide-in-from-right duration-250">
             <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0">
               <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
             </div>

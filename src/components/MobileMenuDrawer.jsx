@@ -99,6 +99,11 @@ export default function MobileMenuDrawer({ isOpen, onClose }) {
               <span>Video Clips</span>
             </Link>
 
+            <Link to="/shorts" onClick={onClose} className="mobile-menu-tile">
+              <div className="mobile-menu-tile-icon" style={{ background: "rgba(168,85,247,0.12)", color: "#a855f7" }}>📱</div>
+              <span>Short Video</span>
+            </Link>
+
             <Link to="/games" onClick={onClose} className="mobile-menu-tile">
               <div className="mobile-menu-tile-icon" style={{ background: "rgba(16,185,129,0.12)", color: "#10b981" }}>🎮</div>
               <span>Giải trí</span>

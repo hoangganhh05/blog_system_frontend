@@ -26,6 +26,8 @@ import {
   Check,
   Sparkles,
   Search,
+  Video,
+  Film,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -206,6 +208,8 @@ export default function MobileNavDrawer({
 
   const navLinks = [
     { to: "/", label: "Bảng tin trang chủ", icon: Home },
+    { to: "/videos", label: "Video Clips", icon: Video },
+    { to: "/shorts", label: "Short Video", icon: Film },
     { to: "/trending", label: "Khám phá chủ đề", icon: Compass },
     { to: "/radio", label: "Phòng nhạc & Radio", icon: Radio },
     { to: "/friends", label: "Bạn bè & Kết nối", icon: Users },
