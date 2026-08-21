@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Film, Play, ChevronLeft, ChevronRight, Heart, Eye } from "lucide-react";
+import { Film, Play, ChevronLeft, ChevronRight } from "lucide-react";
 import postService from "../services/postService";
-import Avatar from "./Avatar";
 import { isVideoUrl } from "../utils/mediaUtils";
 
 /**
- * ReelCard: Từng thẻ video ngắn với logic Preview thông minh
+ * ReelCard: Từng thẻ video ngắn với logic Preview thông minh tối giản:
+ * - Không chứa bất kỳ overlay chữ/avatar/số liệu nào, chỉ hiển thị video/thumbnail tràn viền.
  * - PC / Desktop: Di chuột (Hover) để tự động phát xem trước, di chuột ra ngoài sẽ tạm dừng và quay về đầu.
  * - Mobile / Cảm ứng: Tự động phát lặp lại 5 giây đầu tiên khi thẻ lọt vào tầm nhìn màn hình (IntersectionObserver).
+ * - Chính giữa thẻ có nút Play icon mờ (tự động ẩn đi khi đang phát).
  */
 function ReelCard({ reel, index, onReelClick }) {
   const videoRef = useRef(null);
@@ -77,7 +78,7 @@ function ReelCard({ reel, index, onReelClick }) {
       onClick={() => onReelClick(reel, index)}
       className="group/card relative w-32 sm:w-40 aspect-[9/16] shrink-0 rounded-2xl overflow-hidden border border-zinc-200/90 dark:border-zinc-800/90 bg-zinc-950 shadow-sm hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer select-none"
     >
-      {/* Video Preview Tag */}
+      {/* Video Preview tràn khung 100% */}
       <video
         ref={videoRef}
         src={reel.url}
@@ -89,54 +90,17 @@ function ReelCard({ reel, index, onReelClick }) {
         className="w-full h-full object-cover object-center block"
       />
 
-      {/* Dark Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-black/35 group-hover/card:via-black/15 transition-opacity" />
-
-      {/* Top Overlay: View Count Tag */}
-      <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-10">
-        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/50 backdrop-blur-md text-white text-[10px] font-semibold">
-          <Eye className="w-2.5 h-2.5 text-white/80" />
-          <span>{reel.views > 999 ? `${(reel.views / 1000).toFixed(1)}k` : reel.views}</span>
-        </div>
-
-        <div className="w-5 h-5 rounded-full bg-rose-500/80 backdrop-blur-md flex items-center justify-center shadow-xs">
-          <Heart className="w-2.5 h-2.5 text-white fill-white" />
-        </div>
-      </div>
-
-      {/* Center Play Button Overlay */}
+      {/* Center Play Button Overlay (Tự ẩn khi Hover phát trên PC hoặc đang phát trên Mobile) */}
       <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
         <div
-          className={`w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all shadow-md ${
+          className={`w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all duration-200 shadow-md ${
             isHovered || isVisible
               ? "opacity-0 scale-75"
-              : "opacity-85 group-hover/card:opacity-100 group-hover/card:scale-110"
+              : "opacity-80 group-hover/card:opacity-100 group-hover/card:scale-110"
           }`}
         >
           <Play className="w-4 h-4 fill-white ml-0.5" />
         </div>
-      </div>
-
-      {/* Bottom Overlay: Author & Title */}
-      <div className="absolute bottom-2.5 left-2.5 right-2.5 z-10 flex flex-col gap-1 text-white">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <Avatar
-            userId={reel.author.id}
-            src={reel.author.avatarUrl}
-            name={reel.author.fullName}
-            username={reel.author.username}
-            avatarColor={reel.author.avatarColor}
-            size="xs"
-            className="w-4 h-4 min-w-4 min-h-4 border border-white/40 shrink-0"
-          />
-          <span className="text-[10px] font-bold text-white/95 truncate">
-            @{reel.author.username}
-          </span>
-        </div>
-
-        <p className="text-[11px] font-medium text-white/90 line-clamp-2 leading-tight drop-shadow-xs">
-          {reel.title}
-        </p>
       </div>
     </div>
   );
@@ -292,13 +256,9 @@ export default function ReelsCarousel() {
           ? Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className="w-32 sm:w-40 aspect-[9/16] shrink-0 rounded-2xl bg-zinc-100 dark:bg-zinc-800 animate-pulse border border-zinc-200 dark:border-zinc-800 flex flex-col justify-between p-3"
+                className="w-32 sm:w-40 aspect-[9/16] shrink-0 rounded-2xl bg-zinc-100 dark:bg-zinc-800 animate-pulse border border-zinc-200 dark:border-zinc-800 flex items-center justify-center"
               >
-                <div className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700" />
-                <div className="flex flex-col gap-1.5">
-                  <div className="h-2.5 w-3/4 bg-zinc-200 dark:bg-zinc-700 rounded-full" />
-                  <div className="h-2 w-1/2 bg-zinc-200 dark:bg-zinc-700 rounded-full" />
-                </div>
+                <div className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-700" />
               </div>
             ))
           : reels.map((reel, index) => (
