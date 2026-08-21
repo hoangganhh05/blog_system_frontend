@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Heart, MessageCircle, Share2, MoreHorizontal, Play,
   Volume2, VolumeX, Maximize2, Minimize2, X, Loader2,
-  Video, Send, Plus, Trash2,
+  Video, Send, Plus, Trash2, Home, LayoutGrid,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -39,6 +39,8 @@ export default function ShortVideoFeed() {
   const videoRefs = useRef([]);
   const containerRef = useRef(null);
   const lastTapRef = useRef(0);
+  const currentIndexRef = useRef(0);
+  const touchState = useRef({ startY: 0, startX: 0, startTime: 0, isVertical: false });
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
@@ -152,6 +154,8 @@ export default function ShortVideoFeed() {
     postService.incrementViewCount(cv.id).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentVideoIndex, videos]);
+
+  useEffect(() => { currentIndexRef.current = currentVideoIndex; }, [currentVideoIndex]);
 
   const handleLike = async (videoId) => {
     setVideos((prev) =>
@@ -323,6 +327,44 @@ export default function ShortVideoFeed() {
 
   const toggleCaption = (index) => setExpandedCaptions((prev) => ({ ...prev, [index]: !prev[index] }));
 
+  const scrollToVideo = useCallback((index) => {
+    const container = containerRef.current;
+    if (!container || videos.length === 0) return;
+    const target = container.children[index];
+    if (!target) return;
+    const containerRect = container.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    container.scrollTo({ top: container.scrollTop + targetRect.top - containerRect.top, behavior: "smooth" });
+  }, [videos.length]);
+
+  const handleTouchStart = (e) => {
+    touchState.current = { startY: e.touches[0].clientY, startX: e.touches[0].clientX, startTime: Date.now(), isVertical: false };
+  };
+
+  const handleTouchMove = (e) => {
+    const { startY, startX } = touchState.current;
+    const deltaY = Math.abs(e.touches[0].clientY - startY);
+    const deltaX = Math.abs(e.touches[0].clientX - startX);
+    if (!touchState.current.isVertical && deltaY > deltaX && deltaY > 10) {
+      touchState.current.isVertical = true;
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!touchState.current.isVertical) return;
+    const { startY, startTime } = touchState.current;
+    const deltaY = startY - e.changedTouches[0].clientY;
+    const deltaTime = Date.now() - startTime;
+    if (Math.abs(deltaY) > 60 && deltaTime < 600) {
+      const direction = deltaY > 0 ? 1 : -1;
+      const newIndex = Math.max(0, Math.min(videos.length - 1, currentIndexRef.current + direction));
+      if (newIndex !== currentIndexRef.current) {
+        scrollToVideo(newIndex);
+      }
+    }
+    touchState.current.isVertical = false;
+  };
+
   const formatCount = (n) => {
     if (n == null) return "0";
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
@@ -349,7 +391,10 @@ export default function ShortVideoFeed() {
   };
 
   return (
-    <div className="relative w-full h-[100dvh] bg-black overflow-hidden">
+    <div
+      className="relative w-full bg-black overflow-hidden flex flex-col"
+      style={{ height: "calc(100dvh - 3.5rem - env(safe-area-inset-bottom, 0px))" }}
+    >
 
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/65 to-transparent pointer-events-none">
@@ -379,18 +424,21 @@ export default function ShortVideoFeed() {
       {/* Video Feed */}
       <div
         ref={containerRef}
-        className="w-full h-[100dvh] overflow-y-auto snap-y snap-mandatory no-scrollbar overscroll-y-contain touch-pan-y"
+        className="w-full flex-1 overflow-y-auto snap-y snap-mandatory no-scrollbar overscroll-y-contain touch-pan-y"
         style={{ scrollSnapType: "y mandatory", scrollBehavior: "smooth" }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {loading ? (
-          <div className="w-full h-[100dvh] flex items-center justify-center bg-black">
+          <div className="w-full flex-1 flex items-center justify-center bg-black">
             <div className="flex flex-col items-center gap-3">
               <Loader2 className="w-8 h-8 text-white animate-spin" />
               <span className="text-white/60 text-sm">Đang tải video...</span>
             </div>
           </div>
         ) : videos.length === 0 ? (
-          <div className="w-full h-[100dvh] flex items-center justify-center bg-black">
+          <div className="w-full flex-1 flex items-center justify-center bg-black">
             <div className="flex flex-col items-center gap-5 text-center px-8">
               <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
                 <Video className="w-10 h-10 text-white/50" />
@@ -416,11 +464,11 @@ export default function ShortVideoFeed() {
             const prog = progressMap[index];
 
             return (
-              <div
-                key={video.id}
-                className="relative w-full h-[100dvh] snap-start snap-always shrink-0 overflow-hidden bg-black flex items-center justify-center"
-                style={{ scrollSnapAlign: "start" }}
-              >
+            <div
+              key={video.id}
+              className="relative w-full snap-start snap-always shrink-0 overflow-hidden bg-black flex items-center justify-center"
+              style={{ scrollSnapAlign: "start", height: "calc(100dvh - 3.5rem - env(safe-area-inset-bottom, 0px))" }}
+            >
                 <video
                   ref={(el) => (videoRefs.current[index] = el)}
                   src={video.url}
