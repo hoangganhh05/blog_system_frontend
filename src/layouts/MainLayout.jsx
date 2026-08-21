@@ -447,8 +447,8 @@ export default function MainLayout({ children }) {
           MOBILE FLOATING SOUNDSCAPE BAR (Fixed above bottom nav on mobile)
           ====================================================================== */}
       {!isShortsPage && (
-        <div className="lg:hidden">
-          <MiniSoundscapePlayer />
+        <div className="lg:hidden fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px)+8px)] left-3 right-3 sm:left-4 sm:right-4 z-40 max-w-lg mx-auto pointer-events-auto">
+          <MiniSoundscapePlayer isMobileFloating={true} />
         </div>
       )}
 
@@ -572,7 +572,7 @@ export default function MainLayout({ children }) {
         <button
           type="button"
           onClick={scrollToTop}
-          className="fixed bottom-32 md:bottom-8 right-4 md:right-8 z-40 w-11 h-11 rounded-full bg-white/95 dark:bg-zinc-900/95 text-zinc-700 dark:text-zinc-200 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md flex items-center justify-center hover:scale-110 active:scale-95 transition-all animate-in fade-in zoom-in-90 duration-200 cursor-pointer"
+          className="fixed bottom-[calc(9.5rem+env(safe-area-inset-bottom,0px))] md:bottom-8 right-4 md:right-8 z-40 w-11 h-11 rounded-full bg-white/95 dark:bg-zinc-900/95 text-zinc-700 dark:text-zinc-200 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md flex items-center justify-center hover:scale-110 active:scale-95 transition-all animate-in fade-in zoom-in-90 duration-200 cursor-pointer"
           title="Cuộn lên đầu trang"
         >
           <ArrowUp className="w-4 h-4 stroke-[2.5]" />
