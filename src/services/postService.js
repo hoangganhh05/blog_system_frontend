@@ -28,6 +28,11 @@ const postService = {
     return axiosClient.get(`/posts/category/${categoryId}?page=${page}&size=${size}&sort=createdAt,desc`);
   },
 
+  // Dịch bài viết on-demand
+  translate(postId, targetLanguage = "vi") {
+    return axiosClient.post(`/posts/${postId}/translations`, { targetLanguage });
+  },
+
   // Tạo post mới
   create(postData) {
     return axiosClient.post("/posts", postData);

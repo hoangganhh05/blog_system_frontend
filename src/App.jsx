@@ -27,7 +27,7 @@ import FriendsPage from "./pages/FriendsPage";
 import SearchPage from "./pages/SearchPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import FloatingChatDock from "./components/FloatingChatDock";
+import { LanguageProvider } from "./context/LanguageContext";
 
 function AppContent() {
   const location = useLocation();
@@ -132,7 +132,9 @@ export default function App() {
         <MusicProvider>
           <ChatProvider>
             <ThemeProvider>
-              <AppContent />
+              <LanguageProvider>
+                <AppContent />
+              </LanguageProvider>
             </ThemeProvider>
           </ChatProvider>
         </MusicProvider>

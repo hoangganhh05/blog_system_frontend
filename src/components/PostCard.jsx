@@ -13,6 +13,7 @@ import {
   Copy,
   Check,
   Sparkles,
+  Globe,
   Volume2,
   VolumeX,
   CornerDownRight,
@@ -21,6 +22,7 @@ import {
   Pause
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import likeService from "../services/likeService";
 import bookmarkService from "../services/bookmarkService";
 import postService from "../services/postService";
@@ -64,6 +66,7 @@ function timeAgo(dateStr) {
 export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDetailed = false }) {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { language, t } = useLanguage();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
   const [currentPost, setCurrentPost] = useState(post);
@@ -91,6 +94,11 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
   const [theaterInitialImageIndex, setTheaterInitialImageIndex] = useState(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState({});
   const [isVideoMuted, setIsVideoMuted] = useState({});
+
+  // Translation states
+  const [isTranslated, setIsTranslated] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedData, setTranslatedData] = useState(null);
 
   const postVideoRef = useRef(null);
   const postVideoObserverRef = useRef(null);
@@ -657,16 +665,74 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
         )}
 
         {/* Thân Bài Viết (Typography Thoáng) */}
-        {post?.title && post.title !== (post?.content || post?.body || post?.text) && post?.content && (
-          <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-1">
-            {post.title}
-          </h2>
-        )}
-        {(post?.content || post?.body || post?.title || post?.text) && (
-          <p className="text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-200 my-2 whitespace-pre-line break-words">
-            {post?.content || post?.body || post?.title || post?.text}
-          </p>
-        )}
+        {(() => {
+          const displayTitle = isTranslated && translatedData?.translatedTitle ? translatedData.translatedTitle : (post?.title);
+          const displayContent = isTranslated && translatedData?.translatedContent ? translatedData.translatedContent : (post?.content || post?.body || post?.text);
+
+          return (
+            <>
+              {displayTitle && displayTitle !== displayContent && (
+                <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+                  {displayTitle}
+                </h2>
+              )}
+              {displayContent && (
+                <p className="text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-200 my-2 whitespace-pre-line break-words">
+                  {displayContent}
+                </p>
+              )}
+
+              {/* Translate Action Button */}
+              {displayContent && (
+                <div className="my-1 flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={isTranslating}
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (isTranslated) {
+                        setIsTranslated(false);
+                        return;
+                      }
+                      if (translatedData) {
+                        setIsTranslated(true);
+                        return;
+                      }
+                      setIsTranslating(true);
+                      try {
+                        const targetLang = language || "vi";
+                        const res = await postService.translate(post.id, targetLang);
+                        if (res.data) {
+                          setTranslatedData(res.data);
+                          setIsTranslated(true);
+                        }
+                      } catch {
+                        toast.error(t("post.translationFailed"));
+                      } finally {
+                        setIsTranslating(false);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0866ff] hover:underline cursor-pointer transition disabled:opacity-50"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>
+                      {isTranslating
+                        ? t("post.translating")
+                        : isTranslated
+                        ? t("post.viewOriginal")
+                        : t("post.translate")}
+                    </span>
+                  </button>
+                  {isTranslated && (
+                    <span className="text-[11px] text-zinc-400">
+                      • {t("post.translatedFrom", { lang: post.sourceLanguage?.toUpperCase() || "VI" })}
+                    </span>
+                  )}
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         {/* Khung bài viết gốc khi được chia sẻ (Embedded Original Shared Post) */}
         {originalPost && (

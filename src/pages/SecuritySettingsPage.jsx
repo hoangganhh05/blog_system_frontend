@@ -23,11 +23,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import userService from "../services/userService";
 import { setUserActiveStatusEnabled } from "../utils/statusUtils";
 
 export default function SecuritySettingsPage() {
   const { currentUser } = useAuth();
+  const { language, setLanguage, t, supportedLanguages } = useLanguage();
   const navigate = useNavigate();
   const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
@@ -688,6 +690,54 @@ export default function SecuritySettingsPage() {
                   Giao diện sẽ tự động chuyển sang Tối/Sáng dựa theo cài đặt hệ thống của thiết bị bạn.
                 </p>
               )}
+            </div>
+
+            {/* CARD: NGÔN NGỮ HIỂN THỊ */}
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col gap-5">
+              <div className="flex items-start gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-4">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0">
+                  <Globe className="w-4 h-4 text-indigo-500" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{t("settings.languageTitle")}</h2>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    {t("settings.languageDesc")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {supportedLanguages.map((langItem) => {
+                  const isSelected = language === langItem.code;
+                  return (
+                    <button
+                      key={langItem.code}
+                      type="button"
+                      onClick={() => {
+                        setLanguage(langItem.code);
+                        if (currentUser?.id) {
+                          userService.update(currentUser.id, { preferredLanguage: langItem.code }).catch(() => {});
+                        }
+                        toast.success(`Đã đổi ngôn ngữ sang ${langItem.nativeName}`);
+                      }}
+                      className={`relative flex flex-col items-center gap-2 p-3.5 rounded-2xl border-2 transition-all cursor-pointer ${
+                        isSelected
+                          ? "border-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/40"
+                          : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/40"
+                      }`}
+                    >
+                      <span className="text-2xl">{langItem.flag}</span>
+                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{langItem.nativeName}</span>
+                      <span className="text-[10px] text-zinc-400">{langItem.englishName}</span>
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-indigo-500 flex items-center justify-center">
+                          <CheckCircle2 className="w-3 h-3 text-white" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* CARD: CHẾ ĐỘ THU GỌN */}
