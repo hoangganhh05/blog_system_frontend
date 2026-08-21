@@ -46,8 +46,11 @@ export default function ShortVideoFeed() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
+  const [hasError, setHasError] = useState(false);
+
   const fetchVideoPosts = useCallback(async () => {
     setLoading(true);
+    setHasError(false);
     try {
       const res = await postService.getAll(0, 50);
       const allPosts = res.data?.content || res.data || [];
@@ -95,6 +98,7 @@ export default function ShortVideoFeed() {
           .catch(() => {});
       });
     } catch {
+      setHasError(true);
       setVideos([]);
     } finally {
       setLoading(false);
@@ -460,6 +464,24 @@ export default function ShortVideoFeed() {
             <div className="flex flex-col items-center gap-3">
               <Loader2 className="w-8 h-8 text-white animate-spin" />
               <span className="text-white/60 text-sm">Đang tải video...</span>
+            </div>
+          </div>
+        ) : hasError ? (
+          <div className="w-full h-full flex items-center justify-center bg-black">
+            <div className="flex flex-col items-center gap-5 text-center px-8">
+              <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
+                <Video className="w-10 h-10 text-white/50" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-xl mb-2">Không thể tải video</h3>
+                <p className="text-white/55 text-sm">Có lỗi xảy ra khi kết nối máy chủ. Vui lòng thử lại!</p>
+              </div>
+              <button
+                onClick={fetchVideoPosts}
+                className="px-8 py-3.5 bg-white text-black font-bold rounded-full text-sm hover:bg-white/90 active:scale-95 transition-all shadow-lg"
+              >
+                Thử lại
+              </button>
             </div>
           </div>
         ) : videos.length === 0 ? (

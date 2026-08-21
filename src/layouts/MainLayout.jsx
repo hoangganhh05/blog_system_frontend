@@ -143,16 +143,15 @@ export default function MainLayout({ children }) {
   };
 
   const pathname = location.pathname;
+  const isShortsPage = pathname === "/shorts";
   const is3ColumnFeedPage = pathname === "/" || pathname === "/trending";
   const isProfilePage = pathname.startsWith("/profile");
   const isPostDetailPage = pathname.startsWith("/posts/");
 
   return (
     <div className="min-h-screen w-full bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col transition-colors duration-200">
-      {/* ======================================================================
-          STICKY TOP HEADER (h-14, Full-width Fluid Navbar, Crisp border-b)
-          ====================================================================== */}
-      <header className="w-full h-14 shrink-0 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50 shadow-xs">
+      {!isShortsPage && (
+        <header className="w-full h-14 shrink-0 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50 shadow-xs">
         {mobileSearchOpen ? (
           /* FULL WIDTH MOBILE SEARCH BAR OVERLAY */
           <div className="w-full h-14 px-3 sm:px-6 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
@@ -392,6 +391,7 @@ export default function MainLayout({ children }) {
           onClose={() => setMobileMenuOpen(false)}
         />
       </header>
+      )}
 
       {/* LEFT SIDEBAR: Minimal Icon Bar with Hover Tooltips (Fixed on Desktop md+) */}
       <LeftSidebar />
@@ -401,7 +401,11 @@ export default function MainLayout({ children }) {
           - Home / Trending: 2-column Facebook layout (Center Feed + Sticky Right Sidebar)
           - Profile / Posts / Tools: Balanced Centered Layout
           ====================================================================== */}
-      {is3ColumnFeedPage ? (
+      {isShortsPage ? (
+        <main className="w-full flex-1 flex flex-col md:pl-24">
+          {children}
+        </main>
+      ) : is3ColumnFeedPage ? (
         <div className={`w-full max-w-[1360px] mx-auto min-h-screen grid grid-cols-12 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-4 pt-3 sm:pt-4 items-start transition-all duration-300 ${
           isSidebarCollapsed ? "md:pl-24" : "md:pl-72"
         } md:pr-4`}>
@@ -575,7 +579,7 @@ export default function MainLayout({ children }) {
       />
 
       {/* Scroll to Top Floating Button (Smooth 60fps glassmorphism) */}
-      {showScrollTop && (
+      {!isShortsPage && showScrollTop && (
         <button
           type="button"
           onClick={scrollToTop}
