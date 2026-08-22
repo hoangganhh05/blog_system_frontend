@@ -192,11 +192,12 @@ export default function Comment({ comment, onDelete, onReplyCreated, onUpdate })
 
       {/* Cột Nội Dung Bình Luận */}
       <div className="flex-1 min-w-0 flex flex-col items-start">
-        {/* Container Bong Bóng Bình Luận */}
-        <div className="relative group/bubble inline-block max-w-[90%] sm:max-w-[85%] bg-slate-100 dark:bg-zinc-800/80 hover:bg-slate-200/50 dark:hover:bg-zinc-800 rounded-2xl rounded-tl-xs px-3.5 py-2.5 border border-slate-200/50 dark:border-zinc-700/40 transition-colors">
-          {/* Header trong bong bóng: Tên người dùng + Thời gian */}
-          <div className="flex items-center justify-between gap-3 mb-1">
-            <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+        {/* Hàng chứa Bong bóng + Nút 3 chấm song song bên phải */}
+        <div className="flex items-center gap-1.5 max-w-full group/bubble-row">
+          {/* Container Bong Bóng Bình Luận */}
+          <div className="relative inline-block max-w-[90%] sm:max-w-[85%] bg-slate-100 dark:bg-zinc-800/80 hover:bg-slate-200/50 dark:hover:bg-zinc-800 rounded-2xl rounded-tl-xs px-3.5 py-2.5 border border-slate-200/50 dark:border-zinc-700/40 transition-colors">
+            {/* Header trong bong bóng: Tên người dùng + Thời gian */}
+            <div className="flex items-center gap-1.5 mb-1 flex-wrap">
               <Link
                 to={`/profile/${author.id || author.username}`}
                 className="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 hover:underline truncate"
@@ -214,103 +215,103 @@ export default function Comment({ comment, onDelete, onReplyCreated, onUpdate })
               </span>
             </div>
 
-            {/* Menu Actions (3 chấm góc trên bên phải của bong bóng) */}
-            {isOwner && (
-              <div className="relative shrink-0">
-                <button
-                  ref={menuButtonRef}
-                  type="button"
-                  onClick={handleToggleMenu}
-                  className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-black/5 dark:hover:bg-white/10 transition opacity-80 sm:opacity-0 group-hover:opacity-100 cursor-pointer"
-                  title="Tùy chọn bình luận"
-                >
-                  <MoreHorizontal className="w-3.5 h-3.5" />
-                </button>
-
-                {menuOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-[90] bg-transparent cursor-default"
-                      onClick={() => setMenuOpen(false)}
+            {/* Thân bình luận */}
+            {isEditing ? (
+              <div className="my-1 flex flex-col gap-2">
+                <textarea
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  rows={2}
+                  className="w-full bg-white dark:bg-zinc-900 rounded-xl p-2.5 text-xs sm:text-sm text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-700 focus:outline-none"
+                />
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="px-3 py-1 rounded-full text-xs font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 cursor-pointer"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleEdit}
+                    disabled={isSubmitting}
+                    className="px-4 py-1 rounded-full text-xs font-bold bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 cursor-pointer"
+                  >
+                    {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : "Lưu"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                {parsed.text && (
+                  <div className="text-xs sm:text-sm leading-relaxed text-zinc-800 dark:text-zinc-200 break-words whitespace-pre-wrap">
+                    {renderCommentTextWithMentions(parsed.text)}
+                  </div>
+                )}
+                {parsed.mediaUrl && (
+                  <div className="mt-1.5 rounded-xl overflow-hidden max-w-[240px] max-h-[190px] border border-zinc-200/80 dark:border-zinc-700/60 shadow-xs">
+                    <img
+                      src={parsed.mediaUrl}
+                      alt="GIF / Ảnh bình luận"
+                      className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
+                      onClick={() => window.open(parsed.mediaUrl, "_blank")}
+                      loading="lazy"
                     />
-                    <div
-                      className={`absolute right-0 w-32 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-1 z-[100] flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100 ${
-                        menuPlacement === "top" ? "bottom-full mb-1.5" : "top-full mt-1.5"
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsEditing(true);
-                          setMenuOpen(false);
-                        }}
-                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left cursor-pointer transition"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        <span>Sửa</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 w-full text-left cursor-pointer transition"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Xóa</span>
-                      </button>
-                    </div>
-                  </>
+                  </div>
                 )}
               </div>
             )}
           </div>
 
-          {/* Thân bình luận */}
-          {isEditing ? (
-            <div className="my-1 flex flex-col gap-2">
-              <textarea
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                rows={2}
-                className="w-full bg-white dark:bg-zinc-900 rounded-xl p-2.5 text-xs sm:text-sm text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-700 focus:outline-none"
-              />
-              <div className="flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="px-3 py-1 rounded-full text-xs font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 cursor-pointer"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="button"
-                  onClick={handleEdit}
-                  disabled={isSubmitting}
-                  className="px-4 py-1 rounded-full text-xs font-bold bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 cursor-pointer"
-                >
-                  {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : "Lưu"}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-1">
-              {parsed.text && (
-                <div className="text-xs sm:text-sm leading-relaxed text-zinc-800 dark:text-zinc-200 break-words whitespace-pre-wrap">
-                  {renderCommentTextWithMentions(parsed.text)}
-                </div>
-              )}
-              {parsed.mediaUrl && (
-                <div className="mt-1.5 rounded-xl overflow-hidden max-w-[240px] max-h-[190px] border border-zinc-200/80 dark:border-zinc-700/60 shadow-xs">
-                  <img
-                    src={parsed.mediaUrl}
-                    alt="GIF / Ảnh bình luận"
-                    className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
-                    onClick={() => window.open(parsed.mediaUrl, "_blank")}
-                    loading="lazy"
+          {/* Menu Actions (Nút 3 chấm & Popover nằm ngoài bong bóng, song song bên phải) */}
+          {isOwner && (
+            <div className="relative shrink-0 self-center">
+              <button
+                ref={menuButtonRef}
+                type="button"
+                onClick={handleToggleMenu}
+                className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70 transition opacity-80 sm:opacity-0 group-hover:opacity-100 cursor-pointer"
+                title="Tùy chọn bình luận"
+              >
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+
+              {menuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-[90] bg-transparent cursor-default"
+                    onClick={() => setMenuOpen(false)}
                   />
-                </div>
+                  <div
+                    className={`absolute left-0 sm:left-auto sm:right-0 w-32 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-1 z-[100] flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100 ${
+                      menuPlacement === "top" ? "bottom-full mb-1.5" : "top-full mt-1.5"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditing(true);
+                        setMenuOpen(false);
+                      }}
+                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left cursor-pointer transition"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      <span>Sửa</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setIsDeleteModalOpen(true);
+                      }}
+                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 w-full text-left cursor-pointer transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Xóa</span>
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           )}
