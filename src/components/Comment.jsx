@@ -76,7 +76,6 @@ function renderCommentTextWithMentions(text) {
 
 export default function Comment({ comment, onDelete, onReplyCreated, onUpdate }) {
   const { currentUser } = useAuth();
-  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
 
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState("");
@@ -102,9 +101,22 @@ export default function Comment({ comment, onDelete, onReplyCreated, onUpdate })
     setMenuOpen(!menuOpen);
   };
 
-  const author = comment?.user || {};
-  const authorName = author.fullName || author.username || "Người dùng";
-  const isOwner = currentUserId && (Number(author.id) === Number(currentUserId) || Number(author.id) === Number(currentUser?.id));
+  const author = comment?.user || comment?.author || {};
+  const authorId = author.id || comment?.userId || comment?.authorId;
+  const authorUsername = author.username || comment?.username;
+  const authorName = author.fullName || author.username || comment?.userFullName || "Người dùng";
+  
+  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
+  const currentUsername = currentUser?.username;
+
+  const isOwner = Boolean(
+    (currentUserId && authorId && Number(authorId) === Number(currentUserId)) ||
+    (currentUsername && authorUsername && String(currentUsername).toLowerCase() === String(authorUsername).toLowerCase()) ||
+    currentUser?.role === "ADMIN" ||
+    currentUser?.role === "ROLE_ADMIN" ||
+    (Array.isArray(currentUser?.roles) && currentUser.roles.some((r) => r === "ROLE_ADMIN" || r === "ADMIN"))
+  );
+
   const authorAvatarUrl = isOwner ? (currentUser?.avatarUrl || author.avatarUrl) : (author.avatarUrl || author.avatar);
   const authorAvatarColor = isOwner ? (currentUser?.avatarColor || author.avatarColor) : author.avatarColor;
 
@@ -209,7 +221,7 @@ export default function Comment({ comment, onDelete, onReplyCreated, onUpdate })
                   ref={menuButtonRef}
                   type="button"
                   onClick={handleToggleMenu}
-                  className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition opacity-70 sm:opacity-0 sm:group-hover/bubble:opacity-100 cursor-pointer"
+                  className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-black/5 dark:hover:bg-white/10 transition opacity-80 sm:opacity-0 group-hover:opacity-100 cursor-pointer"
                   title="Tùy chọn bình luận"
                 >
                   <MoreHorizontal className="w-3.5 h-3.5" />
@@ -218,11 +230,11 @@ export default function Comment({ comment, onDelete, onReplyCreated, onUpdate })
                 {menuOpen && (
                   <>
                     <div
-                      className="fixed inset-0 z-40 bg-transparent cursor-default"
+                      className="fixed inset-0 z-[90] bg-transparent cursor-default"
                       onClick={() => setMenuOpen(false)}
                     />
                     <div
-                      className={`absolute right-0 w-32 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-1 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100 ${
+                      className={`absolute right-0 w-32 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-1 z-[100] flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100 ${
                         menuPlacement === "top" ? "bottom-full mb-1.5" : "top-full mt-1.5"
                       }`}
                     >
