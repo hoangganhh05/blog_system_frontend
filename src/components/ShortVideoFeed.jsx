@@ -1361,9 +1361,6 @@ export default function ShortVideoFeed() {
         <>
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs md:hidden" onClick={closeComments} />
           <div className="fixed inset-x-0 bottom-0 z-50 h-[75dvh] bg-white dark:bg-[#18181b] rounded-t-3xl border-t border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col md:hidden animate-in slide-in-from-bottom duration-250 overflow-hidden">
-            <div className="flex justify-center pt-2.5 pb-0.5 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-            </div>
             <ShortsCommentSection
               comments={commentList}
               commentsCount={currentVideo ? currentVideo.comments : 0}

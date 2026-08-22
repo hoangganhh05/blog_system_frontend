@@ -396,6 +396,38 @@ export default function ShortsCommentSection({
   const [showGif, setShowGif] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef(null);
+  const touchStartY = useRef(0);
+  const [dragOffset, setDragOffset] = useState(0);
+
+  // 1. Lock body background scroll on mobile drawer
+  useEffect(() => {
+    if (!isMobileDrawer) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isMobileDrawer]);
+
+  // 2. Swipe down on drag handle to dismiss
+  const handleTouchStart = (e) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e) => {
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - touchStartY.current;
+    if (diff > 0) {
+      setDragOffset(diff);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (dragOffset > 80 && onClose) {
+      onClose();
+    }
+    setDragOffset(0);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -432,7 +464,23 @@ export default function ShortsCommentSection({
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-white dark:bg-[#18181b] select-none">
+    <div
+      className="flex flex-col h-full w-full bg-white dark:bg-[#18181b] select-none transition-transform duration-100"
+      style={dragOffset > 0 ? { transform: `translateY(${dragOffset}px)` } : undefined}
+    >
+      {/* Drag Handle on Mobile (< 768px) with swipe to dismiss gesture */}
+      {isMobileDrawer && (
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="flex justify-center pt-2.5 pb-1 shrink-0 cursor-grab active:cursor-grabbing touch-none select-none"
+          title="Vuốt xuống để đóng"
+        >
+          <div className="w-10 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-700 hover:bg-zinc-400 dark:hover:bg-zinc-600 transition-colors" />
+        </div>
+      )}
+
       {/* 1. HEADER: Title & Circular Close Button */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800/80 shrink-0">
         <h3 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 tracking-tight">
