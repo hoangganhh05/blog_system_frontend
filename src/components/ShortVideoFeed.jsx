@@ -730,12 +730,11 @@ export default function ShortVideoFeed() {
           
           {/* Shorts Video Box: Dynamic Sizing (16:9 Landscape widescreen vs 9:16 Portrait phone format) */}
           <div
-            className={`relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col justify-between shadow-2xl md:border md:border-zinc-800/80 shrink-0 transition-all duration-300 w-full h-[100dvh] md:h-auto ${
+            className={`relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800/80 shrink-0 transition-all duration-300 w-full h-[100dvh] md:h-[85vh] ${
               isLandscape
                 ? "md:w-full md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:h-[82vh] md:max-h-[85vh] md:aspect-video"
                 : "md:w-auto md:aspect-[9/16] md:h-[85vh] md:max-h-[88vh] md:max-w-[420px]"
             }`}
-            style={{ height: "100dvh", minHeight: "-webkit-fill-available" }}
           >
             {/* Ambient Background Blur for Desktop */}
             {currentVideo && (
@@ -752,9 +751,7 @@ export default function ShortVideoFeed() {
 
             {/* Top Controls Overlay (Back on Left, Audio & Settings on Right) */}
             <div
-              className={`absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pb-3 bg-gradient-to-b from-black/85 via-black/40 to-transparent pointer-events-none transition-opacity duration-300 ${
-                isCurrentVideoReady ? "opacity-100" : "opacity-0"
-              }`}
+              className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 pb-3 bg-gradient-to-b from-black/80 via-black/30 to-transparent pointer-events-none select-none transition-opacity duration-200"
               style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
             >
               {/* Top Left: Back button */}
@@ -886,13 +883,11 @@ export default function ShortVideoFeed() {
             {/* Video Feed Scroll/Snap Container */}
             <div
               ref={containerRef}
-              className="w-full flex-1 overflow-y-scroll snap-y snap-mandatory select-none no-scrollbar scrollbar-none relative z-10"
+              className="w-full h-full flex-1 overflow-y-scroll snap-y snap-mandatory select-none no-scrollbar scrollbar-none relative z-10"
               style={{
                 scrollSnapType: "y mandatory",
                 WebkitOverflowScrolling: "touch",
                 overscrollBehaviorY: "contain",
-                height: "100dvh",
-                minHeight: "-webkit-fill-available",
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
               }}
@@ -975,10 +970,8 @@ export default function ShortVideoFeed() {
                     <div
                       key={video.id}
                       ref={(el) => (itemRefs.current[index] = el)}
-                      className="relative w-full h-[100dvh] md:h-full shrink-0 overflow-hidden bg-black flex items-center justify-center snap-start"
+                      className="relative w-full h-full shrink-0 overflow-hidden bg-black flex items-center justify-center snap-start"
                       style={{
-                        height: "100dvh",
-                        minHeight: "-webkit-fill-available",
                         scrollSnapAlign: "start",
                         scrollSnapStop: "always",
                       }}
