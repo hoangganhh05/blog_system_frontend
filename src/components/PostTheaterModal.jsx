@@ -34,6 +34,7 @@ import GifPicker from "./GifPicker";
 import ReactionsModal from "./ReactionsModal";
 import ShareModal from "./ShareModal";
 import ConfirmModal from "./ConfirmModal";
+import { isVideoUrl } from "../utils/mediaUtils";
 
 function timeAgo(dateStr) {
   if (!dateStr) return "";
