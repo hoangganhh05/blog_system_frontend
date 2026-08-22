@@ -976,11 +976,26 @@ export default function ShortVideoFeed() {
                         scrollSnapStop: "always",
                       }}
                     >
-                      {/* Video Element: Dynamic aspect ratio & object-contain */}
+                      {/* Ambient Blurred Background Layer (Loại bỏ triệt để 2 dải đen trên/dưới) */}
+                      {isReady && video.url && (
+                        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+                          <img
+                            src={video.thumbnail || video.url}
+                            alt=""
+                            aria-hidden="true"
+                            className="w-full h-full object-cover scale-125 blur-3xl opacity-60 brightness-75 select-none"
+                            onError={(e) => { e.currentTarget.style.display = "none"; }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Video Element: object-cover tràn viền hoặc object-contain kèm nền mờ */}
                       <video
                         ref={(el) => (videoRefs.current[index] = el)}
                         src={video.url}
-                        className={`w-full h-full object-contain object-center block transition-opacity duration-300 ${
+                        className={`relative z-10 w-full h-full ${
+                          videoAspectRatios[index]?.isLandscape ? "object-contain" : "object-cover"
+                        } object-center block transition-opacity duration-300 ${
                           isReady ? "opacity-100" : "opacity-0"
                         }`}
                         preload="metadata"
