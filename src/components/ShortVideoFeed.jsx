@@ -871,13 +871,15 @@ export default function ShortVideoFeed() {
             {/* Video Feed Scroll/Snap Container */}
             <div
               ref={containerRef}
-              className="w-full flex-1 overflow-y-scroll snap-y snap-mandatory select-none custom-scrollbar relative z-10"
+              className="w-full flex-1 overflow-y-scroll snap-y snap-mandatory select-none no-scrollbar scrollbar-none relative z-10"
               style={{
                 scrollSnapType: "y mandatory",
                 WebkitOverflowScrolling: "touch",
                 overscrollBehaviorY: "contain",
                 height: "100dvh",
                 minHeight: "-webkit-fill-available",
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
               }}
             >
               {loading ? (
