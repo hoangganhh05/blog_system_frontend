@@ -47,6 +47,7 @@ export default function ShortVideoFeed() {
   const [playingMap, setPlayingMap] = useState({});
   const [viewedSet, setViewedSet] = useState(new Set());
   const [videoAspectRatios, setVideoAspectRatios] = useState({});
+  const [videoLoadedMap, setVideoLoadedMap] = useState({});
 
   const pageRef = useRef(0);
   const sessionViewedIdsRef = useRef(new Set());
@@ -69,6 +70,7 @@ export default function ShortVideoFeed() {
         ...prev,
         [index]: { ratio, isLandscape, width: videoWidth, height: videoHeight },
       }));
+      setVideoLoadedMap((prev) => ({ ...prev, [index]: true }));
     }
   };
 
@@ -453,6 +455,7 @@ export default function ShortVideoFeed() {
   const currentVideo = videos[currentVideoIndex];
   const currentRatioData = videoAspectRatios[currentVideoIndex];
   const isLandscape = currentRatioData ? currentRatioData.isLandscape : false;
+  const isCurrentVideoReady = !!videoLoadedMap[currentVideoIndex];
 
   const handleCommentTextChange = async (e) => {
     const val = e.target.value;
@@ -678,7 +681,7 @@ export default function ShortVideoFeed() {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="w-full h-full flex flex-col md:flex-row items-center justify-center p-0 md:p-2 lg:p-4 gap-0 md:gap-4 lg:gap-6 overflow-hidden max-w-[1680px] mx-auto select-none"
+      className="w-full h-full min-h-[100dvh] md:min-h-0 flex flex-col md:flex-row items-center justify-center p-0 md:p-2 lg:p-4 gap-0 md:gap-4 lg:gap-6 overflow-hidden max-w-[1680px] mx-auto select-none"
     >
       {/* ======================================================================
           1. LEFT SECTION: Dynamic Aspect Video Box + Floating Controls + Action Rail
@@ -706,7 +709,7 @@ export default function ShortVideoFeed() {
         </div>
 
         {/* Outer Flex Container grouping Video and Desktop Action Rail */}
-        <div className="flex items-end justify-center gap-3 lg:gap-4 max-w-full">
+        <div className="flex items-end justify-center gap-3 lg:gap-4 w-full h-full md:w-auto md:h-auto max-w-full">
           
           {/* Shorts Video Box: Dynamic Sizing (16:9 Landscape widescreen vs 9:16 Portrait phone format) */}
           <div
@@ -729,9 +732,11 @@ export default function ShortVideoFeed() {
               </div>
             )}
 
-            {/* Top Controls Overlay (Back, Mute/Unmute, Settings) */}
+            {/* Top Controls Overlay (Back, Mute/Unmute, Settings) with smooth fade-in */}
             <div
-              className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pb-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none"
+              className={`absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 pb-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none transition-opacity duration-300 ${
+                isCurrentVideoReady ? "opacity-100" : "opacity-0"
+              }`}
               style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
             >
               <div className="flex items-center gap-2 pointer-events-auto">
@@ -862,10 +867,32 @@ export default function ShortVideoFeed() {
               }}
             >
               {loading ? (
-                <div className="w-full h-full flex items-center justify-center bg-black">
-                  <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 text-white animate-spin" />
-                    <span className="text-white/60 text-sm">Đang tải video...</span>
+                /* Full Shimmer Skeleton while loading initial list (Prevent CLS & overlap) */
+                <div className="w-full h-full flex flex-col justify-between bg-zinc-950 p-4 relative overflow-hidden animate-pulse">
+                  <div className="flex items-center justify-between w-full pt-2">
+                    <div className="flex gap-2">
+                      <div className="w-10 h-10 rounded-full bg-zinc-800/80" />
+                      <div className="w-10 h-10 rounded-full bg-zinc-800/80" />
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-zinc-800/80" />
+                  </div>
+                  
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                    <Loader2 className="w-9 h-9 text-[#0866ff] animate-spin" />
+                    <span className="text-zinc-400 text-xs font-semibold tracking-wide">Đang tải video...</span>
+                  </div>
+
+                  <div className="flex items-end justify-between w-full pb-6">
+                    <div className="flex flex-col gap-2.5 max-w-[70%]">
+                      <div className="w-32 h-4 rounded-full bg-zinc-800/80" />
+                      <div className="w-48 h-3 rounded-full bg-zinc-800/60" />
+                      <div className="w-24 h-3 rounded-full bg-zinc-800/50" />
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <div className="w-10 h-10 rounded-full bg-zinc-800/80" />
+                      <div className="w-10 h-10 rounded-full bg-zinc-800/80" />
+                      <div className="w-10 h-10 rounded-full bg-zinc-800/80" />
+                    </div>
                   </div>
                 </div>
               ) : hasError ? (
@@ -880,7 +907,7 @@ export default function ShortVideoFeed() {
                     </div>
                     <button
                       onClick={fetchVideoPosts}
-                      className="px-8 py-3.5 bg-white text-black font-bold rounded-full text-sm hover:bg-white/90 active:scale-95 transition-all shadow-lg"
+                      className="px-8 py-3.5 bg-white text-black font-bold rounded-full text-sm hover:bg-white/90 active:scale-95 transition-all shadow-lg cursor-pointer"
                     >
                       Thử lại
                     </button>
@@ -898,7 +925,7 @@ export default function ShortVideoFeed() {
                     </div>
                     <button
                       onClick={() => setShowUpload(true)}
-                      className="px-8 py-3.5 bg-white text-black font-bold rounded-full text-sm hover:bg-white/90 active:scale-95 transition-all shadow-lg"
+                      className="px-8 py-3.5 bg-white text-black font-bold rounded-full text-sm hover:bg-white/90 active:scale-95 transition-all shadow-lg cursor-pointer"
                     >
                       Đăng video ngay
                     </button>
@@ -911,6 +938,7 @@ export default function ShortVideoFeed() {
                   const isOwnVideo = authorId === Number(currentUser?.id);
                   const isFollowing = !!followMap[authorId];
                   const prog = progressMap[index];
+                  const isReady = !!videoLoadedMap[index];
 
                   return (
                     <div
@@ -919,13 +947,17 @@ export default function ShortVideoFeed() {
                       className="relative w-full h-full shrink-0 overflow-hidden bg-black flex items-center justify-center snap-start"
                       style={{ scrollSnapAlign: "start", scrollSnapStop: "always" }}
                     >
-                      {/* Video element with dynamic aspect ratio & object-contain */}
+                      {/* Video Element: Dynamic aspect ratio & object-contain */}
                       <video
                         ref={(el) => (videoRefs.current[index] = el)}
                         src={video.url}
-                        className="w-full h-full object-contain object-center block"
+                        className={`w-full h-full object-contain object-center block transition-opacity duration-300 ${
+                          isReady ? "opacity-100" : "opacity-0"
+                        }`}
                         preload="metadata"
                         onLoadedMetadata={(e) => handleShortVideoMetadata(e, index)}
+                        onLoadedData={() => setVideoLoadedMap((prev) => ({ ...prev, [index]: true }))}
+                        onCanPlay={() => setVideoLoadedMap((prev) => ({ ...prev, [index]: true }))}
                         loop={!autoPlayNext}
                         playsInline
                         onClick={(e) => handleVideoClick(e, index)}
@@ -939,12 +971,32 @@ export default function ShortVideoFeed() {
                         onPause={() => setPlayingMap((prev) => ({ ...prev, [index]: false }))}
                       />
 
-                      {/* Gradient overlays */}
-                      <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-[5]" />
-                      <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none z-[5]" />
+                      {/* Per-Slide Shimmer Skeleton Placeholder before Video is ready */}
+                      {!isReady && (
+                        <div className="absolute inset-0 z-20 flex flex-col justify-between bg-zinc-950 p-4 animate-pulse pointer-events-none">
+                          {video.url && (
+                            <img
+                              src={video.url}
+                              alt=""
+                              aria-hidden="true"
+                              className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-20 pointer-events-none select-none"
+                              onError={(e) => { e.currentTarget.style.display = "none"; }}
+                            />
+                          )}
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5">
+                            <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
+                              <Loader2 className="w-6 h-6 text-white/80 animate-spin" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Gradient overlays with smooth transition */}
+                      <div className={`absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-[5] transition-opacity duration-300 ${isReady ? "opacity-100" : "opacity-0"}`} />
+                      <div className={`absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none z-[5] transition-opacity duration-300 ${isReady ? "opacity-100" : "opacity-0"}`} />
 
                       {/* Pause indicator */}
-                      {!isPlaying && index === currentVideoIndex && (
+                      {!isPlaying && index === currentVideoIndex && isReady && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[10]">
                           <div className="w-16 h-16 rounded-full bg-black/45 backdrop-blur-xl ring-1 ring-white/15 flex items-center justify-center">
                             <Play className="w-8 h-8 text-white fill-white ml-1 drop-shadow-lg" />
@@ -952,11 +1004,13 @@ export default function ShortVideoFeed() {
                         </div>
                       )}
 
-                      {/* MOBILE-ONLY ACTION RAIL OVERLAY (< 768px) */}
-                      <div className="md:hidden absolute right-3 bottom-14 flex flex-col items-center gap-3 z-30 pointer-events-auto">
+                      {/* MOBILE-ONLY ACTION RAIL OVERLAY (< 768px) with Fade-In */}
+                      <div className={`md:hidden absolute right-3 bottom-14 flex flex-col items-center gap-3 z-30 pointer-events-auto transition-opacity duration-300 ${
+                        isReady ? "opacity-100" : "opacity-0 pointer-events-none"
+                      }`}>
                         {/* Author Avatar with Follow Overlay */}
                         <div className="relative mb-0.5">
-                          <button onClick={() => navigate(`/profile/${video.author.id}`)} className="block shrink-0 ring-2 ring-white/90 rounded-full shadow-md active:scale-95 transition">
+                          <button onClick={() => navigate(`/profile/${video.author.id}`)} className="block shrink-0 ring-2 ring-white/90 rounded-full shadow-md active:scale-95 transition cursor-pointer">
                             <Avatar
                               userId={video.author.id}
                               src={video.author.avatarUrl}
@@ -970,7 +1024,7 @@ export default function ShortVideoFeed() {
                             <button
                               onClick={() => handleFollow(video.author.id)}
                               aria-label={isFollowing ? "Unfollow" : "Follow"}
-                              className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px] font-extrabold transition-all shadow-md active:scale-90 ${isFollowing ? "bg-emerald-500" : "bg-rose-500 hover:bg-rose-600"}`}
+                              className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px] font-extrabold transition-all shadow-md active:scale-90 cursor-pointer ${isFollowing ? "bg-emerald-500" : "bg-rose-500 hover:bg-rose-600"}`}
                               title={isFollowing ? "Đang theo dõi" : "Theo dõi"}
                             >
                               {isFollowing ? "✓" : "+"}
@@ -984,7 +1038,7 @@ export default function ShortVideoFeed() {
                             type="button"
                             onClick={() => handleLike(video.id)}
                             aria-label="Like"
-                            className={`w-10 h-10 min-w-[40px] min-h-[40px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md ${video.isLiked ? "bg-rose-500/90 ring-rose-400/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
+                            className={`w-10 h-10 min-w-[40px] min-h-[40px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md cursor-pointer ${video.isLiked ? "bg-rose-500/90 ring-rose-400/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
                           >
                             <Heart className={`w-5 h-5 transition-all ${video.isLiked ? "text-white fill-white" : "text-white"}`} />
                           </button>
@@ -997,7 +1051,7 @@ export default function ShortVideoFeed() {
                             type="button"
                             onClick={() => handleComment(video.id)}
                             aria-label="Comments"
-                            className={`w-10 h-10 min-w-[40px] min-h-[40px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md ${showComments && commentsFor === video.id ? "bg-[#0866ff]/90 ring-[#0866ff]/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
+                            className={`w-10 h-10 min-w-[40px] min-h-[40px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md cursor-pointer ${showComments && commentsFor === video.id ? "bg-[#0866ff]/90 ring-[#0866ff]/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
                           >
                             <MessageCircle className="w-5 h-5 text-white" />
                           </button>
@@ -1010,7 +1064,7 @@ export default function ShortVideoFeed() {
                             type="button"
                             onClick={() => handleBookmark(video.id)}
                             aria-label="Save video"
-                            className={`w-10 h-10 min-w-[40px] min-h-[40px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md ${bookmarkMap[video.id] ? "bg-amber-500/90 ring-amber-400/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
+                            className={`w-10 h-10 min-w-[40px] min-h-[40px] rounded-full backdrop-blur-md ring-1 transition-all active:scale-90 flex items-center justify-center shadow-md cursor-pointer ${bookmarkMap[video.id] ? "bg-amber-500/90 ring-amber-400/40 scale-105" : "bg-black/40 ring-white/20 hover:bg-black/60"}`}
                           >
                             <Bookmark className={`w-5 h-5 transition-all ${bookmarkMap[video.id] ? "text-white fill-white" : "text-white"}`} />
                           </button>
@@ -1023,7 +1077,7 @@ export default function ShortVideoFeed() {
                             type="button"
                             onClick={() => handleShare(video)}
                             aria-label="Share video"
-                            className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-black/40 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-md"
+                            className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-black/40 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center hover:bg-black/60 active:scale-90 transition-all shadow-md cursor-pointer"
                           >
                             <Share2 className="w-5 h-5 text-white" />
                           </button>
@@ -1031,12 +1085,14 @@ export default function ShortVideoFeed() {
                         </div>
                       </div>
 
-                      {/* Mobile Video Info Overlay (< 768px: Username, Caption, Audio) */}
-                      <div className="md:hidden absolute left-3.5 right-16 bottom-3.5 z-30 flex flex-col gap-1.5 pointer-events-auto">
+                      {/* Mobile Video Info Overlay (< 768px: Username, Caption, Audio) with Fade-In */}
+                      <div className={`md:hidden absolute left-3.5 right-16 bottom-3.5 z-30 flex flex-col gap-1.5 pointer-events-auto transition-opacity duration-300 ${
+                        isReady ? "opacity-100" : "opacity-0 pointer-events-none"
+                      }`}>
                         <div className="flex items-center gap-2 flex-wrap">
                           <button
                             onClick={() => navigate(`/profile/${video.author.id}`)}
-                            className="text-white font-bold text-sm tracking-tight hover:underline truncate max-w-[180px] drop-shadow"
+                            className="text-white font-bold text-sm tracking-tight hover:underline truncate max-w-[180px] drop-shadow cursor-pointer"
                           >
                             @{video.author.username}
                           </button>
@@ -1048,7 +1104,7 @@ export default function ShortVideoFeed() {
                               {video.description}
                             </p>
                             {video.description.length > 80 && (
-                              <button onClick={() => toggleCaption(index)} className="text-white/70 text-xs font-semibold hover:text-white transition text-left">
+                              <button onClick={() => toggleCaption(index)} className="text-white/70 text-xs font-semibold hover:text-white transition text-left cursor-pointer">
                                 {expandedCaptions[index] ? "Thu gọn" : "Xem thêm"}
                               </button>
                             )}
@@ -1076,7 +1132,9 @@ export default function ShortVideoFeed() {
                       </div>
 
                       {/* Desktop Minimal Caption & Audio Info Overlay on Video Frame */}
-                      <div className="hidden md:flex absolute left-4 right-4 bottom-3 z-30 items-center justify-between text-white/90 text-xs font-medium drop-shadow-sm pointer-events-auto">
+                      <div className={`hidden md:flex absolute left-4 right-4 bottom-3 z-30 items-center justify-between text-white/90 text-xs font-medium drop-shadow-sm pointer-events-auto transition-opacity duration-300 ${
+                        isReady ? "opacity-100" : "opacity-0 pointer-events-none"
+                      }`}>
                         <div className="flex items-center gap-2 max-w-[70%] truncate">
                           <div className="w-3.5 h-3.5 shrink-0 rounded-full bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-indigo-500 shadow animate-spin" style={{ animationDuration: "3s" }} />
                           <span className="truncate font-semibold">@{video.author.username}</span>
@@ -1097,9 +1155,11 @@ export default function ShortVideoFeed() {
                         </div>
                       </div>
 
-                      {/* Edge-to-edge Seekbar Progress Bar */}
+                      {/* Edge-to-edge Seekbar Progress Bar with Fade-In */}
                       <div
-                        className="absolute inset-x-0 bottom-0 z-40 w-full h-5 flex items-end cursor-pointer pointer-events-auto group/seekbar"
+                        className={`absolute inset-x-0 bottom-0 z-40 w-full h-5 flex items-end cursor-pointer pointer-events-auto group/seekbar transition-opacity duration-300 ${
+                          isReady ? "opacity-100" : "opacity-0 pointer-events-none"
+                        }`}
                         onClick={(e) => handleSeek(e, index)}
                         title="Tua video"
                       >
@@ -1119,10 +1179,12 @@ export default function ShortVideoFeed() {
             </div>
           </div>
 
-          {/* DESKTOP VERTICAL ACTION RAIL (Sát cạnh phải video frame) */}
+          {/* DESKTOP VERTICAL ACTION RAIL (Sát cạnh phải video frame) with Fade-In */}
           {currentVideo && (
             <div
-              className="hidden md:flex flex-col items-center justify-end gap-4 pb-6 shrink-0 z-30 select-none self-end"
+              className={`hidden md:flex flex-col items-center justify-end gap-4 pb-6 shrink-0 z-30 select-none self-end transition-opacity duration-300 ${
+                isCurrentVideoReady ? "opacity-100" : "opacity-40"
+              }`}
               style={{ height: "82vh", maxHeight: "85vh" }}
             >
               {/* Creator Avatar & Follow Button */}
@@ -1413,7 +1475,7 @@ export default function ShortVideoFeed() {
               <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
                 Bình luận ({currentVideo ? formatCount(currentVideo.comments) : 0})
               </h3>
-              <button onClick={closeComments} className="w-8 h-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition text-zinc-400">
+              <button onClick={closeComments} className="w-8 h-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition text-zinc-400 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1485,7 +1547,7 @@ export default function ShortVideoFeed() {
           <div className="w-full sm:max-w-md bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-250">
             <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
               <h2 className="font-bold text-base text-zinc-900 dark:text-zinc-100">Đăng video ngắn</h2>
-              <button onClick={() => setShowUpload(false)} className="w-8 h-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition text-zinc-400">
+              <button onClick={() => setShowUpload(false)} className="w-8 h-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition text-zinc-400 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1509,7 +1571,7 @@ export default function ShortVideoFeed() {
           <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 text-white rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-base">Báo cáo vi phạm</h3>
-              <button onClick={() => setShowReportModal(false)} className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400">
+              <button onClick={() => setShowReportModal(false)} className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
