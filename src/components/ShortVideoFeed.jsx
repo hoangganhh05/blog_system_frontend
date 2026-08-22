@@ -689,11 +689,15 @@ export default function ShortVideoFeed() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       className="w-full h-full min-h-[100dvh] md:min-h-0 flex flex-col md:flex-row items-center justify-center p-0 md:p-2 lg:p-4 gap-0 md:gap-4 lg:gap-6 overflow-hidden max-w-[1680px] mx-auto select-none"
+      style={{ height: "100dvh", minHeight: "-webkit-fill-available" }}
     >
       {/* ======================================================================
           1. LEFT SECTION: Dynamic Aspect Video Box + Floating Controls + Action Rail
           ====================================================================== */}
-      <div className="w-full h-full flex-1 flex items-center justify-center p-0 md:p-1 transition-all duration-300 min-w-0 relative">
+      <div
+        className="w-full h-full flex-1 flex items-center justify-center p-0 md:p-1 transition-all duration-300 min-w-0 relative overflow-hidden"
+        style={{ height: "100dvh", minHeight: "-webkit-fill-available" }}
+      >
         
         {/* Navigation Arrow Controls on Desktop (Left side) */}
         <div className="hidden md:flex flex-col gap-3 absolute left-1 lg:left-3 z-40">
@@ -720,11 +724,12 @@ export default function ShortVideoFeed() {
           
           {/* Shorts Video Box: Dynamic Sizing (16:9 Landscape widescreen vs 9:16 Portrait phone format) */}
           <div
-            className={`relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col shadow-2xl md:border md:border-zinc-800/80 shrink-0 transition-all duration-300 w-full h-full ${
+            className={`relative bg-black rounded-none md:rounded-3xl overflow-hidden flex flex-col justify-between shadow-2xl md:border md:border-zinc-800/80 shrink-0 transition-all duration-300 w-full h-[100dvh] md:h-auto ${
               isLandscape
                 ? "md:w-full md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:h-[82vh] md:max-h-[85vh] md:aspect-video"
                 : "md:w-auto md:aspect-[9/16] md:h-[85vh] md:max-h-[88vh] md:max-w-[420px]"
             }`}
+            style={{ height: "100dvh", minHeight: "-webkit-fill-available" }}
           >
             {/* Ambient Background Blur for Desktop */}
             {currentVideo && (
@@ -871,6 +876,8 @@ export default function ShortVideoFeed() {
                 scrollSnapType: "y mandatory",
                 WebkitOverflowScrolling: "touch",
                 overscrollBehaviorY: "contain",
+                height: "100dvh",
+                minHeight: "-webkit-fill-available",
               }}
             >
               {loading ? (
@@ -951,8 +958,13 @@ export default function ShortVideoFeed() {
                     <div
                       key={video.id}
                       ref={(el) => (itemRefs.current[index] = el)}
-                      className="relative w-full h-full shrink-0 overflow-hidden bg-black flex items-center justify-center snap-start"
-                      style={{ scrollSnapAlign: "start", scrollSnapStop: "always" }}
+                      className="relative w-full h-[100dvh] md:h-full shrink-0 overflow-hidden bg-black flex items-center justify-center snap-start"
+                      style={{
+                        height: "100dvh",
+                        minHeight: "-webkit-fill-available",
+                        scrollSnapAlign: "start",
+                        scrollSnapStop: "always",
+                      }}
                     >
                       {/* Video Element: Dynamic aspect ratio & object-contain */}
                       <video
@@ -1000,7 +1012,7 @@ export default function ShortVideoFeed() {
 
                       {/* Gradient overlays with smooth transition */}
                       <div className={`absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-[5] transition-opacity duration-300 ${isReady ? "opacity-100" : "opacity-0"}`} />
-                      <div className={`absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none z-[5] transition-opacity duration-300 ${isReady ? "opacity-100" : "opacity-0"}`} />
+                      <div className={`absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none z-[5] transition-opacity duration-300 ${isReady ? "opacity-100" : "opacity-0"}`} />
 
                       {/* Pause indicator */}
                       {!isPlaying && index === currentVideoIndex && isReady && (
@@ -1011,10 +1023,13 @@ export default function ShortVideoFeed() {
                         </div>
                       )}
 
-                      {/* MOBILE-ONLY ACTION RAIL OVERLAY (< 768px) with Fade-In */}
-                      <div className={`md:hidden absolute right-3 bottom-14 flex flex-col items-center gap-3 z-30 pointer-events-auto transition-opacity duration-300 ${
-                        isReady ? "opacity-100" : "opacity-0 pointer-events-none"
-                      }`}>
+                      {/* MOBILE-ONLY ACTION RAIL OVERLAY (< 768px) with Safe Area Offset */}
+                      <div
+                        className={`md:hidden absolute right-3 z-30 pointer-events-auto flex flex-col items-center gap-3 transition-opacity duration-300 ${
+                          isReady ? "opacity-100" : "opacity-0 pointer-events-none"
+                        }`}
+                        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 52px)" }}
+                      >
                         {/* Author Avatar with Follow Overlay */}
                         <div className="relative mb-0.5">
                           <button onClick={() => navigate(`/profile/${video.author.id}`)} className="block shrink-0 ring-2 ring-white/90 rounded-full shadow-md active:scale-95 transition cursor-pointer">
@@ -1092,10 +1107,13 @@ export default function ShortVideoFeed() {
                         </div>
                       </div>
 
-                      {/* Mobile Video Info Overlay (< 768px: Username, Caption, Audio) with Fade-In */}
-                      <div className={`md:hidden absolute left-3.5 right-16 bottom-3.5 z-30 flex flex-col gap-1.5 pointer-events-auto transition-opacity duration-300 ${
-                        isReady ? "opacity-100" : "opacity-0 pointer-events-none"
-                      }`}>
+                      {/* Mobile Video Info Overlay (< 768px: Username, Caption, Audio) with Safe Area Offset */}
+                      <div
+                        className={`md:hidden absolute left-3.5 right-16 z-30 flex flex-col gap-1.5 pointer-events-auto transition-opacity duration-300 ${
+                          isReady ? "opacity-100" : "opacity-0 pointer-events-none"
+                        }`}
+                        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 20px)" }}
+                      >
                         <div className="flex items-center gap-2 flex-wrap">
                           <button
                             onClick={() => navigate(`/profile/${video.author.id}`)}
@@ -1162,20 +1180,21 @@ export default function ShortVideoFeed() {
                         </div>
                       </div>
 
-                      {/* Edge-to-edge Seekbar Progress Bar with Fade-In */}
+                      {/* Edge-to-edge Seekbar Progress Bar with Safe Area Offset */}
                       <div
-                        className={`absolute inset-x-0 bottom-0 z-40 w-full h-5 flex items-end cursor-pointer pointer-events-auto group/seekbar transition-opacity duration-300 ${
+                        className={`absolute inset-x-0 z-40 w-full h-5 flex items-end cursor-pointer pointer-events-auto group/seekbar transition-opacity duration-300 ${
                           isReady ? "opacity-100" : "opacity-0 pointer-events-none"
                         }`}
+                        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 2px)" }}
                         onClick={(e) => handleSeek(e, index)}
                         title="Tua video"
                       >
-                        <div className="h-[2.5px] group-hover/seekbar:h-1 w-full bg-white/25 backdrop-blur-xs relative transition-all duration-150">
+                        <div className="h-[3px] group-hover/seekbar:h-1.5 w-full bg-white/30 backdrop-blur-xs relative transition-all duration-150">
                           <div
                             className="h-full bg-white relative shadow-sm"
                             style={{ width: `${prog?.duration ? (prog.current / prog.duration) * 100 : 0}%` }}
                           >
-                            <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-md opacity-0 group-hover/seekbar:opacity-100 transition-opacity" />
+                            <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white shadow-md opacity-0 group-hover/seekbar:opacity-100 transition-opacity" />
                           </div>
                         </div>
                       </div>
