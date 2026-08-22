@@ -202,21 +202,60 @@ export default function Settings() {
     }
   };
 
+  const normalizeSocialUrl = (value, defaultDomain) => {
+    if (!value) return "";
+    let trimmed = value.trim();
+    if (!trimmed) return "";
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return trimmed;
+    }
+    if (trimmed.includes(defaultDomain)) {
+      return `https://${trimmed.replace(/^https?:\/\//, "")}`;
+    }
+    const cleanUsername = trimmed.replace(/^@/, "");
+    return `https://${defaultDomain}/${cleanUsername}`;
+  };
+
   const handleSaveProfile = async (e) => {
     e.preventDefault();
+    if (!currentUser) return;
     setLoading(true);
+
+    const sanitizedPayload = {
+      fullName: (profileForm.fullName || "").trim(),
+      bio: (profileForm.bio || "").trim(),
+      avatarUrl: (profileForm.avatarUrl || "").trim(),
+      bannerUrl: (profileForm.bannerUrl || "").trim(),
+      facebookUrl: normalizeSocialUrl(profileForm.facebookUrl, "facebook.com"),
+      tiktokUrl: normalizeSocialUrl(profileForm.tiktokUrl, "tiktok.com/@"),
+      instagramUrl: normalizeSocialUrl(profileForm.instagramUrl, "instagram.com"),
+      youtubeUrl: normalizeSocialUrl(profileForm.youtubeUrl, "youtube.com/@"),
+      githubUrl: normalizeSocialUrl(profileForm.githubUrl, "github.com"),
+      twitterUrl: normalizeSocialUrl(profileForm.twitterUrl, "x.com"),
+    };
+
     try {
-      await userService.updateProfile(currentUser.id || currentUser.userId, profileForm);
-      toast.success("Đã lưu hồ sơ");
+      const targetId = currentUser.id || currentUser.userId;
+      await userService.updateProfile(targetId, sanitizedPayload);
+      toast.success("Đã lưu hồ sơ thành công!");
       
       // Reload user data to sync with AuthContext
-      const updatedUser = await userService.getById(currentUser.id || currentUser.userId);
-      setUser(updatedUser.data);
+      const updatedUser = await userService.getById(targetId);
+      if (updatedUser?.data) {
+        setUser(updatedUser.data);
+      }
       
       // Redirect to profile page to see updated data
       navigate(`/profile/${currentUser.username || currentUser.id}`);
     } catch (error) {
-      toast.error("Không thể lưu hồ sơ");
+      console.error("[SETTINGS SAVE PROFILE ERROR]", error);
+      const serverMsg =
+        error.response?.data?.message ||
+        (typeof error.response?.data === "string" && !error.response.data.includes("<!DOCTYPE")
+          ? error.response.data
+          : null) ||
+        error.message;
+      toast.error(serverMsg || "Không thể lưu hồ sơ. Vui lòng kiểm tra lại dữ liệu!");
     } finally {
       setLoading(false);
     }
@@ -224,12 +263,19 @@ export default function Settings() {
 
   const handleSavePrivacy = async (e) => {
     e.preventDefault();
+    if (!currentUser) return;
     setLoading(true);
     try {
-      await userService.updateProfile(currentUser.id || currentUser.userId, privacyForm);
+      const targetId = currentUser.id || currentUser.userId;
+      await userService.updateProfile(targetId, privacyForm);
       toast.success("Đã lưu cài đặt quyền riêng tư");
     } catch (error) {
-      toast.error("Không thể lưu cài đặt quyền riêng tư");
+      console.error("[SETTINGS SAVE PRIVACY ERROR]", error);
+      const serverMsg =
+        error.response?.data?.message ||
+        (typeof error.response?.data === "string" ? error.response.data : null) ||
+        error.message;
+      toast.error(serverMsg || "Không thể lưu cài đặt quyền riêng tư");
     } finally {
       setLoading(false);
     }
@@ -486,10 +532,10 @@ function AccountTab({
               Facebook
             </label>
             <input
-              type="url"
+              type="text"
               value={profileForm.facebookUrl}
               onChange={(e) => setProfileForm({ ...profileForm, facebookUrl: e.target.value })}
-              placeholder="facebook.com/username"
+              placeholder="facebook.com/username hoặc username"
               className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
             />
           </div>
@@ -499,10 +545,10 @@ function AccountTab({
               TikTok
             </label>
             <input
-              type="url"
+              type="text"
               value={profileForm.tiktokUrl}
               onChange={(e) => setProfileForm({ ...profileForm, tiktokUrl: e.target.value })}
-              placeholder="tiktok.com/@username"
+              placeholder="tiktok.com/@username hoặc @username"
               className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
             />
           </div>
@@ -512,10 +558,10 @@ function AccountTab({
               Instagram
             </label>
             <input
-              type="url"
+              type="text"
               value={profileForm.instagramUrl}
               onChange={(e) => setProfileForm({ ...profileForm, instagramUrl: e.target.value })}
-              placeholder="instagram.com/username"
+              placeholder="instagram.com/username hoặc username"
               className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
             />
           </div>
@@ -525,10 +571,10 @@ function AccountTab({
               YouTube
             </label>
             <input
-              type="url"
+              type="text"
               value={profileForm.youtubeUrl}
               onChange={(e) => setProfileForm({ ...profileForm, youtubeUrl: e.target.value })}
-              placeholder="youtube.com/@username"
+              placeholder="youtube.com/@username hoặc @username"
               className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
             />
           </div>
@@ -538,10 +584,10 @@ function AccountTab({
               GitHub
             </label>
             <input
-              type="url"
+              type="text"
               value={profileForm.githubUrl}
               onChange={(e) => setProfileForm({ ...profileForm, githubUrl: e.target.value })}
-              placeholder="github.com/username"
+              placeholder="github.com/username hoặc username"
               className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
             />
           </div>
@@ -551,10 +597,10 @@ function AccountTab({
               Twitter/X
             </label>
             <input
-              type="url"
+              type="text"
               value={profileForm.twitterUrl}
               onChange={(e) => setProfileForm({ ...profileForm, twitterUrl: e.target.value })}
-              placeholder="x.com/username"
+              placeholder="x.com/username hoặc username"
               className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
             />
           </div>

@@ -70,6 +70,10 @@ const userService = {
     return this.update(id, userData);
   },
 
+  updateProfile(id, userData) {
+    return this.update(id, userData);
+  },
+
   // Đổi mật khẩu
   changePassword(id, oldPassword, newPassword) {
     return axiosClient.put(`/users/${id}/change-password`, {
@@ -112,6 +116,7 @@ export const register = userService.register.bind(userService);
 export const login = userService.login.bind(userService);
 export const update = userService.update.bind(userService);
 export const updateUser = userService.updateUser.bind(userService);
+export const updateProfile = userService.updateProfile.bind(userService);
 export const changePassword = userService.changePassword.bind(userService);
 export const requestResetOtp = userService.requestResetOtp.bind(userService);
 export const resetPasswordWithOtp = userService.resetPasswordWithOtp.bind(userService);
