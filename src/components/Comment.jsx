@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { MoreHorizontal, Trash2, Edit2, Reply, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -84,7 +84,23 @@ export default function Comment({ comment, onDelete, onReplyCreated, onUpdate })
   const [editText, setEditText] = useState(comment?.content || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPlacement, setMenuPlacement] = useState("bottom");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const menuButtonRef = useRef(null);
+
+  const handleToggleMenu = (e) => {
+    e.stopPropagation();
+    if (!menuOpen && menuButtonRef.current) {
+      const rect = menuButtonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      if (spaceBelow < 120) {
+        setMenuPlacement("top");
+      } else {
+        setMenuPlacement("bottom");
+      }
+    }
+    setMenuOpen(!menuOpen);
+  };
 
   const author = comment?.user || {};
   const authorName = author.fullName || author.username || "Người dùng";
@@ -190,9 +206,11 @@ export default function Comment({ comment, onDelete, onReplyCreated, onUpdate })
             {isOwner && (
               <div className="relative shrink-0">
                 <button
+                  ref={menuButtonRef}
                   type="button"
-                  onClick={() => setMenuOpen(!menuOpen)}
-                  className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition opacity-0 group-hover/bubble:opacity-100 cursor-pointer"
+                  onClick={handleToggleMenu}
+                  className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition opacity-70 sm:opacity-0 sm:group-hover/bubble:opacity-100 cursor-pointer"
+                  title="Tùy chọn bình luận"
                 >
                   <MoreHorizontal className="w-3.5 h-3.5" />
                 </button>
@@ -200,17 +218,21 @@ export default function Comment({ comment, onDelete, onReplyCreated, onUpdate })
                 {menuOpen && (
                   <>
                     <div
-                      className="fixed inset-0 z-30 bg-transparent cursor-default"
+                      className="fixed inset-0 z-40 bg-transparent cursor-default"
                       onClick={() => setMenuOpen(false)}
                     />
-                    <div className="absolute right-0 top-6 w-32 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg p-1 z-40 flex flex-col gap-0.5 animate-in fade-in duration-100">
+                    <div
+                      className={`absolute right-0 w-32 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-1 z-50 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100 ${
+                        menuPlacement === "top" ? "bottom-full mb-1.5" : "top-full mt-1.5"
+                      }`}
+                    >
                       <button
                         type="button"
                         onClick={() => {
                           setIsEditing(true);
                           setMenuOpen(false);
                         }}
-                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left cursor-pointer"
+                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left cursor-pointer transition"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                         <span>Sửa</span>
@@ -221,7 +243,7 @@ export default function Comment({ comment, onDelete, onReplyCreated, onUpdate })
                           setMenuOpen(false);
                           setIsDeleteModalOpen(true);
                         }}
-                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 w-full text-left cursor-pointer"
+                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 w-full text-left cursor-pointer transition"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>Xóa</span>
