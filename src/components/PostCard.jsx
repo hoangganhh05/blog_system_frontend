@@ -19,7 +19,7 @@ import {
   CornerDownRight,
   X,
   Play,
-  Pause
+  Pause,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -49,7 +49,11 @@ function getInitials(name) {
 function timeAgo(dateStr) {
   if (!dateStr) return "";
   let formattedString = dateStr;
-  if (typeof dateStr === "string" && !dateStr.endsWith("Z") && !dateStr.includes("+")) {
+  if (
+    typeof dateStr === "string" &&
+    !dateStr.endsWith("Z") &&
+    !dateStr.includes("+")
+  ) {
     formattedString = dateStr + "Z";
   }
   const diff = Date.now() - new Date(formattedString).getTime();
@@ -60,14 +64,25 @@ function timeAgo(dateStr) {
   if (h < 24) return `${h}h`;
   const d = Math.floor(h / 24);
   if (d < 7) return `${d}d`;
-  return new Date(formattedString).toLocaleDateString("vi-VN", { month: "short", day: "numeric" });
+  return new Date(formattedString).toLocaleDateString("vi-VN", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
-export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDetailed = false }) {
+export default function PostCard({
+  post,
+  onDelete,
+  onEdit,
+  onPostCreated,
+  isDetailed = false,
+}) {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { language, t } = useLanguage();
-  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
+  const currentUserId = currentUser
+    ? currentUser.id || currentUser.userId
+    : null;
 
   const [currentPost, setCurrentPost] = useState(post);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -80,11 +95,15 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
   }, [post]);
 
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(currentPost?.likesCount || post?.likesCount || 0);
+  const [likeCount, setLikeCount] = useState(
+    currentPost?.likesCount || post?.likesCount || 0,
+  );
   const [likersPreview, setLikersPreview] = useState(null);
   const [isHoveringLike, setIsHoveringLike] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
-  const [commentCount, setCommentCount] = useState(currentPost?.commentsCount || post?.commentsCount || 0);
+  const [commentCount, setCommentCount] = useState(
+    currentPost?.commentsCount || post?.commentsCount || 0,
+  );
   const [menuOpen, setUserMenuOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -121,7 +140,7 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
     e.stopPropagation();
     setIsVideoPlaying((prev) => ({
       ...prev,
-      [postId]: !prev[postId]
+      [postId]: !prev[postId],
     }));
   };
 
@@ -129,7 +148,7 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
     e.stopPropagation();
     setIsVideoMuted((prev) => ({
       ...prev,
-      [postId]: !prev[postId]
+      [postId]: !prev[postId],
     }));
   };
 
@@ -146,7 +165,13 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
           else if (res.data?.data) list = res.data.data;
 
           const names = list
-            .map((item) => item.fullName || item.username || item.user?.fullName || item.user?.username)
+            .map(
+              (item) =>
+                item.fullName ||
+                item.username ||
+                item.user?.fullName ||
+                item.user?.username,
+            )
             .filter(Boolean);
 
           if (names.length === 0) {
@@ -158,7 +183,9 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
           } else if (names.length === 3) {
             setLikersPreview(`${names[0]}, ${names[1]} và ${names[2]}`);
           } else {
-            setLikersPreview(`${names[0]}, ${names[1]} và ${names.length - 2} người khác`);
+            setLikersPreview(
+              `${names[0]}, ${names[1]} và ${names.length - 2} người khác`,
+            );
           }
         })
         .catch(() => {
@@ -174,21 +201,37 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
   const authorId = Number(author.id || currentPost?.userId || post?.userId);
   const myId = Number(currentUserId || currentUser?.id);
   const isOwner = myId > 0 && authorId > 0 && authorId === myId;
-  const authorAvatarUrl = isOwner ? (currentUser?.avatarUrl || author.avatarUrl) : (author.avatarUrl || author.avatar);
-  const authorAvatarColor = isOwner ? (currentUser?.avatarColor || author.avatarColor) : author.avatarColor;
+  const authorAvatarUrl = isOwner
+    ? currentUser?.avatarUrl || author.avatarUrl
+    : author.avatarUrl || author.avatar;
+  const authorAvatarColor = isOwner
+    ? currentUser?.avatarColor || author.avatarColor
+    : author.avatarColor;
 
-  const originalPost = currentPost?.originalPost || currentPost?.sharedPost || currentPost?.parentPost || currentPost?.repostOf;
+  const originalPost =
+    currentPost?.originalPost ||
+    currentPost?.sharedPost ||
+    currentPost?.parentPost ||
+    currentPost?.repostOf;
   const origAuthor = originalPost?.user || originalPost?.author || {};
-  const origAuthorName = origAuthor.fullName || origAuthor.username || "Tác giả gốc";
+  const origAuthorName =
+    origAuthor.fullName || origAuthor.username || "Tác giả gốc";
   const origAuthorAvatarUrl = origAuthor.avatarUrl || origAuthor.avatar;
   const origAuthorAvatarColor = origAuthor.avatarColor;
-  const origContent = originalPost?.content || originalPost?.body || originalPost?.text || originalPost?.title || "";
-  const origMedia = originalPost?.thumbNail || originalPost?.mediaUrl || originalPost?.imageUrl;
+  const origContent =
+    originalPost?.content ||
+    originalPost?.body ||
+    originalPost?.text ||
+    originalPost?.title ||
+    "";
+  const origMedia =
+    originalPost?.thumbNail || originalPost?.mediaUrl || originalPost?.imageUrl;
 
   // Check initial liked & bookmarked state
   useEffect(() => {
     if (!currentUserId || !post?.id) return;
-    likeService.checkLiked(post.id)
+    likeService
+      .checkLiked(post.id)
       .then((res) => {
         setLiked(res.data?.liked || false);
         if (typeof res.data?.count === "number") {
@@ -197,7 +240,8 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
       })
       .catch(() => {});
 
-    bookmarkService.checkBookmarked(post.id)
+    bookmarkService
+      .checkBookmarked(post.id)
       .then((res) => setBookmarked(res.data?.bookmarked || false))
       .catch(() => {});
   }, [currentUserId, post?.id]);
@@ -228,7 +272,7 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
           }
         });
       },
-      { threshold: 0.6 }
+      { threshold: 0.6 },
     );
 
     observer.observe(videoEl);
@@ -316,10 +360,14 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
       toast.success("Đã xóa bài viết thành công!");
       if (onDelete) onDelete(targetPostId);
       window.dispatchEvent(
-        new CustomEvent("post_deleted", { detail: { postId: targetPostId } })
+        new CustomEvent("post_deleted", { detail: { postId: targetPostId } }),
       );
     } catch (err) {
-      console.error("❌ [PostCard] Lỗi khi gọi API xóa bài viết:", err.response?.status, err.response?.data || err);
+      console.error(
+        "❌ [PostCard] Lỗi khi gọi API xóa bài viết:",
+        err.response?.status,
+        err.response?.data || err,
+      );
       const msg =
         typeof err.response?.data === "string"
           ? err.response.data
@@ -347,7 +395,12 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
   };
 
   const handleCardClick = (e) => {
-    if (e.target.closest("button") || e.target.closest("a") || e.target.closest("input") || e.target.closest(".no-card-click")) {
+    if (
+      e.target.closest("button") ||
+      e.target.closest("a") ||
+      e.target.closest("input") ||
+      e.target.closest(".no-card-click")
+    ) {
       return;
     }
     if (!isDetailed) {
@@ -360,7 +413,10 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
       } else if (post.thumbNail) {
         cardImages.push(post.thumbNail);
       }
-      const isVideoPost = post.mediaType === "video" || post.videoUrl || (cardImages.length > 0 && isVideoUrl(cardImages[0]));
+      const isVideoPost =
+        post.mediaType === "video" ||
+        post.videoUrl ||
+        (cardImages.length > 0 && isVideoUrl(cardImages[0]));
       if (isVideoPost) {
         navigate(`/posts/${post.id}`);
       } else {
@@ -382,7 +438,9 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
     <article
       onClick={handleCardClick}
       className={`relative transition-all rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs card-dynamic-hover hover:border-zinc-300 dark:hover:border-zinc-700 flex gap-3.5 ${menuOpen ? "z-30" : "z-0"} ${!isDetailed ? "cursor-pointer" : ""}`}
-    >      {/* Author Avatar */}
+    >
+      {" "}
+      {/* Author Avatar */}
       <div className="shrink-0">
         <Avatar
           userId={author.id}
@@ -397,7 +455,6 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
           className="border border-zinc-200 dark:border-zinc-700 shadow-xs"
         />
       </div>
-
       {/* Cột Nội Dung & Tương Tác */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Header Bài Viết */}
@@ -463,8 +520,14 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
                     }}
                     className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 w-full text-left transition cursor-pointer"
                   >
-                    {isCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                    <span>{isCopied ? "Đã sao chép" : "Sao chép liên kết"}</span>
+                    {isCopied ? (
+                      <Check className="w-4 h-4 text-emerald-500" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                    <span>
+                      {isCopied ? "Đã sao chép" : "Sao chép liên kết"}
+                    </span>
                   </button>
 
                   <button
@@ -478,7 +541,13 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
                     className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-indigo-600 dark:text-indigo-400 w-full text-left transition cursor-pointer"
                   >
                     <Sparkles className="w-4 h-4" />
-                    <span>{isSummarizing ? "Đang tóm tắt..." : summary ? "Ẩn tóm tắt" : "Tóm tắt với AI"}</span>
+                    <span>
+                      {isSummarizing
+                        ? "Đang tóm tắt..."
+                        : summary
+                          ? "Ẩn tóm tắt"
+                          : "Tóm tắt với AI"}
+                    </span>
                   </button>
 
                   {isOwner && (
@@ -533,8 +602,14 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
 
         {/* Thân Bài Viết (Typography Thoáng) */}
         {(() => {
-          const displayTitle = isTranslated && translatedData?.translatedTitle ? translatedData.translatedTitle : (post?.title);
-          const displayContent = isTranslated && translatedData?.translatedContent ? translatedData.translatedContent : (post?.content || post?.body || post?.text);
+          const displayTitle =
+            isTranslated && translatedData?.translatedTitle
+              ? translatedData.translatedTitle
+              : post?.title;
+          const displayContent =
+            isTranslated && translatedData?.translatedContent
+              ? translatedData.translatedContent
+              : post?.content || post?.body || post?.text;
 
           return (
             <>
@@ -550,60 +625,83 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
               )}
 
               {/* Translate Action Button: Chỉ hiển thị khi ngôn ngữ bài viết KHÁC ngôn ngữ hiện tại của trang web */}
-              {displayContent && (() => {
-                const currentLang = (language || "vi").toLowerCase().trim().split("-")[0];
-                const postLang = (post.language || post.locale || post.sourceLanguage || "vi").toLowerCase().trim().split("-")[0];
-                const shouldShowTranslate = postLang !== currentLang || isTranslated;
-                if (!shouldShowTranslate) return null;
+              {displayContent &&
+                (() => {
+                  const currentLang = (language || "vi")
+                    .toLowerCase()
+                    .trim()
+                    .split("-")[0];
+                  const postLang = (
+                    post.language ||
+                    post.locale ||
+                    post.sourceLanguage ||
+                    "vi"
+                  )
+                    .toLowerCase()
+                    .trim()
+                    .split("-")[0];
+                  const shouldShowTranslate =
+                    postLang !== currentLang || isTranslated;
+                  if (!shouldShowTranslate) return null;
 
-                return (
-                  <div className="my-1 flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={isTranslating}
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        if (isTranslated) {
-                          setIsTranslated(false);
-                          return;
-                        }
-                        if (translatedData) {
-                          setIsTranslated(true);
-                          return;
-                        }
-                        setIsTranslating(true);
-                        try {
-                          const targetLang = language || "vi";
-                          const res = await postService.translate(post.id, targetLang);
-                          if (res.data) {
-                            setTranslatedData(res.data);
-                            setIsTranslated(true);
+                  return (
+                    <div className="my-1 flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={isTranslating}
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (isTranslated) {
+                            setIsTranslated(false);
+                            return;
                           }
-                        } catch {
-                          toast.error(t("post.translationFailed"));
-                        } finally {
-                          setIsTranslating(false);
-                        }
-                      }}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0866ff] hover:underline cursor-pointer transition disabled:opacity-50"
-                    >
-                      <Globe className="w-3.5 h-3.5" />
-                      <span>
-                        {isTranslating
-                          ? t("post.translating")
-                          : isTranslated
-                          ? t("post.viewOriginal")
-                          : t("post.translate")}
-                      </span>
-                    </button>
-                    {isTranslated && (
-                      <span className="text-[11px] text-zinc-400">
-                        • {t("post.translatedFrom", { lang: (post.language || post.sourceLanguage || "VI").toUpperCase() })}
-                      </span>
-                    )}
-                  </div>
-                );
-              })()}
+                          if (translatedData) {
+                            setIsTranslated(true);
+                            return;
+                          }
+                          setIsTranslating(true);
+                          try {
+                            const targetLang = language || "vi";
+                            const res = await postService.translate(
+                              post.id,
+                              targetLang,
+                            );
+                            if (res.data) {
+                              setTranslatedData(res.data);
+                              setIsTranslated(true);
+                            }
+                          } catch {
+                            toast.error(t("post.translationFailed"));
+                          } finally {
+                            setIsTranslating(false);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0866ff] hover:underline cursor-pointer transition disabled:opacity-50"
+                      >
+                        <Globe className="w-3.5 h-3.5" />
+                        <span>
+                          {isTranslating
+                            ? t("post.translating")
+                            : isTranslated
+                              ? t("post.viewOriginal")
+                              : t("post.translate")}
+                        </span>
+                      </button>
+                      {isTranslated && (
+                        <span className="text-[11px] text-zinc-400">
+                          •{" "}
+                          {t("post.translatedFrom", {
+                            lang: (
+                              post.language ||
+                              post.sourceLanguage ||
+                              "VI"
+                            ).toUpperCase(),
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
             </>
           );
         })()}
@@ -690,111 +788,94 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
         )}
 
         {/* Adaptive Image Grid (Hỗ trợ 1, 2, 3, 4+ ảnh chuẩn Facebook) */}
-        {!originalPost && (() => {
-          const cardImages = [];
-          if (Array.isArray(post.images) && post.images.length > 0) {
-            cardImages.push(...post.images);
-          } else if (Array.isArray(post.imageUrls) && post.imageUrls.length > 0) {
-            cardImages.push(...post.imageUrls);
-          } else if (post.thumbNail) {
-            cardImages.push(post.thumbNail);
-          }
+        {!originalPost &&
+          (() => {
+            const cardImages = [];
+            if (Array.isArray(post.images) && post.images.length > 0) {
+              cardImages.push(...post.images);
+            } else if (
+              Array.isArray(post.imageUrls) &&
+              post.imageUrls.length > 0
+            ) {
+              cardImages.push(...post.imageUrls);
+            } else if (post.thumbNail) {
+              cardImages.push(post.thumbNail);
+            }
 
-          // Check if the first media is a video
-          const isVideo = cardImages.length > 0 && (
-            isVideoUrl(cardImages[0]) ||
-            post.mediaType === "video" ||
-            !!post.videoUrl
-          );
+            // Check if the first media is a video
+            const isVideo =
+              cardImages.length > 0 &&
+              (isVideoUrl(cardImages[0]) ||
+                post.mediaType === "video" ||
+                !!post.videoUrl);
 
-          if (cardImages.length === 0) return null;
+            if (cardImages.length === 0) return null;
 
-          // Single video player (Dung tỉ lệ thực tế của video, không crop)
-          if (cardImages.length === 1 && isVideo) {
-            const videoSrc = post.videoUrl || cardImages[0];
-            return (
-              <div
-                className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-950 my-2 max-h-[580px] w-full flex items-center justify-center relative group/media"
-                style={videoAspectRatio ? { aspectRatio: videoAspectRatio } : {}}
-              >
-                <video
-                  ref={postVideoRef}
-                  src={videoSrc}
-                  className="w-full h-auto max-h-[580px] object-contain block mx-auto"
-                  style={videoAspectRatio ? { aspectRatio: videoAspectRatio } : {}}
-                  onLoadedMetadata={handleVideoMetadata}
-                  controls
-                  playsInline
-                  autoPlay
-                  muted
-                  onPlay={() => setIsVideoPlaying(prev => ({ ...prev, [post.id]: true }))}
-                  onPause={() => setIsVideoPlaying(prev => ({ ...prev, [post.id]: false }))}
-                />
-              </div>
-            );
-          }
-
-          // Single image
-          if (cardImages.length === 1) {
-            return (
-              <div
-                className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[540px] flex items-center justify-center cursor-pointer group/media"
-                onClick={(e) => openTheater(e, 0)}
-              >
-                <img
-                  src={cardImages[0]}
-                  alt=""
-                  className="w-full h-auto max-h-[540px] object-cover object-center block hover:opacity-95 transition-opacity"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-            );
-          }
-
-          if (cardImages.length === 2) {
-            return (
-              <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[380px]">
-                {cardImages.slice(0, 2).map((img, idx) => (
-                  <div
-                    key={idx}
-                    className="relative h-[280px] bg-zinc-100 dark:bg-zinc-800 cursor-pointer overflow-hidden group/media"
-                    onClick={(e) => openTheater(e, idx)}
-                  >
-                    <img
-                      src={img}
-                      alt=""
-                      className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                ))}
-              </div>
-            );
-          }
-
-          if (cardImages.length === 3) {
-            return (
-              <div className="grid grid-cols-3 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[380px]">
+            // Single video player (Dung tỉ lệ thực tế của video, không crop)
+            if (cardImages.length === 1 && isVideo) {
+              const videoSrc = post.videoUrl || cardImages[0];
+              return (
                 <div
-                  className="col-span-2 relative h-[320px] bg-zinc-100 dark:bg-zinc-800 cursor-pointer overflow-hidden group/media"
+                  className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-950 my-2 max-h-[580px] w-full flex items-center justify-center relative group/media"
+                  style={
+                    videoAspectRatio ? { aspectRatio: videoAspectRatio } : {}
+                  }
+                >
+                  <video
+                    ref={postVideoRef}
+                    src={videoSrc}
+                    className="w-full h-auto max-h-[580px] object-contain block mx-auto"
+                    style={
+                      videoAspectRatio ? { aspectRatio: videoAspectRatio } : {}
+                    }
+                    onLoadedMetadata={handleVideoMetadata}
+                    controls
+                    playsInline
+                    autoPlay
+                    muted
+                    onPlay={() =>
+                      setIsVideoPlaying((prev) => ({
+                        ...prev,
+                        [post.id]: true,
+                      }))
+                    }
+                    onPause={() =>
+                      setIsVideoPlaying((prev) => ({
+                        ...prev,
+                        [post.id]: false,
+                      }))
+                    }
+                  />
+                </div>
+              );
+            }
+
+            // Single image
+            if (cardImages.length === 1) {
+              return (
+                <div
+                  className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[540px] flex items-center justify-center cursor-pointer group/media"
                   onClick={(e) => openTheater(e, 0)}
                 >
                   <img
                     src={cardImages[0]}
                     alt=""
-                    className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
+                    className="w-full h-auto max-h-[540px] object-cover object-center block hover:opacity-95 transition-opacity"
                     loading="lazy"
                     decoding="async"
                   />
                 </div>
-                <div className="flex flex-col gap-1 h-[320px]">
-                  {cardImages.slice(1, 3).map((img, idx) => (
+              );
+            }
+
+            if (cardImages.length === 2) {
+              return (
+                <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[380px]">
+                  {cardImages.slice(0, 2).map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative h-[158px] bg-zinc-100 dark:bg-zinc-800 cursor-pointer overflow-hidden group/media"
-                      onClick={(e) => openTheater(e, idx + 1)}
+                      className="relative h-[280px] bg-zinc-100 dark:bg-zinc-800 cursor-pointer overflow-hidden group/media"
+                      onClick={(e) => openTheater(e, idx)}
                     >
                       <img
                         src={img}
@@ -806,36 +887,71 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
                     </div>
                   ))}
                 </div>
+              );
+            }
+
+            if (cardImages.length === 3) {
+              return (
+                <div className="grid grid-cols-3 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[380px]">
+                  <div
+                    className="col-span-2 relative h-[320px] bg-zinc-100 dark:bg-zinc-800 cursor-pointer overflow-hidden group/media"
+                    onClick={(e) => openTheater(e, 0)}
+                  >
+                    <img
+                      src={cardImages[0]}
+                      alt=""
+                      className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1 h-[320px]">
+                    {cardImages.slice(1, 3).map((img, idx) => (
+                      <div
+                        key={idx}
+                        className="relative h-[158px] bg-zinc-100 dark:bg-zinc-800 cursor-pointer overflow-hidden group/media"
+                        onClick={(e) => openTheater(e, idx + 1)}
+                      >
+                        <img
+                          src={img}
+                          alt=""
+                          className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+
+            // 4 ảnh trở lên
+            return (
+              <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[400px]">
+                {cardImages.slice(0, 4).map((img, idx) => (
+                  <div
+                    key={idx}
+                    className="relative h-[190px] bg-zinc-100 dark:bg-zinc-800 cursor-pointer overflow-hidden group/media"
+                    onClick={(e) => openTheater(e, idx)}
+                  >
+                    <img
+                      src={img}
+                      alt=""
+                      className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    {idx === 3 && cardImages.length > 4 && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-xl font-black">
+                        +{cardImages.length - 4}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             );
-          }
-
-          // 4 ảnh trở lên
-          return (
-            <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 my-2 max-h-[400px]">
-              {cardImages.slice(0, 4).map((img, idx) => (
-                <div
-                  key={idx}
-                  className="relative h-[190px] bg-zinc-100 dark:bg-zinc-800 cursor-pointer overflow-hidden group/media"
-                  onClick={(e) => openTheater(e, idx)}
-                >
-                  <img
-                    src={img}
-                    alt=""
-                    className="w-full h-full object-cover group-hover/media:scale-105 transition duration-200"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  {idx === 3 && cardImages.length > 4 && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-xl font-black">
-                      +{cardImages.length - 4}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          );
-        })()}
+          })()}
 
         {/* Tag Chủ Đề */}
         {post.category?.name && (
@@ -915,12 +1031,18 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
               const cardImages = [];
               if (Array.isArray(post.images) && post.images.length > 0) {
                 cardImages.push(...post.images);
-              } else if (Array.isArray(post.imageUrls) && post.imageUrls.length > 0) {
+              } else if (
+                Array.isArray(post.imageUrls) &&
+                post.imageUrls.length > 0
+              ) {
                 cardImages.push(...post.imageUrls);
               } else if (post.thumbNail) {
                 cardImages.push(post.thumbNail);
               }
-              const isVideoPost = post.mediaType === "video" || post.videoUrl || (cardImages.length > 0 && isVideoUrl(cardImages[0]));
+              const isVideoPost =
+                post.mediaType === "video" ||
+                post.videoUrl ||
+                (cardImages.length > 0 && isVideoUrl(cardImages[0]));
               if (isVideoPost) {
                 navigate(`/posts/${post.id}`);
               } else {
@@ -956,17 +1078,21 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
             type="button"
             onClick={handleToggleBookmark}
             className={`flex items-center gap-1.5 text-xs font-medium group transition cursor-pointer active:scale-95 ${
-              bookmarked ? "text-black dark:text-white" : "hover:text-black dark:hover:text-white"
+              bookmarked
+                ? "text-black dark:text-white"
+                : "hover:text-black dark:hover:text-white"
             }`}
             title="Lưu bài viết"
           >
             <div className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
-              <Bookmark strokeWidth={1.8} className={`w-4 h-4 transition ${bookmarked ? "fill-black dark:fill-white" : ""}`} />
+              <Bookmark
+                strokeWidth={1.8}
+                className={`w-4 h-4 transition ${bookmarked ? "fill-black dark:fill-white" : ""}`}
+              />
             </div>
           </button>
         </div>
       </div>
-
       {/* Edit Post Modal */}
       {isOwner && (
         <EditPostModal
@@ -979,7 +1105,6 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
           }}
         />
       )}
-
       {/* Reactions / Likes List Modal */}
       {isReactionsModalOpen && (
         <ReactionsModal
@@ -989,7 +1114,6 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
           totalLikeCount={likeCount}
         />
       )}
-
       {/* Share / Repost Modal */}
       {isShareModalOpen && (
         <ShareModal
@@ -1002,7 +1126,6 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
           }}
         />
       )}
-
       {/* Delete Post Confirm Modal */}
       <ConfirmModal
         isOpen={isDeleteModalOpen}
@@ -1013,7 +1136,6 @@ export default function PostCard({ post, onDelete, onEdit, onPostCreated, isDeta
         onConfirm={confirmDeletePost}
         onCancel={() => setIsDeleteModalOpen(false)}
       />
-
       {/* Post Theater Modal (Facebook-style Split View on PC & Full View on Mobile) */}
       {isTheaterOpen && (
         <PostTheaterModal

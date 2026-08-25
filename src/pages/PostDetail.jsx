@@ -25,7 +25,9 @@ export default function PostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
+  const currentUserId = currentUser
+    ? currentUser.id || currentUser.userId
+    : null;
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -76,7 +78,8 @@ export default function PostDetail() {
     const videoEl = postVideoRef.current;
     if (!videoEl || !post) return;
 
-    const isVideoPost = post.mediaType === "video" || post.videoUrl || isVideoUrl(post.thumbNail);
+    const isVideoPost =
+      post.mediaType === "video" || post.videoUrl || isVideoUrl(post.thumbNail);
     if (!isVideoPost) return;
 
     const observer = new IntersectionObserver(
@@ -89,7 +92,7 @@ export default function PostDetail() {
           }
         });
       },
-      { threshold: 0.6 }
+      { threshold: 0.6 },
     );
 
     observer.observe(videoEl);
@@ -102,7 +105,8 @@ export default function PostDetail() {
   // Attempt direct autoplay for video posts after load
   useEffect(() => {
     if (!post) return;
-    const isVideoPost = post.mediaType === "video" || post.videoUrl || isVideoUrl(post.thumbNail);
+    const isVideoPost =
+      post.mediaType === "video" || post.videoUrl || isVideoUrl(post.thumbNail);
     if (!isVideoPost) return;
 
     const timer = setTimeout(() => {
@@ -117,18 +121,21 @@ export default function PostDetail() {
 
   const handleCreateComment = async (e) => {
     if (e) e.preventDefault();
-    if ((!replyText.trim() && !selectedGif) || isSubmitting || !currentUserId) return;
+    if ((!replyText.trim() && !selectedGif) || isSubmitting || !currentUserId)
+      return;
 
     setIsSubmitting(true);
     try {
       let finalContent = replyText.trim();
       if (selectedGif) {
-        finalContent = finalContent ? `${finalContent} 📷 ${selectedGif}` : `📷 ${selectedGif}`;
+        finalContent = finalContent
+          ? `${finalContent} 📷 ${selectedGif}`
+          : `📷 ${selectedGif}`;
       }
 
       const payload = {
         content: finalContent,
-        post: { id: Number(id) }
+        post: { id: Number(id) },
       };
       const res = await commentService.create(payload);
       setComments((prev) => [...prev, res.data]);
@@ -202,7 +209,9 @@ export default function PostDetail() {
           {showGifPicker && (
             <div
               className={`absolute right-0 z-50 shadow-2xl ${
-                pickerPlacement === "bottom" ? "top-full mt-2" : "bottom-full mb-2"
+                pickerPlacement === "bottom"
+                  ? "top-full mt-2"
+                  : "bottom-full mb-2"
               }`}
             >
               <GifPicker
@@ -222,7 +231,11 @@ export default function PostDetail() {
             {/* Selected GIF Preview */}
             {selectedGif && (
               <div className="relative inline-block self-start rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-sm max-w-[200px] max-h-[140px]">
-                <img src={selectedGif} alt="GIF preview" className="w-full h-full object-cover" />
+                <img
+                  src={selectedGif}
+                  alt="GIF preview"
+                  className="w-full h-full object-cover"
+                />
                 <button
                   type="button"
                   onClick={() => setSelectedGif(null)}
@@ -286,7 +299,11 @@ export default function PostDetail() {
                 disabled={(!replyText.trim() && !selectedGif) || isSubmitting}
                 className="px-4 py-1.5 rounded-full text-xs font-semibold text-white dark:text-black bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
-                {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Trả lời"}
+                {isSubmitting ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  "Trả lời"
+                )}
               </button>
             </div>
           </form>
@@ -298,7 +315,9 @@ export default function PostDetail() {
         {comments.length === 0 ? (
           <div className="p-12 text-center text-zinc-400 flex flex-col items-center gap-2">
             <MessageSquare className="w-8 h-8 stroke-[1.5] text-zinc-300 dark:text-zinc-700" />
-            <p className="text-xs">Chưa có bình luận nào. Hãy là người đầu tiên trả lời!</p>
+            <p className="text-xs">
+              Chưa có bình luận nào. Hãy là người đầu tiên trả lời!
+            </p>
           </div>
         ) : (
           comments.map((comment) => (

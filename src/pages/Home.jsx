@@ -28,12 +28,19 @@ const PAGE_SIZE = 20;
 
 function getInitials(name) {
   if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 export default function Home() {
   const { currentUser } = useAuth();
-  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
+  const currentUserId = currentUser
+    ? currentUser.id || currentUser.userId
+    : null;
 
   const [searchParams] = useSearchParams();
   const searchValue = searchParams.get("q") || "";
@@ -74,7 +81,9 @@ export default function Home() {
             .getFriendsList(currentUserId)
             .then((res) => {
               const list = Array.isArray(res.data) ? res.data : [];
-              const ids = list.map((u) => Number(u.id || u.friendId || u.userId)).filter(Boolean);
+              const ids = list
+                .map((u) => Number(u.id || u.friendId || u.userId))
+                .filter(Boolean);
               setFollowingIds(ids);
             })
             .catch(() => setFollowingIds([]));
@@ -104,7 +113,8 @@ export default function Home() {
     };
 
     window.addEventListener("follow_state_changed", handleFollowChange);
-    return () => window.removeEventListener("follow_state_changed", handleFollowChange);
+    return () =>
+      window.removeEventListener("follow_state_changed", handleFollowChange);
   }, []);
 
   // Fetch suggested friends
@@ -112,8 +122,12 @@ export default function Home() {
     userService
       .getAll("", 0, 8)
       .then((res) => {
-        const list = Array.isArray(res.data) ? res.data : res.data?.content || [];
-        const filtered = list.filter((u) => Number(u.id) !== Number(currentUserId)).slice(0, 6);
+        const list = Array.isArray(res.data)
+          ? res.data
+          : res.data?.content || [];
+        const filtered = list
+          .filter((u) => Number(u.id) !== Number(currentUserId))
+          .slice(0, 6);
         setSuggestedUsers(filtered);
       })
       .catch(() => {});
@@ -137,7 +151,7 @@ export default function Home() {
       window.dispatchEvent(
         new CustomEvent("follow_state_changed", {
           detail: { targetUserId: targetIdNum, isFollowing: false },
-        })
+        }),
       );
       try {
         await followService.unfollowUser(targetUser.id);
@@ -148,7 +162,7 @@ export default function Home() {
         window.dispatchEvent(
           new CustomEvent("follow_state_changed", {
             detail: { targetUserId: targetIdNum, isFollowing: true },
-          })
+          }),
         );
       }
     } else {
@@ -157,7 +171,7 @@ export default function Home() {
       window.dispatchEvent(
         new CustomEvent("follow_state_changed", {
           detail: { targetUserId: targetIdNum, isFollowing: true },
-        })
+        }),
       );
       try {
         await followService.followUser(targetUser.id);
@@ -168,7 +182,7 @@ export default function Home() {
         window.dispatchEvent(
           new CustomEvent("follow_state_changed", {
             detail: { targetUserId: targetIdNum, isFollowing: false },
-          })
+          }),
         );
       }
     }
@@ -186,7 +200,11 @@ export default function Home() {
       try {
         let res;
         if (searchValue && searchValue.trim()) {
-          res = await postService.search(searchValue.trim(), pageNum, PAGE_SIZE);
+          res = await postService.search(
+            searchValue.trim(),
+            pageNum,
+            PAGE_SIZE,
+          );
         } else {
           res = await postService.getAll(pageNum, PAGE_SIZE);
         }
@@ -218,7 +236,7 @@ export default function Home() {
         isFetchingRef.current = false;
       }
     },
-    [searchValue]
+    [searchValue],
   );
 
   // Infinite scroll bottom observer ref
@@ -226,7 +244,8 @@ export default function Home() {
 
   // Setup IntersectionObserver for smooth Infinite Scroll
   useEffect(() => {
-    if (!bottomObserverRef.current || !hasMore || loading || loadingMore) return;
+    if (!bottomObserverRef.current || !hasMore || loading || loadingMore)
+      return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -234,7 +253,7 @@ export default function Home() {
           fetchPosts(page + 1);
         }
       },
-      { rootMargin: "400px" }
+      { rootMargin: "400px" },
     );
 
     observer.observe(bottomObserverRef.current);
@@ -275,7 +294,9 @@ export default function Home() {
       const { post: updated } = e.detail || {};
       if (updated?.id) {
         setPosts((prev) =>
-          prev.map((p) => (Number(p.id) === Number(updated.id) ? { ...p, ...updated } : p))
+          prev.map((p) =>
+            Number(p.id) === Number(updated.id) ? { ...p, ...updated } : p,
+          ),
         );
       }
     };
@@ -305,7 +326,7 @@ export default function Home() {
   const handlePostCreated = (newPost) => {
     if (newPost) {
       setPosts((prev) => [newPost, ...prev]);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -316,7 +337,9 @@ export default function Home() {
   const handleEditPost = (updatedPost) => {
     if (!updatedPost?.id) return;
     setPosts((prev) =>
-      prev.map((p) => (Number(p.id) === Number(updatedPost.id) ? { ...p, ...updatedPost } : p))
+      prev.map((p) =>
+        Number(p.id) === Number(updatedPost.id) ? { ...p, ...updatedPost } : p,
+      ),
     );
   };
 
@@ -407,7 +430,10 @@ export default function Home() {
       <StoryBar />
 
       {/* Quick Composer ở đầu bảng tin */}
-      <QuickComposer onPostCreated={handlePostCreated} categories={categories} />
+      <QuickComposer
+        onPostCreated={handlePostCreated}
+        categories={categories}
+      />
 
       {/* Mobile Suggested Friends Carousel (Đồng bộ 100% tính năng gợi ý theo dõi lên Mobile) */}
       {suggestedUsers.length > 0 && activeTab === "forYou" && (
@@ -434,7 +460,10 @@ export default function Home() {
                   key={user.id}
                   className="w-36 min-w-[140px] shrink-0 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/70 dark:border-zinc-700/60 flex flex-col items-center text-center gap-2.5 shadow-2xs"
                 >
-                  <Link to={`/profile/${user.id}`} className="flex flex-col items-center gap-1.5 w-full">
+                  <Link
+                    to={`/profile/${user.id}`}
+                    className="flex flex-col items-center gap-1.5 w-full"
+                  >
                     <Avatar
                       userId={user.id}
                       src={user.avatarUrl}
@@ -503,15 +532,15 @@ export default function Home() {
                   {!currentUserId
                     ? "Đăng nhập để xem bảng tin theo dõi"
                     : followingIds.length === 0
-                    ? "Bạn chưa theo dõi ai"
-                    : "Chưa có bài viết nào từ người bạn theo dõi"}
+                      ? "Bạn chưa theo dõi ai"
+                      : "Chưa có bài viết nào từ người bạn theo dõi"}
                 </p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm leading-relaxed mx-auto">
                   {!currentUserId
                     ? "Đăng nhập vào BlogViet để theo dõi các tác giả yêu thích và cập nhật bài viết mới nhất từ những người bạn quan tâm."
                     : followingIds.length === 0
-                    ? "Hãy khám phá và bấm 'Theo dõi' các tác giả yêu thích để không bỏ lỡ những bài viết thú vị!"
-                    : "Những tác giả bạn đang theo dõi chưa đăng bài viết nào gần đây. Hãy kết nối thêm bạn bè hoặc quay lại bảng tin chung."}
+                      ? "Hãy khám phá và bấm 'Theo dõi' các tác giả yêu thích để không bỏ lỡ những bài viết thú vị!"
+                      : "Những tác giả bạn đang theo dõi chưa đăng bài viết nào gần đây. Hãy kết nối thêm bạn bè hoặc quay lại bảng tin chung."}
                 </p>
               </div>
 
@@ -555,10 +584,15 @@ export default function Home() {
             <EmptyState
               icon={MessageSquare}
               onAction={() => {
-                const composer = document.getElementById("quick-composer-input");
+                const composer = document.getElementById(
+                  "quick-composer-input",
+                );
                 if (composer) {
                   composer.focus();
-                  composer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  composer.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                  });
                 }
               }}
             />
@@ -579,7 +613,10 @@ export default function Home() {
               </div>
 
               {/* Chèn Reels Carousel ngẫu nhiên/tối ưu giữa các bài viết trong Newsfeed (ví dụ: sau bài viết thứ 3 hoặc sau bài cuối nếu < 3 bài) */}
-              {(idx === 2 || (filteredDisplayedPosts.length < 3 && idx === filteredDisplayedPosts.length - 1) || (idx === 14 && filteredDisplayedPosts.length >= 18)) && (
+              {(idx === 2 ||
+                (filteredDisplayedPosts.length < 3 &&
+                  idx === filteredDisplayedPosts.length - 1) ||
+                (idx === 14 && filteredDisplayedPosts.length >= 18)) && (
                 <div className="py-1">
                   <ReelsCarousel />
                 </div>

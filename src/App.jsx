@@ -7,6 +7,7 @@ import { ChatProvider } from "./context/ChatContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./layouts/MainLayout";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -129,18 +130,20 @@ function AppContent() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <SoundscapeProvider>
-          <ChatProvider>
-            <ThemeProvider>
-              <LanguageProvider>
-                <AppContent />
-              </LanguageProvider>
-            </ThemeProvider>
-          </ChatProvider>
-        </SoundscapeProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <SoundscapeProvider>
+            <ChatProvider>
+              <ThemeProvider>
+                <LanguageProvider>
+                  <AppContent />
+                </LanguageProvider>
+              </ThemeProvider>
+            </ChatProvider>
+          </SoundscapeProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

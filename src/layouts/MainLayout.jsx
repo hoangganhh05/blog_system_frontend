@@ -1,9 +1,30 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
-  Search, Bell, Plus, ChevronDown, LogOut,
-  Sun, Moon, Shield, User, Settings, Home,
-  Compass, Bookmark, Users, BarChart2, X, Hash, ArrowUp, ArrowLeft, MessageCircle, Menu, Video, LayoutGrid, Film,
+  Search,
+  Bell,
+  Plus,
+  ChevronDown,
+  LogOut,
+  Sun,
+  Moon,
+  Shield,
+  User,
+  Settings,
+  Home,
+  Compass,
+  Bookmark,
+  Users,
+  BarChart2,
+  X,
+  Hash,
+  ArrowUp,
+  ArrowLeft,
+  MessageCircle,
+  Menu,
+  Video,
+  LayoutGrid,
+  Film,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -23,7 +44,9 @@ export default function MainLayout({ children }) {
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
+  const currentUserId = currentUser
+    ? currentUser.id || currentUser.userId
+    : null;
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
 
   const [unreadNotifs, setUnreadNotifs] = useState(0);
@@ -45,7 +68,8 @@ export default function MainLayout({ children }) {
   useEffect(() => {
     if (!currentUserId) return;
     const fetch = () =>
-      notificationService.getUnreadCount()
+      notificationService
+        .getUnreadCount()
         .then((r) => setUnreadNotifs(r.data?.unreadCount || 0))
         .catch(() => {});
     fetch();
@@ -59,13 +83,17 @@ export default function MainLayout({ children }) {
       if (typeof e.detail === "number") setUnreadChatCount(e.detail);
     };
     window.addEventListener("unread_chat_count_changed", handleCount);
-    return () => window.removeEventListener("unread_chat_count_changed", handleCount);
+    return () =>
+      window.removeEventListener("unread_chat_count_changed", handleCount);
   }, []);
 
   // Close dropdowns on outside click (MessengerDropdown manages its own portal and click outside)
   useEffect(() => {
     const h = (e) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(e.target)
+      ) {
         setProfileMenuOpen(false);
       }
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
@@ -107,7 +135,8 @@ export default function MainLayout({ children }) {
     };
 
     window.addEventListener("sidebar_toggle", handleSidebarToggle);
-    return () => window.removeEventListener("sidebar_toggle", handleSidebarToggle);
+    return () =>
+      window.removeEventListener("sidebar_toggle", handleSidebarToggle);
   }, []);
 
   // Scroll to Top Listener (Handles both independent main column and window scroll)
@@ -121,7 +150,9 @@ export default function MainLayout({ children }) {
 
   useEffect(() => {
     const handleWindowScroll = () => {
-      setShowScrollTop((window.scrollY || mainRef.current?.scrollTop || 0) > 350);
+      setShowScrollTop(
+        (window.scrollY || mainRef.current?.scrollTop || 0) > 350,
+      );
     };
     window.addEventListener("scroll", handleWindowScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleWindowScroll);
@@ -149,8 +180,12 @@ export default function MainLayout({ children }) {
   const isPostDetailPage = pathname.startsWith("/posts/");
 
   return (
-    <div className={`min-h-screen w-full bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col transition-colors duration-200 ${isShortsPage ? "h-[100dvh] overflow-hidden" : ""}`}>
-      <header className={`w-full h-14 shrink-0 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50 shadow-xs ${isShortsPage ? "hidden md:block" : ""}`}>
+    <div
+      className={`min-h-screen w-full bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col transition-colors duration-200 ${isShortsPage ? "h-[100dvh] overflow-hidden" : ""}`}
+    >
+      <header
+        className={`w-full h-14 shrink-0 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50 shadow-xs ${isShortsPage ? "hidden md:block" : ""}`}
+      >
         {mobileSearchOpen ? (
           /* FULL WIDTH MOBILE SEARCH BAR OVERLAY */
           <div className="w-full h-14 px-3 sm:px-6 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
@@ -166,7 +201,10 @@ export default function MainLayout({ children }) {
               <ArrowLeft className="w-5 h-5" />
             </button>
 
-            <form onSubmit={handleSearchSubmit} className="flex-1 relative min-w-0">
+            <form
+              onSubmit={handleSearchSubmit}
+              className="flex-1 relative min-w-0"
+            >
               <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 ref={mobileSearchInputRef}
@@ -219,7 +257,10 @@ export default function MainLayout({ children }) {
               </div>
 
               {/* Thanh Tìm Kiếm Desktop (Đặt ngay cạnh Logo BlogViet ở bên trái) */}
-              <form onSubmit={handleSearchSubmit} className="hidden md:block w-56 lg:w-80">
+              <form
+                onSubmit={handleSearchSubmit}
+                className="hidden md:block w-56 lg:w-80"
+              >
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
@@ -337,7 +378,9 @@ export default function MainLayout({ children }) {
                         <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
                           {currentUser?.fullName || currentUser?.username}
                         </span>
-                        <span className="text-[11px] text-zinc-500 truncate">@{currentUser?.username}</span>
+                        <span className="text-[11px] text-zinc-500 truncate">
+                          @{currentUser?.username}
+                        </span>
                       </div>
                     </Link>
 
@@ -361,10 +404,17 @@ export default function MainLayout({ children }) {
 
                     <button
                       type="button"
-                      onClick={() => { toggleTheme(); setProfileMenuOpen(false); }}
+                      onClick={() => {
+                        toggleTheme();
+                        setProfileMenuOpen(false);
+                      }}
                       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-98 transition w-full text-left cursor-pointer"
                     >
-                      {isDark ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-zinc-500" />}
+                      {isDark ? (
+                        <Sun className="w-4 h-4 text-amber-500" />
+                      ) : (
+                        <Moon className="w-4 h-4 text-zinc-500" />
+                      )}
                       {isDark ? "Chế độ Sáng" : "Chế độ Tối"}
                     </button>
 
@@ -372,7 +422,10 @@ export default function MainLayout({ children }) {
 
                     <button
                       type="button"
-                      onClick={() => { logout(); navigate("/login"); }}
+                      onClick={() => {
+                        logout();
+                        navigate("/login");
+                      }}
                       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-98 transition w-full text-left cursor-pointer"
                     >
                       <LogOut className="w-4 h-4" /> Đăng xuất
@@ -400,15 +453,19 @@ export default function MainLayout({ children }) {
           - Profile / Posts / Tools: Balanced Centered Layout
           ====================================================================== */}
       {isShortsPage ? (
-        <main className={`w-full flex-none h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom,0px))] max-h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom,0px))] md:flex-1 md:h-full md:max-h-[100dvh] flex flex-col p-0 md:p-4 overflow-hidden transition-all duration-300 ${
-          isSidebarCollapsed ? "md:pl-20" : "md:pl-64"
-        }`}>
+        <main
+          className={`w-full flex-none h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom,0px))] max-h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom,0px))] md:flex-1 md:h-full md:max-h-[100dvh] flex flex-col p-0 md:p-4 overflow-hidden transition-all duration-300 ${
+            isSidebarCollapsed ? "md:pl-20" : "md:pl-64"
+          }`}
+        >
           {children}
         </main>
       ) : is3ColumnFeedPage ? (
-        <div className={`w-full max-w-[1360px] mx-auto min-h-screen grid grid-cols-12 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-4 pt-3 sm:pt-4 items-start transition-all duration-300 ${
-          isSidebarCollapsed ? "md:pl-24" : "md:pl-72"
-        } md:pr-4`}>
+        <div
+          className={`w-full max-w-[1360px] mx-auto min-h-screen grid grid-cols-12 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-4 pt-3 sm:pt-4 items-start transition-all duration-300 ${
+            isSidebarCollapsed ? "md:pl-24" : "md:pl-72"
+          } md:pr-4`}
+        >
           {/* CENTER COLUMN: Main Content Feed (col-span-12 on mobile, lg:col-span-8 on desktop) */}
           <main
             ref={mainRef}
@@ -433,10 +490,11 @@ export default function MainLayout({ children }) {
             isProfilePage
               ? "max-w-5xl mx-auto"
               : isPostDetailPage
-              ? "max-w-3xl mx-auto"
-              : pathname.startsWith("/security") || pathname.startsWith("/notifications")
-              ? "max-w-4xl mx-auto"
-              : "max-w-5xl mx-auto"
+                ? "max-w-3xl mx-auto"
+                : pathname.startsWith("/security") ||
+                    pathname.startsWith("/notifications")
+                  ? "max-w-4xl mx-auto"
+                  : "max-w-5xl mx-auto"
           }`}
         >
           {children}
@@ -462,12 +520,19 @@ export default function MainLayout({ children }) {
           end
           className={({ isActive }) =>
             `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition-all duration-150 active:scale-90 ${
-              isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
+              isActive
+                ? "text-[#0866ff] font-bold"
+                : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
             }`
           }
           title="Trang chủ"
         >
-          {({ isActive }) => <Home strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />}
+          {({ isActive }) => (
+            <Home
+              strokeWidth={isActive ? 2.5 : 1.75}
+              className="w-5 h-5 transition-transform duration-150"
+            />
+          )}
         </NavLink>
 
         {/* 2. Khám phá / Tìm kiếm */}
@@ -475,12 +540,19 @@ export default function MainLayout({ children }) {
           to="/trending"
           className={({ isActive }) =>
             `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition-all duration-150 active:scale-90 ${
-              isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
+              isActive
+                ? "text-[#0866ff] font-bold"
+                : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
             }`
           }
           title="Khám phá"
         >
-          {({ isActive }) => <Compass strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />}
+          {({ isActive }) => (
+            <Compass
+              strokeWidth={isActive ? 2.5 : 1.75}
+              className="w-5 h-5 transition-transform duration-150"
+            />
+          )}
         </NavLink>
 
         {/* 3. Shorts */}
@@ -488,12 +560,19 @@ export default function MainLayout({ children }) {
           to="/shorts"
           className={({ isActive }) =>
             `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition-all duration-150 active:scale-90 ${
-              isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
+              isActive
+                ? "text-[#0866ff] font-bold"
+                : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
             }`
           }
           title="Shorts"
         >
-          {({ isActive }) => <Film strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />}
+          {({ isActive }) => (
+            <Film
+              strokeWidth={isActive ? 2.5 : 1.75}
+              className="w-5 h-5 transition-transform duration-150"
+            />
+          )}
         </NavLink>
 
         {/* 5. Thông báo */}
@@ -501,14 +580,19 @@ export default function MainLayout({ children }) {
           to="/notifications"
           className={({ isActive }) =>
             `relative flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition-all duration-150 active:scale-90 ${
-              isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
+              isActive
+                ? "text-[#0866ff] font-bold"
+                : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
             }`
           }
           title="Thông báo"
         >
           {({ isActive }) => (
             <>
-              <Bell strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />
+              <Bell
+                strokeWidth={isActive ? 2.5 : 1.75}
+                className="w-5 h-5 transition-transform duration-150"
+              />
               {unreadNotifs > 0 && (
                 <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black animate-pulse" />
               )}
@@ -521,14 +605,18 @@ export default function MainLayout({ children }) {
           to={currentUser ? `/profile/${currentUserId}` : "/login"}
           className={({ isActive }) =>
             `flex flex-col items-center justify-center min-w-[48px] min-h-[44px] p-1.5 transition-all duration-150 active:scale-90 ${
-              isActive ? "text-[#0866ff] font-bold" : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
+              isActive
+                ? "text-[#0866ff] font-bold"
+                : "text-[#65676b] dark:text-[#b0b3b8] hover:text-[#050505] dark:hover:text-[#e4e6eb]"
             }`
           }
           title="Trang cá nhân"
         >
           {({ isActive }) =>
             currentUser ? (
-              <div className={`p-0.5 rounded-full transition-all ${isActive ? "ring-2 ring-[#0866ff] ring-offset-1 dark:ring-offset-zinc-900" : ""}`}>
+              <div
+                className={`p-0.5 rounded-full transition-all ${isActive ? "ring-2 ring-[#0866ff] ring-offset-1 dark:ring-offset-zinc-900" : ""}`}
+              >
                 <Avatar
                   userId={currentUserId}
                   src={currentUser?.avatarUrl}
@@ -541,7 +629,10 @@ export default function MainLayout({ children }) {
                 />
               </div>
             ) : (
-              <User strokeWidth={isActive ? 2.5 : 1.75} className="w-5 h-5 transition-transform duration-150" />
+              <User
+                strokeWidth={isActive ? 2.5 : 1.75}
+                className="w-5 h-5 transition-transform duration-150"
+              />
             )
           }
         </NavLink>
@@ -554,7 +645,9 @@ export default function MainLayout({ children }) {
         onPostCreated={(newPost) => {
           setIsCreateModalOpen(false);
           if (newPost) {
-            window.dispatchEvent(new CustomEvent("post_created", { detail: { post: newPost } }));
+            window.dispatchEvent(
+              new CustomEvent("post_created", { detail: { post: newPost } }),
+            );
           } else {
             window.dispatchEvent(new CustomEvent("refresh_feed_posts"));
           }

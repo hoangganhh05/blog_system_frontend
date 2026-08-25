@@ -1,6 +1,16 @@
 import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Image, Video, Smile, Tag, Globe, Lock, X, Loader2, ChevronDown } from "lucide-react";
+import {
+  Image,
+  Video,
+  Smile,
+  Tag,
+  Globe,
+  Lock,
+  X,
+  Loader2,
+  ChevronDown,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import postService from "../services/postService";
@@ -20,7 +30,9 @@ function getInitials(name) {
 
 export default function QuickComposer({ onPostCreated, categories = [] }) {
   const { currentUser } = useAuth();
-  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
+  const currentUserId = currentUser
+    ? currentUser.id || currentUser.userId
+    : null;
 
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
@@ -124,7 +136,9 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
         typeof err.response?.data === "string"
           ? err.response.data
           : err.response?.data?.message || err.message;
-      toast.error(serverMsg || "Không thể đăng bài viết. Vui lòng kiểm tra lại!");
+      toast.error(
+        serverMsg || "Không thể đăng bài viết. Vui lòng kiểm tra lại!",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -167,10 +181,10 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
               images.length === 1
                 ? "grid-cols-1"
                 : images.length === 2
-                ? "grid-cols-2"
-                : images.length === 3
-                ? "grid-cols-3"
-                : "grid-cols-2"
+                  ? "grid-cols-2"
+                  : images.length === 3
+                    ? "grid-cols-3"
+                    : "grid-cols-2"
             }`}
           >
             {images.map((imgUrl, idx) => (
@@ -178,7 +192,11 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
                 key={idx}
                 className="relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 group aspect-video max-h-56 bg-zinc-100 dark:bg-zinc-800"
               >
-                <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                <img
+                  src={imgUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
                 <button
                   type="button"
                   onClick={() => handleRemoveImage(idx)}
@@ -225,7 +243,9 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
               title="Đăng video ngắn"
             >
               <Video className="w-5 h-5 text-rose-500 shrink-0" />
-              <span className="text-sm font-medium hidden sm:inline">Video</span>
+              <span className="text-sm font-medium hidden sm:inline">
+                Video
+              </span>
             </button>
 
             <input
@@ -244,7 +264,9 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="bg-transparent text-sm font-medium text-slate-700 dark:text-zinc-200 focus:outline-none cursor-pointer py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800 transition max-w-[110px] xs:max-w-[140px] sm:max-w-[170px] truncate"
               >
-                <option value="" className="dark:bg-zinc-900">Chủ đề...</option>
+                <option value="" className="dark:bg-zinc-900">
+                  Chủ đề...
+                </option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id} className="dark:bg-zinc-900">
                     {c.name}
@@ -256,9 +278,15 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
             {/* Nút chọn quyền riêng tư */}
             <button
               type="button"
-              onClick={() => setPrivacy(privacy === "PUBLIC" ? "FRIENDS" : "PUBLIC")}
+              onClick={() =>
+                setPrivacy(privacy === "PUBLIC" ? "FRIENDS" : "PUBLIC")
+              }
               className="flex items-center space-x-1.5 text-slate-600 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800 text-sm font-medium cursor-pointer"
-              title={privacy === "PUBLIC" ? "Quyền riêng tư: Công khai" : "Quyền riêng tư: Bạn bè"}
+              title={
+                privacy === "PUBLIC"
+                  ? "Quyền riêng tư: Công khai"
+                  : "Quyền riêng tư: Bạn bè"
+              }
             >
               {privacy === "PUBLIC" ? (
                 <>
@@ -280,7 +308,11 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={(!content.trim() && images.length === 0) || isSubmitting || isUploading}
+              disabled={
+                (!content.trim() && images.length === 0) ||
+                isSubmitting ||
+                isUploading
+              }
               className={`px-5 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-150 cursor-pointer shadow-xs ${
                 content.trim() || images.length > 0
                   ? "bg-[#0866ff] hover:bg-[#0756d6] text-white active:scale-95 shadow-md hover:shadow-lg"
@@ -301,39 +333,42 @@ export default function QuickComposer({ onPostCreated, categories = [] }) {
       </div>
 
       {/* Short Video Upload Modal */}
-      {showShortVideoModal && createPortal(
-        <div
-          className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
-          onClick={() => setShowShortVideoModal(false)}
-        >
+      {showShortVideoModal &&
+        createPortal(
           <div
-            className="bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg max-h-[94dvh] sm:max-h-[90vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150 overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+            onClick={() => setShowShortVideoModal(false)}
           >
-            {/* Header Modal - Sticky Top */}
-            <div className="shrink-0 bg-white dark:bg-zinc-900 flex items-center justify-between px-4 py-3.5 sm:px-5 sm:py-4 border-b border-zinc-100 dark:border-zinc-800">
-              <h3 className="font-bold text-base sm:text-lg text-zinc-900 dark:text-zinc-100">Đăng video ngắn</h3>
-              <button
-                type="button"
-                onClick={() => setShowShortVideoModal(false)}
-                className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
-                title="Đóng"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+            <div
+              className="bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg max-h-[94dvh] sm:max-h-[90vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150 overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header Modal - Sticky Top */}
+              <div className="shrink-0 bg-white dark:bg-zinc-900 flex items-center justify-between px-4 py-3.5 sm:px-5 sm:py-4 border-b border-zinc-100 dark:border-zinc-800">
+                <h3 className="font-bold text-base sm:text-lg text-zinc-900 dark:text-zinc-100">
+                  Đăng video ngắn
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowShortVideoModal(false)}
+                  className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
+                  title="Đóng"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-            {/* Modal Body - Scrollable Content */}
-            <div className="p-3.5 sm:p-5 overflow-y-auto flex-1 custom-scrollbar">
-              <ShortVideoUpload
-                onUploadSuccess={handleShortVideoUploadSuccess}
-                onCancel={() => setShowShortVideoModal(false)}
-              />
+              {/* Modal Body - Scrollable Content */}
+              <div className="p-3.5 sm:p-5 overflow-y-auto flex-1 custom-scrollbar">
+                <ShortVideoUpload
+                  onUploadSuccess={handleShortVideoUploadSuccess}
+                  onCancel={() => setShowShortVideoModal(false)}
+                />
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

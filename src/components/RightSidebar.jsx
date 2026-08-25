@@ -11,12 +11,19 @@ import Avatar from "./Avatar";
 
 function getInitials(name) {
   if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 export default function RightSidebar() {
   const { currentUser } = useAuth();
-  const currentUserId = currentUser ? Number(currentUser.id || currentUser.userId) : null;
+  const currentUserId = currentUser
+    ? Number(currentUser.id || currentUser.userId)
+    : null;
 
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [followingIds, setFollowingIds] = useState([]);
@@ -27,9 +34,13 @@ export default function RightSidebar() {
     userService
       .getAll("", 0, 10)
       .then((res) => {
-        const list = Array.isArray(res.data) ? res.data : res.data?.content || [];
+        const list = Array.isArray(res.data)
+          ? res.data
+          : res.data?.content || [];
         // Lọc bỏ chính mình
-        const filtered = list.filter((u) => Number(u.id) !== currentUserId).slice(0, 4);
+        const filtered = list
+          .filter((u) => Number(u.id) !== currentUserId)
+          .slice(0, 4);
         setSuggestedUsers(filtered);
       })
       .catch(() => {})
@@ -62,7 +73,8 @@ export default function RightSidebar() {
     };
 
     window.addEventListener("follow_state_changed", handleFollowChange);
-    return () => window.removeEventListener("follow_state_changed", handleFollowChange);
+    return () =>
+      window.removeEventListener("follow_state_changed", handleFollowChange);
   }, []);
 
   const handleToggleFollow = async (targetUser) => {
@@ -82,7 +94,7 @@ export default function RightSidebar() {
       window.dispatchEvent(
         new CustomEvent("follow_state_changed", {
           detail: { targetUserId: targetIdNum, isFollowing: false },
-        })
+        }),
       );
       try {
         await followService.unfollowUser(targetUser.id);
@@ -93,7 +105,7 @@ export default function RightSidebar() {
         window.dispatchEvent(
           new CustomEvent("follow_state_changed", {
             detail: { targetUserId: targetIdNum, isFollowing: true },
-          })
+          }),
         );
       }
     } else {
@@ -102,7 +114,7 @@ export default function RightSidebar() {
       window.dispatchEvent(
         new CustomEvent("follow_state_changed", {
           detail: { targetUserId: targetIdNum, isFollowing: true },
-        })
+        }),
       );
       try {
         await followService.followUser(targetUser.id);
@@ -113,7 +125,7 @@ export default function RightSidebar() {
         window.dispatchEvent(
           new CustomEvent("follow_state_changed", {
             detail: { targetUserId: targetIdNum, isFollowing: false },
-          })
+          }),
         );
       }
     }
@@ -145,7 +157,10 @@ export default function RightSidebar() {
         {loading ? (
           <div className="flex flex-col gap-2.5">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between animate-pulse">
+              <div
+                key={i}
+                className="flex items-center justify-between animate-pulse"
+              >
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-zinc-800" />
                   <div className="flex flex-col gap-1.5">
@@ -202,7 +217,9 @@ export default function RightSidebar() {
                       type="button"
                       onClick={() => {
                         window.dispatchEvent(
-                          new CustomEvent("open_floating_chat", { detail: { user } })
+                          new CustomEvent("open_floating_chat", {
+                            detail: { user },
+                          }),
                         );
                       }}
                       className="p-1.5 rounded-full text-zinc-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition cursor-pointer"
@@ -223,7 +240,9 @@ export default function RightSidebar() {
                       {isFollowing ? (
                         <>
                           <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                          <span className="hidden sm:inline">Đang theo dõi</span>
+                          <span className="hidden sm:inline">
+                            Đang theo dõi
+                          </span>
                         </>
                       ) : (
                         <>
@@ -267,7 +286,9 @@ export default function RightSidebar() {
             Tác giả Hoàng Anh
           </a>
         </div>
-        <span className="text-[11px] text-zinc-400">© 2026 BlogViet Platform. All rights reserved.</span>
+        <span className="text-[11px] text-zinc-400">
+          © 2026 BlogViet Platform. All rights reserved.
+        </span>
       </div>
     </div>
   );

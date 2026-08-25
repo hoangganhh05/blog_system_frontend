@@ -20,10 +20,16 @@ class WebSocketService {
     }
 
     const authToken = token;
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = window.location.host;
+    const isLocalhost = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
 
-    const wsUrl = `${protocol}//${host}/ws/realtime`;
+    let wsUrl = import.meta.env.VITE_WS_URL;
+    if (!wsUrl) {
+      if (isLocalhost) {
+        wsUrl = "ws://localhost:8080/ws/realtime";
+      } else {
+        wsUrl = "wss://api.anhhoangg.id.vn/ws/realtime";
+      }
+    }
 
     try {
       this.ws = new WebSocket(wsUrl);

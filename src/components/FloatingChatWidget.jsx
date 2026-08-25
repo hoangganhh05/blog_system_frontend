@@ -39,6 +39,7 @@ import {
   MessageSquarePlus,
   RefreshCw,
   Plus,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";

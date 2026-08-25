@@ -17,7 +17,9 @@ function getInitials(name) {
 
 function StoryBar() {
   const { currentUser } = useAuth();
-  const currentUserId = currentUser ? (currentUser.id || currentUser.userId) : null;
+  const currentUserId = currentUser
+    ? currentUser.id || currentUser.userId
+    : null;
   const { groupedStories, refreshStories } = useStories();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(null);
@@ -51,7 +53,9 @@ function StoryBar() {
               ) : (
                 <div
                   className="w-full h-full flex items-center justify-center font-bold text-white text-xl group-hover:scale-105 transition-transform duration-300"
-                  style={{ backgroundColor: currentUser.avatarColor || "#4f46e5" }}
+                  style={{
+                    backgroundColor: currentUser.avatarColor || "#4f46e5",
+                  }}
                 >
                   {getInitials(currentUser.fullName || currentUser.username)}
                 </div>
@@ -77,16 +81,21 @@ function StoryBar() {
           const isMyStory = Boolean(
             currentUserId &&
             user.id &&
-            (Number(user.id) === Number(currentUserId) || Number(user.id) === Number(currentUser?.id))
+            (Number(user.id) === Number(currentUserId) ||
+              Number(user.id) === Number(currentUser?.id)),
           );
           const realUserName = isMyStory
-            ? (currentUser?.fullName || currentUser?.username || "Bạn")
-            : (user.fullName || user.username || "Người dùng");
+            ? currentUser?.fullName || currentUser?.username || "Bạn"
+            : user.fullName || user.username || "Người dùng";
           const displayName = isMyStory ? "Tin của bạn" : realUserName;
           const latestStory = group.stories?.[group.stories.length - 1];
           const storyMedia = latestStory?.mediaUrl || latestStory?.imageUrl;
-          const userAvatar = isMyStory ? (currentUser?.avatarUrl || user.avatarUrl) : user.avatarUrl;
-          const userColor = isMyStory ? (currentUser?.avatarColor || user.avatarColor) : user.avatarColor;
+          const userAvatar = isMyStory
+            ? currentUser?.avatarUrl || user.avatarUrl
+            : user.avatarUrl;
+          const userColor = isMyStory
+            ? currentUser?.avatarColor || user.avatarColor
+            : user.avatarColor;
           const backgroundMedia = storyMedia || userAvatar;
 
           return (
@@ -107,7 +116,10 @@ function StoryBar() {
               ) : (
                 <div
                   className="absolute inset-0 w-full h-full flex items-center justify-center font-bold text-white text-3xl group-hover:scale-105 transition-transform duration-300"
-                  style={{ backgroundColor: latestStory?.bgColor || userColor || "#4f46e5" }}
+                  style={{
+                    backgroundColor:
+                      latestStory?.bgColor || userColor || "#4f46e5",
+                  }}
                 >
                   {latestStory?.textContent ? (
                     <span className="p-3 text-xs text-center font-medium line-clamp-4">
@@ -133,7 +145,8 @@ function StoryBar() {
                       loading="eager"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
-                        if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+                        if (e.currentTarget.nextSibling)
+                          e.currentTarget.nextSibling.style.display = "flex";
                       }}
                     />
                   ) : null}
