@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import postService from "../services/postService";
 import categoryService from "../services/categoryService";
 import friendService from "../services/friendService";
@@ -13,6 +14,7 @@ import StoryBar from "../components/StoryBar";
 import QuickComposer from "../components/QuickComposer";
 import ReelsCarousel from "../components/ReelsCarousel";
 import Avatar from "../components/Avatar";
+import SpotlightCard from "../components/SpotlightCard";
 import {
   Loader2,
   MessageSquare,
@@ -21,20 +23,13 @@ import {
   Compass,
   Sparkles,
   Check,
+  Flame,
+  TrendingUp,
+  SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 
 const PAGE_SIZE = 20;
-
-function getInitials(name) {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
 
 export default function Home() {
   const { currentUser } = useAuth();
@@ -76,7 +71,6 @@ export default function Home() {
           setFollowingIds(ids);
         })
         .catch(() => {
-          // Fallback to friend list if follows table is newly created
           friendService
             .getFriendsList(currentUserId)
             .then((res) => {
@@ -144,7 +138,6 @@ export default function Home() {
     const isCurrentlyFollowing = followingIds.includes(targetIdNum);
     const targetName = targetUser.fullName || targetUser.username;
 
-    // 1. Optimistic Update (Immediate UI response)
     if (isCurrentlyFollowing) {
       setFollowingIds((prev) => prev.filter((id) => id !== targetIdNum));
       toast.info(`Đã hủy theo dõi ${targetName}`);
@@ -156,7 +149,6 @@ export default function Home() {
       try {
         await followService.unfollowUser(targetUser.id);
       } catch {
-        // Rollback
         setFollowingIds((prev) => [...prev, targetIdNum]);
         toast.error("Không thể hủy theo dõi lúc này!");
         window.dispatchEvent(
@@ -176,7 +168,6 @@ export default function Home() {
       try {
         await followService.followUser(targetUser.id);
       } catch {
-        // Rollback
         setFollowingIds((prev) => prev.filter((id) => id !== targetIdNum));
         toast.error("Không thể theo dõi lúc này!");
         window.dispatchEvent(
@@ -239,7 +230,6 @@ export default function Home() {
     [searchValue],
   );
 
-  // Infinite scroll bottom observer ref
   const bottomObserverRef = useRef(null);
 
   // Setup IntersectionObserver for smooth Infinite Scroll
@@ -258,14 +248,13 @@ export default function Home() {
 
     observer.observe(bottomObserverRef.current);
     return () => observer.disconnect();
-  }, [hasMore, loading, loadingMore, page]);
+  }, [hasMore, loading, loadingMore, page, fetchPosts]);
 
   // Initial load
   useEffect(() => {
     fetchPosts(0, true);
   }, [fetchPosts, searchValue]);
 
-  // Tab switching handler
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     if (tab === "following") {
@@ -276,7 +265,6 @@ export default function Home() {
     }
   };
 
-  // Listen for refresh feed and global post events
   useEffect(() => {
     const handleRefresh = () => {
       loadFollowingList();
@@ -343,7 +331,6 @@ export default function Home() {
     );
   };
 
-  // Filter posts based on following state directly from Database
   const displayedPosts = useMemo(() => {
     if (activeTab === "following") {
       if (!currentUserId) return [];
@@ -365,59 +352,77 @@ export default function Home() {
   }, [displayedPosts, selectedCategory]);
 
   return (
-    <div className="w-full flex flex-col gap-2">
-      {/* Top Header with 2 Tabs (Segmented Pill Style) */}
-      <div className="flex bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 p-1 rounded-2xl shrink-0 shadow-xs gap-1">
+    <div className="w-full flex flex-col gap-4 selection:bg-rose-500/30">
+      {/* 1. LUXURY TAB SWITCHER (Segmented Pill + Glow Motion) */}
+      <div className="relative flex p-1.5 rounded-2xl bg-neutral-900/70 border border-white/10 backdrop-blur-xl shadow-2xl shrink-0 gap-1 overflow-hidden">
+        {/* Glow ambient background inside tab container */}
+        <div className="absolute -top-12 -left-12 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-rose-500/10 rounded-full blur-2xl pointer-events-none" />
+
         <button
           type="button"
           onClick={() => handleTabChange("forYou")}
-          className={`flex-1 py-2.5 text-center text-xs rounded-xl font-bold transition-all duration-150 cursor-pointer flex items-center justify-center gap-1.5 select-none ${
+          className={`relative flex-1 py-3 text-center text-xs font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 select-none rounded-xl z-10 ${
             activeTab === "forYou"
-              ? "bg-white dark:bg-zinc-800 text-black dark:text-white shadow-sm font-extrabold"
-              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-white/50 dark:hover:bg-zinc-800/40"
+              ? "text-white shadow-lg"
+              : "text-neutral-400 hover:text-neutral-200 hover:bg-white/5"
           }`}
         >
-          <span>✨</span>
-          <span>Dành cho bạn</span>
+          {activeTab === "forYou" && (
+            <motion.div
+              layoutId="homeTabPill"
+              className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/15 via-white/10 to-white/5 border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.08)]"
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            />
+          )}
+          <Sparkles className={`w-4 h-4 relative z-10 ${activeTab === "forYou" ? "text-cyan-400" : ""}`} />
+          <span className="relative z-10 tracking-wide">Dành cho bạn</span>
         </button>
 
         <button
           type="button"
           onClick={() => handleTabChange("following")}
-          className={`flex-1 py-2.5 text-center text-xs rounded-xl font-bold transition-all duration-150 cursor-pointer flex items-center justify-center gap-1.5 select-none ${
+          className={`relative flex-1 py-3 text-center text-xs font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 select-none rounded-xl z-10 ${
             activeTab === "following"
-              ? "bg-white dark:bg-zinc-800 text-black dark:text-white shadow-sm font-extrabold"
-              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-white/50 dark:hover:bg-zinc-800/40"
+              ? "text-white shadow-lg"
+              : "text-neutral-400 hover:text-neutral-200 hover:bg-white/5"
           }`}
         >
-          <span>👥</span>
-          <span>Đang theo dõi</span>
+          {activeTab === "following" && (
+            <motion.div
+              layoutId="homeTabPill"
+              className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/15 via-white/10 to-white/5 border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.08)]"
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            />
+          )}
+          <Users className={`w-4 h-4 relative z-10 ${activeTab === "following" ? "text-rose-400" : ""}`} />
+          <span className="relative z-10 tracking-wide">Đang theo dõi</span>
         </button>
       </div>
 
-      {/* Category Filter Bar - Horizontal Scroll Pills (Mobile & Desktop) */}
+      {/* 2. CATEGORY FILTER BAR - LUXURY GLASS PILLS */}
       {categories.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-2 px-1 touch-pan-x">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1 touch-pan-x">
           <button
             type="button"
             onClick={() => setSelectedCategory(null)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer flex-shrink-0 ${
+            className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer flex-shrink-0 border ${
               selectedCategory === null
-                ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-semibold shadow-sm"
-                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                : "bg-neutral-900/60 backdrop-blur-md border-white/10 text-neutral-400 hover:text-white hover:border-white/20"
             }`}
           >
-            Tất cả
+            ✦ Tất cả danh mục
           </button>
           {categories.map((cat) => (
             <button
               key={cat.id}
               type="button"
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer flex-shrink-0 ${
+              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer flex-shrink-0 border ${
                 selectedCategory === cat.id
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-semibold shadow-sm"
-                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                  ? "bg-gradient-to-r from-cyan-500 to-rose-500 text-white border-transparent shadow-[0_0_15px_rgba(34,211,238,0.4)]"
+                  : "bg-neutral-900/60 backdrop-blur-md border-white/10 text-neutral-400 hover:text-white hover:border-white/20"
               }`}
             >
               {cat.name}
@@ -426,39 +431,39 @@ export default function Home() {
         </div>
       )}
 
-      {/* Story Bar ở đầu Bảng tin */}
+      {/* 3. STORY HIGHLIGHTS BAR */}
       <StoryBar />
 
-      {/* Quick Composer ở đầu bảng tin */}
+      {/* 4. QUICK COMPOSER BOX */}
       <QuickComposer
         onPostCreated={handlePostCreated}
         categories={categories}
       />
 
-      {/* Mobile Suggested Friends Carousel (Đồng bộ 100% tính năng gợi ý theo dõi lên Mobile) */}
+      {/* 5. MOBILE SUGGESTED AUTHORS CAROUSEL */}
       {suggestedUsers.length > 0 && activeTab === "forYou" && (
-        <div className="lg:hidden p-3.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs flex flex-col gap-2.5 overflow-hidden">
+        <div className="lg:hidden p-4 bg-neutral-900/60 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl flex flex-col gap-3 overflow-hidden">
           <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-              Gợi ý tác giả cho bạn
+            <span className="text-xs font-bold text-white flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              Gợi ý tác giả nổi bật
             </span>
             <Link
               to="/friends"
-              className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+              className="text-[11px] font-semibold text-cyan-400 hover:underline"
             >
               Xem tất cả
             </Link>
           </div>
 
-          <div className="flex gap-4 overflow-x-auto no-scrollbar py-2 px-1 scroll-smooth touch-pan-x overscroll-x-contain">
+          <div className="flex gap-4 overflow-x-auto no-scrollbar py-2 px-1 scroll-smooth touch-pan-x">
             {suggestedUsers.map((user) => {
               const isFollowing = followingIds.includes(Number(user.id));
               const name = user.fullName || user.username;
               return (
                 <div
                   key={user.id}
-                  className="w-36 min-w-[140px] shrink-0 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/70 dark:border-zinc-700/60 flex flex-col items-center text-center gap-2.5 shadow-2xs"
+                  className="w-36 min-w-[140px] shrink-0 p-3 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center text-center gap-2.5 shadow-lg"
                 >
                   <Link
                     to={`/profile/${user.id}`}
@@ -471,13 +476,13 @@ export default function Home() {
                       username={user.username}
                       avatarColor={user.avatarColor}
                       size="md"
-                      className="shrink-0 shadow-xs"
+                      className="shrink-0 border border-white/10"
                     />
                     <div className="flex flex-col items-center w-full px-0.5">
-                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate w-full text-center">
+                      <span className="text-xs font-bold text-white truncate w-full text-center">
                         {name}
                       </span>
-                      <span className="text-[10px] text-zinc-400 truncate w-full text-center">
+                      <span className="text-[10px] text-neutral-400 truncate w-full text-center">
                         @{user.username}
                       </span>
                     </div>
@@ -486,15 +491,15 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => handleToggleFollow(user)}
-                    className={`w-full py-2 min-h-[36px] rounded-full text-[11px] font-bold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs ${
+                    className={`w-full py-2 rounded-full text-[11px] font-bold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer ${
                       isFollowing
-                        ? "bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-rose-100 dark:hover:bg-rose-950/40 hover:text-rose-600"
-                        : "bg-black text-white dark:bg-white dark:text-black hover:opacity-90"
+                        ? "bg-white/10 text-neutral-300 border border-white/10"
+                        : "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg"
                     }`}
                   >
                     {isFollowing ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-500" />
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
                         <span>Đang theo dõi</span>
                       </>
                     ) : (
@@ -511,108 +516,57 @@ export default function Home() {
         </div>
       )}
 
-      {/* 3. POSTS FEED LIST WITH SMOOTH STAGGERED TRANSITION */}
-      <div key={activeTab} className="flex flex-col gap-2 animate-tab-fade">
+      {/* 6. POSTS FEED LIST */}
+      <div key={activeTab} className="flex flex-col gap-3">
         {loading && posts.length === 0 ? (
           <>
             <PostSkeleton index={0} />
             <PostSkeleton index={1} />
             <PostSkeleton index={2} />
-            <PostSkeleton index={3} />
           </>
         ) : displayedPosts.length === 0 ? (
           activeTab === "following" ? (
-            /* Empty State chuyên biệt cho Tab Đang Theo Dõi */
-            <div className="p-8 sm:p-10 text-center flex flex-col items-center justify-center gap-3.5 text-zinc-500 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs animate-scale-in">
-              <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center shadow-xs">
+            <SpotlightCard className="p-8 text-center flex flex-col items-center justify-center gap-3 text-neutral-400">
+              <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 text-cyan-400 flex items-center justify-center shadow-lg">
                 <UserPlus className="w-7 h-7 stroke-[1.5]" />
               </div>
               <div className="flex flex-col gap-1">
-                <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                <p className="font-bold text-sm text-white">
                   {!currentUserId
                     ? "Đăng nhập để xem bảng tin theo dõi"
                     : followingIds.length === 0
                       ? "Bạn chưa theo dõi ai"
                       : "Chưa có bài viết nào từ người bạn theo dõi"}
                 </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm leading-relaxed mx-auto">
+                <p className="text-xs text-neutral-400 max-w-sm leading-relaxed mx-auto">
                   {!currentUserId
-                    ? "Đăng nhập vào BlogViet để theo dõi các tác giả yêu thích và cập nhật bài viết mới nhất từ những người bạn quan tâm."
-                    : followingIds.length === 0
-                      ? "Hãy khám phá và bấm 'Theo dõi' các tác giả yêu thích để không bỏ lỡ những bài viết thú vị!"
-                      : "Những tác giả bạn đang theo dõi chưa đăng bài viết nào gần đây. Hãy kết nối thêm bạn bè hoặc quay lại bảng tin chung."}
+                    ? "Đăng nhập vào BlogViet để theo dõi các tác giả yêu thích."
+                    : "Bấm 'Theo dõi' các tác giả để cập nhật tin tức mới nhất!"}
                 </p>
               </div>
-
-              {!currentUserId ? (
-                <Link
-                  to="/login"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition-transform active:scale-95 shadow-sm mt-1"
-                >
-                  <span>Đăng nhập ngay</span>
-                </Link>
-              ) : followingIds.length === 0 ? (
-                <Link
-                  to="/friends"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition-transform active:scale-95 shadow-sm mt-1"
-                >
-                  <Users className="w-4 h-4" />
-                  <span>Khám phá tác giả ngay</span>
-                </Link>
-              ) : (
-                <div className="flex items-center gap-2 mt-1">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("forYou")}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold transition-transform active:scale-95 shadow-sm cursor-pointer"
-                  >
-                    <Compass className="w-3.5 h-3.5" />
-                    <span>Xem Dành Cho Bạn</span>
-                  </button>
-                  <Link
-                    to="/friends"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-semibold transition-transform active:scale-95"
-                  >
-                    <Users className="w-3.5 h-3.5" />
-                    <span>Tìm thêm tác giả</span>
-                  </Link>
-                </div>
-              )}
-            </div>
+            </SpotlightCard>
           ) : (
-            /* Empty State cho Tab Dành Cho Bạn */
             <EmptyState
               icon={MessageSquare}
               onAction={() => {
-                const composer = document.getElementById(
-                  "quick-composer-input",
-                );
+                const composer = document.getElementById("quick-composer-input");
                 if (composer) {
                   composer.focus();
-                  composer.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                  });
+                  composer.scrollIntoView({ behavior: "smooth", block: "center" });
                 }
               }}
             />
           )
         ) : (
           filteredDisplayedPosts.map((post, idx) => (
-            <div key={post.id} className="flex flex-col gap-2">
-              <div
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${Math.min(idx * 40, 240)}ms` }}
-              >
-                <PostCard
-                  post={post}
-                  onDelete={handleDeletePost}
-                  onEdit={handleEditPost}
-                  onPostCreated={handlePostCreated}
-                />
-              </div>
+            <div key={post.id} className="flex flex-col gap-3">
+              <PostCard
+                post={post}
+                onDelete={handleDeletePost}
+                onEdit={handleEditPost}
+                onPostCreated={handlePostCreated}
+              />
 
-              {/* Chèn Reels Carousel ngẫu nhiên/tối ưu giữa các bài viết trong Newsfeed (ví dụ: sau bài viết thứ 3 hoặc sau bài cuối nếu < 3 bài) */}
               {(idx === 2 ||
                 (filteredDisplayedPosts.length < 3 &&
                   idx === filteredDisplayedPosts.length - 1) ||
@@ -626,30 +580,27 @@ export default function Home() {
         )}
       </div>
 
-      {/* Infinite Scroll Observer Target & Smooth Loading Spinner */}
+      {/* INFINITE SCROLL OBSERVER TARGET */}
       {hasMore && !loading && (
         <div
           ref={bottomObserverRef}
-          className="py-6 flex flex-col items-center justify-center gap-2 text-zinc-400"
+          className="py-8 flex flex-col items-center justify-center gap-2 text-neutral-400"
         >
-          <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-            <Loader2 className="w-4 h-4 animate-spin text-[#0866ff]" />
-            <span>Đang tự động tải thêm bài viết...</span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-neutral-400">
+            <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+            <span>Đang tự động tải thêm bài viết Luxury...</span>
           </div>
         </div>
       )}
 
-      {/* Feed End Marker (Khi đã cuộn tải hết toàn bộ bài viết trong Database) */}
+      {/* FEED END MARKER */}
       {!hasMore && !loading && displayedPosts.length > 0 && (
-        <div className="py-8 flex flex-col items-center justify-center gap-2 text-zinc-400 dark:text-zinc-500 animate-in fade-in duration-300">
-          <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[#0866ff] shadow-xs">
+        <div className="py-8 flex flex-col items-center justify-center gap-2 text-neutral-500">
+          <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cyan-400 shadow-lg">
             <Sparkles className="w-4 h-4" />
           </div>
-          <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-            Bạn đã xem hết toàn bộ bài viết trong hệ thống ✨
-          </span>
-          <span className="text-[11px] text-zinc-500 dark:text-zinc-400 text-center max-w-xs leading-relaxed">
-            Hãy khám phá thêm bài viết mới hoặc tạo bài viết đầu tiên của bạn!
+          <span className="text-xs font-bold text-neutral-200">
+            Bạn đã xem hết bài viết trên Bảng tin ✨
           </span>
         </div>
       )}
