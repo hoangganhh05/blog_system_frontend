@@ -27,6 +27,39 @@ import { toast } from "sonner";
 
 const PAGE_SIZE = 20;
 
+function calculatePostScore(post, followingSet, currentUserId) {
+  const now = Date.now();
+  const createdTime = post.createdAt ? new Date(post.createdAt).getTime() : now;
+  const hoursAgo = Math.max(0, (now - createdTime) / (1000 * 60 * 60));
+
+  // 1. Bài viết mới đăng (dưới 2 giờ) luôn được ưu tiên 100% lên đầu tiên
+  if (hoursAgo <= 2) {
+    return 100000 - hoursAgo * 10;
+  }
+
+  // 2. Điểm phân rã thời gian (Recency Decay Score)
+  const recencyScore = 100 / (1 + hoursAgo * 0.25);
+
+  // 3. Điểm tương tác (Engagement Score: Likes, Comments, Views)
+  const likes = Number(post.likesCount || post.likeCount || 0);
+  const comments = Number(post.commentsCount || post.commentCount || 0);
+  const views = Number(post.viewCount || post.viewsCount || 0);
+  const engagementScore = likes * 3 + comments * 5 + views * 1;
+
+  // 4. Điểm cá nhân hóa (Ưu tiên tác giả đang theo dõi +25đ)
+  const authorId = Number(post.user?.id || post.author?.id);
+  const isFollowing = authorId && followingSet.has(authorId);
+  const followBonus = isFollowing ? 25 : 0;
+
+  // 5. Thưởng bài viết có hình ảnh / video hấp dẫn (+15đ)
+  const hasMedia = Boolean(
+    post.imageUrl || post.videoUrl || post.thumbNail || (post.images && post.images.length > 0)
+  );
+  const mediaBonus = hasMedia ? 15 : 0;
+
+  return recencyScore + engagementScore + followBonus + mediaBonus;
+}
+
 export default function Home() {
   const { currentUser } = useAuth();
   const currentUserId = currentUser
@@ -288,8 +321,12 @@ export default function Home() {
     const handleGlobalCreated = (e) => {
       const { post: newPost } = e.detail || {};
       if (newPost?.id) {
+        const postWithDate = {
+          ...newPost,
+          createdAt: newPost.createdAt || new Date().toISOString(),
+        };
         setPosts((prev) => [
-          newPost,
+          postWithDate,
           ...prev.filter((p) => Number(p.id) !== Number(newPost.id)),
         ]);
       }
@@ -309,7 +346,14 @@ export default function Home() {
 
   const handlePostCreated = (newPost) => {
     if (newPost) {
-      setPosts((prev) => [newPost, ...prev]);
+      const postWithDate = {
+        ...newPost,
+        createdAt: newPost.createdAt || new Date().toISOString(),
+      };
+      setPosts((prev) => [
+        postWithDate,
+        ...prev.filter((p) => Number(p.id) !== Number(newPost.id)),
+      ]);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -328,15 +372,24 @@ export default function Home() {
   };
 
   const displayedPosts = useMemo(() => {
+    let list = posts;
+
     if (activeTab === "following") {
       if (!currentUserId) return [];
       const followingSet = new Set(followingIds);
-      return posts.filter((p) => {
+      list = posts.filter((p) => {
         const authorId = Number(p.user?.id || p.author?.id);
         return authorId === Number(currentUserId) || followingSet.has(authorId);
       });
     }
-    return posts;
+
+    // Thuật toán Đề xuất Thông minh: Xếp bài mới đăng (dưới 2h) lên đầu, bài viết tương tác cao xếp tiếp theo
+    const followingSet = new Set(followingIds);
+    return [...list].sort((a, b) => {
+      const scoreA = calculatePostScore(a, followingSet, currentUserId);
+      const scoreB = calculatePostScore(b, followingSet, currentUserId);
+      return scoreB - scoreA;
+    });
   }, [posts, activeTab, followingIds, currentUserId]);
 
   const filteredDisplayedPosts = useMemo(() => {

@@ -752,6 +752,33 @@ export default function Feed() {
     }
   };
 
+  const displayedPosts = useMemo(() => {
+    let list = posts;
+
+    if (activeTab === "following") {
+      if (!currentUserId) return [];
+      const followingSet = new Set(followingIds);
+      list = posts.filter((p) => {
+        const authorId = Number(p.user?.id || p.author?.id);
+        return authorId === Number(currentUserId) || followingSet.has(authorId);
+      });
+    }
+
+    const followingSet = new Set(followingIds);
+    return [...list].sort((a, b) => {
+      const now = Date.now();
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : now;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : now;
+      const hoursA = Math.max(0, (now - timeA) / (1000 * 60 * 60));
+      const hoursB = Math.max(0, (now - timeB) / (1000 * 60 * 60));
+
+      const scoreA = hoursA <= 2 ? 100000 - hoursA * 10 : (100 / (1 + hoursA * 0.25)) + (Number(a.likesCount || 0) * 3) + (followingSet.has(Number(a.user?.id || a.author?.id)) ? 25 : 0);
+      const scoreB = hoursB <= 2 ? 100000 - hoursB * 10 : (100 / (1 + hoursB * 0.25)) + (Number(b.likesCount || 0) * 3) + (followingSet.has(Number(b.user?.id || b.author?.id)) ? 25 : 0);
+
+      return scoreB - scoreA;
+    });
+  }, [posts, activeTab, followingIds, currentUserId]);
+
   return (
     <div className="w-full min-h-screen bg-[#09090b] text-white font-sans selection:bg-rose-500/30">
       <div className="max-w-[1380px] mx-auto flex gap-6 px-4 py-4 justify-center">
@@ -803,7 +830,7 @@ export default function Feed() {
             </div>
           ) : (
             <div className="flex flex-col w-full">
-              {posts.map((post) => (
+              {displayedPosts.map((post) => (
                 <Luxury3DPostCard key={post.id} post={post} />
               ))}
             </div>
@@ -832,7 +859,17 @@ export default function Feed() {
         onClose={() => setIsCreateModalOpen(false)}
         onPostCreated={(newPost) => {
           setIsCreateModalOpen(false);
-          if (newPost) setPosts((prev) => [newPost, ...prev]);
+          if (newPost) {
+            const postWithDate = {
+              ...newPost,
+              createdAt: newPost.createdAt || new Date().toISOString(),
+            };
+            setPosts((prev) => [
+              postWithDate,
+              ...prev.filter((p) => Number(p.id) !== Number(newPost.id)),
+            ]);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
         }}
       />
     </div>
