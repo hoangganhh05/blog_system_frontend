@@ -38,6 +38,7 @@ import MiniSoundscapePlayer from "../components/MiniSoundscapePlayer";
 import MobileNavDrawer from "../components/MobileNavDrawer";
 import Logo from "../components/Logo";
 import Avatar from "../components/Avatar";
+import SmoothScrollProvider from "../components/SmoothScrollProvider";
 
 export default function MainLayout({ children }) {
   const { currentUser, logout } = useAuth();
@@ -64,32 +65,34 @@ export default function MainLayout({ children }) {
   const messengerMenuRef = useRef(null);
   const mobileSearchInputRef = useRef(null);
 
-  // Poll notifications badge
+  // Fetch Unread Notifications Count
   useEffect(() => {
-    if (!currentUserId) return;
-    const fetch = () =>
-      notificationService
-        .getUnreadCount()
-        .then((r) => setUnreadNotifs(r.data?.unreadCount || 0))
-        .catch(() => {});
-    fetch();
-    const t = setInterval(fetch, 45000);
-    return () => clearInterval(t);
-  }, [currentUserId]);
+    if (!currentUser) return;
+    notificationService
+      .getUnreadCount()
+      .then((res) => {
+        const count = typeof res.data === "number" ? res.data : (res.data?.unreadCount || 0);
+        setUnreadNotifs(count);
+      })
+      .catch(() => {});
+  }, [currentUser]);
 
-  // Listen for unread chat count changes
+  // Sync Unread Chat Count across components
   useEffect(() => {
-    const handleCount = (e) => {
-      if (typeof e.detail === "number") setUnreadChatCount(e.detail);
+    const handleUnreadCountChange = (e) => {
+      if (typeof e.detail?.count === "number") {
+        setUnreadChatCount(e.detail.count);
+      }
     };
-    window.addEventListener("unread_chat_count_changed", handleCount);
+
+    window.addEventListener("unread_chat_count_changed", handleUnreadCountChange);
     return () =>
-      window.removeEventListener("unread_chat_count_changed", handleCount);
+      window.removeEventListener("unread_chat_count_changed", handleUnreadCountChange);
   }, []);
 
-  // Close dropdowns on outside click (MessengerDropdown manages its own portal and click outside)
+  // Close profile dropdown when clicking outside
   useEffect(() => {
-    const h = (e) => {
+    const handleClickOutside = (e) => {
       if (
         profileMenuRef.current &&
         !profileMenuRef.current.contains(e.target)
@@ -100,8 +103,30 @@ export default function MainLayout({ children }) {
         setMobileMenuOpen(false);
       }
     };
-    document.addEventListener("click", h);
-    return () => document.removeEventListener("click", h);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Focus mobile input when opened
+  useEffect(() => {
+    if (mobileSearchOpen) {
+      setTimeout(() => {
+        mobileSearchInputRef.current?.focus();
+      }, 50);
+    }
+  }, [mobileSearchOpen]);
+
+  // Handle Sidebar collapse event from LeftSidebar
+  useEffect(() => {
+    const handleSidebarToggle = (e) => {
+      if (typeof e.detail?.isSidebarCollapsed === "boolean") {
+        setIsSidebarCollapsed(e.detail.isSidebarCollapsed);
+      }
+    };
+
+    window.addEventListener("sidebar_toggle", handleSidebarToggle);
+    return () =>
+      window.removeEventListener("sidebar_toggle", handleSidebarToggle);
   }, []);
 
   // Close mobile menu on route change
@@ -124,19 +149,6 @@ export default function MainLayout({ children }) {
       window.removeEventListener("open_ai_assistant", handleOpenAi);
       window.removeEventListener("close_ai_assistant", handleCloseAi);
     };
-  }, []);
-
-  // Sync sidebar collapsed state from LeftSidebar
-  useEffect(() => {
-    const handleSidebarToggle = (e) => {
-      if (typeof e.detail?.isSidebarCollapsed === "boolean") {
-        setIsSidebarCollapsed(e.detail.isSidebarCollapsed);
-      }
-    };
-
-    window.addEventListener("sidebar_toggle", handleSidebarToggle);
-    return () =>
-      window.removeEventListener("sidebar_toggle", handleSidebarToggle);
   }, []);
 
   // Scroll to Top Listener (Handles both independent main column and window scroll)
@@ -180,12 +192,20 @@ export default function MainLayout({ children }) {
   const isPostDetailPage = pathname.startsWith("/posts/");
 
   return (
-    <div
-      className={`min-h-screen w-full bg-[#f0f2f5] dark:bg-[#18191a] text-[#050505] dark:text-[#e4e6eb] flex flex-col transition-colors duration-200 ${isShortsPage ? "h-[100dvh] overflow-hidden" : ""}`}
-    >
-      <header
-        className={`w-full h-14 shrink-0 bg-white/95 dark:bg-[#242526]/95 backdrop-blur-md border-b border-[#e4e6eb] dark:border-[#393a3b] sticky top-0 z-50 shadow-xs ${isShortsPage ? "hidden md:block" : ""}`}
+    <SmoothScrollProvider>
+      <div
+        className={`min-h-screen w-full bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-zinc-100 flex flex-col transition-colors duration-200 relative selection:bg-blue-500/25 selection:text-blue-400 ${isShortsPage ? "h-[100dvh] overflow-hidden" : ""}`}
       >
+        {/* Ambient Dark Luxury Aurora Glows */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 hidden dark:block opacity-30">
+          <div className="absolute -top-40 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-[140px]" />
+          <div className="absolute top-1/3 -right-40 w-96 h-96 bg-indigo-600/15 rounded-full blur-[160px]" />
+          <div className="absolute -bottom-40 left-1/3 w-96 h-96 bg-purple-600/15 rounded-full blur-[140px]" />
+        </div>
+
+        <header
+          className={`w-full h-14 shrink-0 bg-white/90 dark:bg-[#0e0f12]/85 backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10 sticky top-0 z-50 shadow-2xs ${isShortsPage ? "hidden md:block" : ""}`}
+        >
         {mobileSearchOpen ? (
           /* FULL WIDTH MOBILE SEARCH BAR OVERLAY */
           <div className="w-full h-14 px-3 sm:px-6 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
@@ -672,5 +692,6 @@ export default function MainLayout({ children }) {
         </button>
       )}
     </div>
+    </SmoothScrollProvider>
   );
 }
