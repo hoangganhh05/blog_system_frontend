@@ -67,6 +67,26 @@ body,
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ============================================
+   HIDE BROWSER DEFAULT PASSWORD REVEAL EYE ICON
+   ============================================ */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+input[type="password"]::-webkit-contacts-auto-fill-button,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: 0 !important;
+}
+
 html {
   scroll-behavior: smooth;
   font-family:
