@@ -7,16 +7,15 @@ const VALID_MODES = ["dark", "light", "system"];
 function getEffectiveTheme(themeMode) {
   if (themeMode === "dark") return true;
   if (themeMode === "light") return false;
-  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return true; // Default to Luxury Dark Mode
 }
 
 function readSavedThemeMode() {
   const saved = localStorage.getItem("blog_theme_mode");
   if (saved && VALID_MODES.includes(saved)) return saved;
-  // Fallback: nếu blog_theme_mode chưa tồn tại, thử đọc key "theme" cũ
   const legacy = localStorage.getItem("theme");
   if (legacy === "dark" || legacy === "light") return legacy;
-  return "system";
+  return "dark";
 }
 
 export function ThemeProvider({ children }) {

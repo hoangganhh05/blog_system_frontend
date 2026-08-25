@@ -197,10 +197,10 @@ export default function MainLayout({ children }) {
         className={`min-h-screen w-full bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-zinc-100 flex flex-col transition-colors duration-200 relative selection:bg-blue-500/25 selection:text-blue-400 ${isShortsPage ? "h-[100dvh] overflow-hidden" : ""}`}
       >
         {/* Ambient Dark Luxury Aurora Glows */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 hidden dark:block opacity-30">
-          <div className="absolute -top-40 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-[140px]" />
-          <div className="absolute top-1/3 -right-40 w-96 h-96 bg-indigo-600/15 rounded-full blur-[160px]" />
-          <div className="absolute -bottom-40 left-1/3 w-96 h-96 bg-purple-600/15 rounded-full blur-[140px]" />
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 hidden dark:block opacity-60">
+          <div className="absolute -top-40 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[140px] animate-pulse" />
+          <div className="absolute top-1/3 -right-40 w-96 h-96 bg-rose-500/15 rounded-full blur-[160px]" />
+          <div className="absolute -bottom-40 left-1/3 w-96 h-96 bg-purple-600/20 rounded-full blur-[140px]" />
         </div>
 
         <header
