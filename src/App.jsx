@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, useLocation, Link } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  Link,
+} from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "./context/AuthContext";
 import { SoundscapeProvider } from "./context/SoundscapeContext";
@@ -33,7 +39,12 @@ import FloatingChatDock from "./components/FloatingChatDock";
 
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = ["/login", "/register", "/verify-email", "/forgot-password"].includes(location.pathname);
+  const isAuthPage = [
+    "/login",
+    "/register",
+    "/verify-email",
+    "/forgot-password",
+  ].includes(location.pathname);
   const { isDark } = useTheme();
 
   const [isCompact, setIsCompact] = useState(() => {
@@ -58,7 +69,8 @@ function AppContent() {
     };
 
     window.addEventListener("compact_mode_changed", handleCompactEvent);
-    return () => window.removeEventListener("compact_mode_changed", handleCompactEvent);
+    return () =>
+      window.removeEventListener("compact_mode_changed", handleCompactEvent);
   }, []);
 
   if (isAuthPage) {
@@ -85,35 +97,182 @@ function AppContent() {
       />
       <MainLayout>
         <Routes>
-          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-          <Route path="/posts/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
-          <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
-          <Route path="/soundscapes" element={<ProtectedRoute><SoundscapesPage /></ProtectedRoute>} />
-          <Route path="/radio" element={<ProtectedRoute><SoundscapesPage /></ProtectedRoute>} />
-          <Route path="/trending" element={<ProtectedRoute><TrendingPage /></ProtectedRoute>} />
-          <Route path="/games" element={<ProtectedRoute><GamesPage /></ProtectedRoute>} />
-          <Route path="/ai-creator" element={<ProtectedRoute><AiCreatorPage /></ProtectedRoute>} />
-          <Route path="/security" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          <Route path="/settings/privacy" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
-          <Route path="/security-settings" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
-          <Route path="/privacy" element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>} />
-          <Route path="/saved" element={<ProtectedRoute><SavedPosts /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-          <Route path="/shorts" element={<ProtectedRoute><ShortsPage /></ProtectedRoute>} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/posts/:id"
+            element={
+              <ProtectedRoute>
+                <PostDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/:userId"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/friends"
+            element={
+              <ProtectedRoute>
+                <FriendsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/search"
+            element={
+              <ProtectedRoute>
+                <SearchPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/soundscapes"
+            element={
+              <ProtectedRoute>
+                <SoundscapesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/radio"
+            element={
+              <ProtectedRoute>
+                <SoundscapesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trending"
+            element={
+              <ProtectedRoute>
+                <TrendingPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/games"
+            element={
+              <ProtectedRoute>
+                <GamesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ai-creator"
+            element={
+              <ProtectedRoute>
+                <AiCreatorPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/security"
+            element={
+              <ProtectedRoute>
+                <SecuritySettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings/privacy"
+            element={
+              <ProtectedRoute>
+                <SecuritySettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/security-settings"
+            element={
+              <ProtectedRoute>
+                <SecuritySettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <ProtectedRoute>
+                <SecuritySettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/saved"
+            element={
+              <ProtectedRoute>
+                <SavedPosts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/shorts"
+            element={
+              <ProtectedRoute>
+                <ShortsPage />
+              </ProtectedRoute>
+            }
+          />
           {/* 404 */}
           <Route
             path="*"
             element={
               <div className="p-12 text-center text-zinc-500 flex flex-col items-center gap-3">
                 <span className="text-4xl">🤔</span>
-                <h3 className="text-lg font-bold text-zinc-900 dark:text-white">404 - Trang không tồn tại</h3>
-                <p className="text-xs text-zinc-400">Trang bạn đang tìm không có ở đây.</p>
-                <Link to="/" className="px-5 py-2 rounded-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold mt-2">
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
+                  404 - Trang không tồn tại
+                </h3>
+                <p className="text-xs text-zinc-400">
+                  Trang bạn đang tìm không có ở đây.
+                </p>
+                <Link
+                  to="/"
+                  className="px-5 py-2 rounded-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold mt-2"
+                >
                   ← Về trang chủ
                 </Link>
               </div>

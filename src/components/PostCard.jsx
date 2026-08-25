@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
   MessageCircle,
@@ -34,6 +35,8 @@ import ConfirmModal from "./ConfirmModal";
 import ShareModal from "./ShareModal";
 import PostTheaterModal from "./PostTheaterModal";
 import Avatar from "./Avatar";
+import SpotlightCard from "./SpotlightCard";
+import { fireHeartParticles } from "../utils/particleUtils";
 import { isVideoUrl } from "../utils/mediaUtils";
 
 function getInitials(name) {
@@ -284,7 +287,7 @@ export default function PostCard({
     };
   }, [post?.id]);
 
-  // Optimistic Like
+  // Optimistic Like with Kinetic Particle Burst
   const handleToggleLike = async (e) => {
     e.stopPropagation();
     if (!currentUserId) {
@@ -296,7 +299,8 @@ export default function PostCard({
 
     if (!prevLiked) {
       setIsPopping(true);
-      setTimeout(() => setIsPopping(false), 500);
+      fireHeartParticles(e.currentTarget || e.target);
+      setTimeout(() => setIsPopping(false), 600);
     }
 
     setLiked(!prevLiked);
@@ -435,11 +439,10 @@ export default function PostCard({
   }
 
   return (
-    <article
+    <SpotlightCard
       onClick={handleCardClick}
-      className={`relative transition-all rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs card-dynamic-hover hover:border-zinc-300 dark:hover:border-zinc-700 flex gap-3.5 ${menuOpen ? "z-30" : "z-0"} ${!isDetailed ? "cursor-pointer" : ""}`}
+      className={`relative transition-all rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-zinc-900/85 backdrop-blur-xl p-4 sm:p-5 shadow-xs hover:shadow-xl hover:border-slate-300 dark:hover:border-white/20 flex gap-3.5 ${menuOpen ? "z-30" : "z-0"} ${!isDetailed ? "cursor-pointer" : ""}`}
     >
-      {" "}
       {/* Author Avatar */}
       <div className="shrink-0">
         <Avatar
@@ -962,26 +965,28 @@ export default function PostCard({
           </div>
         )}
 
-        {/* Action Buttons (Dàn đều cân đối toàn bộ chiều rộng PostCard) */}
-        <div className="flex items-center justify-between w-full text-zinc-500 pt-2 mt-1 px-2 sm:px-4">
+        {/* Action Buttons (Dàn đều cân đối toàn bộ chiều rộng PostCard - Awwwards Kinetic Feedback) */}
+        <div className="flex items-center justify-between w-full text-slate-500 dark:text-zinc-400 pt-2.5 mt-1 px-1 sm:px-3">
           {/* Like & Reaction section with Hover Tooltip & Click Modal */}
           <div
             className="relative flex items-center gap-1 group/like"
             onMouseEnter={handleLikeMouseEnter}
             onMouseLeave={() => setIsHoveringLike(false)}
           >
-            <button
+            <motion.button
               type="button"
+              whileHover={{ scale: 1.12 }}
+              whileTap={{ scale: 0.85 }}
               onClick={handleToggleLike}
-              className={`flex items-center gap-1.5 text-xs font-medium transition cursor-pointer active:scale-95 ${
-                liked ? "text-rose-500" : "hover:text-rose-500"
+              className={`flex items-center gap-1.5 text-xs font-medium transition cursor-pointer ${
+                liked ? "text-rose-500 font-bold" : "hover:text-rose-500"
               }`}
               title={liked ? "Bỏ thích" : "Thích bài viết"}
             >
-              <div className="relative p-2 min-w-[38px] min-h-[38px] rounded-full hover:bg-rose-50 dark:hover:bg-rose-950/30 transition flex items-center justify-center">
+              <div className="relative p-2 min-w-[38px] min-h-[38px] rounded-full hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center justify-center">
                 <Heart
-                  strokeWidth={1.8}
-                  className={`w-4 h-4 transition duration-150 ${
+                  strokeWidth={liked ? 2.5 : 1.8}
+                  className={`w-4.5 h-4.5 transition duration-150 ${
                     liked ? "fill-rose-500 text-rose-500" : ""
                   } ${isPopping ? "animate-heart-pop" : ""}`}
                 />
@@ -989,7 +994,7 @@ export default function PostCard({
                   <div className="absolute inset-0 rounded-full border border-rose-400 dark:border-rose-400 animate-heart-burst pointer-events-none" />
                 )}
               </div>
-            </button>
+            </motion.button>
 
             {likeCount > 0 && (
               <button
@@ -998,33 +1003,43 @@ export default function PostCard({
                   e.stopPropagation();
                   setIsReactionsModalOpen(true);
                 }}
-                className="text-xs text-zinc-500 dark:text-zinc-400 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer font-semibold px-1.5 py-1 min-h-[36px] flex items-center active:scale-95 transition-transform"
+                className="text-xs text-slate-600 dark:text-zinc-400 hover:underline hover:text-slate-900 dark:hover:text-white cursor-pointer font-bold px-1.5 py-1 min-h-[36px] flex items-center active:scale-95 transition-transform"
               >
                 {likeCount}
               </button>
             )}
 
             {/* Hover Tooltip Popup (Hiển thị danh sách nhanh khi rê chuột) */}
-            {isHoveringLike && likeCount > 0 && (
-              <div className="absolute bottom-full left-0 mb-2 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 px-3 py-2 rounded-xl shadow-2xl z-50 pointer-events-none whitespace-nowrap backdrop-blur-md border border-white/10 dark:border-zinc-300 animate-in fade-in zoom-in-95 duration-100 flex flex-col gap-1">
-                <div className="flex items-center gap-1.5 text-xs font-bold leading-none">
-                  <span className="w-4 h-4 rounded-full bg-rose-500 flex items-center justify-center text-[10px] text-white">
-                    ❤️
-                  </span>
-                  <span>{likeCount} lượt thích</span>
-                </div>
-                {likersPreview && (
-                  <span className="text-[11px] text-zinc-300 dark:text-zinc-600 font-normal leading-snug max-w-[220px] truncate">
-                    {likersPreview}
-                  </span>
-                )}
-              </div>
-            )}
+            <AnimatePresence>
+              {isHoveringLike && likeCount > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute bottom-full left-0 mb-2 bg-slate-900/95 text-white dark:bg-zinc-900/95 dark:text-white px-3 py-2 rounded-xl shadow-2xl z-50 pointer-events-none whitespace-nowrap backdrop-blur-xl border border-white/10 flex flex-col gap-1"
+                >
+                  <div className="flex items-center gap-1.5 text-xs font-bold leading-none">
+                    <span className="w-4 h-4 rounded-full bg-rose-500 flex items-center justify-center text-[10px] text-white">
+                      ❤️
+                    </span>
+                    <span>{likeCount} lượt thích</span>
+                  </div>
+                  {likersPreview && (
+                    <span className="text-[11px] text-zinc-300 font-normal leading-snug max-w-[220px] truncate">
+                      {likersPreview}
+                    </span>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Comment */}
-          <button
+          <motion.button
             type="button"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.88 }}
             onClick={(e) => {
               e.stopPropagation();
               if (isDetailed) return;
@@ -1049,48 +1064,52 @@ export default function PostCard({
                 openTheater(e, 0);
               }
             }}
-            className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 text-xs font-medium group hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer"
             title="Bình luận"
           >
-            <div className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
-              <MessageCircle strokeWidth={1.8} className="w-4 h-4" />
+            <div className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-full group-hover:bg-blue-50 dark:group-hover:bg-blue-950/40 transition">
+              <MessageCircle strokeWidth={1.8} className="w-4.5 h-4.5" />
             </div>
-            <span>{commentCount > 0 ? commentCount : ""}</span>
-          </button>
+            <span className="font-semibold">{commentCount > 0 ? commentCount : ""}</span>
+          </motion.button>
 
           {/* Share */}
-          <button
+          <motion.button
             type="button"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.88 }}
             onClick={(e) => {
               e.stopPropagation();
               setIsShareModalOpen(true);
             }}
-            className="flex items-center gap-1.5 text-xs font-medium group hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 text-xs font-medium group hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer"
             title="Chia sẻ"
           >
-            <div className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
-              <Repeat strokeWidth={1.8} className="w-4 h-4" />
+            <div className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-full group-hover:bg-emerald-50 dark:group-hover:bg-emerald-950/40 transition">
+              <Repeat strokeWidth={1.8} className="w-4.5 h-4.5" />
             </div>
-          </button>
+          </motion.button>
 
           {/* Bookmark */}
-          <button
+          <motion.button
             type="button"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.88 }}
             onClick={handleToggleBookmark}
-            className={`flex items-center gap-1.5 text-xs font-medium group transition cursor-pointer active:scale-95 ${
+            className={`flex items-center gap-1.5 text-xs font-medium group transition cursor-pointer ${
               bookmarked
-                ? "text-black dark:text-white"
-                : "hover:text-black dark:hover:text-white"
+                ? "text-blue-600 dark:text-blue-400 font-bold"
+                : "hover:text-blue-600 dark:hover:text-blue-400"
             }`}
             title="Lưu bài viết"
           >
-            <div className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-full group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition">
+            <div className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-full group-hover:bg-blue-50 dark:group-hover:bg-blue-950/40 transition">
               <Bookmark
                 strokeWidth={1.8}
-                className={`w-4 h-4 transition ${bookmarked ? "fill-black dark:fill-white" : ""}`}
+                className={`w-4.5 h-4.5 transition ${bookmarked ? "fill-blue-600 dark:fill-blue-400 text-blue-600 dark:text-blue-400" : ""}`}
               />
             </div>
-          </button>
+          </motion.button>
         </div>
       </div>
       {/* Edit Post Modal */}
@@ -1153,6 +1172,6 @@ export default function PostCard({
           }}
         />
       )}
-    </article>
+    </SpotlightCard>
   );
 }
