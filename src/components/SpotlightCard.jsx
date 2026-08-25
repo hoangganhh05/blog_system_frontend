@@ -38,7 +38,7 @@ export default function SpotlightCard({
     >
       {/* Dynamic Mouse Spotlight Glow Layer */}
       <motion.div
-        className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:block hidden"
+        className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 block"
         style={{
           background,
         }}

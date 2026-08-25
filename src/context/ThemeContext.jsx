@@ -26,7 +26,10 @@ export function ThemeProvider({ children }) {
     const updateTheme = (mode) => {
       const effectiveDark = getEffectiveTheme(mode);
       setIsDark(effectiveDark);
-      document.documentElement.setAttribute("data-theme", effectiveDark ? "dark" : "light");
+      document.documentElement.setAttribute(
+        "data-theme",
+        effectiveDark ? "dark" : "light",
+      );
       if (effectiveDark) {
         document.documentElement.classList.add("dark");
         localStorage.setItem("theme", "dark");
@@ -62,7 +65,10 @@ export function ThemeProvider({ children }) {
       if (mediaQuery && mediaHandler) {
         mediaQuery.removeEventListener("change", mediaHandler);
       }
-      window.removeEventListener("theme_mode_changed", handleExternalThemeChange);
+      window.removeEventListener(
+        "theme_mode_changed",
+        handleExternalThemeChange,
+      );
     };
   }, [themeMode]);
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import postService from "../services/postService";
 import categoryService from "../services/categoryService";
 import friendService from "../services/friendService";
@@ -20,12 +20,8 @@ import {
   MessageSquare,
   Users,
   UserPlus,
-  Compass,
   Sparkles,
   Check,
-  Flame,
-  TrendingUp,
-  SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -353,29 +349,25 @@ export default function Home() {
 
   return (
     <div className="w-full flex flex-col gap-4 selection:bg-rose-500/30">
-      {/* 1. LUXURY TAB SWITCHER (Segmented Pill + Glow Motion) */}
-      <div className="relative flex p-1.5 rounded-2xl bg-neutral-900/70 border border-white/10 backdrop-blur-xl shadow-2xl shrink-0 gap-1 overflow-hidden">
-        {/* Glow ambient background inside tab container */}
-        <div className="absolute -top-12 -left-12 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-rose-500/10 rounded-full blur-2xl pointer-events-none" />
-
+      {/* 1. DUAL-THEME SEGMENTED TAB SWITCHER */}
+      <div className="relative flex p-1.5 rounded-2xl bg-slate-200/70 dark:bg-neutral-900/70 border border-slate-300/60 dark:border-white/10 backdrop-blur-xl shadow-xs shrink-0 gap-1 overflow-hidden">
         <button
           type="button"
           onClick={() => handleTabChange("forYou")}
           className={`relative flex-1 py-3 text-center text-xs font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 select-none rounded-xl z-10 ${
             activeTab === "forYou"
-              ? "text-white shadow-lg"
-              : "text-neutral-400 hover:text-neutral-200 hover:bg-white/5"
+              ? "text-slate-900 dark:text-white font-extrabold"
+              : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200 hover:bg-white/50 dark:hover:bg-white/5"
           }`}
         >
           {activeTab === "forYou" && (
             <motion.div
               layoutId="homeTabPill"
-              className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/15 via-white/10 to-white/5 border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.08)]"
+              className="absolute inset-0 rounded-xl bg-white dark:bg-white/10 border border-slate-300/80 dark:border-white/20 shadow-md dark:shadow-[0_0_20px_rgba(255,255,255,0.08)]"
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
             />
           )}
-          <Sparkles className={`w-4 h-4 relative z-10 ${activeTab === "forYou" ? "text-cyan-400" : ""}`} />
+          <Sparkles className={`w-4 h-4 relative z-10 ${activeTab === "forYou" ? "text-blue-600 dark:text-cyan-400" : ""}`} />
           <span className="relative z-10 tracking-wide">Dành cho bạn</span>
         </button>
 
@@ -384,23 +376,23 @@ export default function Home() {
           onClick={() => handleTabChange("following")}
           className={`relative flex-1 py-3 text-center text-xs font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 select-none rounded-xl z-10 ${
             activeTab === "following"
-              ? "text-white shadow-lg"
-              : "text-neutral-400 hover:text-neutral-200 hover:bg-white/5"
+              ? "text-slate-900 dark:text-white font-extrabold"
+              : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200 hover:bg-white/50 dark:hover:bg-white/5"
           }`}
         >
           {activeTab === "following" && (
             <motion.div
               layoutId="homeTabPill"
-              className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/15 via-white/10 to-white/5 border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.08)]"
+              className="absolute inset-0 rounded-xl bg-white dark:bg-white/10 border border-slate-300/80 dark:border-white/20 shadow-md dark:shadow-[0_0_20px_rgba(255,255,255,0.08)]"
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
             />
           )}
-          <Users className={`w-4 h-4 relative z-10 ${activeTab === "following" ? "text-rose-400" : ""}`} />
+          <Users className={`w-4 h-4 relative z-10 ${activeTab === "following" ? "text-rose-600 dark:text-rose-400" : ""}`} />
           <span className="relative z-10 tracking-wide">Đang theo dõi</span>
         </button>
       </div>
 
-      {/* 2. CATEGORY FILTER BAR - LUXURY GLASS PILLS */}
+      {/* 2. CATEGORY FILTER BAR - DUAL THEME PILLS */}
       {categories.length > 0 && (
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1 touch-pan-x">
           <button
@@ -408,8 +400,8 @@ export default function Home() {
             onClick={() => setSelectedCategory(null)}
             className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer flex-shrink-0 border ${
               selectedCategory === null
-                ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                : "bg-neutral-900/60 backdrop-blur-md border-white/10 text-neutral-400 hover:text-white hover:border-white/20"
+                ? "bg-slate-900 text-white dark:bg-white dark:text-black border-slate-900 dark:border-white shadow-sm"
+                : "bg-white dark:bg-neutral-900/60 backdrop-blur-md border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-white/20"
             }`}
           >
             ✦ Tất cả danh mục
@@ -421,8 +413,8 @@ export default function Home() {
               onClick={() => setSelectedCategory(cat.id)}
               className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer flex-shrink-0 border ${
                 selectedCategory === cat.id
-                  ? "bg-gradient-to-r from-cyan-500 to-rose-500 text-white border-transparent shadow-[0_0_15px_rgba(34,211,238,0.4)]"
-                  : "bg-neutral-900/60 backdrop-blur-md border-white/10 text-neutral-400 hover:text-white hover:border-white/20"
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-cyan-500 dark:to-rose-500 text-white border-transparent shadow-md"
+                  : "bg-white dark:bg-neutral-900/60 backdrop-blur-md border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-white/20"
               }`}
             >
               {cat.name}
@@ -442,15 +434,15 @@ export default function Home() {
 
       {/* 5. MOBILE SUGGESTED AUTHORS CAROUSEL */}
       {suggestedUsers.length > 0 && activeTab === "forYou" && (
-        <div className="lg:hidden p-4 bg-neutral-900/60 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl flex flex-col gap-3 overflow-hidden">
+        <div className="lg:hidden p-4 bg-white dark:bg-neutral-900/60 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl shadow-xs flex flex-col gap-3 overflow-hidden">
           <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
               Gợi ý tác giả nổi bật
             </span>
             <Link
               to="/friends"
-              className="text-[11px] font-semibold text-cyan-400 hover:underline"
+              className="text-[11px] font-semibold text-blue-600 dark:text-cyan-400 hover:underline"
             >
               Xem tất cả
             </Link>
@@ -463,7 +455,7 @@ export default function Home() {
               return (
                 <div
                   key={user.id}
-                  className="w-36 min-w-[140px] shrink-0 p-3 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center text-center gap-2.5 shadow-lg"
+                  className="w-36 min-w-[140px] shrink-0 p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex flex-col items-center text-center gap-2.5 shadow-2xs"
                 >
                   <Link
                     to={`/profile/${user.id}`}
@@ -476,13 +468,13 @@ export default function Home() {
                       username={user.username}
                       avatarColor={user.avatarColor}
                       size="md"
-                      className="shrink-0 border border-white/10"
+                      className="shrink-0 border border-slate-200 dark:border-white/10"
                     />
                     <div className="flex flex-col items-center w-full px-0.5">
-                      <span className="text-xs font-bold text-white truncate w-full text-center">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white truncate w-full text-center">
                         {name}
                       </span>
-                      <span className="text-[10px] text-neutral-400 truncate w-full text-center">
+                      <span className="text-[10px] text-slate-500 dark:text-neutral-400 truncate w-full text-center">
                         @{user.username}
                       </span>
                     </div>
@@ -493,13 +485,13 @@ export default function Home() {
                     onClick={() => handleToggleFollow(user)}
                     className={`w-full py-2 rounded-full text-[11px] font-bold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer ${
                       isFollowing
-                        ? "bg-white/10 text-neutral-300 border border-white/10"
-                        : "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg"
+                        ? "bg-slate-200 dark:bg-white/10 text-slate-800 dark:text-neutral-300 border border-slate-300 dark:border-white/10"
+                        : "bg-blue-600 text-white dark:bg-gradient-to-r dark:from-cyan-500 dark:to-blue-600 shadow-xs"
                     }`}
                   >
                     {isFollowing ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <Check className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
                         <span>Đang theo dõi</span>
                       </>
                     ) : (
@@ -526,19 +518,19 @@ export default function Home() {
           </>
         ) : displayedPosts.length === 0 ? (
           activeTab === "following" ? (
-            <SpotlightCard className="p-8 text-center flex flex-col items-center justify-center gap-3 text-neutral-400">
-              <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 text-cyan-400 flex items-center justify-center shadow-lg">
+            <SpotlightCard className="p-8 text-center flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-neutral-400">
+              <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-blue-600 dark:text-cyan-400 flex items-center justify-center shadow-xs">
                 <UserPlus className="w-7 h-7 stroke-[1.5]" />
               </div>
               <div className="flex flex-col gap-1">
-                <p className="font-bold text-sm text-white">
+                <p className="font-bold text-sm text-slate-900 dark:text-white">
                   {!currentUserId
                     ? "Đăng nhập để xem bảng tin theo dõi"
                     : followingIds.length === 0
                       ? "Bạn chưa theo dõi ai"
                       : "Chưa có bài viết nào từ người bạn theo dõi"}
                 </p>
-                <p className="text-xs text-neutral-400 max-w-sm leading-relaxed mx-auto">
+                <p className="text-xs text-slate-500 dark:text-neutral-400 max-w-sm leading-relaxed mx-auto">
                   {!currentUserId
                     ? "Đăng nhập vào BlogViet để theo dõi các tác giả yêu thích."
                     : "Bấm 'Theo dõi' các tác giả để cập nhật tin tức mới nhất!"}
@@ -584,22 +576,22 @@ export default function Home() {
       {hasMore && !loading && (
         <div
           ref={bottomObserverRef}
-          className="py-8 flex flex-col items-center justify-center gap-2 text-neutral-400"
+          className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-neutral-400"
         >
-          <div className="flex items-center gap-2 text-xs font-semibold text-neutral-400">
-            <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
-            <span>Đang tự động tải thêm bài viết Luxury...</span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-neutral-400">
+            <Loader2 className="w-4 h-4 animate-spin text-blue-600 dark:text-cyan-400" />
+            <span>Đang tự động tải thêm bài viết...</span>
           </div>
         </div>
       )}
 
       {/* FEED END MARKER */}
       {!hasMore && !loading && displayedPosts.length > 0 && (
-        <div className="py-8 flex flex-col items-center justify-center gap-2 text-neutral-500">
-          <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cyan-400 shadow-lg">
+        <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-neutral-500">
+          <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-blue-600 dark:text-cyan-400 shadow-xs">
             <Sparkles className="w-4 h-4" />
           </div>
-          <span className="text-xs font-bold text-neutral-200">
+          <span className="text-xs font-bold text-slate-700 dark:text-neutral-200">
             Bạn đã xem hết bài viết trên Bảng tin ✨
           </span>
         </div>
